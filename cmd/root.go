@@ -4,6 +4,7 @@ import (
 	"github.com/akshatdalton/harbor-cli/cmd/constants"
 	"github.com/akshatdalton/harbor-cli/cmd/login"
 	"github.com/akshatdalton/harbor-cli/cmd/project"
+	"github.com/akshatdalton/harbor-cli/cmd/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ func newGetCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", "Name of the credential to use for authentication")
 	cmd.AddCommand(project.NewGetProjectCommand())
+	cmd.AddCommand(registry.NewGetRegistryCommand())
 	return cmd
 }
 
