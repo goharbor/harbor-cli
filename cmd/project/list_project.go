@@ -26,7 +26,7 @@ func NewListProjectCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "project",
-		Short: "list projects",
+		Short: "list project",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
 			if err != nil {

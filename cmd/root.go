@@ -32,6 +32,7 @@ func newListCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", "Name of the credential to use for authentication")
 	cmd.AddCommand(project.NewListProjectCommand())
+	cmd.AddCommand(registry.NewListRegistryCommand())
 	return cmd
 }
 
