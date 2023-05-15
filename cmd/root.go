@@ -22,9 +22,23 @@ func newGetCommand() *cobra.Command {
 	return cmd
 }
 
+// newListCommand creates a new `harbor list` command
+func newListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list [COMMAND]",
+		Short: "list project, registry, etc.",
+		Long:  `List project, registry`,
+	}
+
+	cmd.PersistentFlags().String(constants.CredentialNameOption, "", "Name of the credential to use for authentication")
+	cmd.AddCommand(project.NewListProjectCommand())
+	return cmd
+}
+
 func addCommands(cmd *cobra.Command) {
 	cmd.AddCommand(login.NewLoginCommand())
 	cmd.AddCommand(newGetCommand())
+	cmd.AddCommand(newListCommand())
 }
 
 // CreateHarborCLI creates a new Harbor CLI
