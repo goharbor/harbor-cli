@@ -46,6 +46,7 @@ func newCreateCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.NewCreateProjectCommand())
+	cmd.AddCommand(registry.NewCreateRegistryCommand())
 	return cmd
 }
 
