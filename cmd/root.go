@@ -50,11 +50,25 @@ func newCreateCommand() *cobra.Command {
 	return cmd
 }
 
+// newDeleteCommand creates a new `harbor delete` command
+func newDeleteCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete [COMMAND]",
+		Short: "delete project, registry, etc.",
+		Long:  `Delete project, registry`,
+	}
+
+	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
+	cmd.AddCommand(project.NewDeleteProjectCommand())
+	return cmd
+}
+
 func addCommands(cmd *cobra.Command) {
 	cmd.AddCommand(login.NewLoginCommand())
 	cmd.AddCommand(newGetCommand())
 	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newCreateCommand())
+	cmd.AddCommand(newDeleteCommand())
 }
 
 // CreateHarborCLI creates a new Harbor CLI
