@@ -21,7 +21,7 @@ func NewDeleteRegistryCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "registry [NAME|ID]",
-		Short: "delete registry by name or id",
+		Short: "delete registry by id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
