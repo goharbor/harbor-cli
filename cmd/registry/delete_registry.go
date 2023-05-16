@@ -20,7 +20,7 @@ func NewDeleteRegistryCommand() *cobra.Command {
 	var opts deleteRegistryOptions
 
 	cmd := &cobra.Command{
-		Use:   "registry [NAME|ID]",
+		Use:   "registry [ID]",
 		Short: "delete registry by id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
