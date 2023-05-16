@@ -60,6 +60,7 @@ func newDeleteCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.NewDeleteProjectCommand())
+	cmd.AddCommand(registry.NewDeleteRegistryCommand())
 	return cmd
 }
 
