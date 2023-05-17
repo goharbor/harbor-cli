@@ -64,12 +64,26 @@ func newDeleteCommand() *cobra.Command {
 	return cmd
 }
 
+// newUpdateCommand creates a new `harbor update` command
+func newUpdateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update [COMMAND]",
+		Short: "update registry, etc.",
+		Long:  `Update registry`,
+	}
+
+	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
+	cmd.AddCommand(registry.NewUpdateRegistryCommand())
+	return cmd
+}
+
 func addCommands(cmd *cobra.Command) {
 	cmd.AddCommand(login.NewLoginCommand())
 	cmd.AddCommand(newGetCommand())
 	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newCreateCommand())
 	cmd.AddCommand(newDeleteCommand())
+	cmd.AddCommand(newUpdateCommand())
 }
 
 // CreateHarborCLI creates a new Harbor CLI
