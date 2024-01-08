@@ -1,6 +1,10 @@
 # harbor-cli
-Official Harbor CLI
+LFX mentorship program project original author https://github.com/akshatdalton 
 
+https://github.com/cncf/mentoring/tree/main/programs/lfx-mentorship/2023/01-Mar-May#an-official-golang-api-client-and-cli-for-harbor
+https://mentorship.lfx.linuxfoundation.org/project/7e8cb88a-5b37-471c-8db8-e11907b5a661
+
+#Under Contstruction! 
 # How to Install:
 
 - Run `go mod download` to install the dependencies
