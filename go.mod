@@ -1,4 +1,4 @@
-module github.com/akshatdalton/harbor-cli
+module github.com/goharbor/harbor-cli
 
 go 1.20
 

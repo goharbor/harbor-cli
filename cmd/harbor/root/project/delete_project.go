@@ -3,23 +3,23 @@ package project
 import (
 	"context"
 
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-type getProjectOptions struct {
+type deleteProjectOptions struct {
 	projectNameOrID string
 }
 
-// NewGetProjectCommand creates a new `harbor get project` command
-func NewGetProjectCommand() *cobra.Command {
-	var opts getProjectOptions
+// DeleteProjectCommand creates a new `harbor delete project` command
+func DeleteProjectCommand() *cobra.Command {
+	var opts deleteProjectOptions
 
 	cmd := &cobra.Command{
 		Use:   "project [NAME|ID]",
-		Short: "get project by name or id",
+		Short: "delete project by name or id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.projectNameOrID = args[0]
@@ -27,17 +27,17 @@ func NewGetProjectCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return runGetProject(opts, credentialName)
+			return runDeleteProject(opts, credentialName)
 		},
 	}
 
 	return cmd
 }
 
-func runGetProject(opts getProjectOptions, credentialName string) error {
+func runDeleteProject(opts deleteProjectOptions, credentialName string) error {
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: opts.projectNameOrID})
+	response, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: opts.projectNameOrID})
 
 	if err != nil {
 		return err

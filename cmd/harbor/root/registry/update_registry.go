@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ type updateRegistrytOptions struct {
 }
 
 // NewUpdateRegistryCommand creates a new `harbor update registry` command
-func NewUpdateRegistryCommand() *cobra.Command {
+func UpdateRegistryCommand() *cobra.Command {
 	var opts updateRegistrytOptions
 
 	cmd := &cobra.Command{

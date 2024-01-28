@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/adrg/xdg"
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	"gopkg.in/yaml.v2"
 )
 
