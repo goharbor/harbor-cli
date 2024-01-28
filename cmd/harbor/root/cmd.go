@@ -1,10 +1,9 @@
-package cmd
+package root
 
 import (
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/login"
-	"github.com/akshatdalton/harbor-cli/cmd/project"
-	"github.com/akshatdalton/harbor-cli/cmd/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -77,22 +76,20 @@ func newUpdateCommand() *cobra.Command {
 	return cmd
 }
 
-func addCommands(cmd *cobra.Command) {
-	cmd.AddCommand(login.NewLoginCommand())
-	cmd.AddCommand(newGetCommand())
-	cmd.AddCommand(newListCommand())
-	cmd.AddCommand(newCreateCommand())
-	cmd.AddCommand(newDeleteCommand())
-	cmd.AddCommand(newUpdateCommand())
-}
-
 // CreateHarborCLI creates a new Harbor CLI
-func CreateHarborCLI() *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "harbor",
+		Use:   "harbor [command]",
 		Short: "Official Harbor CLI",
 	}
 
-	addCommands(cmd)
+	cmd.AddCommand(
+		LoginCommand(),
+		newGetCommand(),
+		newListCommand(),
+		newCreateCommand(),
+		newDeleteCommand(),
+		newUpdateCommand(),
+	)
 	return cmd
 }

@@ -3,9 +3,9 @@ package project
 import (
 	"context"
 
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +21,7 @@ type listProjectOptions struct {
 }
 
 // NewListProjectCommand creates a new `harbor list project` command
-func NewListProjectCommand() *cobra.Command {
+func ListProjectCommand() *cobra.Command {
 	var opts listProjectOptions
 
 	cmd := &cobra.Command{

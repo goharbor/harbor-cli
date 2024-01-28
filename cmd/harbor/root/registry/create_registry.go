@@ -3,10 +3,10 @@ package registry
 import (
 	"context"
 
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ type createRegistrytOptions struct {
 }
 
 // NewCreateRegistryCommand creates a new `harbor create registry` command
-func NewCreateRegistryCommand() *cobra.Command {
+func CreateRegistryCommand() *cobra.Command {
 	var opts createRegistrytOptions
 
 	cmd := &cobra.Command{
