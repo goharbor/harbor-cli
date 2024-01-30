@@ -5,6 +5,7 @@ import (
 	"github.com/akshatdalton/harbor-cli/cmd/login"
 	"github.com/akshatdalton/harbor-cli/cmd/project"
 	"github.com/akshatdalton/harbor-cli/cmd/registry"
+	"github.com/akshatdalton/harbor-cli/cmd/robot"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ func newGetCommand() *cobra.Command {
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.NewGetProjectCommand())
 	cmd.AddCommand(registry.NewGetRegistryCommand())
+	cmd.AddCommand(robot.NewGetRobotCommand())
 	return cmd
 }
 
@@ -33,6 +35,7 @@ func newListCommand() *cobra.Command {
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.NewListProjectCommand())
 	cmd.AddCommand(registry.NewListRegistryCommand())
+	cmd.AddCommand(robot.NewListRobotCommand())
 	return cmd
 }
 
@@ -61,6 +64,7 @@ func newDeleteCommand() *cobra.Command {
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.NewDeleteProjectCommand())
 	cmd.AddCommand(registry.NewDeleteRegistryCommand())
+	cmd.AddCommand(robot.NewDeleteRobotCommand())
 	return cmd
 }
 
