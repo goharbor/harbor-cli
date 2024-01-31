@@ -16,8 +16,8 @@ func newGetCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewGetProjectCommand())
-	cmd.AddCommand(registry.NewGetRegistryCommand())
+	cmd.AddCommand(project.GetProjectCommand())
+	cmd.AddCommand(registry.GetRegistryCommand())
 	return cmd
 }
 
@@ -30,8 +30,8 @@ func newListCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewListProjectCommand())
-	cmd.AddCommand(registry.NewListRegistryCommand())
+	cmd.AddCommand(project.ListProjectCommand())
+	cmd.AddCommand(registry.ListRegistryCommand())
 	return cmd
 }
 
@@ -44,8 +44,8 @@ func newCreateCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewCreateProjectCommand())
-	cmd.AddCommand(registry.NewCreateRegistryCommand())
+	cmd.AddCommand(project.CreateProjectCommand())
+	cmd.AddCommand(registry.CreateRegistryCommand())
 	return cmd
 }
 
@@ -58,8 +58,8 @@ func newDeleteCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewDeleteProjectCommand())
-	cmd.AddCommand(registry.NewDeleteRegistryCommand())
+	cmd.AddCommand(project.DeleteProjectCommand())
+	cmd.AddCommand(registry.DeleteRegistryCommand())
 	return cmd
 }
 
@@ -72,7 +72,7 @@ func newUpdateCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(registry.NewUpdateRegistryCommand())
+	cmd.AddCommand(registry.UpdateRegistryCommand())
 	return cmd
 }
 
