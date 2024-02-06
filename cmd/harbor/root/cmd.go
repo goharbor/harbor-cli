@@ -1,10 +1,9 @@
-package cmd
+package root
 
 import (
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/login"
-	"github.com/akshatdalton/harbor-cli/cmd/project"
-	"github.com/akshatdalton/harbor-cli/cmd/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -17,8 +16,8 @@ func newGetCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewGetProjectCommand())
-	cmd.AddCommand(registry.NewGetRegistryCommand())
+	cmd.AddCommand(project.GetProjectCommand())
+	cmd.AddCommand(registry.GetRegistryCommand())
 	return cmd
 }
 
@@ -31,8 +30,8 @@ func newListCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewListProjectCommand())
-	cmd.AddCommand(registry.NewListRegistryCommand())
+	cmd.AddCommand(project.ListProjectCommand())
+	cmd.AddCommand(registry.ListRegistryCommand())
 	return cmd
 }
 
@@ -45,8 +44,8 @@ func newCreateCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewCreateProjectCommand())
-	cmd.AddCommand(registry.NewCreateRegistryCommand())
+	cmd.AddCommand(project.CreateProjectCommand())
+	cmd.AddCommand(registry.CreateRegistryCommand())
 	return cmd
 }
 
@@ -59,8 +58,8 @@ func newDeleteCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(project.NewDeleteProjectCommand())
-	cmd.AddCommand(registry.NewDeleteRegistryCommand())
+	cmd.AddCommand(project.DeleteProjectCommand())
+	cmd.AddCommand(registry.DeleteRegistryCommand())
 	return cmd
 }
 
@@ -73,26 +72,24 @@ func newUpdateCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
-	cmd.AddCommand(registry.NewUpdateRegistryCommand())
+	cmd.AddCommand(registry.UpdateRegistryCommand())
 	return cmd
 }
 
-func addCommands(cmd *cobra.Command) {
-	cmd.AddCommand(login.NewLoginCommand())
-	cmd.AddCommand(newGetCommand())
-	cmd.AddCommand(newListCommand())
-	cmd.AddCommand(newCreateCommand())
-	cmd.AddCommand(newDeleteCommand())
-	cmd.AddCommand(newUpdateCommand())
-}
-
 // CreateHarborCLI creates a new Harbor CLI
-func CreateHarborCLI() *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "harbor",
+		Use:   "harbor [command]",
 		Short: "Official Harbor CLI",
 	}
 
-	addCommands(cmd)
+	cmd.AddCommand(
+		LoginCommand(),
+		newGetCommand(),
+		newListCommand(),
+		newCreateCommand(),
+		newDeleteCommand(),
+		newUpdateCommand(),
+	)
 	return cmd
 }

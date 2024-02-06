@@ -19,6 +19,7 @@
 
 # Go workspace file
 go.work
+/bin
 
-# harbor compiled file
-harbor
+/harbor
+dist/

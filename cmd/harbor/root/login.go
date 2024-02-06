@@ -1,12 +1,12 @@
-package login
+package root
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,8 +17,8 @@ type loginOptions struct {
 	password      string
 }
 
-// NewLoginCommand creates a new `harbor login` command
-func NewLoginCommand() *cobra.Command {
+// LoginCommand creates a new `harbor login` command
+func LoginCommand() *cobra.Command {
 	var opts loginOptions
 
 	cmd := &cobra.Command{

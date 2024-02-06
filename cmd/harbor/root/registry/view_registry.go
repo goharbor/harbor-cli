@@ -5,23 +5,23 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/akshatdalton/harbor-cli/cmd/constants"
-	"github.com/akshatdalton/harbor-cli/cmd/utils"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-type deleteRegistryOptions struct {
+type getRegistryOptions struct {
 	id int64
 }
 
-// NewDeleteRegistryCommand creates a new `harbor delete registry` command
-func NewDeleteRegistryCommand() *cobra.Command {
-	var opts deleteRegistryOptions
+// NewGetRegistryCommand creates a new `harbor get registry` command
+func GetRegistryCommand() *cobra.Command {
+	var opts getRegistryOptions
 
 	cmd := &cobra.Command{
 		Use:   "registry [ID]",
-		Short: "delete registry by id",
+		Short: "get registry by id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
@@ -35,22 +35,22 @@ func NewDeleteRegistryCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return runDeleteRegistry(opts, credentialName)
+			return runGetRegistry(opts, credentialName)
 		},
 	}
 
 	return cmd
 }
 
-func runDeleteRegistry(opts deleteRegistryOptions, credentialName string) error {
+func runGetRegistry(opts getRegistryOptions, credentialName string) error {
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	response, err := client.Registry.DeleteRegistry(ctx, &registry.DeleteRegistryParams{ID: opts.id})
+	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: opts.id})
 
 	if err != nil {
 		return err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
+	utils.PrintPayloadInJSONFormat(response.GetPayload())
 	return nil
 }
