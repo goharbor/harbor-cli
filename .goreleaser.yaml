@@ -6,7 +6,7 @@ builds:
   env:
     - CGO_ENABLED=0
   ldflags:
-    - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
+    - -w -s -X github.com/goharbor/cli/cmd/version/version.GitCommit={{.FullCommit}}
   goos:
     - linux
     - windows

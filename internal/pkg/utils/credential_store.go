@@ -2,18 +2,21 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
-	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/internal/pkg/constants"
+	logger "github.com/goharbor/harbor-cli/internal/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
 
-var configFile = filepath.Join(xdg.Home, ".harbor", "config")
+var (
+	configFile = filepath.Join(xdg.Home, ".harbor", "config")
+	logging    logger.Logger
+)
 
 type Credential struct {
 	Name          string `yaml:"name"`
@@ -38,12 +41,12 @@ func checkAndUpdateCredentialName(credential *Credential) {
 	}
 
 	credential.Name = parsedUrl.Hostname() + "-" + credential.Username
-	log.Println("credential name not specified, storing the credential with the name as:", credential.Name)
+	logging.Info("credential name not specified, storing the credential with the name as:", credential.Name)
 	return
 }
 
 func readCredentialStore() (CredentialStore, error) {
-	configInfo, err := ioutil.ReadFile(configFile)
+	configInfo, err := os.ReadFile(configFile)
 	if err != nil {
 		return CredentialStore{}, err
 	}
@@ -100,7 +103,7 @@ func StoreCredential(credential Credential, setAsCurrentCredential bool) error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(configFile, bytes, 0600); err != nil {
+	if err = os.WriteFile(configFile, bytes, 0600); err != nil {
 		return err
 	}
 	log.Println("Saving credentials to:", configFile)
