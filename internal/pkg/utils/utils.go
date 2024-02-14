@@ -50,8 +50,11 @@ func PrintPayloadFormat(otype string, payload interface{}) string {
 
 func ConvertSize(sizeinByte int64) string {
 	size := sizeinByte/1024
-	if (sizeinByte/1024) > 1024 {
+	if ((sizeinByte/1024)/1024) > 1024 {
 		return strconv.Itoa(int(size)) + "GiB"
+	} 
+	if (sizeinByte/1024) > 1024 {
+		return strconv.Itoa(int(size)) + "MiB"
 	} else {
 		return strconv.Itoa(int(size)) + "KiB"
 	}
