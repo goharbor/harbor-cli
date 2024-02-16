@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
@@ -21,7 +22,8 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 func GetClientByCredentialName(credentialName string) *v2client.HarborAPI {
 	credential, err := resolveCredential(credentialName)
 	if err != nil {
-		panic(err)
+		fmt.Print(err)
+		os.Exit(1)
 	}
 	clientConfig := &harbor.ClientSetConfig{
 		URL:      credential.ServerAddress,
