@@ -1,9 +1,14 @@
-package root
+package cmd
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
-	"github.com/goharbor/harbor-cli/pkg/constants"
+	"os"
+
+	"github.com/goharbor/harbor-cli/cli/cmd/artifact"
+	"github.com/goharbor/harbor-cli/cli/cmd/project"
+	"github.com/goharbor/harbor-cli/cli/cmd/registry"
+	"github.com/goharbor/harbor-cli/cli/cmd/repository"
+	"github.com/goharbor/harbor-cli/cli/cmd/version"
+	"github.com/goharbor/harbor-cli/internal/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -25,13 +30,14 @@ func newGetCommand() *cobra.Command {
 func newListCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list [COMMAND]",
-		Short: "list project, registry, etc.",
-		Long:  `List project, registry`,
+		Short: "list project, registry, artifact etc.",
+		Long:  `List project, registry, artifact`,
 	}
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(project.ListProjectCommand())
 	cmd.AddCommand(registry.ListRegistryCommand())
+	cmd.AddCommand(artifact.ListArtifactCommand())
 	return cmd
 }
 
@@ -73,23 +79,31 @@ func newUpdateCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String(constants.CredentialNameOption, "", constants.CredentialNameHelp)
 	cmd.AddCommand(registry.UpdateRegistryCommand())
+	cmd.AddCommand(repository.UpdateRepositoryCommand())
 	return cmd
 }
 
-// CreateHarborCLI creates a new Harbor CLI
-func New() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "harbor [command]",
-		Short: "Official Harbor CLI",
-	}
 
-	cmd.AddCommand(
+var RootCmd = &cobra.Command{
+	Use:   "harbor",
+	Short: "Official Harbor CLI",
+	Long:  `A Multi-Featured official Harbor CLI which can interact with the Harbor API`,
+}
+
+func Execute() {
+	err := RootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	RootCmd.AddCommand(version.VersionCommand(),
 		LoginCommand(),
 		newGetCommand(),
 		newListCommand(),
 		newCreateCommand(),
 		newDeleteCommand(),
-		newUpdateCommand(),
-	)
-	return cmd
+		newUpdateCommand())
+
 }
