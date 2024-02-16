@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -39,11 +38,10 @@ func checkAndUpdateCredentialName(credential *Credential) {
 
 	credential.Name = parsedUrl.Hostname() + "-" + credential.Username
 	log.Println("credential name not specified, storing the credential with the name as:", credential.Name)
-	return
 }
 
 func readCredentialStore() (CredentialStore, error) {
-	configInfo, err := ioutil.ReadFile(configFile)
+	configInfo, err := os.ReadFile(configFile)
 	if err != nil {
 		return CredentialStore{}, err
 	}
@@ -100,7 +98,7 @@ func StoreCredential(credential Credential, setAsCurrentCredential bool) error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(configFile, bytes, 0600); err != nil {
+	if err = os.WriteFile(configFile, bytes, 0600); err != nil {
 		return err
 	}
 	log.Println("Saving credentials to:", configFile)
@@ -114,7 +112,7 @@ func StoreCredential(credential Credential, setAsCurrentCredential bool) error {
 func resolveCredential(credentialName string) (Credential, error) {
 	credentialStore, err := readCredentialStore()
 	if err != nil {
-		panic(fmt.Sprintf("failed to read credential store: %s", err))
+		return Credential{}, fmt.Errorf("failed to read credential store: %s", err)
 	}
 
 	// If credentialName is not specified, check environment variable
