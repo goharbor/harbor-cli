@@ -31,11 +31,11 @@ archives:
         format: zip
 
 nfpms:
-  - package_name: cobra
-    homepage: https://github.com/varun7678/harbor-cli/
-    maintainer: Varun Rahaan <varungrow12@gmail.com>
+  - package_name: harbor
+    homepage: https://github.com/goharbor/harbor-cli/
+    maintainer: Vadim Bauer
     description: |-
-      CLI application to get all the harbor info.
+      [Sandbox] Official Harbor CLI
     formats:
       - rpm
       - deb

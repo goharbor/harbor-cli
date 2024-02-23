@@ -1,4 +1,4 @@
-module dagger-cobra-cli/ci
+module dagger-harbor-cli/ci
 
 go 1.21
 

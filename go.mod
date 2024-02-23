@@ -2,8 +2,6 @@ module github.com/goharbor/harbor-cli
 
 go 1.21
 
-toolchain go1.21.4
-
 require github.com/spf13/cobra v1.7.0
 
 require (
