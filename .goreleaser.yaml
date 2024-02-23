@@ -1,5 +1,7 @@
 project_name: harbor
-
+before:
+  hooks:
+    - go mod tidy
 builds:
 - main: ./cmd/harbor
   binary: ./harbor
@@ -20,18 +22,34 @@ builds:
       goarch: arm
     - goos: windows
       goarch: arm64
+  mod_timestamp: "{{ .CommitTimestamp }}"
 archives:
-- format: tar.gz
-  format_overrides:
-    - goos: windows
-      format: zip
-release:
-  draft: true
-  prerelease: auto
+  -
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
 
+nfpms:
+  - package_name: cobra
+    homepage: https://github.com/varun7678/harbor-cli/
+    maintainer: Varun Rahaan <varungrow12@gmail.com>
+    description: |-
+      CLI application to get all the harbor info.
+    formats:
+      - rpm
+      - deb
+
+sboms:
+  - artifacts: archive
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-      - "^docs:"
-      - "^test:"
+      - '^docs:'
+      - '^test:'
+
