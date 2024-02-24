@@ -15,6 +15,7 @@ type loginOptions struct {
 	serverAddress string
 	username      string
 	password      string
+	insecure      bool
 }
 
 // LoginCommand creates a new `harbor login` command
@@ -33,8 +34,8 @@ func LoginCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.name, "name", "", "", "name for the set of credentials")
 
+	flags.StringVarP(&opts.name, "name", "n", "", "name for the set of credentials")
 	flags.StringVarP(&opts.username, "username", "u", "", "Username")
 	if err := cmd.MarkFlagRequired("username"); err != nil {
 		panic(err)
@@ -43,6 +44,7 @@ func LoginCommand() *cobra.Command {
 	if err := cmd.MarkFlagRequired("password"); err != nil {
 		panic(err)
 	}
+	flags.BoolVarP(&opts.insecure, "insecure", "i", false, "Allow insecure server connections when using SSL")
 
 	return cmd
 }
@@ -52,6 +54,7 @@ func runLogin(opts loginOptions) error {
 		URL:      opts.serverAddress,
 		Username: opts.username,
 		Password: opts.password,
+		Insecure: opts.insecure,
 	}
 	client := utils.GetClientByConfig(clientConfig)
 
@@ -69,7 +72,7 @@ func runLogin(opts loginOptions) error {
 	}
 
 	if err = utils.StoreCredential(cred, true); err != nil {
-		return fmt.Errorf("Failed to store the credential: %s", err)
+		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
 }
