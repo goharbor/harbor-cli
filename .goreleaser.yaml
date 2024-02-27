@@ -39,17 +39,6 @@ nfpms:
     formats:
       - rpm
       - deb
-brews:
-  -
-    name: harbor
-    homepage: "https://github.com/goharbor/harbor-cli/"
-    tap:
-      owner: goharbor
-      name: homebrew-tap
-    commit_author:
-      name: bishal7679
-      email: bishalhnj127@gmail.com
-
 sboms:
   - artifacts: archive
 checksum:
