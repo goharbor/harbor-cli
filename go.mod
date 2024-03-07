@@ -2,7 +2,7 @@ module github.com/goharbor/harbor-cli
 
 go 1.21
 
-require github.com/spf13/cobra v1.7.0
+require github.com/spf13/cobra v1.8.0
 
 require (
 	github.com/99designs/gqlgen v0.17.31 // indirect
@@ -36,7 +36,7 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-openapi/validate v0.20.3 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/goharbor/go-client v0.26.2
+	github.com/goharbor/go-client v0.210.0
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect

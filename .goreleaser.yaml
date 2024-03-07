@@ -1,12 +1,14 @@
 project_name: harbor
+
 before:
   hooks:
     - go mod tidy
+    
 builds:
-- main: ./cmd/harbor
-  binary: ./harbor
+- main: ./cmd/harbor/main.go
+
   env:
-    - CGO_ENABLED=0
+    - CGO_ENABLED=0 
   ldflags:
     - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
   goos:
@@ -16,7 +18,7 @@ builds:
   goarch:
     - amd64
     - arm64
-    - arm
+    - arm  
   ignore: 
     - goos: windows
       goarch: arm
@@ -24,12 +26,10 @@ builds:
       goarch: arm64
   mod_timestamp: "{{ .CommitTimestamp }}"
 archives:
-  -
-    format: tar.gz
+  - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
-
 nfpms:
   - package_name: harbor
     homepage: https://github.com/goharbor/harbor-cli/
@@ -39,16 +39,25 @@ nfpms:
     formats:
       - rpm
       - deb
+      - apk
+      - archlinux
+      
 sboms:
   - artifacts: archive
 checksum:
   name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+
+snapshot: 
+  name_template: "{{ .Tag }}-next"
+
+release:
+  name_template: "HarborCLI {{.Tag}}"
+  # draft: true
+  # prerelease: auto
+  
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-
+      - "^docs:"
+      - "^test:"
