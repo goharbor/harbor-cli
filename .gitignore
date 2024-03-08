@@ -18,7 +18,6 @@
 # vendor/
 
 # Go workspace file
-go.work
 /bin
 
 /harbor

@@ -3,7 +3,7 @@ project_name: harbor
 before:
   hooks:
     - go mod tidy
-
+    
 builds:
 - main: ./cmd/harbor/main.go
 
@@ -24,12 +24,26 @@ builds:
       goarch: arm
     - goos: windows
       goarch: arm64
+  mod_timestamp: "{{ .CommitTimestamp }}"
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
-
+nfpms:
+  - package_name: harbor
+    homepage: https://github.com/goharbor/harbor-cli/
+    maintainer: Vadim Bauer
+    description: |-
+      [Sandbox] Official Harbor CLI
+    formats:
+      - rpm
+      - deb
+      - apk
+      - archlinux
+      
+sboms:
+  - artifacts: archive
 checksum:
   name_template: 'checksums.txt'
 
@@ -40,7 +54,7 @@ release:
   name_template: "HarborCLI {{.Tag}}"
   # draft: true
   # prerelease: auto
-
+  
 changelog:
   sort: asc
   filters:
