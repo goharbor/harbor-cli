@@ -24,3 +24,15 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract version
+        id: extract-version
+        run: |
+          echo "tag-name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: bump homebrew-core formula
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: harbor
+          formula-path: Formula/harbor.rb
+          download-url: https://github.com/goharbor/harbor-cli/archive/${{ steps.extract-version.outputs.tag-name }}.tar.gz
+        env:
+          COMMITTER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
