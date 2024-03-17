@@ -18,7 +18,7 @@ func DeleteProjectCommand() *cobra.Command {
 	var opts deleteProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project [NAME|ID]",
+		Use:   "delete [NAME|ID]",
 		Short: "delete project by name or id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

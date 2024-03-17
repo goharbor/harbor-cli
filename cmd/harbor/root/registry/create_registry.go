@@ -28,7 +28,7 @@ func CreateRegistryCommand() *cobra.Command {
 	var opts createRegistrytOptions
 
 	cmd := &cobra.Command{
-		Use:   "registry",
+		Use:   "create",
 		Short: "create registry",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)

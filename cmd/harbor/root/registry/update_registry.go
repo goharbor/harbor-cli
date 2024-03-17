@@ -31,7 +31,7 @@ func UpdateRegistryCommand() *cobra.Command {
 	var opts updateRegistrytOptions
 
 	cmd := &cobra.Command{
-		Use:   "registry [ID]",
+		Use:   "update",
 		Short: "update registry",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
