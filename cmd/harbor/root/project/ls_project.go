@@ -25,7 +25,7 @@ func ListProjectCommand() *cobra.Command {
 	var opts listProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "list",
 		Short: "list project",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
