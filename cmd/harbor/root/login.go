@@ -1,8 +1,10 @@
 package root
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
@@ -15,6 +17,7 @@ type loginOptions struct {
 	serverAddress string
 	username      string
 	password      string
+	passwordStdin bool
 }
 
 // LoginCommand creates a new `harbor login` command
@@ -40,14 +43,20 @@ func LoginCommand() *cobra.Command {
 		panic(err)
 	}
 	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	if err := cmd.MarkFlagRequired("password"); err != nil {
-		panic(err)
-	}
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Read password from stdin")
 
 	return cmd
 }
 
 func runLogin(opts loginOptions) error {
+	if opts.passwordStdin {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter password: ")
+		password, _ := reader.ReadString('\n')
+		password = password[:len(password)-1]
+		opts.password = password
+	}
+
 	clientConfig := &harbor.ClientSetConfig{
 		URL:      opts.serverAddress,
 		Username: opts.username,
