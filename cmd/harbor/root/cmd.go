@@ -6,6 +6,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/spf13/cobra"
 )
@@ -110,6 +111,7 @@ func New() *cobra.Command {
 		newCreateCommand(),
 		newDeleteCommand(),
 		newUpdateCommand(),
+		user.UserCmd(),
 	)
 	return cmd
 }
