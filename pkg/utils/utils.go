@@ -45,3 +45,12 @@ func PrintPayloadInJSONFormat(payload any) {
 
 	fmt.Println(string(jsonStr))
 }
+
+// func GetProjectNameFromUser(credentialName string) string {
+// 	project := make(chan string)
+// 	go func() {
+
+// 	}()
+
+// 	return <-project
+// }
