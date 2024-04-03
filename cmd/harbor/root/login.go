@@ -7,51 +7,84 @@ import (
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/login"
 	"github.com/spf13/cobra"
 )
 
-type loginOptions struct {
-	name          string
+var (
 	serverAddress string
-	username      string
-	password      string
-}
+	Username      string
+	Password      string
+	Name          string
+)
 
 // LoginCommand creates a new `harbor login` command
 func LoginCommand() *cobra.Command {
-	var opts loginOptions
+	var opts login.LoginView
 
 	cmd := &cobra.Command{
-		Use:   "login [SERVER]",
+		Use:   "login [server]",
 		Short: "Log in to Harbor registry",
 		Long:  "Authenticate with Harbor Registry.",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.serverAddress = args[0]
-			return runLogin(opts)
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+
+			if len(args) > 0 {
+				serverAddress = args[0]
+			}
+
+			loginView := login.LoginView{
+				Server:   serverAddress,
+				Username: Username,
+				Password: Password,
+				Name:     Name,
+			}
+
+			var err error
+
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" && loginView.Name != "" {
+				err = runLogin(opts)
+			} else {
+				err = createLoginView(&loginView)
+			}
+
+			if err != nil {
+				fmt.Println(err)
+			}
+
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.name, "name", "", "", "name for the set of credentials")
+	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
 
-	flags.StringVarP(&opts.username, "username", "u", "", "Username")
-	if err := cmd.MarkFlagRequired("username"); err != nil {
-		panic(err)
-	}
-	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	if err := cmd.MarkFlagRequired("password"); err != nil {
-		panic(err)
-	}
+	flags.StringVarP(&Username, "username", "u", "", "Username")
+	flags.StringVarP(&Password, "password", "p", "", "Password")
 
 	return cmd
 }
 
-func runLogin(opts loginOptions) error {
+func createLoginView(loginView *login.LoginView) error {
+	if loginView == nil {
+		loginView = &login.LoginView{
+			Server:   "",
+			Username: "",
+			Password: "",
+			Name:     "",
+		}
+	}
+
+	login.CreateView(loginView)
+
+	return runLogin(*loginView)
+
+}
+
+func runLogin(opts login.LoginView) error {
 	clientConfig := &harbor.ClientSetConfig{
-		URL:      opts.serverAddress,
-		Username: opts.username,
-		Password: opts.password,
+		URL:      opts.Server,
+		Username: opts.Username,
+		Password: opts.Password,
 	}
 	client := utils.GetClientByConfig(clientConfig)
 
@@ -62,14 +95,14 @@ func runLogin(opts loginOptions) error {
 	}
 
 	cred := utils.Credential{
-		Name:          opts.name,
-		Username:      opts.username,
-		Password:      opts.password,
-		ServerAddress: opts.serverAddress,
+		Name:          opts.Name,
+		Username:      opts.Username,
+		Password:      opts.Password,
+		ServerAddress: opts.Server,
 	}
 
 	if err = utils.StoreCredential(cred, true); err != nil {
-		return fmt.Errorf("Failed to store the credential: %s", err)
+		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
 }
