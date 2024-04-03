@@ -16,17 +16,16 @@ func DeleteProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project [NAME|ID]",
 		Short: "delete project by name or id",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
 
 			if len(args) > 0 {
 				err = runDeleteProject(args[0], credentialName)
+			} else {
+				projectName := utils.GetProjectNameFromUser(credentialName)
+				err = runDeleteProject(projectName, credentialName)
 			}
-			// } else {
-			// 	projectName := utils.GetProjectNameFromUser(credentialName)
-			// 	err = runDeleteProject(projectName, credentialName)
-			// }
 			if err != nil {
 				log.Errorf("failed to delete project: %v", err)
 			}

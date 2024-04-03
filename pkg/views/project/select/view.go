@@ -20,7 +20,6 @@ var (
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
 type item string
@@ -51,9 +50,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type model struct {
-	list     list.Model
-	choice   string
-	quitting bool
+	list   list.Model
+	choice string
 }
 
 func (m model) Init() tea.Cmd {
@@ -68,10 +66,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "q", "ctrl+c":
-			m.quitting = true
-			return m, tea.Quit
-
 		case "enter":
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
@@ -89,9 +83,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	if m.choice != "" {
 		return ""
-	}
-	if m.quitting {
-		return quitTextStyle.Render("Not hungry? That’s cool.")
 	}
 	return "\n" + m.list.View()
 }
@@ -113,8 +104,15 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 
 	m := model{list: l}
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
+	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+
+	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
+	if p, ok := p.(model); ok {
+		choice <- p.choice
+	}
+
 }

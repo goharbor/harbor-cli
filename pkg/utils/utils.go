@@ -1,12 +1,17 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
+	view "github.com/goharbor/harbor-cli/pkg/views/project/select"
+
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	log "github.com/sirupsen/logrus"
 )
 
 // Returns Harbor v2 client for given clientConfig
@@ -46,11 +51,18 @@ func PrintPayloadInJSONFormat(payload any) {
 	fmt.Println(string(jsonStr))
 }
 
-// func GetProjectNameFromUser(credentialName string) string {
-// 	project := make(chan string)
-// 	go func() {
+func GetProjectNameFromUser(credentialName string) string {
+	projectName := make(chan string)
+	go func() {
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		view.ProjectList(response.Payload, projectName)
 
-// 	}()
+	}()
 
-// 	return <-project
-// }
+	return <-projectName
+}
