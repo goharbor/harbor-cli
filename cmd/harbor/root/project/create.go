@@ -2,7 +2,6 @@ package project
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -79,8 +78,6 @@ func runCreateProject(opts create.CreateView, credentialName string) error {
 	registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)
 
 	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
-
-	fmt.Println(opts.ProjectName, opts.Public, registryID, storageLimit)
 
 	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, RegistryID: &registryID, StorageLimit: &storageLimit}})
 

@@ -96,6 +96,7 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	const defaultWidth = 20
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Select a project"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
