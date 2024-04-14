@@ -50,13 +50,13 @@ func TestLoginCommand(t *testing.T) {
 	flags.Set("username", "testuser")
 	flags.Set("password", "testpass")
 
-	assert.NotEmpty(t, cmd.Args, "serverAddress cmd argument has set")
+	assert.NotEmpty(t, cmd.Args, "serverAddress cmd argument has already set")
 	usernameFlag, err := flags.GetString("username")
 	assert.NoError(t, err, "Expected no error getting username flag")
 	assert.NotEmpty(t, usernameFlag, "Expected username flag has already set")
 	passwordFlag, err := flags.GetString("password")
 	assert.NoError(t, err, "Expected no error getting password flag")
-	assert.NotEmpty(t, passwordFlag, "Expected password flag to be set")
+	assert.NotEmpty(t, passwordFlag, "Expected password flag has already set")
 
 	// Test case 2: required flags value should not be set
 	flags.Set("username", "")
