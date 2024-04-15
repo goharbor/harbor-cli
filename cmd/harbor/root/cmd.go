@@ -1,12 +1,79 @@
 package root
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
+var (
+	output  string
+	cfgFile string
+	verbose bool
+)
+
+
+
+func initConfig() {
+	viper.SetConfigType("yaml")
+
+	// cfgFile = viper.GetStering("config")
+	viper.SetConfigFile(cfgFile)
+	viper.SetDefault("output", "json")
+
+
+	if cfgFile != utils.DefaultConfigPath { 
+		viper.SetConfigFile(cfgFile)
+	} else {
+		stat, err := os.Stat(utils.DefaultConfigPath)
+		if !os.IsNotExist(err) && stat.Size() == 0 {
+			log.Println("Config file is empty, creating a new one")
+		}
+		
+		if os.IsNotExist(err) {
+			log.Printf("Config file not found at %s, creating a new one", cfgFile)
+		}
+
+		if os.IsNotExist(err) || (!os.IsNotExist(err) && stat.Size() == 0) {
+			if _, err := os.Stat(utils.HarborFolder); os.IsNotExist(err) {
+				// Create the parent directory if it doesn't exist
+
+				fmt.Println("Creating config file", utils.HarborFolder)
+				if err := os.MkdirAll(utils.HarborFolder, os.ModePerm); err != nil {
+					log.Fatal(err)
+				}
+			}
+			err = utils.CreateConfigFile()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = utils.AddCredentialsToConfigFile(utils.Credential{}, cfgFile)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Printf("Config file created at %s", cfgFile)
+		}
+	}
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %s", err)
+	}
+
+}
+
 func RootCmd() *cobra.Command {
+	utils.SetLocation()
+
 	root := &cobra.Command{
 		Use:          "harbor",
 		Short:        "Official Harbor CLI",
@@ -23,6 +90,15 @@ harbor help
 
 		// },
 	}
+
+	cobra.OnInitialize(initConfig)
+
+	root.PersistentFlags().StringVarP(&output, "output", "o", "json", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
+	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+
+	viper.BindPFlag("output", root.PersistentFlags().Lookup("output"))
+
 
 	root.AddCommand(
 		versionCommand(),
