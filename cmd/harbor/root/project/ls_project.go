@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type listProjectOptions struct {
@@ -25,14 +25,11 @@ func ListProjectCommand() *cobra.Command {
 	var opts listProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "list",
 		Short: "list project",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			if err != nil {
-				return err
-			}
-			return runListProject(opts, credentialName)
+
+			return runListProject(opts)
 		},
 	}
 
@@ -49,7 +46,8 @@ func ListProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func runListProject(opts listProjectOptions, credentialName string) error {
+func runListProject(opts listProjectOptions) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Name: &opts.name, Owner: &opts.owner, Page: &opts.page, PageSize: &opts.pageSize, Public: &opts.public, Q: &opts.q, Sort: &opts.sort, WithDetail: &opts.withDetail})

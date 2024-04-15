@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	serverAddress   string
-	Username string
-	Password string
-	Name     string
+	serverAddress string
+	Username      string
+	Password      string
+	Name          string
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -28,10 +28,9 @@ func LoginCommand() *cobra.Command {
 		Long:  "Authenticate with Harbor Registry.",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			
-            if len(args) > 0 {
-                serverAddress = args[0]
-            }
+			if len(args) > 0 {
+				serverAddress = args[0]
+			}
 
 			loginView := login.LoginView{
 				Server:   serverAddress,
@@ -64,6 +63,7 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
+
 func createLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
@@ -79,7 +79,6 @@ func createLoginView(loginView *login.LoginView) error {
 	return runLogin(*loginView)
 
 }
-
 
 func runLogin(opts login.LoginView) error {
 	clientConfig := &harbor.ClientSetConfig{
@@ -102,7 +101,7 @@ func runLogin(opts login.LoginView) error {
 		ServerAddress: opts.Server,
 	}
 
-	if err = utils.StoreCredential(cred, true); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred,utils.DefaultConfigPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
