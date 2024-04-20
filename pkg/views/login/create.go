@@ -2,6 +2,7 @@ package login
 
 import (
 	"errors"
+	"log"
 
 	"github.com/charmbracelet/huh"
 )
@@ -58,7 +59,7 @@ func CreateView(loginView *LoginView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 }

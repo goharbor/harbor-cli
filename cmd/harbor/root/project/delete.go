@@ -14,7 +14,7 @@ import (
 func DeleteProjectCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "project [NAME|ID]",
+		Use:   "delete [NAME|ID]",
 		Short: "delete project by name or id",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

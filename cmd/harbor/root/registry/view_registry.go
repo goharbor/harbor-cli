@@ -16,11 +16,11 @@ type getRegistryOptions struct {
 }
 
 // NewGetRegistryCommand creates a new `harbor get registry` command
-func GetRegistryCommand() *cobra.Command {
+func ViewCommand() *cobra.Command {
 	var opts getRegistryOptions
 
 	cmd := &cobra.Command{
-		Use:   "registry [ID]",
+		Use:   "view",
 		Short: "get registry by id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
