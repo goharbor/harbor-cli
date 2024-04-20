@@ -4,27 +4,27 @@ import (
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // DeleteProjectCommand creates a new `harbor delete project` command
 func DeleteProjectCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "delete [NAME|ID]",
+		Use:   "delete",
 		Short: "delete project by name or id",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
+			var err error
 
 			if len(args) > 0 {
-				err = runDeleteProject(args[0], credentialName)
+				err = runDeleteProject(args[0])
 			} else {
-				projectName := utils.GetProjectNameFromUser(credentialName)
-				err = runDeleteProject(projectName, credentialName)
+				projectName := utils.GetProjectNameFromUser()
+				err = runDeleteProject(projectName)
 			}
 			if err != nil {
 				log.Errorf("failed to delete project: %v", err)
@@ -35,7 +35,8 @@ func DeleteProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func runDeleteProject(projectName string, credentialName string) error {
+func runDeleteProject(projectName string) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})

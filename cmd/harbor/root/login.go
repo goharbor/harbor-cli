@@ -64,7 +64,6 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
-
 func createLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
@@ -102,7 +101,7 @@ func runLogin(opts login.LoginView) error {
 		ServerAddress: opts.Server,
 	}
 
-	if err = utils.AddCredentialsToConfigFile(cred,utils.DefaultConfigPath); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil

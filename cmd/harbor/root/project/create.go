@@ -6,11 +6,11 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // CreateProjectCommand creates a new `harbor create project` command
@@ -18,15 +18,11 @@ func CreateProjectCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "create",
 		Short: "create project",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			if err != nil {
-				log.Fatalf("failed to get credential name: %v", err)
-			}
-
+			var err error
 			createView := &create.CreateView{
 				ProjectName:  opts.ProjectName,
 				Public:       opts.Public,
@@ -35,9 +31,9 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
-				err = runCreateProject(opts, credentialName)
+				err = runCreateProject(opts)
 			} else {
-				err = createProjectView(createView, credentialName)
+				err = createProjectView(createView)
 			}
 
 			if err != nil {
@@ -56,7 +52,7 @@ func CreateProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func createProjectView(createView *create.CreateView, credentialName string) error {
+func createProjectView(createView *create.CreateView) error {
 	if createView == nil {
 		createView = &create.CreateView{
 			ProjectName:  "",
@@ -68,11 +64,12 @@ func createProjectView(createView *create.CreateView, credentialName string) err
 
 	create.CreateProjectView(createView)
 
-	return runCreateProject(*createView, credentialName)
+	return runCreateProject(*createView)
 
 }
 
-func runCreateProject(opts create.CreateView, credentialName string) error {
+func runCreateProject(opts create.CreateView) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)

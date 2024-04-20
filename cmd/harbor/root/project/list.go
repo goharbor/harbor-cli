@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var FormatFlag string
@@ -29,11 +29,10 @@ func ListProjectCommand() *cobra.Command {
 	var opts listProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "list",
 		Short: "list project",
 		Run: func(cmd *cobra.Command, args []string) {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			projects, err := RunListProject(credentialName, opts)
+			projects, err := RunListProject(opts)
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
@@ -61,7 +60,8 @@ func ListProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func RunListProject(credentialName string, opts listProjectOptions) (*project.ListProjectsOK, error) {
+func RunListProject(opts listProjectOptions) (*project.ListProjectsOK, error) {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Name: &opts.name, Owner: &opts.owner, Page: &opts.page, PageSize: &opts.pageSize, Public: &opts.public, Q: &opts.q, Sort: &opts.sort, WithDetail: &opts.withDetail})
