@@ -72,16 +72,20 @@ func runCreateProject(opts create.CreateView) error {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)
+	// registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)
 
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	// storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
 
-	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, RegistryID: &registryID, StorageLimit: &storageLimit}})
+	public := strconv.FormatBool(opts.Public)
+
+	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
 
 	if err != nil {
 		return err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
+	if response != nil {
+		log.Info("Project created successfully")
+	}
 	return nil
 }

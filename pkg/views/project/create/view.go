@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
+	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -49,6 +50,6 @@ func CreateProjectView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }

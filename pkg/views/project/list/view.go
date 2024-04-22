@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
 var baseStyle = lipgloss.NewStyle().
@@ -49,11 +50,12 @@ func ListProjects(projects []*models.Project) {
 		if project.Metadata.Public != "true" {
 			accessLevel = "private"
 		}
+		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
 		rows = append(rows, table.Row{
 			project.Name, // Project Name
 			accessLevel,  // Access Level
 			strconv.FormatInt(project.RepoCount, 10),
-			project.CreationTime.String(), // Creation Time
+			createdTime, // Creation Time
 		})
 	}
 
