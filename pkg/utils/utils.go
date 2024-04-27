@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	// "os"
+
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 )
@@ -20,7 +22,7 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 
 // Returns Harbor v2 client after resolving the credential name
 func GetClientByCredentialName(credentialName string) *v2client.HarborAPI {
-	credential, err := resolveCredential(credentialName)
+	credential, err := GetCredentials(credentialName)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)

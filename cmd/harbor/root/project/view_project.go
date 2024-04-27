@@ -14,11 +14,11 @@ type getProjectOptions struct {
 }
 
 // GetProjectCommand creates a new `harbor get project` command
-func GetProjectCommand() *cobra.Command {
+func ViewCommand() *cobra.Command {
 	var opts getProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project [NAME|ID]",
+		Use:   "view [NAME|ID]",
 		Short: "get project by name or id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

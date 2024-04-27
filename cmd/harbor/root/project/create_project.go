@@ -5,9 +5,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type createProjectOptions struct {
@@ -22,14 +22,10 @@ func CreateProjectCommand() *cobra.Command {
 	var opts createProjectOptions
 
 	cmd := &cobra.Command{
-		Use:   "project",
-		Short: "create project",
+		Use:   "create",
+		Short: "create",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			if err != nil {
-				return err
-			}
-			return runCreateProject(opts, credentialName)
+			return runCreateProject(opts)
 		},
 	}
 
@@ -42,7 +38,8 @@ func CreateProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func runCreateProject(opts createProjectOptions, credentialName string) error {
+func runCreateProject(opts createProjectOptions) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.projectName, Public: &opts.public, RegistryID: &opts.registryID, StorageLimit: &opts.storageLimit}})
