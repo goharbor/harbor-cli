@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	GO_VERSION         = "1.21"
+	GO_VERSION         = "1.22"
 	SYFT_VERSION       = "v0.105.0"
 	GORELEASER_VERSION = "v1.24.0"
 	APP_NAME           = "dagger-harbor-cli"
