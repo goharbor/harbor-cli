@@ -8,10 +8,9 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
-	// "github.com/goharbor/harbor-cli/pkg/constants"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // {
@@ -38,13 +37,8 @@ func UserCreateCmd() *cobra.Command {
 		Short: "create user",
 		// Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
 
-			if err != nil {
-				return err
-			}
-
-			return runCreateUser(credentialName, opts)
+			return runCreateUser(opts)
 		},
 	}
 
@@ -58,7 +52,8 @@ func UserCreateCmd() *cobra.Command {
 	return cmd
 }
 
-func runCreateUser(credentialName string, opts createUserOptions) error {
+func runCreateUser(opts createUserOptions) error {
+	credentialName := viper.GetString("current-credential-name")
 
 	client := utils.GetClientByCredentialName(credentialName)
 

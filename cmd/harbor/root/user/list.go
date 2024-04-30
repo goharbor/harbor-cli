@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
-	// "github.com/goharbor/harbor-cli/pkg/constants"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func UserListCmd() *cobra.Command {
@@ -17,9 +16,7 @@ func UserListCmd() *cobra.Command {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
-			credentialName, _ := cmd.Flags().GetString(constants.CredentialNameOption)
-			runListUsers(credentialName)
-
+			runListUsers()
 		},
 	}
 
@@ -27,7 +24,8 @@ func UserListCmd() *cobra.Command {
 
 }
 
-func runListUsers(credentialName string) {
+func runListUsers() {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, _ := client.User.ListUsers(ctx, &user.ListUsersParams{})
