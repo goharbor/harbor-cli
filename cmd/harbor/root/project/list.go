@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var FormatFlag string
-
 type listProjectOptions struct {
 	name       string
 	owner      string
@@ -36,8 +34,8 @@ func ListProjectCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
-			// Print the payload in JSON format
-			if FormatFlag != "" {
+			FormatFlag := viper.GetString("output")
+			if FormatFlag != "json" {
 				utils.PrintPayloadInJSONFormat(projects)
 				return
 			}
@@ -47,7 +45,6 @@ func ListProjectCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&FormatFlag, "output", "o", FormatFlag, "output format json")
 	flags.StringVarP(&opts.name, "name", "", "", "Name of the project")
 	flags.StringVarP(&opts.owner, "owner", "", "", "Name of the project owner")
 	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
