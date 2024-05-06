@@ -16,10 +16,17 @@ func LogsProjectCommmand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "get project logs",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			projectName := args[0]
-			resp, err := runLogsProject(projectName)
+			var err error
+			var resp *project.GetLogsOK
+			if len(args) > 0 {
+				resp, err = runLogsProject(args[0])
+			} else {
+				projectName := utils.GetProjectNameFromUser()
+				resp, err = runLogsProject(projectName)
+			}
+
 			if err != nil {
 				log.Fatalf("failed to get project logs: %v", err)
 			}

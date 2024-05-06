@@ -39,12 +39,12 @@ func runDeleteProject(projectName string) error {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	response, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
+	_, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
 
 	if err != nil {
 		return err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
+	log.Info("project deleted successfully")
 	return nil
 }
