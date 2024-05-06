@@ -5,9 +5,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type createRegistrytOptions struct {
@@ -31,11 +31,7 @@ func CreateRegistryCommand() *cobra.Command {
 		Use:   "create",
 		Short: "create registry",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			if err != nil {
-				return err
-			}
-			return runCreateRegistry(opts, credentialName)
+			return runCreateRegistry(opts)
 		},
 	}
 
@@ -52,7 +48,8 @@ func CreateRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func runCreateRegistry(opts createRegistrytOptions, credentialName string) error {
+func runCreateRegistry(opts createRegistrytOptions) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Registry.CreateRegistry(ctx, &registry.CreateRegistryParams{Registry: &models.Registry{Credential: &models.RegistryCredential{AccessKey: opts.credential.accessKey, AccessSecret: opts.credential.accessSecret, Type: opts.credential._type}, Description: opts.description, Insecure: opts.insecure, Name: opts.name, Type: opts._type, URL: opts.url}})
