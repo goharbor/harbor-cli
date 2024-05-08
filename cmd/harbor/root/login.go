@@ -28,6 +28,7 @@ func LoginCommand() *cobra.Command {
 		Long:  "Authenticate with Harbor Registry.",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+
 			if len(args) > 0 {
 				serverAddress = args[0]
 			}
@@ -62,7 +63,6 @@ func LoginCommand() *cobra.Command {
 
 	return cmd
 }
-
 
 func createLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
@@ -101,7 +101,7 @@ func runLogin(opts login.LoginView) error {
 		ServerAddress: opts.Server,
 	}
 
-	if err = utils.AddCredentialsToConfigFile(cred,utils.DefaultConfigPath); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil

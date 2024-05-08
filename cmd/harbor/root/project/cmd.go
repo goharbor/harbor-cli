@@ -16,6 +16,7 @@ func Project() *cobra.Command {
 		DeleteProjectCommand(),
 		ListProjectCommand(),
 		ViewCommand(),
+		LogsProjectCommmand(),
 	)
 
 	return cmd
