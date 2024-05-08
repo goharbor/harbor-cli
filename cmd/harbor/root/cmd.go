@@ -18,8 +18,6 @@ var (
 	verbose bool
 )
 
-
-
 func initConfig() {
 	viper.SetConfigType("yaml")
 
@@ -27,15 +25,14 @@ func initConfig() {
 	viper.SetConfigFile(cfgFile)
 	viper.SetDefault("output", "json")
 
-
-	if cfgFile != utils.DefaultConfigPath { 
+	if cfgFile != utils.DefaultConfigPath {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		stat, err := os.Stat(utils.DefaultConfigPath)
 		if !os.IsNotExist(err) && stat.Size() == 0 {
 			log.Println("Config file is empty, creating a new one")
 		}
-		
+
 		if os.IsNotExist(err) {
 			log.Printf("Config file not found at %s, creating a new one", cfgFile)
 		}
@@ -98,7 +95,6 @@ harbor help
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	viper.BindPFlag("output", root.PersistentFlags().Lookup("output"))
-
 
 	root.AddCommand(
 		versionCommand(),

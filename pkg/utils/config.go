@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 type Credential struct {
 	Name          string `yaml:"name"`
 	Username      string `yaml:"username"`
@@ -22,7 +21,7 @@ type HarborConfig struct {
 }
 
 var (
-	HarborFolder string
+	HarborFolder      string
 	DefaultConfigPath string
 )
 
@@ -35,9 +34,7 @@ func SetLocation() {
 	DefaultConfigPath = filepath.Join(HarborFolder, "config.yaml")
 }
 
-
-
-func (hc *HarborConfig) GetCurrentCredentialName() string{ 
+func (hc *HarborConfig) GetCurrentCredentialName() string {
 	return hc.CurrentCredentialName
 }
 
@@ -61,7 +58,7 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 		return err
 	}
 
-	c:= HarborConfig{}
+	c := HarborConfig{}
 	err = viper.Unmarshal(&c)
 	if err != nil {
 		return err
@@ -74,7 +71,6 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 	c.Credentials = append(c.Credentials, credential)
 	c.CurrentCredentialName = credential.Name
 
-
 	viper.Set("current-credential-name", credential.Name)
 	viper.Set("credentials", c.Credentials)
 	err = viper.WriteConfig()
@@ -84,7 +80,6 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 	return nil
 
 }
-
 
 func GetCredentials(credentialName string) (Credential, error) {
 	err := viper.ReadInConfig()
@@ -105,5 +100,3 @@ func GetCredentials(credentialName string) (Credential, error) {
 	}
 	return Credential{}, nil
 }
-
-
