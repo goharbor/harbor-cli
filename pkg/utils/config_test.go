@@ -24,24 +24,17 @@ func TestGetCurrentCredentialName(t *testing.T) {
 }
 
 func TestCreateConfigFile(t *testing.T) {
-	SetLocation()
+	DefaultConfigPath = t.TempDir() + ".harbor/config.yaml"
 	err := CreateConfigFile()
 	require.NoError(t, err)
 
 	// Check if the file exists
 	_, err = os.Stat(DefaultConfigPath)
 	require.NoError(t, err)
-
-	// Clean up
-	err = os.Remove(DefaultConfigPath)
-	require.NoError(t, err)
-
-	err = os.Remove(HarborFolder)
-	require.NoError(t, err)
 }
 
 func TestAddCredentialsToConfigFile(t *testing.T) {
-	SetLocation()
+	DefaultConfigPath = t.TempDir() + ".harbor/config.yaml"
 	err := CreateConfigFile()
 	require.NoError(t, err)
 
@@ -72,22 +65,15 @@ func TestAddCredentialsToConfigFile(t *testing.T) {
 	err = AddCredentialsToConfigFile(credential2, DefaultConfigPath)
 	require.NoError(t, err)
 
-	// Check if the credential is added & new credential is set as current
+	// Check if the new credential is added & new credential is set as current
 	credentialFile, err = os.ReadFile(DefaultConfigPath)
 	require.NoError(t, err)
 
 	require.Equal(t, "credentials:\n    - name: TestCred\n      username: TestUser\n      password: TestPass\n      serveraddress: https://test.com\n    - name: TestCred2\n      username: TestUser2\n      password: TestPass2\n      serveraddress: https://test2.com\ncurrent-credential-name: TestCred2\n", string(credentialFile))
-
-	// Clean up
-	err = os.Remove(DefaultConfigPath)
-	require.NoError(t, err)
-
-	err = os.Remove(HarborFolder)
-	require.NoError(t, err)
 }
 
 func TestGetCredentials(t *testing.T) {
-	SetLocation()
+	DefaultConfigPath = t.TempDir() + ".harbor/config.yaml"
 	err := CreateConfigFile()
 	require.NoError(t, err)
 
@@ -120,11 +106,4 @@ func TestGetCredentials(t *testing.T) {
 	credentialFound, err = GetCredentials("TestCred3")
 	require.NoError(t, err)
 	require.Equal(t, Credential{}, credentialFound)
-
-	// Clean up
-	err = os.Remove(DefaultConfigPath)
-	require.NoError(t, err)
-
-	err = os.Remove(HarborFolder)
-	require.NoError(t, err)
 }
