@@ -19,13 +19,14 @@ type model struct {
 }
 
 var columns = []table.Column{
+	{Title: "ID", Width: 6},
 	{Title: "Name", Width: 12},
 	{Title: "Status", Width: 12},
 	{Title: "Endpoint URL", Width: 26},
 	{Title: "Provider", Width: 12},
 	{Title: "Creation Time", Width: 24},
 	// {Title: "Verify Remote Cert", Width: 12},
-	{Title: "Description", Width: 12},
+	// {Title: "Description", Width: 12},
 }
 
 func (m model) Init() tea.Cmd {
@@ -47,12 +48,13 @@ func ListRegistry(registry []*models.Registry) {
 	for _, regis := range registry {
 		createdTime, _ := utils.FormatCreatedTime(regis.CreationTime.String())
 		rows = append(rows, table.Row{
+			fmt.Sprintf("%d", regis.ID),
 			regis.Name,
 			regis.Status,
 			regis.URL,
 			regis.Type,
 			createdTime,
-			regis.Description,
+			// regis.Description,
 		})
 	}
 
