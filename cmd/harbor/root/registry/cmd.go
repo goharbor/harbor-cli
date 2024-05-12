@@ -11,6 +11,8 @@ func Registry() *cobra.Command {
 		Long:    `Manage registries in Harbor`,
 		Example: `  harbor registry list`,
 	}
+
+	cmd.PersistentFlags().StringP("credential-name", "c", "", "Credential to use of authorization")
 	cmd.AddCommand(
 		CreateRegistryCommand(),
 		DeleteRegistryCommand(),
