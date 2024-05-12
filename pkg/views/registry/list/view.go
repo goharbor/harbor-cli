@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
 var baseStyle = lipgloss.NewStyle().
@@ -44,13 +45,13 @@ func (m model) View() string {
 func ListRegistry(registry []*models.Registry) {
 	var rows []table.Row
 	for _, regis := range registry {
-		// createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
+		createdTime, _ := utils.FormatCreatedTime(regis.CreationTime.String())
 		rows = append(rows, table.Row{
-			regis.Name,                  // Project Name
-			regis.Status,                // Project Public
-			regis.URL,                   // Project Creation Time
-			regis.Type,                  // Project Update Time
-			regis.CreationTime.String(), // Project Update Time
+			regis.Name,
+			regis.Status,
+			regis.URL,
+			regis.Type,
+			createdTime,
 			regis.Description,
 		})
 	}

@@ -2,55 +2,52 @@ package registry
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-type deleteRegistryOptions struct {
-	id int64
-}
 
 // NewDeleteRegistryCommand creates a new `harbor delete registry` command
 func DeleteRegistryCommand() *cobra.Command {
-	var opts deleteRegistryOptions
 
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete registry by id",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Printf("Invalid argument: %s. Expected an integer.\n", args[0])
-				return err
-			}
-			opts.id = int64(id)
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
-			if err != nil {
-				return err
+			if len(args) > 0 {
+				registryId, _ := strconv.ParseInt(args[0], 10, 64)
+				err = runDeleteRegistry(registryId)
+			} else {
+				registryId := utils.GetRegistryNameFromUser()
+				err = runDeleteRegistry(registryId)
 			}
-			return runDeleteRegistry(opts, credentialName)
+			if err != nil {
+				log.Errorf("failed to delete registry: %v", err)
+			}
 		},
 	}
 
 	return cmd
 }
 
-func runDeleteRegistry(opts deleteRegistryOptions, credentialName string) error {
+func runDeleteRegistry(registryName int64) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	response, err := client.Registry.DeleteRegistry(ctx, &registry.DeleteRegistryParams{ID: opts.id})
+	_, err := client.Registry.DeleteRegistry(ctx, &registry.DeleteRegistryParams{ID: registryName})
 
 	if err != nil {
 		return err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
+	log.Info("registry deleted successfully")
+
 	return nil
 }

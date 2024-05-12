@@ -23,7 +23,6 @@ func initConfig() {
 
 	// cfgFile = viper.GetStering("config")
 	viper.SetConfigFile(cfgFile)
-	viper.SetDefault("output", "json")
 
 	if cfgFile != utils.DefaultConfigPath {
 		viper.SetConfigFile(cfgFile)
@@ -90,7 +89,7 @@ harbor help
 
 	cobra.OnInitialize(initConfig)
 
-	root.PersistentFlags().StringVarP(&output, "output", "o", "json", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVarP(&output, "output", "o", "", "Output format. One of: json|yaml")
 	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
