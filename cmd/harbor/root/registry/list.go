@@ -37,7 +37,7 @@ func ListRegistryCommand() *cobra.Command {
 	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-
+	flags.StringP("credential-name", "c", "", "Credential name for authorization")
 	return cmd
 }
 
