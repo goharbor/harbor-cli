@@ -92,7 +92,7 @@ func UserList(users []*models.UserResp, choice chan<- int64) {
 	const defaultWidth = 20
 
 	l := list.New(itemsList, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a Registry"
+	l.Title = "Select a User"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = views.TitleStyle
