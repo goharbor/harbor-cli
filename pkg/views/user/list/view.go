@@ -8,20 +8,19 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views"
 )
-
-var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
 
 type model struct {
 	table table.Model
 }
 
 var columns = []table.Column{
-	{Title: "Name", Width: 12},
+	{Title: "Name", Width: 16},
 	{Title: "Administrator", Width: 16},
-	{Title: "Email", Width: 12},
-	{Title: "Registration Time", Width: 30},
+	{Title: "Email", Width: 20},
+	{Title: "Registration Time", Width: 24},
 }
 
 func (m model) Init() tea.Cmd {
@@ -36,21 +35,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	return baseStyle.Render(m.table.View()) + "\n"
+	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
 func ListUsers(users []*models.UserResp) {
 	var rows []table.Row
 	for _, user := range users {
 		isAdmin := "No"
-		if user.AdminRoleInAuth {
+		if user.SysadminFlag {
 			isAdmin = "Yes"
 		}
+		createdTime, _ := utils.FormatCreatedTime(user.CreationTime.String())
 		rows = append(rows, table.Row{
 			user.Username,
 			isAdmin,
 			user.Email,
-			fmt.Sprintf("%s", user.CreationTime),
+			createdTime,
 		})
 	}
 
