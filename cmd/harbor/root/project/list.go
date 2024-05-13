@@ -34,8 +34,8 @@ func ListProjectCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
-			FormatFlag := viper.GetString("output")
-			if FormatFlag != "json" {
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
 				utils.PrintPayloadInJSONFormat(projects)
 				return
 			}

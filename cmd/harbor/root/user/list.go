@@ -5,6 +5,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/user/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -16,7 +17,13 @@ func UserListCmd() *cobra.Command {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
-			runListUsers()
+			response := runListUsers()
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				utils.PrintPayloadInJSONFormat(response.Payload)
+			} else {
+				list.ListUsers(response.Payload)
+			}
 		},
 	}
 
@@ -24,11 +31,11 @@ func UserListCmd() *cobra.Command {
 
 }
 
-func runListUsers() {
+func runListUsers() *user.ListUsersOK {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, _ := client.User.ListUsers(ctx, &user.ListUsersParams{})
 
-	utils.PrintPayloadInJSONFormat(response)
+	return response
 }

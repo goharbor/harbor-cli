@@ -9,50 +9,60 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// {
-// 	"email": "string",
-// 	"realname": "string",
-// 	"comment": "string",
-// 	"password": "string",
-// 	"username": "string"
-//   }
-
-type createUserOptions struct {
-	email    string
-	realname string
-	comment  string
-	password string
-	username string
-}
-
 func UserCreateCmd() *cobra.Command {
-	var opts createUserOptions
+	var opts create.CreateView
 
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create user",
-		// Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			createView := &create.CreateView{
+				Email:    opts.Email,
+				Realname: opts.Realname,
+				Comment:  opts.Comment,
+				Password: opts.Password,
+				Username: opts.Username,
+			}
 
-			return runCreateUser(opts)
+			if opts.Email != "" && opts.Realname != "" && opts.Comment != "" && opts.Password != "" && opts.Username != "" {
+				err = runCreateUser(opts)
+			} else {
+				err = createUserView(createView)
+			}
+
+			if err != nil {
+				log.Errorf("failed to create user: %v", err)
+			}
+
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.email, "email", "", "", "Email")
-	flags.StringVarP(&opts.realname, "realname", "", "", "Realname")
-	flags.StringVarP(&opts.comment, "comment", "", "", "Comment")
-	flags.StringVarP(&opts.password, "password", "", "", "Password")
-	flags.StringVarP(&opts.username, "username", "", "", "Username")
+	flags.StringVarP(&opts.Email, "email", "", "", "Email")
+	flags.StringVarP(&opts.Realname, "realname", "", "", "Realname")
+	flags.StringVarP(&opts.Comment, "comment", "", "", "Comment")
+	flags.StringVarP(&opts.Password, "password", "", "", "Password")
+	flags.StringVarP(&opts.Username, "username", "", "", "Username")
 
 	return cmd
 }
 
-func runCreateUser(opts createUserOptions) error {
+func createUserView(createView *create.CreateView) error {
+	create.CreateUserView(createView)
+	return runCreateUser(*createView)
+
+}
+
+func runCreateUser(opts create.CreateView) error {
 	credentialName := viper.GetString("current-credential-name")
 
 	client := utils.GetClientByCredentialName(credentialName)
@@ -61,11 +71,11 @@ func runCreateUser(opts createUserOptions) error {
 
 	response, err := client.User.CreateUser(ctx, &user.CreateUserParams{
 		UserReq: &models.UserCreationReq{
-			Email:    opts.email,
-			Realname: opts.realname,
-			Comment:  opts.comment,
-			Password: opts.password,
-			Username: opts.username,
+			Email:    opts.Email,
+			Realname: opts.Realname,
+			Comment:  opts.Comment,
+			Password: opts.Password,
+			Username: opts.Username,
 		},
 	})
 
@@ -73,6 +83,9 @@ func runCreateUser(opts createUserOptions) error {
 		return err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
+	if response != nil {
+		log.Info("User created successfully")
+	}
+
 	return nil
 }
