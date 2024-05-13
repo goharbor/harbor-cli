@@ -28,6 +28,7 @@ func LoginCommand() *cobra.Command {
 		Long:  "Authenticate with Harbor Registry.",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+
 			if len(args) > 0 {
 				serverAddress = args[0]
 			}

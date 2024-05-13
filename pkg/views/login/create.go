@@ -2,9 +2,9 @@ package login
 
 import (
 	"errors"
-	"log"
 
 	"github.com/charmbracelet/huh"
+	log "github.com/sirupsen/logrus"
 )
 
 type LoginView struct {
