@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
+	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -87,4 +90,30 @@ func GetProjectNameFromUser() string {
 	}()
 
 	return <-projectName
+}
+
+func GetRepoNameFromUser(projectName string) string {
+	repositoryName := make(chan string)
+
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{ProjectName: projectName})
+		if err != nil {
+			log.Fatal(err)
+		}
+		repoView.RepositoryList(response.Payload, repositoryName)
+	}()
+
+	return <-repositoryName
+
+}
+
+func ParseProjectRepo(projectRepo string) (string, string) {
+	split := strings.Split(projectRepo, "/")
+	if len(split) != 2 {
+		log.Fatalf("invalid project/repository format: %s", projectRepo)
+	}
+	return split[0], split[1]
 }
