@@ -32,8 +32,8 @@ func LogsProjectCommmand() *cobra.Command {
 			}
 			auditLog.LogsProject(resp.Payload)
 
-			FormatFlag := viper.GetString("output")
-			if FormatFlag != "json" {
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
 				utils.PrintPayloadInJSONFormat(resp)
 				return
 			}

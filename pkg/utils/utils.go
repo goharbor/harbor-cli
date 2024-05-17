@@ -10,8 +10,10 @@ import (
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
+	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -87,4 +89,22 @@ func GetProjectNameFromUser() string {
 	}()
 
 	return <-projectName
+}
+
+func GetUserIdFromUser() int64 {
+	userId := make(chan int64)
+
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		uview.UserList(response.Payload, userId)
+	}()
+
+	return <-userId
+
 }
