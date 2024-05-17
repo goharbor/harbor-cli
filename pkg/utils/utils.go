@@ -11,9 +11,11 @@ import (
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
+	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -116,4 +118,22 @@ func ParseProjectRepo(projectRepo string) (string, string) {
 		log.Fatalf("invalid project/repository format: %s", projectRepo)
 	}
 	return split[0], split[1]
+}
+
+func GetUserIdFromUser() int64 {
+	userId := make(chan int64)
+
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		uview.UserList(response.Payload, userId)
+	}()
+
+	return <-userId
+
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,11 +91,11 @@ harbor help
 
 	cobra.OnInitialize(initConfig)
 
-	root.PersistentFlags().StringVarP(&output, "output", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
 	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
-	viper.BindPFlag("output", root.PersistentFlags().Lookup("output"))
+	viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
 
 	root.AddCommand(
 		versionCommand(),
@@ -102,6 +103,7 @@ harbor help
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
+		user.User(),
 	)
 
 	return root
