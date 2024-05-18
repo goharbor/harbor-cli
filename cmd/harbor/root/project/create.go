@@ -28,6 +28,7 @@ func CreateProjectCommand() *cobra.Command {
 				Public:       opts.Public,
 				RegistryID:   opts.RegistryID,
 				StorageLimit: opts.StorageLimit,
+				ProxyCache:   false,
 			}
 
 			if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
@@ -48,6 +49,7 @@ func CreateProjectCommand() *cobra.Command {
 	flags.BoolVarP(&opts.Public, "public", "", true, "Project is public or private")
 	flags.StringVarP(&opts.RegistryID, "registry-id", "", "", "ID of referenced registry when creating the proxy cache project")
 	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "-1", "Storage quota of the project")
+	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
 	return cmd
 }
@@ -72,13 +74,18 @@ func runCreateProject(opts create.CreateView) error {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	// registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)
+	registryID := new(int64)
+	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
 
-	// storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	if !opts.ProxyCache {
+		registryID = nil
+	}
+
+	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
 
 	public := strconv.FormatBool(opts.Public)
 
-	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
+	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, RegistryID: registryID, StorageLimit: &storageLimit, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
 
 	if err != nil {
 		return err
