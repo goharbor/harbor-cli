@@ -20,8 +20,7 @@ type model struct {
 var columns = []table.Column{
 	{Title: "Project Name", Width: 12},
 	{Title: "Access Level", Width: 12},
-	// {Title: "Role", Width: 12},
-	// {Title: "Type", Width: 12},
+	{Title: "Type", Width: 12},
 	{Title: "Repo Count", Width: 12},
 	{Title: "Creation Time", Width: 30},
 }
@@ -48,10 +47,17 @@ func ListProjects(projects []*models.Project) {
 		if project.Metadata.Public != "true" {
 			accessLevel = "private"
 		}
+
+		projectType := "project"
+
+		if project.RegistryID != 0 {
+			projectType = "proxy cache"
+		}
 		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
 		rows = append(rows, table.Row{
 			project.Name, // Project Name
 			accessLevel,  // Access Level
+			projectType,  // Type
 			strconv.FormatInt(project.RepoCount, 10),
 			createdTime, // Creation Time
 		})
