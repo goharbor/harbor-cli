@@ -1,21 +1,21 @@
 # harbor-cli
-LFX mentorship program project original author https://github.com/akshatdalton 
+The cli for harbor registry. This project is under construction.
 
-https://github.com/cncf/mentoring/tree/main/programs/lfx-mentorship/2023/01-Mar-May#an-official-golang-api-client-and-cli-for-harbor
-https://mentorship.lfx.linuxfoundation.org/project/7e8cb88a-5b37-471c-8db8-e11907b5a661
+### LFX mentorship program
 
-#Under Contstruction! 
-# How to Install:
+LFX mentorship program project original author [Akshat](https://github.com/akshatdalton) 
 
+LFX mentorship term 2 project proposal: [Harbor CLI](https://github.com/cncf/mentoring/tree/main/programs/lfx-mentorship/2023/01-Mar-May#an-official-golang-api-client-and-cli-for-harbor)
+<br>
+LFX mentorship website: [LFX mentorship Harbor CLI](https://mentorship.lfx.linuxfoundation.org/project/7e8cb88a-5b37-471c-8db8-e11907b5a661)
+
+### Installation
 - Run `go mod download` to install the dependencies
 - Run `go build -o harbor` to generate the build file
 
-# How to Use:
+### Usage:
 
-If you have completed the above steps, now you are all set to use this project.
-<br>
-<br>
-`./harbor --help` or do `./harbor help`:
+`./harbor --help` or `./harbor help` to get the list of commands:
 ```shell
 Official Harbor CLI
 
