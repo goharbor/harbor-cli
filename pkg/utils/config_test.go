@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,8 +35,13 @@ func TestCreateConfigFile(t *testing.T) {
 }
 
 func TestAddCredentialsToConfigFile(t *testing.T) {
+	// Set the config file path to an invalid path
+	invalidPath := t.TempDir() + "/invalid/path/config.yaml"
+	err := AddCredentialsToConfigFile(Credential{}, invalidPath)
+	require.Error(t, err)
+
 	DefaultConfigPath = t.TempDir() + ".harbor/config.yaml"
-	err := CreateConfigFile()
+	err = CreateConfigFile()
 	require.NoError(t, err)
 
 	credential := Credential{
@@ -106,4 +112,10 @@ func TestGetCredentials(t *testing.T) {
 	credentialFound, err = GetCredentials("TestCred3")
 	require.NoError(t, err)
 	require.Equal(t, Credential{}, credentialFound)
+
+	// Test if config is malformed
+	viper.SetConfigFile(DefaultConfigPath)
+	os.WriteFile(DefaultConfigPath, []byte("malformed"), 0644)
+	_, err = GetCredentials("TestCred")
+	require.Error(t, err)
 }
