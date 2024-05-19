@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -24,4 +26,23 @@ func FormatCreatedTime(timestamp string) (string, error) {
 	} else {
 		return fmt.Sprintf("%d day ago", days), nil
 	}
+}
+
+func HandleURLFormat(server string) (string, error) {
+	server = strings.TrimSpace(server)
+	if !strings.HasPrefix(server, "http://") && !strings.HasPrefix(server, "https://") {
+		server = "https://" + server
+	}
+	parsedURL, err := url.Parse(server)
+	if err != nil {
+		return "", fmt.Errorf("invalid server address: %s", err)
+	}
+	if parsedURL.Port() == "" {
+		if parsedURL.Scheme == "https" {
+			parsedURL.Host = parsedURL.Host + ":443"
+		} else {
+			parsedURL.Host = parsedURL.Host + ":80"
+		}
+	}
+	return parsedURL.String(), nil
 }

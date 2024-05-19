@@ -8,8 +8,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
 	"github.com/spf13/cobra"
-	"net/url"
-	"strings"
 )
 
 var (
@@ -82,7 +80,7 @@ func createLoginView(loginView *login.LoginView) error {
 }
 
 func runLogin(opts login.LoginView) error {
-	server, URLFormatErr := handleURLFormat(opts.Server)
+	server, URLFormatErr := utils.HandleURLFormat(opts.Server)
 	if URLFormatErr != nil {
 		return URLFormatErr
 	}
@@ -110,23 +108,4 @@ func runLogin(opts login.LoginView) error {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
-}
-
-func handleURLFormat(server string) (string, error) {
-	server = strings.TrimSpace(server)
-	if !strings.HasPrefix(server, "http://") && !strings.HasPrefix(server, "https://") {
-		server = "https://" + server
-	}
-	parsedURL, err := url.Parse(server)
-	if err != nil {
-		return "", fmt.Errorf("invalid server address: %s", err)
-	}
-	if parsedURL.Port() == "" {
-		if parsedURL.Scheme == "https" {
-			parsedURL.Host = parsedURL.Host + ":443"
-		} else {
-			parsedURL.Host = parsedURL.Host + ":80"
-		}
-	}
-	return parsedURL.String(), nil
 }
