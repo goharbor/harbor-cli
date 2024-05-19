@@ -19,12 +19,14 @@ func DeleteProjectCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
+			credentialName := viper.GetString("current-credential-name")
+			client := utils.GetClientByCredentialName(credentialName)
+			ctx := context.Background()
 			if len(args) > 0 {
-				err = runDeleteProject(args[0])
+				err = RunDeleteProject(args[0], ctx, client.Project)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
-				err = runDeleteProject(projectName)
+				err = RunDeleteProject(projectName, ctx, client.Project)
 			}
 			if err != nil {
 				log.Errorf("failed to delete project: %v", err)
@@ -35,11 +37,9 @@ func DeleteProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func runDeleteProject(projectName string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
+func RunDeleteProject(projectName string, ctx context.Context, projectInterface ProjectInterface) error {
+
+	_, err := projectInterface.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
 
 	if err != nil {
 		return err

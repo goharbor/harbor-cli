@@ -29,11 +29,14 @@ func CreateProjectCommand() *cobra.Command {
 				RegistryID:   opts.RegistryID,
 				StorageLimit: opts.StorageLimit,
 			}
-
+			credentialName := viper.GetString("current-credential-name")
+			client := utils.GetClientByCredentialName(credentialName)
+			ctx := context.Background()
 			if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
-				err = runCreateProject(opts)
+				err = RunCreateProject(ctx, opts, client.Project)
 			} else {
-				err = createProjectView(createView)
+				createView = createProjectView(createView)
+				err = RunCreateProject(ctx, *createView, client.Project)
 			}
 
 			if err != nil {
@@ -52,7 +55,7 @@ func CreateProjectCommand() *cobra.Command {
 	return cmd
 }
 
-func createProjectView(createView *create.CreateView) error {
+func createProjectView(createView *create.CreateView) *create.CreateView {
 	if createView == nil {
 		createView = &create.CreateView{
 			ProjectName:  "",
@@ -64,21 +67,15 @@ func createProjectView(createView *create.CreateView) error {
 
 	create.CreateProjectView(createView)
 
-	return runCreateProject(*createView)
+	return createView
 
 }
 
-func runCreateProject(opts create.CreateView) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	// registryID, _ := strconv.ParseInt(opts.RegistryID, 10, 64)
-
-	// storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
+func RunCreateProject(ctx context.Context, opts create.CreateView, projectInterface ProjectInterface) error {
 
 	public := strconv.FormatBool(opts.Public)
 
-	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
+	response, err := projectInterface.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
 
 	if err != nil {
 		return err
