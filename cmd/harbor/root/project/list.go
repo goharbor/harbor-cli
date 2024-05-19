@@ -11,26 +11,29 @@ import (
 	"github.com/spf13/viper"
 )
 
-type listProjectOptions struct {
-	name       string
-	owner      string
-	page       int64
-	pageSize   int64
-	public     bool
-	q          string
-	sort       string
-	withDetail bool
+type ListProjectOptions struct {
+	Name       string
+	Owner      string
+	Page       int64
+	PageSize   int64
+	Public     bool
+	Q          string
+	Sort       string
+	WithDetail bool
 }
 
 // NewListProjectCommand creates a new `harbor list project` command
 func ListProjectCommand() *cobra.Command {
-	var opts listProjectOptions
+	var opts ListProjectOptions
 
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
 		Run: func(cmd *cobra.Command, args []string) {
-			projects, err := RunListProject(opts)
+			ctx := context.Background()
+			credentialName := viper.GetString("current-credential-name")
+			client := utils.GetClientByCredentialName(credentialName)
+			projects, err := RunListProject(opts, ctx, client.Project)
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
@@ -45,23 +48,21 @@ func ListProjectCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.name, "name", "", "", "Name of the project")
-	flags.StringVarP(&opts.owner, "owner", "", "", "Name of the project owner")
-	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
-	flags.BoolVarP(&opts.public, "public", "", true, "Project is public or private")
-	flags.StringVarP(&opts.q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-	flags.BoolVarP(&opts.withDetail, "with-detail", "", true, "Bool value indicating whether return detailed information of the project")
+	flags.StringVarP(&opts.Name, "name", "", "", "Name of the project")
+	flags.StringVarP(&opts.Owner, "owner", "", "", "Name of the project owner")
+	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.BoolVarP(&opts.Public, "public", "", true, "Project is public or private")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.BoolVarP(&opts.WithDetail, "with-detail", "", true, "Bool value indicating whether return detailed information of the project")
 
 	return cmd
 }
 
-func RunListProject(opts listProjectOptions) (*project.ListProjectsOK, error) {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Name: &opts.name, Owner: &opts.owner, Page: &opts.page, PageSize: &opts.pageSize, Public: &opts.public, Q: &opts.q, Sort: &opts.sort, WithDetail: &opts.withDetail})
+func RunListProject(opts ListProjectOptions, ctx context.Context, projectInterface ProjectInterface) (*project.ListProjectsOK, error) {
+
+	response, err := projectInterface.ListProjects(ctx, &project.ListProjectsParams{Name: &opts.Name, Owner: &opts.Owner, Page: &opts.Page, PageSize: &opts.PageSize, Public: &opts.Public, Q: &opts.Q, Sort: &opts.Sort, WithDetail: &opts.WithDetail})
 	if err != nil {
 		return nil, err
 	}
