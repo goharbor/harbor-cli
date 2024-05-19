@@ -20,11 +20,15 @@ func LogsProjectCommmand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var resp *project.GetLogsOK
+			credentialName := viper.GetString("current-credential-name")
+			client := utils.GetClientByCredentialName(credentialName)
+			ctx := context.Background()
+
 			if len(args) > 0 {
-				resp, err = runLogsProject(args[0])
+				resp, err = RunLogsProject(args[0], ctx, client.Project)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
-				resp, err = runLogsProject(projectName)
+				resp, err = RunLogsProject(projectName, ctx, client.Project)
 			}
 
 			if err != nil {
@@ -44,11 +48,9 @@ func LogsProjectCommmand() *cobra.Command {
 	return cmd
 }
 
-func runLogsProject(projectName string) (*project.GetLogsOK, error) {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Project.GetLogs(ctx, &project.GetLogsParams{
+func RunLogsProject(projectName string, ctx context.Context, projectInterface ProjectInterface) (*project.GetLogsOK, error) {
+
+	response, err := projectInterface.GetLogs(ctx, &project.GetLogsParams{
 		ProjectName: projectName,
 		Context:     ctx,
 	})
