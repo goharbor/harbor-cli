@@ -2,6 +2,8 @@ package create
 
 import (
 	"errors"
+	"strings"
+	"unicode"
 
 	"github.com/charmbracelet/huh"
 	log "github.com/sirupsen/logrus"
@@ -54,8 +56,17 @@ func CreateUserView(createView *CreateView) {
 				Validate(func(str string) error {
 					if str == "" {
 						return errors.New("password cannot be empty")
-					}
+					} else if len(str) < 8  {
+					 	return errors.New("password should atleast 8 character long")
+					} else if !containsUpperCase(str){
+						return errors.New("password should atleast need one uppercase")
+					} else if !containsLowerCase(str){
+						return errors.New("password should atleast need one lowercase")
+					} else if !containsDigits(str){
+						return errors.New("password should atleast need one number")
+					} else {
 					return nil
+					}
 				}),
 			huh.NewInput().
 				Title("Comment").
@@ -66,4 +77,16 @@ func CreateUserView(createView *CreateView) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func containsUpperCase(s string) bool {
+    return strings.IndexFunc(s, unicode.IsUpper) >= 0
+}
+
+func containsLowerCase(s string) bool {
+    return strings.IndexFunc(s, unicode.IsLower) >= 0
+}
+
+func containsDigits(s string) bool {
+    return strings.IndexFunc(s, unicode.IsDigit) >= 0
 }
