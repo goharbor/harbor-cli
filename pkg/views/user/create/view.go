@@ -2,8 +2,7 @@ package create
 
 import (
 	"errors"
-	"strings"
-	"unicode"
+	"regexp"
 
 	"github.com/charmbracelet/huh"
 	log "github.com/sirupsen/logrus"
@@ -56,18 +55,13 @@ func CreateUserView(createView *CreateView) {
 				Validate(func(str string) error {
 					if str == "" {
 						return errors.New("password cannot be empty")
-					} else if len(str) < 8  {
-					 	return errors.New("password should atleast 8 character long")
-					} else if !containsUpperCase(str){
-						return errors.New("password should atleast need one uppercase")
-					} else if !containsLowerCase(str){
-						return errors.New("password should atleast need one lowercase")
-					} else if !containsDigits(str){
-						return errors.New("password should atleast need one number")
+					} else if !IsValidPassword(str)  {
+					 	return errors.New("password is incorrect")
 					} else {
 					return nil
 					}
-				}),
+				}).
+				Description("Password should be 8-128 characters long with at least 1 uppercase, 1 lowercase and 1 number."),
 			huh.NewInput().
 				Title("Comment").
 				Value(&createView.Comment),
@@ -79,14 +73,29 @@ func CreateUserView(createView *CreateView) {
 	}
 }
 
-func containsUpperCase(s string) bool {
-    return strings.IndexFunc(s, unicode.IsUpper) >= 0
-}
 
-func containsLowerCase(s string) bool {
-    return strings.IndexFunc(s, unicode.IsLower) >= 0
-}
+func IsValidPassword(password string) bool {
+	lengthPattern := `^.{8,128}$`
+	uppercasePattern := `[A-Z]`
+	lowercasePattern := `[a-z]`
+	numberPattern := `[0-9]`
 
-func containsDigits(s string) bool {
-    return strings.IndexFunc(s, unicode.IsDigit) >= 0
+	lengthRegex := regexp.MustCompile(lengthPattern)
+	uppercaseRegex := regexp.MustCompile(uppercasePattern)
+	lowercaseRegex := regexp.MustCompile(lowercasePattern)
+	numberRegex := regexp.MustCompile(numberPattern)
+
+	if !lengthRegex.MatchString(password) {
+		return false
+	}
+	if !uppercaseRegex.MatchString(password) {
+		return false
+	}
+	if !lowercaseRegex.MatchString(password) {
+		return false
+	}
+	if !numberRegex.MatchString(password) {
+		return false
+	}
+	return true
 }
