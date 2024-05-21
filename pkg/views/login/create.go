@@ -2,7 +2,6 @@ package login
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -71,5 +70,4 @@ func TrimSpaceOfLoginInputs(loginView *LoginView) {
 	loginView.Username = strings.TrimSpace(loginView.Username)
 	loginView.Password = strings.TrimSpace(loginView.Password)
 	loginView.Name = strings.TrimSpace(loginView.Name)
-	fmt.Println(loginView.Server, loginView.Username, loginView.Password, loginView.Name)
 }
