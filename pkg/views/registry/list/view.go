@@ -3,7 +3,6 @@ package list
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,11 +17,14 @@ type model struct {
 }
 
 var columns = []table.Column{
-	{Title: "Project Name", Width: 12},
-	{Title: "Access Level", Width: 12},
-	{Title: "Type", Width: 12},
-	{Title: "Repo Count", Width: 12},
-	{Title: "Creation Time", Width: 30},
+	{Title: "ID", Width: 6},
+	{Title: "Name", Width: 12},
+	{Title: "Status", Width: 12},
+	{Title: "Endpoint URL", Width: 26},
+	{Title: "Provider", Width: 12},
+	{Title: "Creation Time", Width: 24},
+	// {Title: "Verify Remote Cert", Width: 12},
+	// {Title: "Description", Width: 12},
 }
 
 func (m model) Init() tea.Cmd {
@@ -31,7 +33,6 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd
 }
@@ -40,26 +41,18 @@ func (m model) View() string {
 	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
-func ListProjects(projects []*models.Project) {
+func ListRegistry(registry []*models.Registry) {
 	var rows []table.Row
-	for _, project := range projects {
-		accessLevel := "public"
-		if project.Metadata.Public != "true" {
-			accessLevel = "private"
-		}
-
-		projectType := "project"
-
-		if project.RegistryID != 0 {
-			projectType = "proxy cache"
-		}
-		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
+	for _, regis := range registry {
+		createdTime, _ := utils.FormatCreatedTime(regis.CreationTime.String())
 		rows = append(rows, table.Row{
-			project.Name, // Project Name
-			accessLevel,  // Access Level
-			projectType,  // Type
-			strconv.FormatInt(project.RepoCount, 10),
-			createdTime, // Creation Time
+			fmt.Sprintf("%d", regis.ID),
+			regis.Name,
+			regis.Status,
+			regis.URL,
+			regis.Type,
+			createdTime,
+			// regis.Description,
 		})
 	}
 

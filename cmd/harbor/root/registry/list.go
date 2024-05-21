@@ -4,9 +4,11 @@ import (
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/registry/list"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type listRegistryOptions struct {
@@ -23,12 +25,18 @@ func ListRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list registry",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
+		Run: func(cmd *cobra.Command, args []string) {
+			registry, err := runListRegistry(opts)
+
 			if err != nil {
-				return err
+				log.Fatalf("failed to get projects list: %v", err)
 			}
-			return runListRegistry(opts, credentialName)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				utils.PrintPayloadInJSONFormat(registry)
+				return
+			}
+			list.ListRegistry(registry.Payload)
 		},
 	}
 
@@ -41,15 +49,15 @@ func ListRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func runListRegistry(opts listRegistryOptions, credentialName string) error {
+func runListRegistry(opts listRegistryOptions) (*registry.ListRegistriesOK, error) {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{Page: &opts.page, PageSize: &opts.pageSize, Q: &opts.q, Sort: &opts.sort})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response.GetPayload())
-	return nil
+	return response, nil
 }

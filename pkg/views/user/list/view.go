@@ -3,7 +3,6 @@ package list
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,11 +17,10 @@ type model struct {
 }
 
 var columns = []table.Column{
-	{Title: "Project Name", Width: 12},
-	{Title: "Access Level", Width: 12},
-	{Title: "Type", Width: 12},
-	{Title: "Repo Count", Width: 12},
-	{Title: "Creation Time", Width: 30},
+	{Title: "Name", Width: 16},
+	{Title: "Administrator", Width: 16},
+	{Title: "Email", Width: 20},
+	{Title: "Registration Time", Width: 24},
 }
 
 func (m model) Init() tea.Cmd {
@@ -40,26 +38,19 @@ func (m model) View() string {
 	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
-func ListProjects(projects []*models.Project) {
+func ListUsers(users []*models.UserResp) {
 	var rows []table.Row
-	for _, project := range projects {
-		accessLevel := "public"
-		if project.Metadata.Public != "true" {
-			accessLevel = "private"
+	for _, user := range users {
+		isAdmin := "No"
+		if user.SysadminFlag {
+			isAdmin = "Yes"
 		}
-
-		projectType := "project"
-
-		if project.RegistryID != 0 {
-			projectType = "proxy cache"
-		}
-		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
+		createdTime, _ := utils.FormatCreatedTime(user.CreationTime.String())
 		rows = append(rows, table.Row{
-			project.Name, // Project Name
-			accessLevel,  // Access Level
-			projectType,  // Type
-			strconv.FormatInt(project.RepoCount, 10),
-			createdTime, // Creation Time
+			user.Username,
+			isAdmin,
+			user.Email,
+			createdTime,
 		})
 	}
 

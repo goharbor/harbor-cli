@@ -18,11 +18,10 @@ type model struct {
 }
 
 var columns = []table.Column{
-	{Title: "Project Name", Width: 12},
-	{Title: "Access Level", Width: 12},
-	{Title: "Type", Width: 12},
-	{Title: "Repo Count", Width: 12},
-	{Title: "Creation Time", Width: 30},
+	{Title: "Name", Width: 24},
+	{Title: "Artifacts", Width: 12},
+	{Title: "Pulls", Width: 12},
+	{Title: "Last Modified Time", Width: 30},
 }
 
 func (m model) Init() tea.Cmd {
@@ -40,26 +39,16 @@ func (m model) View() string {
 	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
-func ListProjects(projects []*models.Project) {
+func ListRepositories(repos []*models.Repository) {
 	var rows []table.Row
-	for _, project := range projects {
-		accessLevel := "public"
-		if project.Metadata.Public != "true" {
-			accessLevel = "private"
-		}
+	for _, repo := range repos {
 
-		projectType := "project"
-
-		if project.RegistryID != 0 {
-			projectType = "proxy cache"
-		}
-		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
+		createdTime, _ := utils.FormatCreatedTime(repo.UpdateTime.String())
 		rows = append(rows, table.Row{
-			project.Name, // Project Name
-			accessLevel,  // Access Level
-			projectType,  // Type
-			strconv.FormatInt(project.RepoCount, 10),
-			createdTime, // Creation Time
+			repo.Name,
+			fmt.Sprintf("%d", repo.ArtifactCount),
+			strconv.FormatInt(repo.PullCount, 10),
+			createdTime,
 		})
 	}
 

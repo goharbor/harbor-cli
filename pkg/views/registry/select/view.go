@@ -1,4 +1,4 @@
-package project
+package registry
 
 import (
 	"fmt"
@@ -79,16 +79,20 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-func ProjectList(project []*models.Project, choice chan<- string) {
-	items := make([]list.Item, len(project))
-	for i, p := range project {
-		items[i] = item(p.Name)
+func RegistryList(registry []*models.Registry, choice chan<- int64) {
+	itemsList := make([]list.Item, len(registry))
+
+	items := map[string]int64{}
+
+	for i, r := range registry {
+		items[r.Name] = r.ID
+		itemsList[i] = item(r.Name)
 	}
 
 	const defaultWidth = 20
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a project"
+	l := list.New(itemsList, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Select a Registry"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = views.TitleStyle
@@ -105,7 +109,7 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	}
 
 	if p, ok := p.(model); ok {
-		choice <- p.choice
+		choice <- items[p.choice]
 	}
 
 }

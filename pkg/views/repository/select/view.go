@@ -12,7 +12,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
-const listHeight = 14
+const listHeight = 25
 
 type item string
 
@@ -79,16 +79,18 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-func ProjectList(project []*models.Project, choice chan<- string) {
-	items := make([]list.Item, len(project))
-	for i, p := range project {
-		items[i] = item(p.Name)
+func RepositoryList(repos []*models.Repository, choice chan<- string) {
+	itemsList := make([]list.Item, len(repos))
+
+	for i, r := range repos {
+		split := strings.Split(r.Name, "/")
+		itemsList[i] = item(strings.Join(split[1:], "/"))
 	}
 
 	const defaultWidth = 20
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a project"
+	l := list.New(itemsList, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Select a Repository"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = views.TitleStyle
