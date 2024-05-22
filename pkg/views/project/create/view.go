@@ -81,7 +81,8 @@ func CreateProjectView(createView *CreateView) {
 				Value(&createView.ProxyCache).
 				Affirmative("yes").
 				Negative("no"),
-
+		),
+		huh.NewGroup(
 			huh.NewSelect[string]().
 				Validate(func(str string) error {
 					if createView.ProxyCache && str == "" {
@@ -93,7 +94,9 @@ func CreateProjectView(createView *CreateView) {
 				Title("Registry ID").
 				Value(&createView.RegistryID).
 				Options(registrySelectOptions...),
-		),
+		).WithHideFunc(func() bool {
+			return !createView.ProxyCache || len(registryOptions) == 0
+		}),
 	).WithTheme(theme).Run()
 
 	if err != nil {
