@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor-cli/pkg/views/login"
+	"strings"
 	"time"
 )
 
@@ -24,4 +26,11 @@ func FormatCreatedTime(timestamp string) (string, error) {
 	} else {
 		return fmt.Sprintf("%d day ago", days), nil
 	}
+}
+
+func TrimSpaceOfLoginInputs(loginView *login.LoginView) {
+	loginView.Server = strings.TrimSpace(loginView.Server)
+	loginView.Username = strings.TrimSpace(loginView.Username)
+	loginView.Password = strings.TrimSpace(loginView.Password)
+	loginView.Name = strings.TrimSpace(loginView.Name)
 }

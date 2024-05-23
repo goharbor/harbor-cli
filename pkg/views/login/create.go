@@ -2,7 +2,6 @@ package login
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/charmbracelet/huh"
 	log "github.com/sirupsen/logrus"
@@ -62,12 +61,4 @@ func CreateView(loginView *LoginView) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	TrimSpaceOfLoginInputs(loginView)
-}
-
-func TrimSpaceOfLoginInputs(loginView *LoginView) {
-	loginView.Server = strings.TrimSpace(loginView.Server)
-	loginView.Username = strings.TrimSpace(loginView.Username)
-	loginView.Password = strings.TrimSpace(loginView.Password)
-	loginView.Name = strings.TrimSpace(loginView.Name)
 }
