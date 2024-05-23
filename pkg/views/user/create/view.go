@@ -75,27 +75,15 @@ func CreateUserView(createView *CreateView) {
 
 
 func IsValidPassword(password string) bool {
-	lengthPattern := `^.{8,128}$`
-	uppercasePattern := `[A-Z]`
-	lowercasePattern := `[a-z]`
-	numberPattern := `[0-9]`
-
-	lengthRegex := regexp.MustCompile(lengthPattern)
-	uppercaseRegex := regexp.MustCompile(uppercasePattern)
-	lowercaseRegex := regexp.MustCompile(lowercasePattern)
-	numberRegex := regexp.MustCompile(numberPattern)
-
-	if !lengthRegex.MatchString(password) {
+	if !regexp.MustCompile(`^.{8,128}$`).MatchString(password) {
 		return false
-	}
-	if !uppercaseRegex.MatchString(password) {
+	}else if !regexp.MustCompile(`[A-Z]`).MatchString(password) {
 		return false
-	}
-	if !lowercaseRegex.MatchString(password) {
+	} else if !regexp.MustCompile(`[a-z]`).MatchString(password) {
 		return false
-	}
-	if !numberRegex.MatchString(password) {
+	} else if !regexp.MustCompile(`[0-9]`).MatchString(password) {
 		return false
+	} else{
+		return true
 	}
-	return true
 }
