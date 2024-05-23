@@ -9,10 +9,12 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
@@ -109,7 +111,21 @@ func GetRepoNameFromUser(projectName string) string {
 	}()
 
 	return <-repositoryName
+}
 
+// complete the function
+func GetReferenceFromUser(repositoryName string, projectName string) string {
+	reference := make(chan string)
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, _ := client.Artifact.ListArtifacts(ctx, &artifact.ListArtifactsParams{ProjectName: projectName, RepositoryName: repositoryName})
+
+		aview.ListArtifacts(response.Payload, reference)
+
+	}()
+	return <-reference
 }
 
 func ParseProjectRepo(projectRepo string) (string, string) {
@@ -118,6 +134,14 @@ func ParseProjectRepo(projectRepo string) (string, string) {
 		log.Fatalf("invalid project/repository format: %s", projectRepo)
 	}
 	return split[0], split[1]
+}
+
+func ParseProjectRepoReference(projectRepoReference string) (string, string, string) {
+	split := strings.Split(projectRepoReference, "/")
+	if len(split) != 3 {
+		log.Fatalf("invalid project/repository/reference format: %s", projectRepoReference)
+	}
+	return split[0], split[1], split[2]
 }
 
 func GetUserIdFromUser() int64 {
