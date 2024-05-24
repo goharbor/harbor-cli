@@ -101,7 +101,7 @@ func runLogin(opts login.LoginView) error {
 		Name:          opts.Name,
 		Username:      opts.Username,
 		Password:      opts.Password,
-		ServerAddress: opts.Server,
+		ServerAddress: server,
 	}
 
 	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
