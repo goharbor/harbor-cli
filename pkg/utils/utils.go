@@ -3,12 +3,11 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
-
-// Returns Harbor v2 client for given clientConfig
 
 func PrintPayloadInJSONFormat(payload any) {
 	if payload == nil {
@@ -21,6 +20,19 @@ func PrintPayloadInJSONFormat(payload any) {
 	}
 
 	fmt.Println(string(jsonStr))
+}
+
+func PrintPayloadInYAMLFormat(payload any) {
+	if payload == nil {
+		return
+	}
+
+	yamlStr, err := yaml.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(yamlStr))
 }
 
 func ParseProjectRepo(projectRepo string) (string, string) {
