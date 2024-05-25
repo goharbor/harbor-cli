@@ -7,7 +7,7 @@
 
 The Harbor CLI is designed to enhance your interaction with the Harbor container registry. Built on Golang, it offers a user-friendly interface to perform various tasks related to projects, registries, and more. Whether you're creating, updating, or managing resources, the Harbor CLI streamlines your workflow efficiently.
 
-# **Project Features** 🤯
+# Project Features 🤯
 
  🔹 Get details about projects, registries, repositories and more <br>
  🔹 Create new projects, registries, and other resources <br>
@@ -15,11 +15,80 @@ The Harbor CLI is designed to enhance your interaction with the Harbor container
  🔹 Run commands with various flags for enhanced functionality <br>
  🔹 More features coming soon... 🚧
 
-# Demo Screenshot
+# Example Commands💡
 
-![demo-1](https://github.com/goharbor/harbor-cli/assets/70086051/63b5f6b7-319b-4c05-968a-59489f7fdd35)
+```bash
+➜ harbor --help
+Official Harbor CLI
 
-![demo-2](https://github.com/goharbor/harbor-cli/assets/70086051/00afaa16-41c4-460d-8ec1-7b06b02bd80c)
+Usage:
+  harbor [command]
+
+Examples:
+
+// Base command:
+harbor
+
+// Display help about the command:
+harbor help
+
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  login       Log in to Harbor registry
+  project     Manage projects and assign resources to them
+  registry    Manage registries
+  repo        Manage repositories
+  user        Manage users
+  version     Version of Harbor CLI
+
+Flags:
+      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/bishal/.harbor/config.yaml")
+  -h, --help                   help for harbor
+  -o, --output-format string   Output format. One of: json|yaml
+  -v, --verbose                verbose output
+
+Use "harbor [command] --help" for more information about a command.
+```
+
+#### Log in to Harbor Registry
+
+```bash
+harbor login demo.goharbor.io -u admin -p Harbor12345
+```
+
+#### Create a New Project
+
+```bash
+harbor project create
+```
+
+#### List all Projects
+
+```bash
+harbor project list
+
+# output
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│  Project Name  Access Level  Type          Repo Count    Creation Time                   │
+│ ──────────────────────────────────────────────────────────────────────────────────────── │
+│  library       public        project       0             1 hour ago                      │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### List all Repository in a Project
+
+```bash
+harbor repo list
+
+# output
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  Name                      Artifacts     Pulls         Last Modified Time              │
+│ ────────────────────────────────────────────────────────────────────────────────────── │
+│  library/harbor-cli        1             0             0 minute ago                    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 # Supported Platforms
 
@@ -32,14 +101,18 @@ Windows | ✅
 # Installation
 
 ## Build From Source
+
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
 cd harbor-cli/cmd/harbor
 go build .
 sudo mv harbor /usr/local/bin/
 ```
+
 ## Linux and MacOS
+
  use `amd64/arm64` as per your system architecture
+
 ```bash
 ## Linux
 tar -xzf harbor_0.0.1_linux_amd64.tar.gz
@@ -51,10 +124,12 @@ tar -xzf harbor_0.0.1_darwin_amd64.tar.gz
 cd harbor_0.0.1_darwin_amd64
 sudo mv harbor /usr/local/bin/
 ```
+
 ## Windows
- - Download `harbor_0.0.1_windows_amd64.zip` and Extract it.
- - To easily use the harbor-cli from the command line, add the directory containing the `harbor.exe` to your system PATH.
- - In the Edit Environment Variable window, click on "New" and add the path to the directory where `harbor.exe` is located (e.g., `C:\path\to\harbor_0.0.1_windows_amd64`).
+
+```bash
+winget install harbor
+```
 
 # Community
 
@@ -64,11 +139,14 @@ sudo mv harbor /usr/local/bin/
 * **Slack:** Join Harbor's community for discussion and ask questions: [Cloud Native Computing Foundation](https://slack.cncf.io/), channel: [#harbor](https://cloud-native.slack.com/messages/harbor/), [#harbor-dev](https://cloud-native.slack.com/messages/harbor-dev/) and [#harbor-cli](https://cloud-native.slack.com/messages/harbor-cli/).
 
 # License
+
 This project is licensed under the Apache 2.0 License. See the [LICENSE](https://github.com/goharbor/harbor-cli/blob/main/LICENSE) file for details.
 
 # Acknowledgements
+
 This project is maintained by the Harbor community. We thank all our contributors and users for their support.
 
 # ❤️ Show your support
+
 For any questions or issues, please open an issue on our [GitHub Issues](https://github.com/goharbor/harbor-cli/issues) page.<br>
 Give a ⭐ if this project helped you, Thank YOU!
