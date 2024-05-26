@@ -1,15 +1,10 @@
 package registry
 
 import (
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // NewCreateRegistryCommand creates a new `harbor create registry` command
@@ -36,7 +31,7 @@ func CreateRegistryCommand() *cobra.Command {
 			}
 
 			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
-				err = runCreateRegistry(opts)
+				err = api.CreateRegistry(opts)
 			} else {
 				err = createRegistryView(createView)
 			}
@@ -67,19 +62,5 @@ func createRegistryView(createView *create.CreateView) error {
 	}
 
 	create.CreateRegistryView(createView)
-	return runCreateRegistry(*createView)
-}
-
-func runCreateRegistry(opts create.CreateView) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.Registry.CreateRegistry(ctx, &registry.CreateRegistryParams{Registry: &models.Registry{Credential: &models.RegistryCredential{AccessKey: opts.Credential.AccessKey, AccessSecret: opts.Credential.AccessSecret, Type: opts.Credential.Type}, Description: opts.Description, Insecure: opts.Insecure, Name: opts.Name, Type: opts.Type, URL: opts.URL}})
-
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Registry %s created", opts.Name)
-	return nil
+	return api.CreateRegistry(*createView)
 }

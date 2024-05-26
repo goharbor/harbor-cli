@@ -1,13 +1,10 @@
 package artifact
 
 import (
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func InfoArtifactCommmand() *cobra.Command {
@@ -22,12 +19,12 @@ func InfoArtifactCommmand() *cobra.Command {
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = runInfoArtifact(projectName, repoName, reference)
+				err = api.RunInfoArtifact(projectName, repoName, reference)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
 				repoName := utils.GetRepoNameFromUser(projectName)
 				reference := utils.GetReferenceFromUser(repoName, projectName)
-				err = runInfoArtifact(projectName, repoName, reference)
+				err = api.RunInfoArtifact(projectName, repoName, reference)
 			}
 
 			if err != nil {
@@ -38,20 +35,4 @@ func InfoArtifactCommmand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runInfoArtifact(projectName, repoName, reference string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-
-	response, err := client.Artifact.GetArtifact(ctx, &artifact.GetArtifactParams{ProjectName: projectName, RepositoryName: repoName, Reference: reference})
-
-	if err != nil {
-		return err
-	}
-
-	utils.PrintPayloadInJSONFormat(response.Payload)
-
-	return nil
 }

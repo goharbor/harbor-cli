@@ -1,14 +1,12 @@
 package registry
 
 import (
-	"context"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // NewDeleteRegistryCommand creates a new `harbor delete registry` command
@@ -23,10 +21,10 @@ func DeleteRegistryCommand() *cobra.Command {
 
 			if len(args) > 0 {
 				registryId, _ := strconv.ParseInt(args[0], 10, 64)
-				err = runDeleteRegistry(registryId)
+				err = api.DeleteRegistry(registryId)
 			} else {
 				registryId := utils.GetRegistryNameFromUser()
-				err = runDeleteRegistry(registryId)
+				err = api.DeleteRegistry(registryId)
 			}
 			if err != nil {
 				log.Errorf("failed to delete registry: %v", err)
@@ -35,19 +33,4 @@ func DeleteRegistryCommand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runDeleteRegistry(registryName int64) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.Registry.DeleteRegistry(ctx, &registry.DeleteRegistryParams{ID: registryName})
-
-	if err != nil {
-		return err
-	}
-
-	log.Info("registry deleted successfully")
-
-	return nil
 }

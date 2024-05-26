@@ -1,16 +1,13 @@
 package registry
 
 import (
-	"context"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // NewUpdateRegistryCommand creates a new `harbor update registry` command
@@ -49,7 +46,7 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
-				err = runUpdateRegistry(updateView, registryId)
+				err = api.UpdateRegistry(updateView, registryId)
 			} else {
 				err = updateRegistryView(updateView, registryId)
 			}
@@ -79,30 +76,5 @@ func updateRegistryView(updateView *create.CreateView, projectID int64) error {
 	}
 
 	create.CreateRegistryView(updateView)
-	return runUpdateRegistry(updateView, projectID)
-}
-
-func runUpdateRegistry(updateView *create.CreateView, projectID int64) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	registryUpdate := &models.RegistryUpdate{
-		Name:           &updateView.Name,
-		Description:    &updateView.Description,
-		URL:            &updateView.URL,
-		AccessKey:      &updateView.Credential.AccessKey,
-		AccessSecret:   &updateView.Credential.AccessSecret,
-		CredentialType: &updateView.Credential.Type,
-		Insecure:       &updateView.Insecure,
-	}
-
-	_, err := client.Registry.UpdateRegistry(ctx, &registry.UpdateRegistryParams{ID: projectID, Registry: registryUpdate})
-
-	if err != nil {
-		return err
-	}
-
-	log.Info("registry updated successfully")
-
-	return nil
+	return api.UpdateRegistry(updateView, projectID)
 }

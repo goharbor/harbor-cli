@@ -1,13 +1,10 @@
 package artifact
 
 import (
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func ScanArtifactCommand() *cobra.Command {
@@ -38,12 +35,12 @@ func StartScanArtifactCommand() *cobra.Command {
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = runStartScanArtifact(projectName, repoName, reference)
+				err = api.StartScanArtifact(projectName, repoName, reference)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
 				repoName := utils.GetRepoNameFromUser(projectName)
 				reference := utils.GetReferenceFromUser(repoName, projectName)
-				err = runStartScanArtifact(projectName, repoName, reference)
+				err = api.StartScanArtifact(projectName, repoName, reference)
 			}
 
 			if err != nil {
@@ -52,38 +49,6 @@ func StartScanArtifactCommand() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-func runStartScanArtifact(projectName, repoName, reference string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-
-	_, err := client.Scan.ScanArtifact(ctx, &scan.ScanArtifactParams{ProjectName: projectName, RepositoryName: repoName, Reference: reference})
-
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Scan started successfully")
-
-	return nil
-}
-
-func runStopScanArtifact(projectName, repoName, reference string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-
-	_, err := client.Scan.StopScanArtifact(ctx, &scan.StopScanArtifactParams{ProjectName: projectName, RepositoryName: repoName, Reference: reference})
-
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Scan stopped successfully")
-
-	return nil
 }
 
 func StopScanArtifactCommand() *cobra.Command {
@@ -97,12 +62,12 @@ func StopScanArtifactCommand() *cobra.Command {
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = runStopScanArtifact(projectName, repoName, reference)
+				err = api.StopScanArtifact(projectName, repoName, reference)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
 				repoName := utils.GetRepoNameFromUser(projectName)
 				reference := utils.GetReferenceFromUser(repoName, projectName)
-				err = runStopScanArtifact(projectName, repoName, reference)
+				err = api.StopScanArtifact(projectName, repoName, reference)
 			}
 
 			if err != nil {

@@ -4,17 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/goharbor/go-client/pkg/harbor"
-	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
+	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
@@ -24,28 +22,6 @@ import (
 )
 
 // Returns Harbor v2 client for given clientConfig
-func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI {
-	cs, err := harbor.NewClientSet(clientConfig)
-	if err != nil {
-		panic(err)
-	}
-	return cs.V2()
-}
-
-// Returns Harbor v2 client after resolving the credential name
-func GetClientByCredentialName(credentialName string) *v2client.HarborAPI {
-	credential, err := GetCredentials(credentialName)
-	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
-	}
-	clientConfig := &harbor.ClientSetConfig{
-		URL:      credential.ServerAddress,
-		Username: credential.Username,
-		Password: credential.Password,
-	}
-	return GetClientByConfig(clientConfig)
-}
 
 func PrintPayloadInJSONFormat(payload any) {
 	if payload == nil {
@@ -160,4 +136,19 @@ func GetUserIdFromUser() int64 {
 
 	return <-userId
 
+}
+
+func GetTagFromUser(repoName, projectName, reference string) string {
+	tag := make(chan string)
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client := GetClientByCredentialName(credentialName)
+		ctx := context.Background()
+		response, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{ProjectName: projectName, RepositoryName: repoName, Reference: reference})
+		if err != nil {
+			log.Fatal(err)
+		}
+		tview.ListTags(response.Payload, tag)
+	}()
+	return <-tag
 }

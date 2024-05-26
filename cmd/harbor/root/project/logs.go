@@ -1,9 +1,8 @@
 package project
 
 import (
-	"context"
-
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	auditLog "github.com/goharbor/harbor-cli/pkg/views/project/logs"
 	log "github.com/sirupsen/logrus"
@@ -21,10 +20,10 @@ func LogsProjectCommmand() *cobra.Command {
 			var err error
 			var resp *project.GetLogsOK
 			if len(args) > 0 {
-				resp, err = runLogsProject(args[0])
+				resp, err = api.LogsProject(args[0])
 			} else {
 				projectName := utils.GetProjectNameFromUser()
-				resp, err = runLogsProject(projectName)
+				resp, err = api.LogsProject(projectName)
 			}
 
 			if err != nil {
@@ -42,20 +41,4 @@ func LogsProjectCommmand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runLogsProject(projectName string) (*project.GetLogsOK, error) {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Project.GetLogs(ctx, &project.GetLogsParams{
-		ProjectName: projectName,
-		Context:     ctx,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
 }

@@ -1,14 +1,12 @@
 package registry
 
 import (
-	"context"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func InfoRegistryCommand() *cobra.Command {
@@ -21,10 +19,10 @@ func InfoRegistryCommand() *cobra.Command {
 
 			if len(args) > 0 {
 				registryId, _ := strconv.ParseInt(args[0], 10, 64)
-				err = runInfoRegistry(registryId)
+				err = api.InfoRegistry(registryId)
 			} else {
 				registryId := utils.GetRegistryNameFromUser()
-				err = runInfoRegistry(registryId)
+				err = api.InfoRegistry(registryId)
 			}
 			if err != nil {
 				log.Errorf("failed to get registry info: %v", err)
@@ -34,18 +32,4 @@ func InfoRegistryCommand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runInfoRegistry(registryId int64) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
-
-	if err != nil {
-		return err
-	}
-
-	utils.PrintPayloadInJSONFormat(response.Payload)
-	return nil
 }
