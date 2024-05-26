@@ -1,4 +1,4 @@
-package views
+package selection
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
 const listHeight = 14
@@ -28,10 +29,10 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	str := fmt.Sprintf("%d. %s", index+1, i)
 
-	fn := ItemStyle.Render
+	fn := views.ItemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return SelectedItemStyle.Render("> " + strings.Join(s, " "))
+			return views.SelectedItemStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 
@@ -49,9 +50,9 @@ func NewModel(items []list.Item, construct string) Model {
 	l.Title = "Select an " + construct
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
-	l.Styles.Title = TitleStyle
-	l.Styles.PaginationStyle = PaginationStyle
-	l.Styles.HelpStyle = HelpStyle
+	l.Styles.Title = views.TitleStyle
+	l.Styles.PaginationStyle = views.PaginationStyle
+	l.Styles.HelpStyle = views.HelpStyle
 
 	return Model{List: l}
 }

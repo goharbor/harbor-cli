@@ -7,17 +7,17 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/views"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
 func ListArtifacts(artifacts []*models.Artifact, choice chan<- string) {
 	itemsList := make([]list.Item, len(artifacts))
 
 	for i, a := range artifacts {
-		itemsList[i] = views.Item(a.Digest)
+		itemsList[i] = selection.Item(a.Digest)
 	}
 
-	m := views.NewModel(itemsList, "Artifact")
+	m := selection.NewModel(itemsList, "Artifact")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
@@ -26,7 +26,7 @@ func ListArtifacts(artifacts []*models.Artifact, choice chan<- string) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(views.Model); ok {
+	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
 

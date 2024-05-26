@@ -7,16 +7,16 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/views"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
 func ProjectList(project []*models.Project, choice chan<- string) {
 	items := make([]list.Item, len(project))
 	for i, p := range project {
-		items[i] = views.Item(p.Name)
+		items[i] = selection.Item(p.Name)
 	}
 
-	m := views.NewModel(items, "Project")
+	m := selection.NewModel(items, "Project")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
@@ -25,7 +25,7 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(views.Model); ok {
+	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/views"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
 func RepositoryList(repos []*models.Repository, choice chan<- string) {
@@ -16,10 +16,10 @@ func RepositoryList(repos []*models.Repository, choice chan<- string) {
 
 	for i, r := range repos {
 		split := strings.Split(r.Name, "/")
-		itemsList[i] = views.Item(strings.Join(split[1:], "/"))
+		itemsList[i] = selection.Item(strings.Join(split[1:], "/"))
 	}
 
-	m := views.NewModel(itemsList, "Repository")
+	m := selection.NewModel(itemsList, "Repository")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
@@ -28,7 +28,7 @@ func RepositoryList(repos []*models.Repository, choice chan<- string) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(views.Model); ok {
+	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
 
