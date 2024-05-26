@@ -1,6 +1,9 @@
 package artifact
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/tags"
+	"github.com/spf13/cobra"
+)
 
 func Artifact() *cobra.Command {
 
@@ -16,7 +19,7 @@ func Artifact() *cobra.Command {
 		InfoArtifactCommmand(),
 		DeleteArtifactCommand(),
 		ScanArtifactCommand(),
-		T
+		tags.ArtifactTagsCmd(),
 	)
 
 	return cmd
