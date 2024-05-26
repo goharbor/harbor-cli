@@ -11,7 +11,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+type listRepositoryOptions struct {
+	page     int64
+	pageSize int64
+	q        string
+	sort     string
+}
+
 func ListRepositoryCommand() *cobra.Command {
+	var opts listRepositoryOptions
+
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "list repositories within a project",
@@ -30,7 +39,6 @@ func ListRepositoryCommand() *cobra.Command {
 			}
 
 			repos, err = api.ListRepository(projectName)
-
 			if err != nil {
 				log.Errorf("failed to list repositories: %v", err)
 				return
@@ -45,8 +53,15 @@ func ListRepositoryCommand() *cobra.Command {
 			} else {
 				list.ListRepositories(repos.Payload)
 			}
+			list.ListRepositories(repos.Payload)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
