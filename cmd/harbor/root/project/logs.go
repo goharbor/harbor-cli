@@ -12,7 +12,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+type logsProjectOptions struct {
+	page     int64
+	pageSize int64
+	q        string
+	sort     string
+}
+
 func LogsProjectCommmand() *cobra.Command {
+	var opts logsProjectOptions
+
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "get project logs",
@@ -21,10 +30,10 @@ func LogsProjectCommmand() *cobra.Command {
 			var err error
 			var resp *project.GetLogsOK
 			if len(args) > 0 {
-				resp, err = runLogsProject(args[0])
+				resp, err = runLogsProject(args[0], opts)
 			} else {
 				projectName := utils.GetProjectNameFromUser()
-				resp, err = runLogsProject(projectName)
+				resp, err = runLogsProject(projectName, opts)
 			}
 
 			if err != nil {
@@ -41,15 +50,25 @@ func LogsProjectCommmand() *cobra.Command {
 		},
 	}
 
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+
 	return cmd
 }
 
-func runLogsProject(projectName string) (*project.GetLogsOK, error) {
+func runLogsProject(projectName string, opts logsProjectOptions) (*project.GetLogsOK, error) {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Project.GetLogs(ctx, &project.GetLogsParams{
 		ProjectName: projectName,
+		Page:        &opts.page,
+		PageSize:    &opts.pageSize,
+		Q:           &opts.q,
+		Sort:        &opts.sort,
 		Context:     ctx,
 	})
 

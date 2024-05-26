@@ -3,10 +3,10 @@ package registry
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
-	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -31,18 +31,18 @@ func ViewCommand() *cobra.Command {
 			}
 			opts.id = int64(id)
 
-			credentialName, err := cmd.Flags().GetString(constants.CredentialNameOption)
 			if err != nil {
 				return err
 			}
-			return runGetRegistry(opts, credentialName)
+			return runGetRegistry(opts)
 		},
 	}
 
 	return cmd
 }
 
-func runGetRegistry(opts getRegistryOptions, credentialName string) error {
+func runGetRegistry(opts getRegistryOptions) error {
+	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: opts.id})

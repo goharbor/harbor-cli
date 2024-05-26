@@ -10,7 +10,7 @@ import (
 )
 
 type getProjectOptions struct {
-	projectNameOrID string
+	isID bool
 }
 
 // GetProjectCommand creates a new `harbor get project` command
@@ -22,19 +22,22 @@ func ViewCommand() *cobra.Command {
 		Short: "get project by name or id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.projectNameOrID = args[0]
-			return runGetProject(opts)
+			return runGetProject(args[0], opts)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVar(&opts.isID, "id", false, "Get project by id")
 
 	return cmd
 }
 
-func runGetProject(opts getProjectOptions) error {
+func runGetProject(projectNameOrID string, opts getProjectOptions) error {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: opts.projectNameOrID})
+	isName := !opts.isID
+	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{XIsResourceName: &isName, ProjectNameOrID: projectNameOrID})
 
 	if err != nil {
 		return err
