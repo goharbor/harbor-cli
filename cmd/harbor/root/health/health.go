@@ -22,12 +22,14 @@ func HealthCommand() *cobra.Command {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
+			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(health)
 				return
+			} else if FormatFlag == "yaml" {
+				utils.PrintPayloadInYAMLFormat(health)
+			} else {
+				healthview.View(health)
 			}
-
-			healthview.HealthView(health)
 		},
 	}
 

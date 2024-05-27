@@ -36,7 +36,7 @@ func (m model) View() string {
 	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
-func HealthView(health *health.GetHealthOK) {
+func View(health *health.GetHealthOK) {
 	style := views.TitleStyle.Bold(true)
 	fmt.Print(style.Render("Status: "))
 	statusStyle := getStatusStyle(health.Payload.Status)
