@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/health"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -98,6 +99,7 @@ harbor help
 	viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
 
 	root.AddCommand(
+		health.HealthCommand(),
 		versionCommand(),
 		LoginCommand(),
 		project.Project(),
