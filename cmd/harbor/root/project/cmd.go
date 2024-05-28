@@ -1,6 +1,7 @@
 package project
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/metadata"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ func Project() *cobra.Command {
 		ListProjectCommand(),
 		ViewCommand(),
 		LogsProjectCommmand(),
+		metadata.Metadata(),
 	)
 
 	return cmd
