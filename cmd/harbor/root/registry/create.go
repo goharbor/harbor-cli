@@ -9,7 +9,7 @@ import (
 
 // NewCreateRegistryCommand creates a new `harbor create registry` command
 func CreateRegistryCommand() *cobra.Command {
-	var opts create.CreateView
+	var opts api.CreateRegView
 
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -17,12 +17,12 @@ func CreateRegistryCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			createView := &create.CreateView{
+			createView := &api.CreateRegView{
 				Name:        opts.Name,
 				Type:        opts.Type,
 				Description: opts.Description,
 				URL:         opts.URL,
-				Credential: create.RegistryCredential{
+				Credential: api.RegistryCredential{
 					AccessKey:    opts.Credential.AccessKey,
 					Type:         opts.Credential.Type,
 					AccessSecret: opts.Credential.AccessSecret,
@@ -52,7 +52,7 @@ func CreateRegistryCommand() *cobra.Command {
 		"insecure",
 		"",
 		true,
-		"Whether or not the certificate will be verified when Harbor tries to access the server",
+		"Whether Harbor will verify the server certificate",
 	)
 	flags.StringVarP(
 		&opts.Credential.AccessKey,
@@ -79,9 +79,9 @@ func CreateRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func createRegistryView(createView *create.CreateView) error {
+func createRegistryView(createView *api.CreateRegView) error {
 	if createView == nil {
-		createView = &create.CreateView{}
+		createView = &api.CreateRegView{}
 	}
 
 	create.CreateRegistryView(createView)
