@@ -14,6 +14,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +24,10 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
@@ -57,7 +61,7 @@ func PrintPayloadInYAMLFormat(payload any) {
 }
 
 func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
-	split := strings.SplitN(projectRepo, "/", 2) //splits only at first slash
+	split := strings.SplitN(projectRepo, "/", 2) // splits only at first slash
 	if len(split) != 2 {
 		return "", "", fmt.Errorf("invalid project/repository format: %s", projectRepo)
 	}
@@ -159,7 +163,7 @@ func SavePayloadJSON(filename string, payload any) {
 	}
 	// Define the filename
 	filename = filename + ".json"
-	err = os.WriteFile(filename, jsonStr, 0600)
+	err = os.WriteFile(filename, jsonStr, 0o600)
 	if err != nil {
 		panic(err)
 	}
@@ -187,4 +191,25 @@ func Capitalize(s string) string {
 	}
 	return s
 	// trings.ToUpper(s[:1]) + s[1:]
+}
+
+// GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
+func GetUserIdFromUser() int64 {
+	userId := make(chan int64)
+
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client, err := GetClientByCredentialName(credentialName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ctx := context.Background()
+		response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		uview.UserList(response.Payload, userId)
+	}()
+
+	return <-userId
 }
