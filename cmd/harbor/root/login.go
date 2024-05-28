@@ -27,7 +27,7 @@ func LoginCommand() *cobra.Command {
 		Short: "Log in to Harbor registry",
 		Long:  "Authenticate with Harbor Registry.",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 
 			if len(args) > 0 {
 				serverAddress = args[0]
@@ -49,9 +49,9 @@ func LoginCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				fmt.Println(err)
+				return err
 			}
-
+			return nil
 		},
 	}
 
