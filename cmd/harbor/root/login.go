@@ -20,8 +20,6 @@ var (
 
 // LoginCommand creates a new `harbor login` command
 func LoginCommand() *cobra.Command {
-	var opts login.LoginView
-
 	cmd := &cobra.Command{
 		Use:   "login [server]",
 		Short: "Log in to Harbor registry",
@@ -43,7 +41,7 @@ func LoginCommand() *cobra.Command {
 			var err error
 
 			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" && loginView.Name != "" {
-				err = runLogin(opts)
+				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
 			}
@@ -57,7 +55,6 @@ func LoginCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
-
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 
@@ -73,11 +70,8 @@ func createLoginView(loginView *login.LoginView) error {
 			Name:     "",
 		}
 	}
-
 	login.CreateView(loginView)
-
 	return runLogin(*loginView)
-
 }
 
 func runLogin(opts login.LoginView) error {
