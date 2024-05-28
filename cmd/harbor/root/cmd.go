@@ -25,6 +25,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/member"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -144,6 +145,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = user.User()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
+	cmd = member.Member()
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)
 
