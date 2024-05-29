@@ -1,8 +1,6 @@
 package member
 
 import (
-	// "context"
-
 	"context"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
@@ -21,6 +19,8 @@ func CreateMemberCommand() *cobra.Command {
 	opts.MemberUser = &models.UserEntity{} // Initialize MemberUser
 	opts.MemberGroup = &models.UserGroup{} // Initialize MemberGroup
 
+	// Expecting the project name or ID as an argument
+	// since selecting through a large list of projects is not intuitive
 	cmd := &cobra.Command{
 		Use:   "create [ProjectName Or ID]",
 		Short: "create member",
@@ -59,8 +59,10 @@ func CreateMemberCommand() *cobra.Command {
 	flags.IntVarP(&opts.RoleID, "roleID", "", 0, "Role ID")
 	flags.StringVarP(&opts.MemberUser.Username, "username", "", "", "Username")
 	flags.StringVarP(&opts.MemberGroup.GroupName, "groupname", "", "", "Group Name")
+	flags.StringVarP(&opts.MemberGroup.LdapGroupDn, "ldapdn", "", "", "DN of LDAP Group")
 	flags.Int64VarP(&opts.MemberGroup.ID, "groupid", "", 0, "Group ID")
 	flags.Int64VarP(&opts.MemberUser.UserID, "userID", "", 0, "User ID")
+	flags.Int64VarP(&opts.MemberGroup.GroupType, "grouptype", "", 0, "Group Type")
 
 	return cmd
 }

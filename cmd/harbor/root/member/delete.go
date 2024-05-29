@@ -34,9 +34,10 @@ func DeleteMemberCommand() *cobra.Command {
 				}
 			}
 
-			if args[1] == "%" {
-				runDeleteAllMember(args[0])
-			} else if len(args) > 1 {
+			if len(args) > 1 {
+				if args[1] == "%" {
+					runDeleteAllMember(args[0])
+				}
 				for _, mid := range memberID {
 					wg.Add(1)
 					go func(member int64) {
@@ -48,7 +49,12 @@ func DeleteMemberCommand() *cobra.Command {
 					}(mid)
 				}
 			} else {
-				projectName := utils.GetProjectNameFromUser()
+				var projectName string
+				if len(args) > 0 {
+					projectName = args[0]
+				} else {
+					projectName = utils.GetProjectNameFromUser()
+				}
 				memID := utils.GetMemberIDFromUser(projectName)
 				wg.Add(1)
 				go func(member int64) {
