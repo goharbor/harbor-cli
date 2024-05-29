@@ -1,4 +1,4 @@
-package list
+package view
 
 import (
 	"fmt"
@@ -48,39 +48,36 @@ func (m model) View() string {
 	return views.BaseStyle.Render(m.table.View()) + "\n"
 }
 
-func ListMembers(members []*models.ProjectMemberEntity, wide bool) {
+func ViewMember(member *models.ProjectMemberEntity, wide bool) {
 	var rows []table.Row
-	for _, member := range members {
-		memberID := strconv.FormatInt(member.ID, 10)
-		projectID := strconv.FormatInt(member.ProjectID, 10)
-		roleName := utils.CamelCaseToHR(member.RoleName)
+	memberID := strconv.FormatInt(member.ID, 10)
+	projectID := strconv.FormatInt(member.ProjectID, 10)
+	roleName := utils.CamelCaseToHR(member.RoleName)
 
-		if wide {
-			roleID := strconv.FormatInt(member.RoleID, 10)
-			memberType := member.EntityType
-
-			if memberType == "u" {
-				memberType = "User"
-			} else if memberType == "g" {
-				memberType = "Group"
-			}
-
-			rows = append(rows, table.Row{
-				memberID,
-				member.EntityName,
-				memberType,
-				projectID,
-				roleID,
-				roleName,
-			})
-		} else {
-			rows = append(rows, table.Row{
-				memberID, // Member Name
-				member.EntityName,
-				projectID,
-				roleName,
-			})
+	if wide {
+		roleID := strconv.FormatInt(member.RoleID, 10)
+		memberType := member.EntityType
+		if memberType == "u" {
+			memberType = "User"
+		} else if memberType == "g" {
+			memberType = "Group"
 		}
+
+		rows = append(rows, table.Row{
+			memberID,
+			member.EntityName,
+			memberType,
+			projectID,
+			roleID,
+			roleName,
+		})
+	} else {
+		rows = append(rows, table.Row{
+			memberID, // Member Name
+			member.EntityName,
+			projectID,
+			roleName,
+		})
 	}
 
 	cols := columns

@@ -1,10 +1,10 @@
 package member
 
 import (
-	"context"
 	"os"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/member/list"
 	log "github.com/sirupsen/logrus"
@@ -12,34 +12,27 @@ import (
 	"github.com/spf13/viper"
 )
 
-type listMemberOptions struct {
-	projectNameOrID string
-	page            int64
-	pageSize        int64
-	entityName      string
-	withDetail      bool
-}
-
 // ListMemberCommand creates a new `harbor member list` command
 func ListMemberCommand() *cobra.Command {
-	var opts listMemberOptions
+	var opts api.ListMemberOptions
 
 	cmd := &cobra.Command{
 		Use:     "list [projectName or ID]",
-		Short:   "list members of a project by projectName Or ID",
+		Short:   "list members in a project",
+		Long:    "list members in a project by projectName Or ID",
+		Example: "  harbor member list my-project",
 		Args:    cobra.MaximumNArgs(1),
-		Example: "harbor member list my-project",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
-				opts.projectNameOrID = args[0]
+				opts.ProjectNameOrID = args[0]
 			} else {
-				opts.projectNameOrID = utils.GetProjectNameFromUser()
-				if opts.projectNameOrID == "" {
+				opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
+				if opts.ProjectNameOrID == "" {
 					os.Exit(1)
 				}
 			}
 
-			members, err := RunListMember(opts)
+			members, err := api.ListMember(opts)
 			if err != nil {
 				log.Fatalf("failed to get members list: %v", err)
 			}
@@ -59,28 +52,9 @@ func ListMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&opts.entityName, "name", "n", "", "Member Name to search")
+	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.EntityName, "name", "n", "", "Member Name to search")
 
 	return cmd
-}
-
-func RunListMember(opts listMemberOptions) (*member.ListProjectMembersOK, error) {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Member.ListProjectMembers(
-		ctx,
-		&member.ListProjectMembersParams{
-			ProjectNameOrID: opts.projectNameOrID,
-			Entityname:      &opts.entityName,
-			Page:            &opts.page,
-			PageSize:        &opts.pageSize,
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
 }

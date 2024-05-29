@@ -1,17 +1,14 @@
 package member
 
 import (
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func CreateMemberCommand() *cobra.Command {
@@ -19,17 +16,23 @@ func CreateMemberCommand() *cobra.Command {
 	opts.MemberUser = &models.UserEntity{} // Initialize MemberUser
 	opts.MemberGroup = &models.UserGroup{} // Initialize MemberGroup
 
-	// Expecting the project name or ID as an argument
-	// since selecting through a large list of projects is not intuitive
 	cmd := &cobra.Command{
-		Use:   "create [ProjectName Or ID]",
-		Short: "create member",
-		Long:  "create member for the project",
-		Args:  cobra.ExactArgs(1),
+		Use:     "create [ProjectName Or ID]",
+		Short:   "create project member",
+		Long:    "create project member by Name",
+		Example: "  harbor member create my-project --username user --roleid 1",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+
+			if len(args) > 0 {
+				opts.ProjectNameOrID = args[0]
+			} else {
+				opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
+			}
+
 			createView := &create.CreateView{
-				ProjectNameOrID: args[0],
+				ProjectNameOrID: opts.ProjectNameOrID,
 				RoleID:          opts.RoleID,
 				MemberUser: &models.UserEntity{
 					UserID:   opts.MemberUser.UserID,
@@ -44,9 +47,9 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
-				err = runCreateMember(*createView)
+				err = api.CreateMember(*createView)
 			} else {
-				err = createMemberView(createView)
+				err = api.CreateMemberView(createView)
 			}
 
 			if err != nil {
@@ -56,46 +59,13 @@ func CreateMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.RoleID, "roleID", "", 0, "Role ID")
+	flags.IntVarP(&opts.RoleID, "roleid", "", 0, "Role ID")
 	flags.StringVarP(&opts.MemberUser.Username, "username", "", "", "Username")
 	flags.StringVarP(&opts.MemberGroup.GroupName, "groupname", "", "", "Group Name")
 	flags.StringVarP(&opts.MemberGroup.LdapGroupDn, "ldapdn", "", "", "DN of LDAP Group")
 	flags.Int64VarP(&opts.MemberGroup.ID, "groupid", "", 0, "Group ID")
-	flags.Int64VarP(&opts.MemberUser.UserID, "userID", "", 0, "User ID")
+	flags.Int64VarP(&opts.MemberUser.UserID, "userid", "", 0, "User ID")
 	flags.Int64VarP(&opts.MemberGroup.GroupType, "grouptype", "", 0, "Group Type")
 
 	return cmd
-}
-
-func createMemberView(createView *create.CreateView) error {
-	create.CreateMemberView(createView)
-	return runCreateMember(*createView)
-}
-
-func runCreateMember(opts create.CreateView) error {
-	credentialName := viper.GetString("current-credential-name")
-
-	client := utils.GetClientByCredentialName(credentialName)
-
-	ctx := context.Background()
-
-	response, err := client.Member.CreateProjectMember(
-		ctx, &member.CreateProjectMemberParams{
-			ProjectMember: &models.ProjectMember{
-				RoleID:      int64(opts.RoleID + 1),
-				MemberUser:  opts.MemberUser,
-				MemberGroup: opts.MemberGroup,
-			},
-			ProjectNameOrID: opts.ProjectNameOrID,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	if response != nil {
-		log.Info("Member created successfully")
-	}
-
-	return nil
 }

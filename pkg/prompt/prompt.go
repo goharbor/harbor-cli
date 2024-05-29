@@ -16,7 +16,6 @@ package prompt
 import (
 	"errors"
 	"fmt"
-
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -30,6 +29,7 @@ import (
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
+	mview "github.com/goharbor/harbor-cli/pkg/views/member/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
@@ -55,40 +55,18 @@ func GetRegistryNameFromUser() int64 {
 	return <-registryId
 }
 
-func GetProjectNameFromUser() (string, error) {
-	type result struct {
-		name string
-		err  error
-	}
-	resultChan := make(chan result)
-
+func GetProjectNameFromUser() string {
+	projectName := make(chan string)
 	go func() {
-		response, err := api.ListAllProjects()
-		if err != nil {
-			resultChan <- result{"", err}
-			return
-		}
-
-		if len(response.Payload) == 0 {
-			resultChan <- result{"", errors.New("no projects found")}
-			return
-		}
-
+		response, _ := api.ListProject()
 		name, err := pview.ProjectList(response.Payload)
 		if err != nil {
-			if err == pview.ErrUserAborted {
-				resultChan <- result{"", errors.New("user aborted project selection")}
-			} else {
-				resultChan <- result{"", fmt.Errorf("error during project selection: %w", err)}
-			}
+			projectName <- ""
 			return
 		}
-
-		resultChan <- result{name, nil}
+		projectName <- name
 	}()
-
-	res := <-resultChan
-	return res.name, res.err
+	return <-projectName
 }
 
 func GetProjectIDFromUser() int64 {
@@ -218,6 +196,7 @@ func GetLabelIdFromUser(labelList []*models.Label) int64 {
 
 	return <-labelId
 }
+
 func GetInstanceFromUser() string {
 	instanceName := make(chan string)
 
@@ -331,4 +310,26 @@ func GetReplicationTaskIDFromUser(execID int64) int64 {
 	}()
 
 	return <-executionID
+}
+
+// Get GetMemberIDFromUser choosing from list of members
+func GetMemberIDFromUser(projectName string) int64 {
+	memberId := make(chan int64)
+	go func() {
+		response, _ := api.ListMembers(projectName)
+		mview.MemberList(response.Payload, memberId)
+	}()
+
+	return <-memberId
+}
+
+// Get Member Role ID selection from user
+func GetRoleIDFromUser() int64 {
+	roleID := make(chan int64)
+	go func() {
+		roles := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
+		mview.RoleList(roles, roleID)
+	}()
+
+	return <-roleID
 }

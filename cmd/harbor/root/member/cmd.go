@@ -7,14 +7,16 @@ import (
 func Member() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "member",
-		Short:   "Manage member and assign resources to them",
-		Long:    `Manage members in Harbor`,
+		Short:   `Manage members in a Project`,
+		Long:    "Manage members and assign roles to them",
 		Example: `  harbor member list`,
 	}
 	cmd.AddCommand(
 		ListMemberCommand(),
 		CreateMemberCommand(),
-    DeleteMemberCommand(),
+		DeleteMemberCommand(),
+		ViewMemberCommand(),
+    UpdateMemberCommand(),
 	)
 
 	return cmd
