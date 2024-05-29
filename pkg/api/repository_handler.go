@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/repository/list"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,19 +37,18 @@ func RepoInfo(projectName, repoName string) error {
 	return nil
 }
 
-func ListRepository(ProjectName string) error {
+func ListRepository(projectName string) (repository.ListRepositoriesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return repository.ListRepositoriesOK{}, err
 	}
 
-	response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{ProjectName: ProjectName})
+	response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{ProjectName: projectName})
 
 	if err != nil {
-		return err
+		return repository.ListRepositoriesOK{}, err
 	}
 
-	list.ListRepositories(response.Payload)
-	return nil
+	return *response, nil
 
 }

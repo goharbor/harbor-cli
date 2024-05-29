@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,12 +18,12 @@ func DeleteArtifactCommand() *cobra.Command {
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.RunDeleteArtifact(projectName, repoName, reference)
+				err = api.DeleteArtifact(projectName, repoName, reference)
 			} else {
-				projectName := utils.GetProjectNameFromUser()
-				repoName := utils.GetRepoNameFromUser(projectName)
-				reference := utils.GetReferenceFromUser(repoName, projectName)
-				err = api.RunDeleteArtifact(projectName, repoName, reference)
+				projectName := prompt.GetProjectNameFromUser()
+				repoName := prompt.GetRepoNameFromUser(projectName)
+				reference := prompt.GetReferenceFromUser(repoName, projectName)
+				err = api.DeleteArtifact(projectName, repoName, reference)
 			}
 
 			if err != nil {

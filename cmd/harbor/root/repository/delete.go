@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -19,8 +20,8 @@ func RepoDeleteCmd() *cobra.Command {
 				projectName, repoName := utils.ParseProjectRepo(args[0])
 				err = api.RepoDelete(projectName, repoName)
 			} else {
-				projectName := utils.GetProjectNameFromUser()
-				repoName := utils.GetRepoNameFromUser(projectName)
+				projectName := prompt.GetProjectNameFromUser()
+				repoName := prompt.GetRepoNameFromUser(projectName)
 				err = api.RepoDelete(projectName, repoName)
 			}
 			if err != nil {

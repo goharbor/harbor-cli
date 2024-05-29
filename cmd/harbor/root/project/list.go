@@ -4,7 +4,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
-	plist "github.com/goharbor/harbor-cli/pkg/views/project/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,7 +11,7 @@ import (
 
 // NewListProjectCommand creates a new `harbor list project` command
 func ListProjectCommand() *cobra.Command {
-	var opts plist.ListProjectOptions
+	var opts api.ListFlags
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -34,13 +33,11 @@ func ListProjectCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Name, "name", "", "", "Name of the project")
-	flags.StringVarP(&opts.Owner, "owner", "", "", "Name of the project owner")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
-	flags.BoolVarP(&opts.Public, "public", "", true, "Project is public or private")
+	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-	flags.BoolVarP(&opts.WithDetail, "with-detail", "", true, "Bool value indicating whether return detailed information of the project")
 
 	return cmd
 }

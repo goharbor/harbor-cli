@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,7 +38,7 @@ func UpdateRegistryCommand() *cobra.Command {
 			if len(args) > 0 {
 				registryId, err = strconv.ParseInt(args[0], 10, 64)
 			} else {
-				registryId = utils.GetRegistryNameFromUser()
+				registryId = prompt.GetRegistryNameFromUser()
 			}
 
 			if err != nil {

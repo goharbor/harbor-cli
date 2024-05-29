@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func DeleteRegistryCommand() *cobra.Command {
 				registryId, _ := strconv.ParseInt(args[0], 10, 64)
 				err = api.DeleteRegistry(registryId)
 			} else {
-				registryId := utils.GetRegistryNameFromUser()
+				registryId := prompt.GetRegistryNameFromUser()
 				err = api.DeleteRegistry(registryId)
 			}
 			if err != nil {

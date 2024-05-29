@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +22,7 @@ func ElevateUserCmd() *cobra.Command {
 				userId, _ = strconv.ParseInt(args[0], 10, 64)
 
 			} else {
-				userId = utils.GetUserIdFromUser()
+				userId = prompt.GetUserIdFromUser()
 			}
 
 			// Todo : Ask for the confirmation before elevating the user to admin role

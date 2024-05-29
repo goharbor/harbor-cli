@@ -12,17 +12,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
-type ListProjectOptions struct {
-	Name       string
-	Owner      string
-	Page       int64
-	PageSize   int64
-	Public     bool
-	Q          string
-	Sort       string
-	WithDetail bool
-}
-
 var columns = []table.Column{
 	{Title: "Project Name", Width: 12},
 	{Title: "Access Level", Width: 12},

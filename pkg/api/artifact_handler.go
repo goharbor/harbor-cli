@@ -3,12 +3,13 @@ package api
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
-// RunDeleteArtifact handles the deletion of an artifact.
-func RunDeleteArtifact(projectName, repoName, reference string) error {
+// DeleteArtifact handles the deletion of an artifact.
+func DeleteArtifact(projectName, repoName, reference string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -28,8 +29,8 @@ func RunDeleteArtifact(projectName, repoName, reference string) error {
 	return nil
 }
 
-// RunInfoArtifact retrieves information about a specific artifact.
-func RunInfoArtifact(projectName, repoName, reference string) error {
+// InfoArtifact retrieves information about a specific artifact.
+func InfoArtifact(projectName, repoName, reference string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -50,10 +51,10 @@ func RunInfoArtifact(projectName, repoName, reference string) error {
 }
 
 // RunListArtifact lists all artifacts in a repository.
-func RunListArtifact(projectName, repoName string) error {
+func ListArtifact(projectName, repoName string) (artifact.ListArtifactsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return artifact.ListArtifactsOK{}, err
 	}
 
 	response, err := client.Artifact.ListArtifacts(ctx, &artifact.ListArtifactsParams{
@@ -61,12 +62,10 @@ func RunListArtifact(projectName, repoName string) error {
 		RepositoryName: repoName,
 	})
 	if err != nil {
-		log.Errorf("Failed to list artifacts: %v", err)
-		return err
+		return artifact.ListArtifactsOK{}, err
 	}
 
-	log.Info(response.Payload)
-	return nil
+	return *response, nil
 }
 
 // StartScanArtifact initiates a scan on a specific artifact.
@@ -134,10 +133,10 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 }
 
 // ListTags lists all tags of a specific artifact.
-func ListTags(projectName, repoName, reference string) error {
+func ListTags(projectName, repoName, reference string) (artifact.ListTagsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return artifact.ListTagsOK{}, err
 	}
 
 	resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
@@ -147,9 +146,30 @@ func ListTags(projectName, repoName, reference string) error {
 	})
 	if err != nil {
 		log.Errorf("Failed to list tags: %v", err)
-		return err
+		return artifact.ListTagsOK{}, err
 	}
 
-	log.Info(resp.Payload)
+	return *resp, nil
+}
+
+// CreateTag creates a tag for a specific artifact.
+func CreateTag(projectName, repoName, reference, tagName string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.Artifact.CreateTag(ctx, &artifact.CreateTagParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Reference:      reference,
+		Tag: &models.Tag{
+			Name: tagName,
+		},
+	})
+	if err != nil {
+		log.Errorf("Failed to create tag: %v", err)
+		return err
+	}
+	log.Infof("Tag created successfully: %s/%s@%s:%s", projectName, repoName, reference, tagName)
 	return nil
 }

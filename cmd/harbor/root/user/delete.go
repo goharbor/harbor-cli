@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ func UserDeleteCmd() *cobra.Command {
 				err = api.DeleteUser(userId)
 
 			} else {
-				userId := utils.GetUserIdFromUser()
+				userId := prompt.GetUserIdFromUser()
 				err = api.DeleteUser(userId)
 			}
 

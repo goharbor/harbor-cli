@@ -3,6 +3,7 @@ package project
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	auditLog "github.com/goharbor/harbor-cli/pkg/views/project/logs"
 	log "github.com/sirupsen/logrus"
@@ -22,7 +23,7 @@ func LogsProjectCommmand() *cobra.Command {
 			if len(args) > 0 {
 				resp, err = api.LogsProject(args[0])
 			} else {
-				projectName := utils.GetProjectNameFromUser()
+				projectName := prompt.GetProjectNameFromUser()
 				resp, err = api.LogsProject(projectName)
 			}
 

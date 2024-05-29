@@ -2,7 +2,7 @@ package project
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ func DeleteProjectCommand() *cobra.Command {
 			if len(args) > 0 {
 				err = api.DeleteProject(args[0])
 			} else {
-				projectName := utils.GetProjectNameFromUser()
+				projectName := prompt.GetProjectNameFromUser()
 				err = api.DeleteProject(projectName)
 			}
 			if err != nil {

@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ func InfoRegistryCommand() *cobra.Command {
 				registryId, _ := strconv.ParseInt(args[0], 10, 64)
 				err = api.InfoRegistry(registryId)
 			} else {
-				registryId := utils.GetRegistryNameFromUser()
+				registryId := prompt.GetRegistryNameFromUser()
 				err = api.InfoRegistry(registryId)
 			}
 			if err != nil {

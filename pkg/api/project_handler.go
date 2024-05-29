@@ -7,7 +7,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	plist "github.com/goharbor/harbor-cli/pkg/views/project/list"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -71,16 +70,20 @@ func DeleteProject(projectName string) error {
 	return nil
 }
 
-func ListProject(opts plist.ListProjectOptions) (*project.ListProjectsOK, error) {
+func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return project.ListProjectsOK{}, err
 	}
-	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Name: &opts.Name, Owner: &opts.Owner, Page: &opts.Page, PageSize: &opts.PageSize, Public: &opts.Public, Q: &opts.Q, Sort: &opts.Sort, WithDetail: &opts.WithDetail})
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name, Public: &listFlags.Public})
 	if err != nil {
-		return nil, err
+		return project.ListProjectsOK{}, err
 	}
-	return response, nil
+	return *response, nil
 }
 
 func LogsProject(projectName string) (*project.GetLogsOK, error) {

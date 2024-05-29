@@ -2,7 +2,7 @@ package project
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ func ViewCommand() *cobra.Command {
 			if len(args) > 0 {
 				err = api.GetProject(args[0])
 			} else {
-				projectName := utils.GetProjectNameFromUser()
+				projectName := prompt.GetProjectNameFromUser()
 				err = api.GetProject(projectName)
 			}
 

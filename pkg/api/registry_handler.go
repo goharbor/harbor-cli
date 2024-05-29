@@ -8,6 +8,33 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func ListRegistries(opts ...ListFlags) (*registry.ListRegistriesOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	response, err := client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{
+		Page:     &listFlags.Page,
+		PageSize: &listFlags.PageSize,
+		Q:        &listFlags.Q,
+		Name:     &listFlags.Name,
+		Sort:     &listFlags.Sort,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func CreateRegistry(opts create.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
