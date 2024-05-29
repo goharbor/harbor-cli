@@ -1,23 +1,23 @@
 package member
 
 import (
-	"context"
 	"strconv"
 	"sync"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // Deletes the member of the given project and Member
 func DeleteMemberCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [projectName or ID] [memberID]",
-		Short: "delete member by id",
-		Args:  cobra.MinimumNArgs(0),
+		Use:     "delete [projectName or ID] [memberID]",
+		Short:   "delete member by id",
+		Long:    "delete members in a project by MemberID",
+		Example: "  harbor member delete my-project 2",
+		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
 			errChan := make(
@@ -36,13 +36,13 @@ func DeleteMemberCommand() *cobra.Command {
 
 			if len(args) > 1 {
 				if args[1] == "%" {
-					runDeleteAllMember(args[0])
+					api.DeleteAllMember(args[0])
 				}
 				for _, mid := range memberID {
 					wg.Add(1)
 					go func(member int64) {
 						defer wg.Done()
-						err := runDeleteMember(args[0], member)
+						err := api.DeleteMember(args[0], member)
 						if err != nil {
 							errChan <- err
 						}
@@ -53,13 +53,13 @@ func DeleteMemberCommand() *cobra.Command {
 				if len(args) > 0 {
 					projectName = args[0]
 				} else {
-					projectName = utils.GetProjectNameFromUser()
+					projectName = prompt.GetProjectNameFromUser()
 				}
-				memID := utils.GetMemberIDFromUser(projectName)
+				memID := prompt.GetMemberIDFromUser(projectName)
 				wg.Add(1)
 				go func(member int64) {
 					defer wg.Done()
-					err := runDeleteMember(projectName, memID)
+					err := api.DeleteMember(projectName, memID)
 					if err != nil {
 						errChan <- err
 					}
@@ -87,59 +87,4 @@ func DeleteMemberCommand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runDeleteAllMember(projectName string) {
-	var wg sync.WaitGroup
-	errChan := make(chan error, 0)
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	response, err := client.Member.ListProjectMembers(
-		ctx,
-		&member.ListProjectMembersParams{ProjectNameOrID: projectName},
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, member := range response.Payload {
-		wg.Add(1)
-		go func(memberID int64) {
-			defer wg.Done()
-			err := runDeleteMember(projectName, memberID)
-			if err != nil {
-				errChan <- err
-			}
-		}(member.ID) // Pass member.ID to the goroutine
-	}
-
-	// Wait for all goroutines to finish
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-
-	// Handle errors after all deletions are done
-	for err := range errChan {
-		if err != nil {
-			log.Errorln("Error:", err)
-		}
-	}
-}
-
-func runDeleteMember(projectName string, memberID int64) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.Member.DeleteProjectMember(
-		ctx,
-		&member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID},
-	)
-	if err != nil {
-		return err
-	}
-
-	log.Info("Member deleted successfully")
-	return nil
 }

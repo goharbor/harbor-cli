@@ -3,7 +3,6 @@ package member
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -80,6 +79,44 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
+func RoleList(roles []string, choice chan<- int64) {
+	items := make([]list.Item, len(roles))
+	entityMap := make(map[string]int64, len(roles))
+	for i, p := range roles {
+		items[i] = item(p)
+		entityMap[p] = int64(i)
+	}
+
+	// in this I want the choice to be p.choice returns the entity name but I need its equivalent p.id
+
+	const defaultWidth = 20
+
+	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Select a Role"
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(false)
+	l.Styles.Title = views.TitleStyle
+	l.Styles.PaginationStyle = views.PaginationStyle
+	l.Styles.HelpStyle = views.HelpStyle
+
+	m := model{list: l}
+
+	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	if err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+
+	if p, ok := p.(model); ok {
+		if id, exists := entityMap[p.choice]; exists {
+			id = id + 1
+			choice <- id
+		} else {
+			os.Exit(1)
+		}
+	}
+}
+
 func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 	items := make([]list.Item, len(member))
 	entityMap := make(map[string]int64, len(member))
@@ -109,11 +146,9 @@ func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 	}
 
 	if p, ok := p.(model); ok {
-		log.Println(p.choice)
 		if id, exists := entityMap[p.choice]; exists {
 			choice <- id
 		} else {
-			fmt.Println("Selected entity name does not exist in map.")
 			os.Exit(1)
 		}
 	}
