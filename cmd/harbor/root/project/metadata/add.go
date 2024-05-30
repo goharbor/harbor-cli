@@ -11,7 +11,13 @@ import (
 	"strings"
 )
 
+type addMetadataOptions struct {
+	isID bool
+}
+
 func AddMetadataCommand() *cobra.Command {
+	var opts addMetadataOptions
+
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "add [NAME|ID] ...[KEY]:[VALUE]",
@@ -35,7 +41,7 @@ func AddMetadataCommand() *cobra.Command {
 					}
 				}
 
-				err := addMetadata(projectNameOrID, metadata)
+				err := addMetadata(opts, projectNameOrID, metadata)
 				if err != nil {
 					log.Errorf("failed to add metadata: %v", err)
 				}
@@ -44,15 +50,19 @@ func AddMetadataCommand() *cobra.Command {
 		},
 	}
 
+	flags := cmd.Flags()
+	flags.BoolVarP(&opts.isID, "id", "", false, "Use project ID instead of name")
+
 	return cmd
 }
 
-func addMetadata(projectNameOrID string, metadata map[string]string) error {
+func addMetadata(opts addMetadataOptions, projectNameOrID string, metadata map[string]string) error {
 	credentialName := viper.GetString("current-credential-name")
 	client := utils.GetClientByCredentialName(credentialName)
 	ctx := context.Background()
 
-	response, err := client.ProjectMetadata.AddProjectMetadatas(ctx, &project_metadata.AddProjectMetadatasParams{Metadata: metadata, ProjectNameOrID: projectNameOrID})
+	isName := !opts.isID
+	response, err := client.ProjectMetadata.AddProjectMetadatas(ctx, &project_metadata.AddProjectMetadatasParams{Metadata: metadata, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
 	if err != nil {
 		return err
 	}
