@@ -10,6 +10,7 @@ func Metadata() *cobra.Command {
 	cmd.AddCommand(
 		AddMetadataCommand(),
 		DeleteMetadataCommand(),
+		ViewMetadataCommand(),
 	)
 
 	return cmd
