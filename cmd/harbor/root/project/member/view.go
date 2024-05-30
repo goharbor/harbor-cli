@@ -20,7 +20,7 @@ func ViewMemberCommand() *cobra.Command {
 		Use:     "view [ProjectName Or ID] [member ID]",
 		Short:   "get project member by ID",
 		Long:    "get member details by MemberID",
-		Example: "  harbor member view my-project [memberID]",
+		Example: "  harbor project member view my-project [memberID]",
 		Args:    cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
@@ -43,10 +43,11 @@ func ViewMemberCommand() *cobra.Command {
 			}
 
 			FormatFlag := viper.GetString("output-format")
+			VerboseFlag := viper.GetBool("verbose")
 			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(member)
 				return
-			} else if FormatFlag == "wide" {
+			} else if VerboseFlag {
 				view.ViewMember(member.Payload, true)
 			} else {
 				view.ViewMember(member.Payload, false)

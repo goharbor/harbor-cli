@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// View a Member in a project
 func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -31,6 +32,7 @@ func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 	return response, nil
 }
 
+// List Members in project
 func ListMembers(projectName string) (*member.ListProjectMembersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -46,11 +48,7 @@ func ListMembers(projectName string) (*member.ListProjectMembersOK, error) {
 	return response, nil
 }
 
-func CreateMemberView(createView *create.CreateView) error {
-	create.CreateMemberView(createView)
-	return CreateMember(*createView)
-}
-
+// Used to create a Project Member
 func CreateMember(opts create.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -77,24 +75,10 @@ func CreateMember(opts create.CreateView) error {
 	return nil
 }
 
-func GetMembers(projectName string) (*member.ListProjectMembersOK, int) {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		log.Fatal(err)
-	}
-	response, err := client.Member.ListProjectMembers(
-		ctx,
-		&member.ListProjectMembersParams{ProjectNameOrID: projectName},
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return response, len(response.Payload)
-}
-
 func DeleteAllMember(projectName string) {
 	var wg sync.WaitGroup
-	response, length := GetMembers(projectName)
+	response, _ := ListMembers(projectName)
+	length := len(response.Payload)
 	errChan := make(chan error, length)
 
 	for _, member := range response.Payload {
