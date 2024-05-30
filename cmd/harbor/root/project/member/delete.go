@@ -12,11 +12,13 @@ import (
 
 // Deletes the member of the given project and Member
 func DeleteMemberCommand() *cobra.Command {
+	var delAllFlag bool
+
 	cmd := &cobra.Command{
 		Use:     "delete [projectName or ID] [memberID]",
 		Short:   "delete member by id",
 		Long:    "delete members in a project by MemberID",
-		Example: "  harbor member delete my-project 2",
+		Example: "  harbor project member delete my-project 2",
 		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
@@ -34,10 +36,11 @@ func DeleteMemberCommand() *cobra.Command {
 				}
 			}
 
-			if len(args) > 1 {
-				if args[1] == "%" {
+			if len(args) > 0 {
+				if delAllFlag {
 					api.DeleteAllMember(args[0])
 				}
+
 				for _, mid := range memberID {
 					wg.Add(1)
 					go func(member int64) {
@@ -85,6 +88,9 @@ func DeleteMemberCommand() *cobra.Command {
 			}
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&delAllFlag, "all", "a", false, "Deletes all members of the project")
 
 	return cmd
 }
