@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
@@ -74,14 +75,15 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
+		HealthCommand(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-		HealthCommand(),
 		schedule.Schedule(),
 		labels.Labels(),
+		quota.Quota(),
 	)
 
 	return root
