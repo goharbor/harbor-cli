@@ -20,7 +20,7 @@ func CreateMemberCommand() *cobra.Command {
 		Use:     "create [ProjectName Or ID]",
 		Short:   "create project member",
 		Long:    "create project member by Name",
-		Example: "  harbor member create my-project --username user --roleid 1",
+		Example: "  harbor project member create my-project --username user --roleid 1",
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -49,7 +49,7 @@ func CreateMemberCommand() *cobra.Command {
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
 				err = api.CreateMember(*createView)
 			} else {
-				err = api.CreateMemberView(createView)
+				err = createMemberView(createView)
 			}
 
 			if err != nil {
@@ -68,4 +68,9 @@ func CreateMemberCommand() *cobra.Command {
 	flags.Int64VarP(&opts.MemberGroup.GroupType, "grouptype", "", 0, "Group Type")
 
 	return cmd
+}
+
+func createMemberView(createView *create.CreateView) error {
+	create.CreateMemberView(createView)
+	return api.CreateMember(*createView)
 }

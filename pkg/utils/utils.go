@@ -24,6 +24,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
@@ -212,4 +213,21 @@ func GetUserIdFromUser() int64 {
 	}()
 
 	return <-userId
+}
+
+// RemoveColumns removes columns with specified titles from the given columns array.
+func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column {
+	titleMap := make(map[string]bool)
+	for _, title := range colsToRemove {
+		titleMap[title] = true
+	}
+
+	var filteredColumns []table.Column
+	for _, column := range columns {
+		if !titleMap[column.Title] {
+			filteredColumns = append(filteredColumns, column)
+		}
+	}
+
+	return filteredColumns
 }

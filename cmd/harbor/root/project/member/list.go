@@ -20,7 +20,7 @@ func ListMemberCommand() *cobra.Command {
 		Use:     "list [projectName or ID]",
 		Short:   "list members in a project",
 		Long:    "list members in a project by projectName Or ID",
-		Example: "  harbor member list my-project",
+		Example: "  harbor project member list my-project",
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
@@ -43,7 +43,9 @@ func ListMemberCommand() *cobra.Command {
 				return
 			}
 
-			if FormatFlag == "wide" {
+			VerboseFlag := viper.GetBool("verbose")
+
+			if VerboseFlag {
 				list.ListMembers(members.Payload, true)
 			} else {
 				list.ListMembers(members.Payload, false)
