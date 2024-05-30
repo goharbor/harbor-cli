@@ -40,3 +40,11 @@ type RegistryCredential struct {
 	Type         string `json:"type,omitempty"`
 	AccessSecret string `json:"access_secret,omitempty"`
 }
+
+type ListQuotaFlags struct {
+	PageSize    int64
+	Page        int64
+	Sort        string
+	Reference   string
+	ReferenceID string
+}

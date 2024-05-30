@@ -23,6 +23,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
@@ -94,18 +95,19 @@ harbor help
 		versionCommand(),
 		LoginCommand(),
 		config.Config(),
+		HealthCommand(),
 		project.Project(),
 		registry.Registry(),
 		repository.Repository(),
 		user.User(),
 		artifact.Artifact(),
 		tag.TagCommand(),
-		HealthCommand(),
 		cve.CVEAllowlist(),
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),
 		instance.Instance(),
+		quota.Quota(),
 	)
 
 	return root
