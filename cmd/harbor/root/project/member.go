@@ -1,6 +1,7 @@
-package member
+package project
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/member"
 	"github.com/spf13/cobra"
 )
 
@@ -12,11 +13,11 @@ func Member() *cobra.Command {
 		Example: `  harbor member list`,
 	}
 	cmd.AddCommand(
-		ListMemberCommand(),
-		CreateMemberCommand(),
-		DeleteMemberCommand(),
-		ViewMemberCommand(),
-    UpdateMemberCommand(),
+		member.ListMemberCommand(),
+		member.CreateMemberCommand(),
+		member.DeleteMemberCommand(),
+		member.ViewMemberCommand(),
+		member.UpdateMemberCommand(),
 	)
 
 	return cmd

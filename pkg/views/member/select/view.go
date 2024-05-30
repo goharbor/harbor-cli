@@ -2,104 +2,24 @@ package member
 
 import (
 	"fmt"
-	"io"
 	"os"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/views"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
-
-const listHeight = 14
-
-type item string
-
-func (i item) FilterValue() string { return "" }
-
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
-	if !ok {
-		return
-	}
-
-	str := fmt.Sprintf("%d. %s", index+1, i)
-
-	fn := views.ItemStyle.Render
-	if index == m.Index() {
-		fn = func(s ...string) string {
-			return views.SelectedItemStyle.Render("> " + strings.Join(s, " "))
-		}
-	}
-
-	fmt.Fprint(w, fn(str))
-}
-
-type model struct {
-	list   list.Model
-	choice string
-}
-
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetWidth(msg.Width)
-		return m, nil
-
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "enter":
-			i, ok := m.list.SelectedItem().(item)
-			if ok {
-				m.choice = string(i)
-			}
-			return m, tea.Quit
-		}
-	}
-
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
-}
-
-func (m model) View() string {
-	if m.choice != "" {
-		return ""
-	}
-	return "\n" + m.list.View()
-}
 
 func RoleList(roles []string, choice chan<- int64) {
 	items := make([]list.Item, len(roles))
 	entityMap := make(map[string]int64, len(roles))
+
 	for i, p := range roles {
-		items[i] = item(p)
+		items[i] = selection.Item(p)
 		entityMap[p] = int64(i)
 	}
 
-	// in this I want the choice to be p.choice returns the entity name but I need its equivalent p.id
-
-	const defaultWidth = 20
-
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a Role"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = views.TitleStyle
-	l.Styles.PaginationStyle = views.PaginationStyle
-	l.Styles.HelpStyle = views.HelpStyle
-
-	m := model{list: l}
+	m := selection.NewModel(items, "Role")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
@@ -107,8 +27,8 @@ func RoleList(roles []string, choice chan<- int64) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(model); ok {
-		if id, exists := entityMap[p.choice]; exists {
+	if p, ok := p.(selection.Model); ok {
+		if id, exists := entityMap[p.Choice]; exists {
 			id = id + 1
 			choice <- id
 		} else {
@@ -121,23 +41,11 @@ func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 	items := make([]list.Item, len(member))
 	entityMap := make(map[string]int64, len(member))
 	for i, p := range member {
-		items[i] = item(p.EntityName)
+		items[i] = selection.Item(p.EntityName)
 		entityMap[p.EntityName] = p.ID
 	}
 
-	// in this I want the choice to be p.choice returns the entity name but I need its equivalent p.id
-
-	const defaultWidth = 20
-
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a member"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = views.TitleStyle
-	l.Styles.PaginationStyle = views.PaginationStyle
-	l.Styles.HelpStyle = views.HelpStyle
-
-	m := model{list: l}
+	m := selection.NewModel(items, "Member")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
@@ -145,8 +53,8 @@ func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(model); ok {
-		if id, exists := entityMap[p.choice]; exists {
+	if p, ok := p.(selection.Model); ok {
+		if id, exists := entityMap[p.Choice]; exists {
 			choice <- id
 		} else {
 			os.Exit(1)
