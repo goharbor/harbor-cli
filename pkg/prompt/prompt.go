@@ -21,6 +21,7 @@ import (
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
+	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -128,4 +129,18 @@ func GetInstanceFromUser() string {
 	}()
 
 	return <-instanceName
+}
+
+func GetQuotaIDFromUser() int64 {
+	QuotaID := make(chan int64)
+
+	go func() {
+		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		qview.QuotaList(response.Payload, QuotaID)
+	}()
+
+	return <-QuotaID
 }

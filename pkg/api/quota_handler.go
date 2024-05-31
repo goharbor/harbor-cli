@@ -5,10 +5,10 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
-func ListQuota(opts ListQuotaFlags) (quota.ListQuotasOK, error) {
+func ListQuota(opts ListQuotaFlags) (*quota.ListQuotasOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return quota.ListQuotasOK{}, err
+		return nil, err
 	}
 
 	response, err := client.Quota.ListQuotas(
@@ -22,7 +22,21 @@ func ListQuota(opts ListQuotaFlags) (quota.ListQuotasOK, error) {
 		},
 	)
 	if err != nil {
-		return quota.ListQuotasOK{}, err
+		return nil, err
 	}
-	return *response, nil
+	return response, nil
+}
+
+func GetQuota(QuotaID int64) (*quota.GetQuotaOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Quota.GetQuota(ctx, &quota.GetQuotaParams{ID: QuotaID})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

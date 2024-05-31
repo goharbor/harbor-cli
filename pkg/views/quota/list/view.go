@@ -20,8 +20,8 @@ var columns = []table.Column{
 	{Title: "Creation Time", Width: 20},
 }
 
-// Function to get project details
-func GetProjectDetails(ref models.QuotaRefObject) (string, string, error) {
+// Function to get project ref details
+func getRefDetails(ref models.QuotaRefObject) (string, string, error) {
 	if refMap, ok := ref.(map[string]interface{}); ok {
 		projectName, _ := refMap["name"].(string)
 		ownerName, _ := refMap["owner_name"].(string)
@@ -30,8 +30,8 @@ func GetProjectDetails(ref models.QuotaRefObject) (string, string, error) {
 	return "", "", fmt.Errorf("Error: Ref is not of expected type")
 }
 
-// Function to convert bytes to human-readable storage
-func BytesToStorageString(bytes int64) string {
+// Function to convert bytes to human-readable storage format
+func bytesToStorageString(bytes int64) string {
 	const (
 		mebibyte = 1024 * 1024
 		gibibyte = 1024 * mebibyte
@@ -48,19 +48,19 @@ func BytesToStorageString(bytes int64) string {
 }
 
 // Function to calculate storage
-func CalculateStorage(hard models.ResourceList, used models.ResourceList) (string, string) {
+func calculateStorage(hard models.ResourceList, used models.ResourceList) (string, string) {
 	var storageUsed, storageGiven string
 
 	if hard["storage"] == -1 {
 		storageGiven = "Unlimited"
 	} else {
-		storageGiven = BytesToStorageString(hard["storage"])
+		storageGiven = bytesToStorageString(hard["storage"])
 	}
 
 	if used["storage"] == 0 {
 		storageUsed = "0 MiB"
 	} else {
-		storageUsed = BytesToStorageString(used["storage"])
+		storageUsed = bytesToStorageString(used["storage"])
 	}
 
 	return storageUsed, storageGiven
@@ -68,7 +68,7 @@ func CalculateStorage(hard models.ResourceList, used models.ResourceList) (strin
 
 // Function to format storage
 func FormatStorage(hard models.ResourceList, used models.ResourceList) string {
-	storageUsed, storageGiven := CalculateStorage(hard, used)
+	storageUsed, storageGiven := calculateStorage(hard, used)
 	return fmt.Sprintf("%v of %v", storageUsed, storageGiven)
 }
 
@@ -76,7 +76,7 @@ func FormatStorage(hard models.ResourceList, used models.ResourceList) string {
 func ListQuotas(quotas []*models.Quota) {
 	var rows []table.Row
 	for _, quota := range quotas {
-		projectName, ownerName, err := GetProjectDetails(quota.Ref)
+		projectName, ownerName, err := getRefDetails(quota.Ref)
 		if err != nil {
 			fmt.Println(err)
 			continue
