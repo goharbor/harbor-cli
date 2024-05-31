@@ -11,6 +11,8 @@ func Metadata() *cobra.Command {
 		AddMetadataCommand(),
 		DeleteMetadataCommand(),
 		ViewMetadataCommand(),
+		UpdateMetadataCommand(),
+		ListMetadataCommand(),
 	)
 
 	return cmd

@@ -1,21 +1,14 @@
 package metadata
 
 import (
-	"context"
 	"fmt"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project_metadata"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-type deleteMetadataOptions struct {
-	isID bool
-}
-
 func DeleteMetadataCommand() *cobra.Command {
-	var opts deleteMetadataOptions
+	var isID bool
 
 	cmd := &cobra.Command{
 		Use:   "delete",
@@ -33,7 +26,7 @@ func DeleteMetadataCommand() *cobra.Command {
 					metaNames = append(metaNames, args[i])
 				}
 
-				err := deleteMetadata(opts, projectNameOrID, metaNames)
+				err := api.DeleteMetadata(isID, projectNameOrID, metaNames)
 				if err != nil {
 					log.Errorf("failed to delete metadata: %v", err)
 				}
@@ -43,26 +36,7 @@ func DeleteMetadataCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.isID, "id", "", false, "Use project ID instead of name")
+	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
-}
-
-func deleteMetadata(opts deleteMetadataOptions, projectNameOrID string, metaName []string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-
-	isName := !opts.isID
-	for _, meta := range metaName {
-		response, err := client.ProjectMetadata.DeleteProjectMetadata(ctx, &project_metadata.DeleteProjectMetadataParams{MetaName: meta, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
-		if err != nil {
-			return err
-		}
-		if response != nil {
-			log.Info("Metadata %v deleted successfully", meta)
-		}
-	}
-
-	return nil
 }

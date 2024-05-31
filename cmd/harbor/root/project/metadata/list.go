@@ -7,23 +7,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ViewMetadataCommand() *cobra.Command {
+func ListMetadataCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:   "view",
-		Short: "view [NAME|ID] [KEY]",
-		Args:  cobra.MinimumNArgs(2),
+		Use:   "list",
+		Short: "list [NAME|ID]",
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
-				fmt.Println("Please provide project name or id and the meta name")
-			} else if len(args) == 1 {
-				fmt.Println("Please provide the meta name")
+				fmt.Println("Please provide project name")
 			} else {
 				projectNameOrID := args[0]
-				metaName := args[1]
 
-				err := api.ViewMetadata(isID, projectNameOrID, metaName)
+				err := api.ListMetadata(isID, projectNameOrID)
 				if err != nil {
 					log.Errorf("failed to view metadata: %v", err)
 				}

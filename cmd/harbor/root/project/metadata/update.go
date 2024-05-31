@@ -8,22 +8,25 @@ import (
 	"strings"
 )
 
-func AddMetadataCommand() *cobra.Command {
+func UpdateMetadataCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:   "add",
-		Short: "add [NAME|ID] ...[KEY]:[VALUE]",
-		Args:  cobra.MinimumNArgs(2),
+		Use:   "update",
+		Short: "update [NAME|ID] [KEY] ...[KEY]:[VALUE]",
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
-				fmt.Println("Please provide project name or id and the metadata")
+				fmt.Println("Please provide project name, the meta name and metadata")
 			} else if len(args) == 1 {
-				fmt.Println("Please provide the metadata")
+				fmt.Println("Please provide the meta name and metadata")
+			} else if len(args) == 2 {
+				fmt.Println("Please provide metadata")
 			} else {
 				projectNameOrID := args[0]
+				metaName := args[1]
 				metadata := make(map[string]string)
-				for i := 1; i < len(args); i++ {
+				for i := 2; i < len(args); i++ {
 					keyValue := args[i]
 					keyValueArray := strings.Split(keyValue, ":")
 					if len(keyValueArray) == 2 {
@@ -34,9 +37,9 @@ func AddMetadataCommand() *cobra.Command {
 					}
 				}
 
-				err := api.AddMetadata(isID, projectNameOrID, metadata)
+				err := api.UpdateMetadata(isID, projectNameOrID, metaName, metadata)
 				if err != nil {
-					log.Errorf("failed to add metadata: %v", err)
+					log.Errorf("failed to view metadata: %v", err)
 				}
 			}
 
