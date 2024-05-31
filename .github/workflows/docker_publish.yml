@@ -2,7 +2,7 @@ name: Publishing Docker image
 
 on:
   push:
-    branches: [ "docker" ]
+    branches: [ "main" ]
     paths-ignore:
       - 'README.md'
       - '**/*_test.go'
@@ -35,7 +35,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: demo.goharbor.io/library/harbor-cli:1.2.5
+          tags: demo.goharbor.io/library/harbor-cli:0.0.1
           push: true
           labels: ${{ steps.meta.outputs.labels }}
 
