@@ -9,8 +9,6 @@ import (
 )
 
 func AddMetadataCommand() *cobra.Command {
-	var isID bool
-
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "add [NAME|ID] ...[KEY]:[VALUE]",
@@ -42,9 +40,6 @@ func AddMetadataCommand() *cobra.Command {
 
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }

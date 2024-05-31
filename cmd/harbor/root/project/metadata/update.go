@@ -9,8 +9,6 @@ import (
 )
 
 func UpdateMetadataCommand() *cobra.Command {
-	var isID bool
-
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "update [NAME|ID] [KEY] ...[KEY]:[VALUE]",
@@ -45,9 +43,6 @@ func UpdateMetadataCommand() *cobra.Command {
 
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }

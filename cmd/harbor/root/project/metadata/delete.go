@@ -8,8 +8,6 @@ import (
 )
 
 func DeleteMetadataCommand() *cobra.Command {
-	var isID bool
-
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete [NAME|ID] ...[KEY]",
@@ -34,9 +32,6 @@ func DeleteMetadataCommand() *cobra.Command {
 
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }

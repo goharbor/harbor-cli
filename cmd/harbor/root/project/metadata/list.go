@@ -8,8 +8,6 @@ import (
 )
 
 func ListMetadataCommand() *cobra.Command {
-	var isID bool
-
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list [NAME|ID]",
@@ -28,9 +26,6 @@ func ListMetadataCommand() *cobra.Command {
 
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }
