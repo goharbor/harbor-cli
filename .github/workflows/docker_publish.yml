@@ -23,7 +23,7 @@ jobs:
       - name: Log in to Harbor
         uses: docker/login-action@v3
         with:
-          registry: demo.goharbor.io
+          registry: demo.goharbor.io/library
           username: ${{ secrets.REGISTRY_GOHARBOR_USERNAME }}
           password: ${{ secrets.REGISTRY_GOHARBOR_PASSWORD }}
       
@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: demo.goharbor.io/library/harbor-cli:1.2.3
+          tags: harbor-cli:1.2.4
           push: true
           labels: ${{ steps.meta.outputs.labels }}
 
