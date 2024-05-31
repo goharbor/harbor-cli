@@ -15,12 +15,13 @@ func ListQuotaCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "list quota",
+		Short: "list quotas",
 		Run: func(cmd *cobra.Command, args []string) {
 			quota, err := api.ListQuota(opts)
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				utils.PrintPayloadInJSONFormat(quota)
