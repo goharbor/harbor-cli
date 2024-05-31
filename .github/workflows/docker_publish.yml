@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: library/harbor-cli:1.2.4
+          tags: demo.goharbor.io/library/harbor-cli:1.2.4
           push: true
           labels: ${{ steps.meta.outputs.labels }}
 
