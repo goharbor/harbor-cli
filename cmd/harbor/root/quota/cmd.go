@@ -14,6 +14,7 @@ func Quota() *cobra.Command {
 	cmd.AddCommand(
 		ListQuotaCommand(),
 		ViewQuotaCommand(),
+		UpdateQuotaCommand(),
 	)
 
 	return cmd
