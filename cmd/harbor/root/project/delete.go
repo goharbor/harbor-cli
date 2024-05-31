@@ -1,13 +1,10 @@
 package project
 
 import (
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // DeleteProjectCommand creates a new `harbor delete project` command
@@ -21,10 +18,10 @@ func DeleteProjectCommand() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				err = runDeleteProject(args[0])
+				err = api.DeleteProject(args[0])
 			} else {
-				projectName := utils.GetProjectNameFromUser()
-				err = runDeleteProject(projectName)
+				projectName := prompt.GetProjectNameFromUser()
+				err = api.DeleteProject(projectName)
 			}
 			if err != nil {
 				log.Errorf("failed to delete project: %v", err)
@@ -33,18 +30,4 @@ func DeleteProjectCommand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func runDeleteProject(projectName string) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
-
-	if err != nil {
-		return err
-	}
-
-	log.Info("project deleted successfully")
-	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -104,6 +105,7 @@ harbor help
 		registry.Registry(),
 		repositry.Repository(),
 		user.User(),
+		artifact.Artifact(),
 	)
 
 	return root

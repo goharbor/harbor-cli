@@ -1,16 +1,10 @@
 package project
 
 import (
-	"context"
-	"strconv"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // CreateProjectCommand creates a new `harbor create project` command
@@ -32,7 +26,7 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
-				err = runCreateProject(opts)
+				err = api.CreateProject(opts)
 			} else {
 				err = createProjectView(createView)
 			}
@@ -66,33 +60,6 @@ func createProjectView(createView *create.CreateView) error {
 
 	create.CreateProjectView(createView)
 
-	return runCreateProject(*createView)
+	return api.CreateProject(*createView)
 
-}
-
-func runCreateProject(opts create.CreateView) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	registryID := new(int64)
-	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
-
-	if !opts.ProxyCache {
-		registryID = nil
-	}
-
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
-
-	public := strconv.FormatBool(opts.Public)
-
-	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, RegistryID: registryID, StorageLimit: &storageLimit, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
-
-	if err != nil {
-		return err
-	}
-
-	if response != nil {
-		log.Info("Project created successfully")
-	}
-	return nil
 }
