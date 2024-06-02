@@ -29,4 +29,4 @@ jobs:
       - name: Run Dagger Pull Request
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: go run ci/dagger.go pull-request
+        run: go run ci/release.go pull-request
