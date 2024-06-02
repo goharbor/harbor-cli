@@ -10,13 +10,40 @@ import (
 )
 
 func main() {
-	if err := build(context.Background()); err != nil {
-		fmt.Println(err)
+	if len(os.Args) > 1 && os.Args[1] == "--lint" {
+		if err := lint(context.Background()); err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		if err := build(context.Background()); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
+func lint(ctx context.Context) error {
+	fmt.Println("👀 Running linter with Dagger...")
+	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	src := client.Host().Directory(".")
+	golangciLintCont := client.Container().From("golangci/golangci-lint:latest")
+	golangciLintCont = golangciLintCont.WithDirectory("/src", src).WithWorkdir("/src")
+	golangciLintCont = golangciLintCont.WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
+
+	_, err = golangciLintCont.Stderr(ctx)
+	if err != nil {
+		return fmt.Errorf("linting failed 😢: %w", err)
+	}
+	fmt.Println("LINT COMPLETED!✅")
+	return nil
+}
+
 func build(ctx context.Context) error {
-	fmt.Println("Building with Dagger")
+	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
 
@@ -37,13 +64,13 @@ func build(ctx context.Context) error {
 	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
 	result := "/src/" + trimmedPath
 	main_go_path := strings.TrimRight(result, "\n")
-	
+
 	for _, goos := range oses {
 		for _, goarch := range arches {
 			path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			build := golangcont.WithEnvVariable("GOOS", goos)
 			build = build.WithEnvVariable("GOARCH", goarch)
-			build = build.WithExec([]string{"go", "build", "-o", path, main_go_path})
+			build = build.WithExec([]string{"go", "build", "-o", path+"harbor", main_go_path})
 			// get reference to build output directory in container
 			outputs = outputs.WithDirectory(path, build.Directory(path))
 		}
@@ -53,6 +80,6 @@ func build(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("BUILD COMPLETED!")
+	fmt.Println("BUILD COMPLETED!✅")
 	return nil
 }

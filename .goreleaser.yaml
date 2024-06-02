@@ -5,6 +5,7 @@ before:
     - go mod tidy
     
 builds:
+- id: harbor
 - main: ./cmd/harbor/main.go
 
   env:
@@ -42,7 +43,10 @@ nfpms:
       - archlinux
       
 sboms:
-  - artifacts: archive
+  - 
+    id: source-sbom
+    args: ["${artifact}", "--file", "${artifact}.sbom"]
+    artifacts: source
 checksum:
   name_template: 'checksums.txt'
 

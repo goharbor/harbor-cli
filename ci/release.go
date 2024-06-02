@@ -83,7 +83,7 @@ func pullrequest(ctx context.Context, client *dagger.Client) (string, error) {
 	}
 
 	log.Println("Tests passed successfully!")
-	goreleaser := goreleaserContainer(ctx, client, directory).WithExec([]string{"release", "--snapshot", "--clean"})
+	goreleaser := goreleaserContainer(client, directory).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err = goreleaser.Stderr(ctx)
 
 	if err != nil {
@@ -108,7 +108,7 @@ func pullrequest(ctx context.Context, client *dagger.Client) (string, error) {
 // `example: go run ci/dagger.go release`
 func release(ctx context.Context, client *dagger.Client) (string, error) {
 	directory := client.Host().Directory(".")
-	goreleaser := goreleaserContainer(ctx, client, directory).WithExec([]string{"--clean"})
+	goreleaser := goreleaserContainer(client, directory).WithExec([]string{"--clean"})
 
 	_, err = goreleaser.Stderr(ctx)
 	if err != nil {
@@ -121,10 +121,10 @@ func release(ctx context.Context, client *dagger.Client) (string, error) {
 // goreleaserContainer returns a goreleaser container with the syft binary mounted and GITHUB_TOKEN secret set
 //
 // `example: goreleaserContainer(ctx, client, directory).WithExec([]string{"build"})`
-func goreleaserContainer(ctx context.Context, client *dagger.Client, directory *dagger.Directory) *dagger.Container {
+func goreleaserContainer(client *dagger.Client, directory *dagger.Directory) *dagger.Container {
 	token := client.SetSecret("github_token", GithubToken)
 
-	// Export the syft binary from the syft container as a file
+	// Export the syft binary from the syft container as a file to generate SBOM
 	syft := client.Container().From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
 		WithMountedCache("/go/pkg/mod", client.CacheVolume("gomod")).
 		File("/syft")
