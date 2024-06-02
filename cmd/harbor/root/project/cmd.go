@@ -33,6 +33,7 @@ func Project() *cobra.Command {
 		LogsProjectCommmand(),
 		config.ProjectConfigCommand(),
 		SearchProjectCommand(),
+		Robot(),
 	)
 
 	return cmd

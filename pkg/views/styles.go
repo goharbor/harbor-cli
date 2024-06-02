@@ -26,6 +26,7 @@ var (
 	HelpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
 	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575"))
+	WhiteStyle        = list.DefaultStyles()
 )
 
 var BaseStyle = lipgloss.NewStyle().
