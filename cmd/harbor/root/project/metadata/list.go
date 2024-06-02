@@ -18,9 +18,11 @@ func ListMetadataCommand() *cobra.Command {
 			} else {
 				projectNameOrID := args[0]
 
-				err := api.ListMetadata(isID, projectNameOrID)
+				response, err := api.ListMetadata(isID, projectNameOrID)
 				if err != nil {
 					log.Errorf("failed to view metadata: %v", err)
+				} else {
+					log.Info("Metadata: ", response)
 				}
 			}
 
