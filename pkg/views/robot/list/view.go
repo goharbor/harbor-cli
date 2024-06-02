@@ -2,7 +2,6 @@ package list
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -46,7 +45,6 @@ func ListRobots(robots []*models.Robot) {
 			expires = remainingTime(robot.ExpiresAt)
 		}
 
-		log.Println(expires)
 		createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
 		rows = append(rows, table.Row{
 			robot.Name,    // Project Name
