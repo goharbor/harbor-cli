@@ -1,14 +1,12 @@
 package user
 
 import (
-	"context"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func UserDeleteCmd() *cobra.Command {
@@ -20,11 +18,11 @@ func UserDeleteCmd() *cobra.Command {
 			var err error
 			if len(args) > 0 {
 				userId, _ := strconv.ParseInt(args[0], 10, 64)
-				err = runDeleteUser(userId)
+				err = api.DeleteUser(userId)
 
 			} else {
-				userId := utils.GetUserIdFromUser()
-				err = runDeleteUser(userId)
+				userId := prompt.GetUserIdFromUser()
+				err = api.DeleteUser(userId)
 			}
 
 			if err != nil {
@@ -36,16 +34,4 @@ func UserDeleteCmd() *cobra.Command {
 
 	return cmd
 
-}
-
-func runDeleteUser(userId int64) error {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-	ctx := context.Background()
-	_, err := client.User.DeleteUser(ctx, &user.DeleteUserParams{UserID: userId})
-	if err != nil {
-		return err
-	}
-	log.Info("user deleted successfully")
-	return nil
 }
