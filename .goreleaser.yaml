@@ -44,17 +44,6 @@ nfpms:
 sboms:
    # - id: binary-sbom
    - artifacts: source
-signs:
-  - cmd: cosign
-    certificate: "${artifact}.pem"
-    output: true
-    artifacts: checksum
-    args:
-      - sign-blob
-      - "--output-certificate=${certificate}"
-      - "--output-signature=${signature}"
-      - "${artifact}"
-      - --yes
 checksum:
   name_template: 'checksums.txt'
 
