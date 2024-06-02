@@ -6,28 +6,33 @@ import (
 	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // NewListProjectCommand creates a new `harbor list project` command
 func ListProjectCommand() *cobra.Command {
 	var opts api.ListFlags
+	var formatFlag string
 
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
 		Run: func(cmd *cobra.Command, args []string) {
-			projects, err := api.ListProject(opts)
+			response, err := api.ListProject(opts)
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(projects)
-				return
-			}
 
-			list.ListProjects(projects.Payload)
+			if formatFlag != "" {
+				if formatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(response)
+				} else if formatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(response)
+				} else {
+					log.Errorf("invalid output format: %s", formatFlag)
+				}
+			} else {
+				list.ListProjects(response.Payload)
+			}
 		},
 	}
 
@@ -38,6 +43,7 @@ func ListProjectCommand() *cobra.Command {
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringVarP(&formatFlag, "output-format", "o", "", "Output format. One of: json|yaml")
 
 	return cmd
 }

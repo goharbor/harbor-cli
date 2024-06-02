@@ -22,9 +22,9 @@ var columns = []table.Column{
 	// {Title: "Description", Width: 12},
 }
 
-func ListRegistry(registry []*models.Registry) {
+func ListRegistries(registries []*models.Registry) {
 	var rows []table.Row
-	for _, regis := range registry {
+	for _, regis := range registries {
 		createdTime, _ := utils.FormatCreatedTime(regis.CreationTime.String())
 		rows = append(rows, table.Row{
 			fmt.Sprintf("%d", regis.ID),
