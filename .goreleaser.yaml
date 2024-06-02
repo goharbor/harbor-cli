@@ -5,7 +5,6 @@ before:
     - go mod tidy
     
 builds:
-- id: harbor
 - main: ./cmd/harbor/main.go
 
   env:
