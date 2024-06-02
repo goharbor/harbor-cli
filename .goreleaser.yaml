@@ -42,7 +42,8 @@ nfpms:
       - archlinux
       
 sboms:
-   - artifacts: binary
+   # - id: binary-sbom
+   - artifacts: source
 signs:
   - cmd: cosign
     certificate: "${artifact}.pem"
