@@ -13,6 +13,8 @@ func Robot() *cobra.Command {
 	}
 	cmd.AddCommand(
 		robot.ListRobotCommand(),
+    robot.DeleteCommand(),
+    robot.ViewCommand(),
 	)
 
 	return cmd
