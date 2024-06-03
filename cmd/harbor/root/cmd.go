@@ -107,7 +107,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-		scan_all.ScanAllCommand(),
+		scan_all.ScanAll(),
 	)
 
 	return root
