@@ -2,6 +2,7 @@ package root
 
 import (
 	"fmt"
+	scan_all "github.com/goharbor/harbor-cli/cmd/harbor/root/scan-all"
 	"log"
 	"os"
 
@@ -106,6 +107,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		scan_all.ScanAllCommand(),
 	)
 
 	return root
