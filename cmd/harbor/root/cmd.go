@@ -185,5 +185,9 @@ harbor help
 	cmd.GroupID = "utils"
 	root.AddCommand(cmd)
 
+	cmd = Logs()
+	cmd.GroupID = "utils"
+	root.AddCommand(cmd)
+
 	return root
 }
