@@ -29,6 +29,7 @@ func GetScanAllMetricsCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	// latest scheduled metrics is deprecated in the API
 	flags.BoolVarP(&scheduled, "scheduled", "s", false, "Get the metrics of the latest scheduled scan all process")
 
 	return cmd
