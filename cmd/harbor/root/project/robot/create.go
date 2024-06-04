@@ -1,6 +1,7 @@
 package robot
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/atotto/clipboard"
@@ -14,7 +15,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// to-do add json file as input and getting json file as output from input.
 func CreateRobotCommand() *cobra.Command {
 	var (
 		opts        create.CreateView
@@ -88,12 +88,16 @@ func CreateRobotCommand() *cobra.Command {
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(response.Payload)
+				name := response.Payload.Name
+				res, _ := api.GetRobot(response.Payload.ID)
+				utils.SavePayloadJSON(name, res.Payload)
 				return
 			}
 
-			create.CreateRobotSecretView(response.Payload)
+			name, secret := response.Payload.Name, response.Payload.Secret
+			create.CreateRobotSecretView(name, secret)
 			err = clipboard.WriteAll(response.Payload.Secret)
+			fmt.Println("secret copied to clipboard.")
 		},
 	}
 	flags := cmd.Flags()

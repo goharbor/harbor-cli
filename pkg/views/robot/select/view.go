@@ -2,7 +2,6 @@ package robot
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
