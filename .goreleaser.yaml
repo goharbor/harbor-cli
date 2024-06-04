@@ -4,10 +4,7 @@ version: 1
 before:
   hooks:
     - go mod tidy
-    
-gomod:
-  proxy: true
-  
+     
 builds:
 - main: ./cmd/harbor/main.go
 
