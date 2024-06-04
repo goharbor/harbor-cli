@@ -12,7 +12,7 @@ import (
 
 const (
 	GO_VERSION         = "1.22"
-	SYFT_VERSION       = "v0.105.0"
+	CYCLONEDX_VERSION       = "latest"
 	GORELEASER_VERSION = "v1.24.0"
 	APP_NAME           = "dagger-harbor-cli"
 	BUILD_PATH         = "dist"
@@ -124,15 +124,15 @@ func release(ctx context.Context, client *dagger.Client) (string, error) {
 func goreleaserContainer(client *dagger.Client, directory *dagger.Directory) *dagger.Container {
 	token := client.SetSecret("github_token", GithubToken)
 
-	// Export the syft binary from the syft container as a file to generate SBOM
-	syft := client.Container().From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
+	// Export the cyclonedx binary from the cyclonedx container as a file to generate SBOM
+	cyclonedx := client.Container().From(fmt.Sprintf("cyclonedx/cyclonedx-cli:%s", CYCLONEDX_VERSION)).
 		WithMountedCache("/go/pkg/mod", client.CacheVolume("gomod")).
-		File("/syft")
+		File("/cyclonedx")
 
 	// Run go build to check if the binary compiles
 	return client.Container().From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
 		WithMountedCache("/go/pkg/mod", client.CacheVolume("gomod")).
-		WithFile("/bin/syft", syft).
+		WithFile("/bin/cyclonedx", cyclonedx).
 		WithMountedDirectory("/src", directory).WithWorkdir("/src").
 		WithEnvVariable("TINI_SUBREAPER", "true").
 		WithSecretVariable("GITHUB_TOKEN", token)
