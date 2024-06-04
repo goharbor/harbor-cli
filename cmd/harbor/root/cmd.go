@@ -106,6 +106,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+    Logs(),
 	)
 
 	return root
