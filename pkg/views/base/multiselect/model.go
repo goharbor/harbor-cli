@@ -2,6 +2,8 @@ package multiselect
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/viewport"
@@ -19,9 +21,9 @@ var (
 		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
 	}()
 
-	selectedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("43"))
-	itemStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
-	blockStyle = lipgloss.NewStyle().
+	selectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("43"))
+	itemStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
+	blockStyle    = lipgloss.NewStyle().
 			Background(lipgloss.Color("81")).
 			Foreground(lipgloss.Color("#000000")).
 			Bold(true).
@@ -169,7 +171,6 @@ func (m Model) listView() string {
 
 	return s
 }
-
 
 func (m Model) GetSelectedPermissions() *[]models.Permission {
 	selectedPermissions := make([]models.Permission, 0, len(m.selected))

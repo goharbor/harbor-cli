@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// CreateProjectCommand creates a new `harbor create project` command
-func CreateRobot() *cobra.Command {
+// to-do add json file as input and getting json file as output from input.
+func CreateRobotCommand() *cobra.Command {
 	var (
 		opts        create.CreateView
 		projectName string
