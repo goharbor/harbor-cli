@@ -13,8 +13,9 @@ func UpdateScanAllScheduleCommand() *cobra.Command {
 	var cron string
 
 	cmd := &cobra.Command{
-		Use:   "update-schedule",
-		Short: "update-schedule [schedule-type: None|Hourly|Daily|Weekly|Custom|Now]",
+		Use:     "update-schedule",
+		Short:   "update-schedule [schedule-type: None|Hourly|Daily|Weekly|Custom]",
+		Aliases: []string{"us"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("schedule type is required")
@@ -24,8 +25,6 @@ func UpdateScanAllScheduleCommand() *cobra.Command {
 				scheduleType = args[0]
 				if scheduleType == "None" {
 					return api.UpdateScanAllSchedule(models.ScheduleObj{Type: "None"})
-				} else if scheduleType == "Now" {
-					return api.UpdateScanAllSchedule(models.ScheduleObj{Type: "Manual"})
 				} else if scheduleType == "Hourly" || scheduleType == "Daily" || scheduleType == "Weekly" {
 					return api.UpdateScanAllSchedule(models.ScheduleObj{Type: scheduleType})
 				} else if scheduleType == "Custom" {

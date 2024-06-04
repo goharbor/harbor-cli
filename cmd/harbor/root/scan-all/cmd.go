@@ -13,6 +13,7 @@ func ScanAll() *cobra.Command {
 		StopScanAllCommand(),
 		ViewScanAllScheduleCommand(),
 		GetScanAllMetricsCommand(),
+		RunScanAllCommand(),
 	)
 
 	return cmd

@@ -64,17 +64,17 @@ func GetScanAllMetrics(scheduled bool) (*models.Stats, error) {
 		return nil, clientErr
 	}
 
-	var response interface{}
-	var responseErr error
 	if scheduled {
-		response, responseErr = client.ScanAll.GetLatestScheduledScanAllMetrics(ctx, &scan_all.GetLatestScheduledScanAllMetricsParams{})
+		response, responseErr := client.ScanAll.GetLatestScheduledScanAllMetrics(ctx, &scan_all.GetLatestScheduledScanAllMetricsParams{})
+		if responseErr != nil {
+			return nil, responseErr
+		}
+		return response.Payload, nil
 	} else {
-		response, responseErr = client.ScanAll.GetLatestScanAllMetrics(ctx, &scan_all.GetLatestScanAllMetricsParams{})
+		response, responseErr := client.ScanAll.GetLatestScanAllMetrics(ctx, &scan_all.GetLatestScanAllMetricsParams{})
+		if responseErr != nil {
+			return nil, responseErr
+		}
+		return response.Payload, nil
 	}
-
-	if responseErr != nil {
-		return nil, responseErr
-	}
-
-	return response.(*models.Stats), nil
 }
