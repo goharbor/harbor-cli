@@ -16,6 +16,7 @@ import (
 )
 
 var columns = []table.Column{
+	{Title: "ID", Width: 4},
 	{Title: "Name", Width: 30},
 	{Title: "Status", Width: 18},
 	{Title: "Permissions", Width: 12},
@@ -47,10 +48,11 @@ func ListRobots(robots []*models.Robot) {
 
 		createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
 		rows = append(rows, table.Row{
-			robot.Name,    // Project Name
-			enabledStatus, // Access Level
+			strconv.FormatInt(robot.ID, 10),
+			robot.Name,
+			enabledStatus,
 			TotalPermissions,
-			createdTime, // Creation Time
+			createdTime,
 			expires,
 			robot.Description,
 		})

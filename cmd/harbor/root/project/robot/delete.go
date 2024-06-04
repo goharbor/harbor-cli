@@ -9,12 +9,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewGetRegistryCommand creates a new `harbor get registry` command
-func DeleteCommand() *cobra.Command {
+// to-do improve DeleteRobotCommand and multi delete
+func DeleteRobotCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete [robotID]",
 		Short: "delete robot by id",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
 				robotID, err := strconv.ParseInt(args[0], 10, 64)

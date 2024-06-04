@@ -14,8 +14,11 @@
 package prompt
 
 import (
+	"strconv"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -147,4 +150,16 @@ func GetRobotPermissionsFromUser() []models.Permission {
 		robotView.ListPermissions(response.Payload, permissions)
 	}()
 	return <-permissions
+}
+
+func GetRobotIDFromUser(projectID int64) int64 {
+	robotID := make(chan int64)
+	var opts api.ListFlags
+	opts.Q = constants.ProjectQString + strconv.FormatInt(projectID, 10)
+
+	go func() {
+		response, _ := api.ListRobot(opts)
+		robotView.ListRobot(response.Payload, robotID)
+	}()
+	return <-robotID
 }
