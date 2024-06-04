@@ -45,7 +45,7 @@ sboms:
    -
     artifacts: any
     documents:
-       - "{{.ArtifactName}}_{{.Tag}}.sbom"
+       - "harbor_{{.Tag}}.sbom"
 checksum:
   name_template: 'checksums.txt'
 
