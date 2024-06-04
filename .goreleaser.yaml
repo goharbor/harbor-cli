@@ -1,9 +1,13 @@
 project_name: harbor
 
+version: 1
 before:
   hooks:
     - go mod tidy
     
+gomod:
+  proxy: true
+  
 builds:
 - main: ./cmd/harbor/main.go
 
@@ -42,8 +46,10 @@ nfpms:
       - archlinux
       
 sboms:
-   - id: archive-sbom
-   - artifacts: archive
+   -
+    artifacts: archive
+    documents:
+       - "harbor_cli_{{.Tag}}.sbom"
 checksum:
   name_template: 'checksums.txt'
 
@@ -57,7 +63,34 @@ release:
   
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(.+)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999
