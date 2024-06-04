@@ -43,8 +43,7 @@ nfpms:
       
 sboms:
    -
-    artifacts: any
-    cmd: syft
+    artifacts: binary
     documents:
        - "harbor_{{.Tag}}.sbom"
 checksum:
