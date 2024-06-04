@@ -119,9 +119,9 @@ func UpdateRobot(opts *update.UpdateView) error {
 	// Loop through original permissions and convert them
 	for _, perm := range permissions {
 		convertedPerm := &models.RobotPermission{
-			Access: perm.Access,
-			Kind:   kind,
-      Namespace: opts.Permissions[0].Namespace,
+			Access:    perm.Access,
+			Kind:      kind,
+			Namespace: opts.Permissions[0].Namespace,
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)
 	}
@@ -159,6 +159,27 @@ func GetPermissions() (*permissions.GetPermissionsOK, error) {
 		ctx,
 		&permissions.GetPermissionsParams{},
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func RefreshSecret(secret string, robotID int64) (*robot.RefreshSecOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	robotSec := &models.RobotSec{
+		Secret: secret,
+	}
+
+	response, err := client.Robot.RefreshSec(ctx, &robot.RefreshSecParams{
+		RobotSec: robotSec,
+		RobotID:  robotID,
+	})
 	if err != nil {
 		return nil, err
 	}

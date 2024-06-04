@@ -2,8 +2,6 @@ package multiselect
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/viewport"
