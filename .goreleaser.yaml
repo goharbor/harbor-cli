@@ -43,9 +43,9 @@ nfpms:
       
 sboms:
    -
-    artifacts: binary
+    artifacts: any
     documents:
-       - "harbor_cli_{{.Tag}}.sbom"
+       - "{{.ArtifactName}}_{{.Tag}}.sbom"
 checksum:
   name_template: 'checksums.txt'
 
