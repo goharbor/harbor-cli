@@ -7,6 +7,25 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func CreateScanAllSchedule(schedule models.ScheduleObj) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	response, err := client.ScanAll.CreateScanAllSchedule(ctx, &scan_all.CreateScanAllScheduleParams{Schedule: &models.Schedule{Schedule: &schedule}})
+
+	if err != nil {
+		return err
+	}
+
+	if response != nil {
+		// The CreateScanAllSchedule API is used only for scanning all artifacts now
+		log.Info("Scan started successfully")
+	}
+	return nil
+}
+
 func UpdateScanAllSchedule(schedule models.ScheduleObj) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {

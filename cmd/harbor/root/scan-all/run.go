@@ -15,7 +15,7 @@ func RunScanAllCommand() *cobra.Command {
 			// Random cron expression and random time need to be passed to the API, even though they are not used, otherwise it returns bad request
 			randomCron := "0 * * * * *"
 			randomTime := strfmt.DateTime{}
-			return api.UpdateScanAllSchedule(models.ScheduleObj{Type: "Manual", Cron: randomCron, NextScheduledTime: randomTime})
+			return api.CreateScanAllSchedule(models.ScheduleObj{Type: "Manual", Cron: randomCron, NextScheduledTime: randomTime})
 		},
 	}
 
