@@ -43,7 +43,7 @@ nfpms:
       
 sboms:
    -
-    artifacts: binary
+    artifacts: source
     documents:
        - "harbor_cli_{{.Tag}}.sbom"
 checksum:
