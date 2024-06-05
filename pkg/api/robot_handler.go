@@ -60,7 +60,7 @@ func DeleteRobot(robotID int64) error {
 	return nil
 }
 
-func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
+func CreateRobot(opts create.CreateView, kind string) (*robot.CreateRobotCreated, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
@@ -70,12 +70,11 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 	permissions := opts.Permissions
 	convertedPerms := make([]*models.RobotPermission, 0, len(permissions))
 
-	project := "project"
 	// Loop through original permissions and convert them
 	for _, perm := range permissions {
 		convertedPerm := &models.RobotPermission{
 			Access:    perm.Access,
-			Kind:      project,
+			Kind:      kind,
 			Namespace: opts.ProjectName,
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)
@@ -87,7 +86,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 				Description: opts.Description,
 				Disable:     false,
 				Duration:    opts.Duration,
-				Level:       opts.Level,
+				Level:       kind,
 				Name:        opts.Name,
 				Permissions: convertedPerms,
 			},
@@ -109,18 +108,15 @@ func UpdateRobot(opts *update.UpdateView) error {
 		return err
 	}
 
-	log.Println(opts)
-
 	// Create a slice to store converted permissions
 	permissions := opts.Permissions
 	convertedPerms := make([]*models.RobotPermission, 0, len(permissions))
 
-	kind := "project"
 	// Loop through original permissions and convert them
 	for _, perm := range permissions {
 		convertedPerm := &models.RobotPermission{
 			Access:    perm.Access,
-			Kind:      kind,
+			Kind:      opts.Permissions[0].Kind,
 			Namespace: opts.Permissions[0].Namespace,
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)

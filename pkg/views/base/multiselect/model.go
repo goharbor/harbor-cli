@@ -38,9 +38,9 @@ type Model struct {
 	content  string
 	ready    bool
 	viewport viewport.Model
-	choices  []models.Permission // items on the to-do list
-	cursor   int                 // which to-do list item our cursor is pointing at
-	selected map[int]struct{}    // which to-do items are selected
+	choices  []models.Permission
+	cursor   int
+	selected map[int]struct{}
 	selects  *[]models.Permission
 }
 

@@ -38,7 +38,7 @@ func ListRobots(robots []*models.Robot) {
 			enabledStatus = views.GreenStyle.Render("Enabled")
 		}
 
-		TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions)), 10)
+		TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
 
 		if robot.ExpiresAt == -1 {
 			expires = "Never"
