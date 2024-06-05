@@ -2,7 +2,6 @@ package robot
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/atotto/clipboard"
@@ -15,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// handle robot view with interactive like in list command.
 func RefreshSecretCommand() *cobra.Command {
 	var (
 		robotID     int64
@@ -31,7 +29,7 @@ func RefreshSecretCommand() *cobra.Command {
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Errorf("failed to parse robot ID: %v", err)
+					log.Fatalf("failed to parse robot ID: %v", err)
 				}
 			} else {
 				projectID := prompt.GetProjectIDFromUser()
@@ -39,7 +37,10 @@ func RefreshSecretCommand() *cobra.Command {
 			}
 
 			if secret != "" {
-				utils.ValidatePassword(secret)
+				err = utils.ValidatePassword(secret)
+				if err != nil {
+					log.Fatalf("Invalid secret: %v\n", err)
+				}
 			}
 			if secretStdin {
 				secret = getSecret()
@@ -47,17 +48,21 @@ func RefreshSecretCommand() *cobra.Command {
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				log.Errorf("failed to refresh robot secret.")
-				os.Exit(1)
+				log.Fatalf("failed to refresh robot secret: %v\n", err)
 			}
 
 			log.Info("Secret updated successfully.")
 
-			secret = response.Payload.Secret
-			create.CreateRobotSecretView("", secret)
+			if response.Payload.Secret != "" {
+				secret = response.Payload.Secret
+				create.CreateRobotSecretView("", secret)
 
-			err = clipboard.WriteAll(response.Payload.Secret)
-			fmt.Println("secret copied to clipboard.")
+				err = clipboard.WriteAll(response.Payload.Secret)
+				if err != nil {
+					log.Fatalf("failed to write the secret to the clipboard: %v", err)
+				}
+				fmt.Println("secret copied to clipboard.")
+			}
 		},
 	}
 
@@ -72,13 +77,11 @@ func RefreshSecretCommand() *cobra.Command {
 func getSecret() string {
 	secret, err := utils.GetSecretStdin("Enter your secret: ")
 	if err != nil {
-		log.Errorf("Error reading secret: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error reading secret: %v\n", err)
 	}
 
 	if err := utils.ValidatePassword(secret); err != nil {
-		log.Errorf("Invalid secret: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Invalid secret: %v\n", err)
 	}
 	return secret
 }

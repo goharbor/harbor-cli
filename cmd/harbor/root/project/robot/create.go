@@ -2,7 +2,6 @@ package robot
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/atotto/clipboard"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -25,25 +24,16 @@ func CreateRobotCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create robot",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			kind := "project"
-			opts.Level = kind
 
 			if opts.ProjectName == "" {
 				opts.ProjectName = prompt.GetProjectNameFromUser()
 				if opts.ProjectName == "" {
-					os.Exit(1)
+					log.Fatalf("Project Name Cannot be empty")
 				}
 			}
-
-			// to-do handle permission as json submission
-			perm := &create.RobotPermission{
-				Kind:      kind,
-				Namespace: projectName,
-			}
-			opts.Permissions = []*create.RobotPermission{perm}
 
 			if len(args) == 0 {
 				if opts.Name == "" || opts.Duration == 0 {
@@ -75,15 +65,14 @@ func CreateRobotCommand() *cobra.Command {
 				}
 				// convert []models.permission to []*model.Access
 				perm := &create.RobotPermission{
-					Kind:      kind,
 					Namespace: projectName,
 					Access:    accesses,
 				}
 				opts.Permissions = []*create.RobotPermission{perm}
 			}
-			response, err := api.CreateRobot(opts)
+			response, err := api.CreateRobot(opts, "project")
 			if err != nil {
-				log.Errorf("failed to create robot: %v", err)
+				log.Fatalf("failed to create robot: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")

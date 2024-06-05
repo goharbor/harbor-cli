@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// to-do complete UpdateRobotCommand
 func UpdateRobotCommand() *cobra.Command {
 	var (
 		robotID int64
@@ -29,7 +28,7 @@ func UpdateRobotCommand() *cobra.Command {
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Errorf("failed to parse robot ID: %v", err)
+					log.Fatalf("failed to parse robot ID: %v", err)
 				}
 
 			} else {
@@ -38,6 +37,10 @@ func UpdateRobotCommand() *cobra.Command {
 			}
 
 			robot, err := api.GetRobot(robotID)
+			if err != nil {
+				log.Fatalf("failed to get robot: %v", err)
+			}
+
 			bot := robot.Payload
 
 			opts = update.UpdateView{
@@ -87,7 +90,7 @@ func UpdateRobotCommand() *cobra.Command {
 
 			err = updateRobotView(&opts)
 			if err != nil {
-				log.Errorf("failed to Update robot")
+        log.Fatalf("failed to Update robot: %v", err)
 			}
 		},
 	}

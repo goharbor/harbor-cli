@@ -40,7 +40,7 @@ func CreateRobotView(createView *CreateView) {
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Name").
+				Title("Robot Name").
 				Value(&createView.Name).
 				Validate(func(str string) error {
 					if str == "" {
@@ -80,7 +80,8 @@ func CreateRobotSecretView(name string, secret string) {
 				Title("Robot Name").
 				Value(&name),
 			huh.NewInput().
-				Title("Secret").
+				Title("Robot Secret").
+				Description("Copy the secret or press enter to copy to clipboard.").
 				Value(&secret),
 		),
 	).WithTheme(theme).Run()
