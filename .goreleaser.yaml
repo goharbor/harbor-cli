@@ -42,11 +42,10 @@ nfpms:
       - archlinux
       
 sboms:
-  - artifacts: binary
+  - artifacts: archive
     documents:
-      - "sbom_{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}.spdx"
-    cmd: |
-         sh -c 'for sbom in dist/sbom_{{.ProjectName}}_{{.Tag}}_*.spdx; do cat "$sbom"; echo ""; done > dist/harbor_cli_{{.Tag}}.sbom && rm dist/sbom_{{.ProjectName}}_{{.Tag}}_*.spdx'
+      - "harbor_{{.Tag}}_{{.Os}}.sbom"
+
 checksum:
   name_template: 'checksums.txt'
 
