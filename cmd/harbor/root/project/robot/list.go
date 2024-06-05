@@ -15,10 +15,7 @@ import (
 
 // ListRobotCommand creates a new `harbor project robot list` command
 func ListRobotCommand() *cobra.Command {
-	var (
-		query string
-		opts  api.ListFlags
-	)
+	var opts api.ListFlags
 
 	projectQString := constants.ProjectQString
 	cmd := &cobra.Command{
@@ -28,6 +25,8 @@ func ListRobotCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
 				opts.Q = projectQString + args[0]
+			} else if opts.Q != "" {
+				opts.Q = projectQString + opts.Q
 			} else {
 				projectID := prompt.GetProjectIDFromUser()
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
@@ -51,7 +50,7 @@ func ListRobotCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&query, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(
 		&opts.Sort,
 		"sort",
