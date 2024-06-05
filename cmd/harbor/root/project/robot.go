@@ -9,7 +9,7 @@ func Robot() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "robot",
 		Short:   "Manage robot accounts",
-		Example: `  harbor robot list`,
+		Example: `  harbor project robot list`,
 	}
 	cmd.AddCommand(
 		robot.ListRobotCommand(),
