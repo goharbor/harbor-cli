@@ -46,11 +46,7 @@ sboms:
     documents:
       - "sbom_{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}.spdx"
     cmd: |
-        set -e
-        for sbom in dist/sbom_{{.ProjectName}}_{{.Tag}}_*.spdx; do
-          cat "$sbom" >> dist/harbor_cli_{{.Tag}}.sbom
-          rm "$sbom"
-        done
+         sh -c 'for sbom in dist/sbom_{{.ProjectName}}_{{.Tag}}_*.spdx; do cat "$sbom"; echo ""; done > dist/harbor_cli_{{.Tag}}.sbom && rm dist/sbom_{{.ProjectName}}_{{.Tag}}_*.spdx'
 checksum:
   name_template: 'checksums.txt'
 
