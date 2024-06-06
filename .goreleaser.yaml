@@ -44,7 +44,7 @@ nfpms:
 sboms:
   - artifacts: archive
     documents:
-      - "harbor_{{.Tag}}_{{.Os}}.sbom"
+      - "harbor_{{.Tag}}_.sbom"
 
 checksum:
   name_template: 'checksums.txt'

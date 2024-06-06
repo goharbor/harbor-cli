@@ -30,3 +30,41 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: go run ci/release.go release ${{ env.GITHUB_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Check for existing SBOM
+        id: check_sbom
+        uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const { data: { assets } } = await github.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', '')
+            });
+
+            const sbomExists = assets.some(asset => asset.name === `harbor_${context.ref.replace('refs/tags/', '')}.sbom`);
+            return sbomExists;
+
+      - name: Upload SBOM
+        if: steps.check_sbom.outputs.sbomExists == 'false'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: path/to/harbor_{{ github.ref }}.sbom
+          asset_name: harbor_${{ github.ref }}.sbom
+          asset_content_type: application/vnd.ms-spdx+json
