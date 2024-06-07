@@ -87,11 +87,21 @@ func ListInfo(info *SystemInfo) {
 
 	columns = column
 
-	createRows(info, &rows)
+	createRows(info.SystemInfo, &rows)
 
-	m := tablelist.NewModel(columns, rows, len(rows))
+	fmt.Println("\nSystem Info:")
+	mSystem := tablelist.NewModel(columns, rows, len(rows))
+	if _, err := tea.NewProgram(mSystem).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
+	var rows2 []table.Row
+	createRows(info.Statistics, &rows2)
+	fmt.Println("\nStatistics:")
+
+	mStats := tablelist.NewModel(columns, rows2, len(rows2))
+	if _, err := tea.NewProgram(mStats).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
