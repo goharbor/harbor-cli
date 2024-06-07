@@ -15,6 +15,8 @@ func CreateScanner(opts create.CreateView) error {
 	}
 
 	var scannerRegReq models.ScannerRegistrationReq
+	var pingScannerReq models.ScannerRegistrationSettings
+
 	scannerRegReq.Name = &opts.Name
 	scannerRegReq.Description = opts.Description
 	scannerRegReq.Auth = opts.Auth
@@ -24,6 +26,16 @@ func CreateScanner(opts create.CreateView) error {
 	scannerRegReq.Disabled = &opts.Disabled
 	scannerRegReq.SkipCertVerify = &opts.SkipCertVerify
 	scannerRegReq.UseInternalAddr = &opts.UseInternalAddr
+
+	pingScannerReq.Name = &opts.Name
+	pingScannerReq.Auth = opts.Auth
+	pingScannerReq.AccessCredential = opts.AccessCredential
+	pingScannerReq.URL = &url
+
+	_, err = client.Scanner.PingScanner(ctx, &scanner.PingScannerParams{Settings: &pingScannerReq})
+	if err != nil {
+		return err
+	}
 
 	response, err := client.Scanner.CreateScanner(ctx, &scanner.CreateScannerParams{Registration: &scannerRegReq})
 
