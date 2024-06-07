@@ -3,6 +3,7 @@ package project
 import (
 	"fmt"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"strings"
@@ -111,7 +112,7 @@ func ListMetadataCommand() *cobra.Command {
 				if err != nil {
 					log.Errorf("failed to view metadata: %v", err)
 				} else {
-					log.Info("Metadata: ", response)
+					utils.PrintPayloadInJSONFormat(response.Payload)
 				}
 			}
 
