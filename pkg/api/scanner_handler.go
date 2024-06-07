@@ -14,27 +14,16 @@ func CreateScanner(opts create.CreateView) error {
 		return err
 	}
 
+	url := strfmt.URI(opts.URL)
 	scannerRegReq := models.ScannerRegistrationReq{
-    Name:             &opts.Name,
-    Description:      opts.Description,
-    Auth:             opts.Auth,
-    AccessCredential: opts.AccessCredential,
-    URL:              strfmt.URI(opts.URL),
-    Disabled:         &opts.Disabled,
-    SkipCertVerify:   &opts.SkipCertVerify,
-    UseInternalAddr:  &opts.UseInternalAddr,
-}
-
-pingScannerReq := models.ScannerRegistrationSettings{
-    Name:             &opts.Name,
-    Auth:             opts.Auth,
-    AccessCredential: opts.AccessCredential,
-    URL:              strfmt.URI(opts.URL),
-}
-
-	_, err = client.Scanner.PingScanner(ctx, &scanner.PingScannerParams{Settings: &pingScannerReq})
-	if err != nil {
-		return err
+		Name:             &opts.Name,
+		Description:      opts.Description,
+		Auth:             opts.Auth,
+		AccessCredential: opts.AccessCredential,
+		URL:              &url,
+		Disabled:         &opts.Disabled,
+		SkipCertVerify:   &opts.SkipCertVerify,
+		UseInternalAddr:  &opts.UseInternalAddr,
 	}
 
 	response, err := client.Scanner.CreateScanner(ctx, &scanner.CreateScannerParams{Registration: &scannerRegReq})
