@@ -14,23 +14,23 @@ func CreateScanner(opts create.CreateView) error {
 		return err
 	}
 
-	var scannerRegReq models.ScannerRegistrationReq
-	var pingScannerReq models.ScannerRegistrationSettings
+	scannerRegReq := models.ScannerRegistrationReq{
+    Name:             &opts.Name,
+    Description:      opts.Description,
+    Auth:             opts.Auth,
+    AccessCredential: opts.AccessCredential,
+    URL:              strfmt.URI(opts.URL),
+    Disabled:         &opts.Disabled,
+    SkipCertVerify:   &opts.SkipCertVerify,
+    UseInternalAddr:  &opts.UseInternalAddr,
+}
 
-	scannerRegReq.Name = &opts.Name
-	scannerRegReq.Description = opts.Description
-	scannerRegReq.Auth = opts.Auth
-	scannerRegReq.AccessCredential = opts.AccessCredential
-	url := strfmt.URI(opts.URL)
-	scannerRegReq.URL = &url
-	scannerRegReq.Disabled = &opts.Disabled
-	scannerRegReq.SkipCertVerify = &opts.SkipCertVerify
-	scannerRegReq.UseInternalAddr = &opts.UseInternalAddr
-
-	pingScannerReq.Name = &opts.Name
-	pingScannerReq.Auth = opts.Auth
-	pingScannerReq.AccessCredential = opts.AccessCredential
-	pingScannerReq.URL = &url
+pingScannerReq := models.ScannerRegistrationSettings{
+    Name:             &opts.Name,
+    Auth:             opts.Auth,
+    AccessCredential: opts.AccessCredential,
+    URL:              strfmt.URI(opts.URL),
+}
 
 	_, err = client.Scanner.PingScanner(ctx, &scanner.PingScannerParams{Settings: &pingScannerReq})
 	if err != nil {
