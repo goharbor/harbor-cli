@@ -12,6 +12,7 @@ func Scanner() *cobra.Command {
 		CreateScannerCommand(),
 		ListScannerCommand(),
 		ViewCommand(),
+		MetadataCommand(),
 	)
 
 	return cmd

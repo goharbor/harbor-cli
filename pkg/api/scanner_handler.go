@@ -68,3 +68,19 @@ func GetScanner(registrationID string) error {
 	utils.PrintPayloadInJSONFormat(response)
 	return nil
 }
+
+func GetScannerMetadata(registrationID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	response, err := client.Scanner.GetScannerMetadata(ctx, &scanner.GetScannerMetadataParams{RegistrationID: registrationID})
+
+	if err != nil {
+		return err
+	}
+
+	utils.PrintPayloadInJSONFormat(response)
+	return nil
+}
