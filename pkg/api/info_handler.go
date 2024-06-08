@@ -37,3 +37,20 @@ func GetSystemInfo() (*systeminfo.GetSystemInfoOK, error) {
 
 	return response, nil
 }
+
+func GetSystemVolumes() (*systeminfo.GetVolumesOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Systeminfo.GetVolumes(
+		ctx,
+		&systeminfo.GetVolumesParams{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
