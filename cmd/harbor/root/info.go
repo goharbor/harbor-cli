@@ -27,8 +27,13 @@ func InfoCommand() *cobra.Command {
 				log.Fatal(err)
 			}
 
+			sysVolume, err := api.GetSystemVolumes()
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			// CreateSystemInfo
-			systemInfo := list.CreateSystemInfo(generalInfo.Payload, stats.Payload)
+			systemInfo := list.CreateSystemInfo(generalInfo.Payload, stats.Payload, sysVolume.Payload)
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag == "json" {
