@@ -37,3 +37,34 @@ func CreateScanner(opts create.CreateView) error {
 	}
 	return nil
 }
+
+func ListScanners() (scanner.ListScannersOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return scanner.ListScannersOK{}, err
+	}
+
+	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{})
+
+	if err != nil {
+		return scanner.ListScannersOK{}, err
+	}
+
+	return *response, nil
+}
+
+func GetScanner(registrationID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	response, err := client.Scanner.GetScanner(ctx, &scanner.GetScannerParams{RegistrationID: registrationID})
+
+	if err != nil {
+		return err
+	}
+
+	utils.PrintPayloadInJSONFormat(response)
+	return nil
+}

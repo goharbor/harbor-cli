@@ -10,6 +10,8 @@ func Scanner() *cobra.Command {
 
 	cmd.AddCommand(
 		CreateScannerCommand(),
+		ListScannerCommand(),
+		ViewCommand(),
 	)
 
 	return cmd
