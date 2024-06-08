@@ -26,7 +26,7 @@ func ElevateUserCmd() *cobra.Command {
 				userId = prompt.GetUserIdFromUser()
 			}
 
-			confirm := views.UserElevateConfirm()
+			confirm,err := views.ConfirmElevation()
 			if confirm {
 				err = api.ElevateUser(userId)
 			} else {
