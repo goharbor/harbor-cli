@@ -9,6 +9,7 @@ import (
 
 func CreateScannerCommand() *cobra.Command {
 	var opts create.CreateView
+	var ping bool
 
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -19,9 +20,16 @@ func CreateScannerCommand() *cobra.Command {
 				create.CreateScannerView(&opts)
 			}
 
-			err := api.CreateScanner(opts)
-			if err != nil {
-				log.Errorf("failed to create scanner: %v", err)
+			if ping {
+				err := api.PingScanner(opts)
+				if err != nil {
+					log.Errorf("failed to ping the scanner adapter: %v", err)
+				}
+			} else {
+				err := api.CreateScanner(opts)
+				if err != nil {
+					log.Errorf("failed to create scanner: %v", err)
+				}
 			}
 		},
 	}
@@ -35,6 +43,7 @@ func CreateScannerCommand() *cobra.Command {
 	flags.BoolVarP(&opts.Disabled, "disable", "", false, "Indicate whether the registration is enabled or not")
 	flags.BoolVarP(&opts.SkipCertVerify, "skip", "", false, "Indicate if skip the certificate verification when sending HTTP requests")
 	flags.BoolVarP(&opts.UseInternalAddr, "internal", "", false, "Indicate whether use internal registry addr for the scanner to pull content or not")
+	flags.BoolVarP(&ping, "ping", "", false, "Ping the scanner adapter without creating it.")
 
 	return cmd
 }

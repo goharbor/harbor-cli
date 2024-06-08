@@ -150,3 +150,28 @@ func UpdateScanner(registrationID string, opts create.CreateView) error {
 	return nil
 
 }
+
+func PingScanner(opts create.CreateView) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	url := strfmt.URI(opts.URL)
+	scannerPingReq := models.ScannerRegistrationSettings{
+		Name:             &opts.Name,
+		Auth:             opts.Auth,
+		AccessCredential: opts.AccessCredential,
+		URL:              &url,
+	}
+
+	_, err = client.Scanner.PingScanner(ctx, &scanner.PingScannerParams{Settings: &scannerPingReq})
+
+	if err != nil {
+		return err
+	} else {
+		fmt.Println("Scanner pinged successfully.")
+	}
+
+	return nil
+}
