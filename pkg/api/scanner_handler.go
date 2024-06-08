@@ -99,3 +99,18 @@ func SetDefaultScanner(registrationID string) error {
 
 	return nil
 }
+
+func DeleteScanner(registrationID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Scanner.DeleteScanner(ctx, &scanner.DeleteScannerParams{RegistrationID: registrationID})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
