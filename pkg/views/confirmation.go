@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func UserElevateConfirm() bool{
+func ConfirmElevation() (bool, error){
 	var confirm bool
 	
 	err := huh.NewConfirm().
@@ -17,7 +17,7 @@ func UserElevateConfirm() bool{
 		log.Fatal(err)
 	}
 
-	return confirm
+	return confirm, nil
 }
 
 
