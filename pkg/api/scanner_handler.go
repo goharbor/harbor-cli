@@ -84,3 +84,18 @@ func GetScannerMetadata(registrationID string) error {
 	utils.PrintPayloadInJSONFormat(response)
 	return nil
 }
+
+func SetDefaultScanner(registrationID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Scanner.SetScannerAsDefault(ctx, &scanner.SetScannerAsDefaultParams{RegistrationID: registrationID, Payload: &models.IsDefault{IsDefault: true}})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
