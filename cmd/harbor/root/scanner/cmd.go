@@ -15,6 +15,7 @@ func Scanner() *cobra.Command {
 		MetadataCommand(),
 		SetDefaultCommand(),
 		DeleteCommand(),
+		UpdateCommand(),
 	)
 
 	return cmd

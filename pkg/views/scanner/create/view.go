@@ -42,7 +42,7 @@ func CreateScannerView(createView *CreateView) {
 			huh.NewSelect[string]().
 				Title("Authentication Approach").
 				Options(
-					huh.NewOption("None", ""),
+					huh.NewOption("None", "None"),
 					huh.NewOption("Basic", "Basic"),
 					huh.NewOption("Bearer", "Bearer"),
 					huh.NewOption("X-ScannerAdapter-API-Key", "X-ScannerAdapter-API-Key"),
