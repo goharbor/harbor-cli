@@ -38,11 +38,11 @@ func Doc() {
 	}
 	folderName := "CLIDoc"
 	_, err = os.Stat(folderName)
-    if os.IsNotExist(err) {
-        err = os.Mkdir(folderName, 0755)
-        if err != nil {
-            log.Fatal("Error creating folder:", err)
-        }
+	if os.IsNotExist(err) {
+		err = os.Mkdir(folderName, 0755)
+		if err != nil {
+			log.Fatal("Error creating folder:", err)
+		}
 	}
 	docDir := fmt.Sprintf("%s/%s", currentDir, folderName)
 	err = MarkdownTreeCustom(cmd.RootCmd(), docDir, preblock, linkHandler)
