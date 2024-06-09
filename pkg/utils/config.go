@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/spf13/viper"
 )
 
@@ -16,8 +17,9 @@ type Credential struct {
 }
 
 type HarborConfig struct {
-	CurrentCredentialName string       `yaml:"current-credential-name"`
-	Credentials           []Credential `yaml:"credentials"`
+	CurrentCredentialName string                        `yaml:"current-credential-name"`
+	Credentials           []Credential                  `yaml:"credentials"`
+	Configurations        models.ConfigurationsResponse `yaml:"config"`
 }
 
 var (
@@ -78,7 +80,35 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 		return err
 	}
 	return nil
+}
 
+// Adds system configuration to the config file.
+func AddConfigToConfigFile(config *models.ConfigurationsResponse, configPath string) error {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return err
+	}
+
+	viper.SetConfigFile(configPath)
+	err := viper.ReadInConfig()
+	if err != nil {
+		return err
+	}
+
+	c := HarborConfig{}
+	err = viper.Unmarshal(&c)
+	if err != nil {
+		return err
+	}
+
+	c.Configurations = *config
+
+	viper.Set("config", c.Configurations)
+	err = viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetCredentials(credentialName string) (Credential, error) {
