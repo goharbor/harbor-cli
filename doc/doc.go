@@ -31,15 +31,18 @@ func preblock(filename string) string {
 	return fmt.Sprintf(frontmdtemplate, title, weight)
 }
 
-func doc() {
+func Doc() {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
 	}
-	folderName := "clidoc"
-	err = os.Mkdir(folderName, 0755)
-	if err != nil {
-		log.Fatal(err)
+	folderName := "CLIDoc"
+	_, err = os.Stat(folderName)
+    if os.IsNotExist(err) {
+        err = os.Mkdir(folderName, 0755)
+        if err != nil {
+            log.Fatal("Error creating folder:", err)
+        }
 	}
 	docDir := fmt.Sprintf("%s/%s", currentDir, folderName)
 	err = MarkdownTreeCustom(cmd.RootCmd(), docDir, preblock, linkHandler)
@@ -92,7 +95,7 @@ func MarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) st
 	name := cmd.CommandPath()
 
 	buf.WriteString("## " + name + "\n\n")
-	buf.WriteString("### " + cmd.Short + "\n\n")
+	buf.WriteString("#### " + cmd.Short + "\n\n")
 	if len(cmd.Long) > 0 {
 		buf.WriteString("### Synopsis\n\n")
 		buf.WriteString(cmd.Long + "\n\n")
@@ -142,5 +145,5 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 }
 
 func main() {
-	doc()
+	Doc()
 }
