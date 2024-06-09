@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/configure"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -21,4 +22,22 @@ func GetConfiguration() (*configure.GetConfigurationsOK, error) {
 	}
 
 	return response, nil
+}
+
+// Update Configuration of the system
+func UpdateConfiguration(config *models.Configurations) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Configure.UpdateConfigurations(
+		ctx,
+		&configure.UpdateConfigurationsParams{Configurations: config},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
