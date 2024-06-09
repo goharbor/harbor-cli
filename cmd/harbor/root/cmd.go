@@ -101,7 +101,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
-    ConfigCommand(),
+		ConfigCommand(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
