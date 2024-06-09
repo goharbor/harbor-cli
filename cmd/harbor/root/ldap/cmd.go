@@ -1,4 +1,3 @@
-
 package ldap
 
 import (
@@ -12,7 +11,8 @@ func Ldap() *cobra.Command {
 		Example: `  harbor ldap ping`,
 	}
 	cmd.AddCommand(
-    LdapSearchUserCmd(),
+		LdapSearchUserCmd(),
+		LdapPingCmd(),
 	)
 
 	return cmd
