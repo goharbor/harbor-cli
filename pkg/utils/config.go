@@ -39,6 +39,14 @@ func (hc *HarborConfig) GetCurrentCredentialName() string {
 }
 
 func CreateConfigFile() error {
+	dir := filepath.Dir(DefaultConfigPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+
 	if _, err := os.Stat(DefaultConfigPath); os.IsNotExist(err) {
 		if _, err := os.Create(DefaultConfigPath); err != nil {
 			return err
