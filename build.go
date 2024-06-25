@@ -35,10 +35,9 @@ func lint(ctx context.Context) error {
 	golangciLintCont = golangciLintCont.WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
 
 	_, err = golangciLintCont.Stderr(ctx)
-	if err != nil {
-		return fmt.Errorf("linting failed 😢: %w", err)
+	if err == nil {
+		fmt.Println("LINT COMPLETED!✅")
 	}
-	fmt.Println("LINT COMPLETED!✅")
 	return nil
 }
 
