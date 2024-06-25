@@ -36,7 +36,7 @@ func lint(ctx context.Context) error {
 
 	_, err = golangciLintCont.Stderr(ctx)
 	if err == nil {
-		fmt.Println("LINT COMPLETED!✅")
+		fmt.Println("LINT COMPLETED!✅ ")
 	}
 	return nil
 }
