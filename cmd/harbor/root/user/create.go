@@ -1,19 +1,11 @@
 package user
 
 import (
-	// "context"
-
-	"context"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func UserCreateCmd() *cobra.Command {
@@ -34,7 +26,7 @@ func UserCreateCmd() *cobra.Command {
 			}
 
 			if opts.Email != "" && opts.Realname != "" && opts.Comment != "" && opts.Password != "" && opts.Username != "" {
-				err = runCreateUser(opts)
+				err = api.CreateUser(opts)
 			} else {
 				err = createUserView(createView)
 			}
@@ -58,34 +50,6 @@ func UserCreateCmd() *cobra.Command {
 
 func createUserView(createView *create.CreateView) error {
 	create.CreateUserView(createView)
-	return runCreateUser(*createView)
+	return api.CreateUser(*createView)
 
-}
-
-func runCreateUser(opts create.CreateView) error {
-	credentialName := viper.GetString("current-credential-name")
-
-	client := utils.GetClientByCredentialName(credentialName)
-
-	ctx := context.Background()
-
-	response, err := client.User.CreateUser(ctx, &user.CreateUserParams{
-		UserReq: &models.UserCreationReq{
-			Email:    opts.Email,
-			Realname: opts.Realname,
-			Comment:  opts.Comment,
-			Password: opts.Password,
-			Username: opts.Username,
-		},
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if response != nil {
-		log.Info("User created successfully")
-	}
-
-	return nil
 }
