@@ -23,7 +23,6 @@ func RegistryList(registry []*models.Registry, choice chan<- int64) {
 	m := selection.NewModel(itemsList, "Registry")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
@@ -32,5 +31,4 @@ func RegistryList(registry []*models.Registry, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- items[p.Choice]
 	}
-
 }

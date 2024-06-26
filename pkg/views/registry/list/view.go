@@ -37,26 +37,6 @@ func ListRegistry(registry []*models.Registry) {
 		})
 	}
 
-	// t := table.New(
-	// 	table.WithColumns(columns),
-	// 	table.WithRows(rows),
-	// 	table.WithFocused(true),
-	// 	table.WithHeight(len(rows)),
-	// )
-
-	// // Set the styles for the table
-	// s := table.DefaultStyles()
-	// s.Header = s.Header.
-	// 	BorderStyle(lipgloss.NormalBorder()).
-	// 	BorderBottom(true).
-	// 	Bold(false)
-
-	// s.Selected = s.Selected.
-	// 	Foreground(s.Cell.GetForeground()).
-	// 	Background(s.Cell.GetBackground()).
-	// 	Bold(false)
-	// t.SetStyles(s)
-
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
