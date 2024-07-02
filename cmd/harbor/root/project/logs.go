@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LogsProjectCommmand() *cobra.Command {
+func LogsProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "get project logs",
