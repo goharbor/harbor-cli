@@ -19,7 +19,6 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	m := selection.NewModel(items, "Project")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
@@ -28,5 +27,4 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
-
 }

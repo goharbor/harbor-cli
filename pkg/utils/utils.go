@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/table"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,3 +39,21 @@ func ParseProjectRepoReference(projectRepoReference string) (string, string, str
 	}
 	return split[0], split[1], split[2]
 }
+
+// RemoveColumns removes columns with specified titles from the given columns array.
+func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column {
+	titleMap := make(map[string]bool)
+	for _, title := range colsToRemove {
+		titleMap[title] = true
+	}
+
+	var filteredColumns []table.Column
+	for _, column := range columns {
+		if !titleMap[column.Title] {
+			filteredColumns = append(filteredColumns, column)
+		}
+	}
+
+	return filteredColumns
+}
+

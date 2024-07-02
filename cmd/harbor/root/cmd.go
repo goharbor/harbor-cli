@@ -49,13 +49,11 @@ func initConfig() {
 				}
 			}
 			err = utils.CreateConfigFile()
-
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			err = utils.AddCredentialsToConfigFile(utils.Credential{}, cfgFile)
-
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -67,7 +65,6 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file: %s", err)
 	}
-
 }
 
 func RootCmd() *cobra.Command {
@@ -92,11 +89,14 @@ harbor help
 
 	cobra.OnInitialize(initConfig)
 
-	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
-	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
+	root.PersistentFlags().
+		StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().
+		StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
+	viper.BindPFlag("verbose", root.PersistentFlags().Lookup("verbose"))
 
 	root.AddCommand(
 		versionCommand(),

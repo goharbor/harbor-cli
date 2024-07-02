@@ -47,7 +47,7 @@ type Model struct {
 func NewModel(items []list.Item, construct string) Model {
 	const defaultWidth = 20
 	l := list.New(items, ItemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select an " + construct
+	l.Title = "Select a " + construct
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = views.TitleStyle

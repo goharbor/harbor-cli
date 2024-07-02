@@ -4,6 +4,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
+	mview "github.com/goharbor/harbor-cli/pkg/views/member/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
@@ -16,11 +17,9 @@ func GetRegistryNameFromUser() int64 {
 	go func() {
 		response, _ := api.ListRegistries()
 		rview.RegistryList(response.Payload, registryId)
-
 	}()
 
 	return <-registryId
-
 }
 
 func GetProjectNameFromUser() string {
@@ -28,7 +27,6 @@ func GetProjectNameFromUser() string {
 	go func() {
 		response, _ := api.ListProject()
 		pview.ProjectList(response.Payload, projectName)
-
 	}()
 
 	return <-projectName
@@ -38,7 +36,6 @@ func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
 	go func() {
-
 		response, err := api.ListRepository(projectName)
 		if err != nil {
 			log.Fatal(err)
@@ -68,7 +65,6 @@ func GetUserIdFromUser() int64 {
 	}()
 
 	return <-userId
-
 }
 
 func GetTagFromUser(repoName, projectName, reference string) string {
@@ -84,8 +80,29 @@ func GetTagNameFromUser() string {
 	repoName := make(chan string)
 
 	go func() {
-
 	}()
 
 	return <-repoName
+}
+
+// Get GetMemberIDFromUser choosing from list of members
+func GetMemberIDFromUser(projectName string) int64 {
+	memberId := make(chan int64)
+	go func() {
+		response, _ := api.ListMembers(projectName)
+		mview.MemberList(response.Payload, memberId)
+	}()
+
+	return <-memberId
+}
+
+// Get Member Role ID selection from user
+func GetRoleIDFromUser() int64 {
+	roleID := make(chan int64)
+	go func() {
+		roles := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
+		mview.RoleList(roles, roleID)
+	}()
+
+	return <-roleID
 }
