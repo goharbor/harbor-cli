@@ -8,3 +8,8 @@ type ListFlags struct {
 	Sort     string
 	Public   bool
 }
+
+type ListScheduleFlags struct {
+	Page     int64
+	PageSize int64
+}
