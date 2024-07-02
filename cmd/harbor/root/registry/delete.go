@@ -2,6 +2,7 @@ package registry
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -11,23 +12,54 @@ import (
 
 // NewDeleteRegistryCommand creates a new `harbor delete registry` command
 func DeleteRegistryCommand() *cobra.Command {
-
 	cmd := &cobra.Command{
-		Use:   "delete",
+		Use:   "delete [registryId]",
 		Short: "delete registry by id",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-
+			var wg sync.WaitGroup
+			errChan := make(chan error, len(args))
 			if len(args) > 0 {
-				registryId, _ := strconv.ParseInt(args[0], 10, 64)
-				err = api.DeleteRegistry(registryId)
+				for _, arg := range args {
+					registryId, _ := strconv.ParseInt(arg, 10, 64)
+					wg.Add(1)
+					go func(registryId int64) {
+						defer wg.Done()
+						if err := api.DeleteRegistry(registryId); err != nil {
+							errChan <- err
+						}
+					}(registryId)
+				}
 			} else {
 				registryId := prompt.GetRegistryNameFromUser()
-				err = api.DeleteRegistry(registryId)
+				wg.Add(1)
+
+				go func(registryId int64) {
+					defer wg.Done()
+					if err := api.DeleteRegistry(registryId); err != nil {
+						errChan <- err
+					}
+				}(registryId)
 			}
-			if err != nil {
-				log.Errorf("failed to delete registry: %v", err)
+
+			// Wait for all goroutines to finish
+			go func() {
+				wg.Wait()
+				close(errChan)
+			}()
+
+			// Collect and handle errors
+			var finalErr error
+			for err := range errChan {
+				if finalErr == nil {
+					finalErr = err
+				} else {
+					log.Errorf("Error: %v", err)
+				}
+			}
+
+			if finalErr != nil {
+				log.Errorf("failed to delete registry: %v", finalErr)
 			}
 		},
 	}
