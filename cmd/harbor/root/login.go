@@ -71,6 +71,7 @@ func createLoginView(loginView *login.LoginView) error {
 		}
 	}
 	login.CreateView(loginView)
+	utils.TrimSpaceOfLoginInputs(loginView)
 	return runLogin(*loginView)
 }
 
