@@ -3,7 +3,6 @@ package root
 import (
 	"context"
 	"fmt"
-
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -75,8 +74,12 @@ func createLoginView(loginView *login.LoginView) error {
 }
 
 func runLogin(opts login.LoginView) error {
+	server, URLFormatErr := utils.HandleURLFormat(opts.Server)
+	if URLFormatErr != nil {
+		return URLFormatErr
+	}
 	clientConfig := &harbor.ClientSetConfig{
-		URL:      opts.Server,
+		URL:      server,
 		Username: opts.Username,
 		Password: opts.Password,
 	}
@@ -92,7 +95,7 @@ func runLogin(opts login.LoginView) error {
 		Name:          opts.Name,
 		Username:      opts.Username,
 		Password:      opts.Password,
-		ServerAddress: opts.Server,
+		ServerAddress: server,
 	}
 
 	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
