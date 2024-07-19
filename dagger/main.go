@@ -3,8 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
+)
 
+const (
+	GO_VERSION         = "1.22"
+	SYFT_VERSION       = "v0.105.0"
+	GORELEASER_VERSION = "v1.24.0"
+	APP_NAME           = "dagger-harbor-cli"
 )
 
 type HarborCli struct{}
@@ -33,7 +40,7 @@ func (m *HarborCli) LintCode(ctx context.Context, directoryArg *Directory) *Cont
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
 }
 
-func (m *HarborCli) Build(ctx context.Context, directoryArg *Directory) {
+func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *Directory{
 	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
@@ -56,50 +63,65 @@ func (m *HarborCli) Build(ctx context.Context, directoryArg *Directory) {
 			path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			build := golangcont.WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-o", path + "harbor", main_go_path})
+				WithExec([]string{"go", "build", "-o", path+"harbor", main_go_path})
 			// Get reference to build output directory in container
 			outputs = outputs.WithDirectory(path, build.Directory(path))
 
 		}
 	}
-	
-	_, err := outputs.Export(ctx, "./test")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("BUILD COMPLETED!✅")
+	return outputs
 }
-// func (m *HarborCli) BuildEnv(directoryArg *Directory) *Container {
-// 	return dag.Container().
-// 		From("golang:latest").
-// 		WithMountedDirectory("/src", directoryArg).
-// 		WithWorkdir("/src").
-// 		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find . -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
-// }
 
-// func getMainGoPath(ctx context.Context, golangcont *Container) string {
-// 	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
-// 	main_go_txt_file, _ := golangcont.File("main_go_path.txt").Contents(ctx)
-// 	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
-// 	result := "/src/" + trimmedPath
-// 	return strings.TrimRight(result, "\n")
-// }
+func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, githubToken string) (string, error) {
+	// Create a go container with the source code mounted
+	golang := dag.Container().
+		From(fmt.Sprintf("golang:%s-alpine", GO_VERSION)).
+		WithMountedDirectory("/src", directoryArg).WithWorkdir("/src").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
+		WithEnvVariable("CGO_ENABLED", "0")
 
-// func main() {
-// 	ctx := context.Background()
-// 	harborCli := &HarborCli{}
-// 	directoryArg := dag.Directory()
+	_, err := golang.WithExec([]string{"go", "test", "./..."}).
+		Stderr(ctx)
+	if err != nil {
+		return "", err
+	}
+	
+	log.Println("Tests passed successfully!")
+	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
+	_, err = goreleaser.Stderr(ctx)
 
-// 	// Lint code
-// 	lintContainer := harborCli.LintCode(ctx, directoryArg)
-// 	fmt.Println("Linting completed")
+	if err != nil {
+		return "", err
+	}
+	return "Pull-Request tasks completed successfully 🎉", nil
+}
 
-// 	// Build code
-// 	buildContainer := harborCli.Build(ctx, directoryArg)
-// 	_, err := buildContainer.Export(ctx, ".")
-// 	if err != nil {
-// 		fmt.Println("Error:", err)
-// 		os.Exit(1)
-// 	}
-// 	fmt.Println("BUILD COMPLETED!✅")
-// }
+// `example: go run ci/dagger.go release`
+func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, githubToken string) (string, error) {
+	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
+
+	_, err := goreleaser.Stderr(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return "Release tasks completed successfully!", nil
+}
+
+func goreleaserContainer(directoryArg *Directory, githubToken string) *Container {
+	token := dag.SetSecret("github_token", githubToken)
+
+	// Export the syft binary from the syft container as a file to generate SBOM
+	syft := dag.Container().From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
+		File("/syft")
+
+	// Run go build to check if the binary compiles
+	return dag.Container().From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
+		WithFile("/bin/syft", syft).
+		WithMountedDirectory("/src", directoryArg).WithWorkdir("/src").
+		WithEnvVariable("TINI_SUBREAPER", "true").
+		WithSecretVariable("GITHUB_TOKEN", token)
+
+}

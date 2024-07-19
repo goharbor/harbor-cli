@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*"
-    branches: [main]
+    branches: [dagger-cicd]
 
 permissions:
   contents: write
@@ -24,7 +24,16 @@ jobs:
         with:
           go-version: "1.22"
           cache: true
-      - name: Run Dagger Release
+      -
+        name: Call Dagger Function
+        uses: dagger/dagger-for-github@v5
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: go run ci/release.go release ${{ env.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          # assumes a Go project
+          # modify to use different function(s) as needed
+          module: github.com/goharbor/harbor-cli
+          args: release --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
+          # cloud-token: 
