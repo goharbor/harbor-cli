@@ -34,6 +34,6 @@ jobs:
           verb: call
           # assumes a Go project
           # modify to use different function(s) as needed
-          module: github.com/goharbor/harbor-cli
+          module: github.com/bishal7679/harbor-cli@v0.6.0
           args: release --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
           # cloud-token: 
