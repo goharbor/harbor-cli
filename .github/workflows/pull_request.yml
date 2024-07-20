@@ -21,12 +21,17 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.22"
+          go-version: "1.22.5"
           cache: true
 
-      - name: Run Dagger Pull Request
+      - name: Call Dagger Function
+        uses: dagger/dagger-for-github@v6.1.0
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: go run ci/release.go pull-request
+        with:
+          version: "latest"
+          verb: call
+          module: github.com/bishal7679/harbor-cli@v0.6.0
+          args: pull-request --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}

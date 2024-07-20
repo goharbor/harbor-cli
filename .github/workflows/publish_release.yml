@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*"
-    branches: [dagger-cicd]
+    branches: [main]
 
 permissions:
   contents: write
@@ -20,20 +20,17 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.22"
+          go-version: "1.22.5"
           cache: true
-      -
-        name: Call Dagger Function
-        uses: dagger/dagger-for-github@v5
+
+      - name: Call Dagger Function
+        uses: dagger/dagger-for-github@v6.1.0
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "latest"
           verb: call
-          # assumes a Go project
-          # modify to use different function(s) as needed
           module: github.com/bishal7679/harbor-cli@v0.6.0
           args: release --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
-          # cloud-token: 
