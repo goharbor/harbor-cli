@@ -1,0 +1,47 @@
+.nh
+.TH "HARBOR" "1" "Jul 2024" "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+.PP
+harbor-version - Version of Harbor CLI
+
+
+.SH SYNOPSIS
+.PP
+\fBharbor version [flags]\fP
+
+
+.SH DESCRIPTION
+.PP
+Get Harbor CLI version, git commit, go version, build time, release channel, os/arch, etc.
+
+
+.SH OPTIONS
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for version
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB--config\fP="/home/bupd/.harbor/config.yaml"
+	config file (default is $HOME/.harbor/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor version
+.EE
+
+
+.SH SEE ALSO
+.PP
+\fBharbor(1)\fP
