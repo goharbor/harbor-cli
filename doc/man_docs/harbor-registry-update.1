@@ -1,0 +1,73 @@
+.nh
+.TH "HARBOR" "1" "Jul 2024" "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+.PP
+harbor-registry-update - update registry
+
+
+.SH SYNOPSIS
+.PP
+\fBharbor registry update [flags]\fP
+
+
+.SH DESCRIPTION
+.PP
+update registry
+
+
+.SH OPTIONS
+.PP
+\fB--credential-access-key\fP=""
+	Access key, e.g. user name when credential type is 'basic'
+
+.PP
+\fB--credential-access-secret\fP=""
+	Access secret, e.g. password when credential type is 'basic'
+
+.PP
+\fB--credential-type\fP=""
+	Credential type, such as 'basic', 'oauth'
+
+.PP
+\fB--description\fP=""
+	Description of the registry
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--insecure\fP[=true]
+	Whether or not the certificate will be verified when Harbor tries to access the server
+
+.PP
+\fB--name\fP=""
+	Name of the registry
+
+.PP
+\fB--type\fP=""
+	Type of the registry
+
+.PP
+\fB--url\fP=""
+	Registry endpoint URL
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB--config\fP="/home/bupd/.harbor/config.yaml"
+	config file (default is $HOME/.harbor/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+.PP
+\fBharbor-registry(1)\fP
