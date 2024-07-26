@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	output  string
 	cfgFile string
 	verbose bool
 )
@@ -92,11 +91,8 @@ harbor help
 
 	cobra.OnInitialize(initConfig)
 
-	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
 	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-
-	viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
 
 	root.AddCommand(
 		versionCommand(),

@@ -6,10 +6,11 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/user/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func UserListCmd() *cobra.Command {
+	var formatFlag string
+
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "list users",
@@ -21,15 +22,22 @@ func UserListCmd() *cobra.Command {
 				log.Errorf("failed to list users: %v", err)
 				return
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(response.Payload)
+			if formatFlag != "" {
+				if formatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(response)
+				} else if formatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(response)
+				} else {
+					log.Errorf("invalid output format: %s", formatFlag)
+				}
 			} else {
 				list.ListUsers(response.Payload)
 			}
 		},
 	}
 
-	return cmd
+	flags := cmd.Flags()
+	flags.StringVarP(&formatFlag, "output-format", "o", "", "Output format. One of: json|yaml")
 
+	return cmd
 }
