@@ -61,5 +61,4 @@ func CreateView(loginView *LoginView) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
