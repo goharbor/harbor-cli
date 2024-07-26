@@ -5,6 +5,7 @@ import (
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
+	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -16,11 +17,9 @@ func GetRegistryNameFromUser() int64 {
 	go func() {
 		response, _ := api.ListRegistries()
 		rview.RegistryList(response.Payload, registryId)
-
 	}()
 
 	return <-registryId
-
 }
 
 func GetProjectNameFromUser() string {
@@ -28,7 +27,6 @@ func GetProjectNameFromUser() string {
 	go func() {
 		response, _ := api.ListProject()
 		pview.ProjectList(response.Payload, projectName)
-
 	}()
 
 	return <-projectName
@@ -38,7 +36,6 @@ func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
 	go func() {
-
 		response, err := api.ListRepository(projectName)
 		if err != nil {
 			log.Fatal(err)
@@ -68,7 +65,6 @@ func GetUserIdFromUser() int64 {
 	}()
 
 	return <-userId
-
 }
 
 func GetTagFromUser(repoName, projectName, reference string) string {
@@ -84,8 +80,21 @@ func GetTagNameFromUser() string {
 	repoName := make(chan string)
 
 	go func() {
-
 	}()
 
 	return <-repoName
+}
+
+func GetQuotaIDFromUser() int64 {
+	QuotaID := make(chan int64)
+
+	go func() {
+		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		qview.QuotaList(response.Payload, QuotaID)
+	}()
+
+	return <-QuotaID
 }

@@ -8,3 +8,11 @@ type ListFlags struct {
 	Sort     string
 	Public   bool
 }
+
+type ListQuotaFlags struct {
+	PageSize    int64
+	Page        int64
+	Sort        string
+	Reference   string
+	ReferenceID string
+}
