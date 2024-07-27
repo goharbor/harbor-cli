@@ -72,7 +72,7 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *D
 	return outputs
 }
 
-func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, githubToken string) (string, error) {
+func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, githubToken string) {
 	// Create a go container with the source code mounted
 	golang := dag.Container().
 		From(fmt.Sprintf("golang:%s-alpine", GO_VERSION)).
@@ -83,29 +83,34 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, gi
 	_, err := golang.WithExec([]string{"go", "test", "./..."}).
 		Stderr(ctx)
 	if err != nil {
-		return "", err
+		fmt.Printf("❌ Testing failed for the recent pull-request: %s", err)
+		return
+	} else {
+
+		log.Println("Tests passed successfully ✅")
 	}
 	
-	log.Println("Tests passed successfully!")
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err = goreleaser.Stderr(ctx)
 
 	if err != nil {
-		return "", err
+		fmt.Printf("Error occured during snapshot release: %s", err)
+		return
 	}
-	return "Pull-Request tasks completed successfully 🎉", nil
+	fmt.Println("Pull-Request tasks completed successfully 🎉")
 }
 
 // `example: go run ci/dagger.go release`
-func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, githubToken string) (string, error) {
+func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
 
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
-		return "", err
+		fmt.Printf("Error occured during release: %s", err)
+		return
 	}
 
-	return "Release tasks completed successfully!", nil
+	fmt.Println("Release tasks completed successfully 🎉")
 }
 
 func goreleaserContainer(directoryArg *Directory, githubToken string) *Container {
