@@ -1,0 +1,41 @@
+name: Dagger Pull Request Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'assets/**'
+
+permissions:
+  contents: write # This is required for actions/checkout
+  packages: write # This is required for publishing the package
+
+jobs:
+  test-code:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Call Linting Function
+        uses: dagger/dagger-for-github@v6.1.0
+        with:
+          version: "latest"
+          verb: call
+          module: github.com/bishal7679/harbor-cli@v0.6.0
+          args: lint-code --directory-arg=.
+
+      - name: Call Pull-Request Function
+        uses: dagger/dagger-for-github@v6.1.0
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          module: github.com/bishal7679/harbor-cli@v0.6.0
+          args: pull-request --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}

@@ -1,9 +1,8 @@
 project_name: harbor
-
 before:
   hooks:
     - go mod tidy
-
+     
 builds:
 - main: ./cmd/harbor/main.go
 
@@ -18,32 +17,67 @@ builds:
   goarch:
     - amd64
     - arm64
-    - arm  
   ignore: 
     - goos: windows
       goarch: arm
     - goos: windows
       goarch: arm64
+  mod_timestamp: "{{ .CommitTimestamp }}"
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
+nfpms:
+  - package_name: harbor
+    homepage: https://github.com/goharbor/harbor-cli/
+    maintainer: Vadim Bauer
+    description: |-
+      [Sandbox] Official Harbor CLI
+    formats:
+      - rpm
+      - deb
+      - apk
+      - archlinux
+
+sboms:
+  - artifacts: archive
 
 checksum:
   name_template: 'checksums.txt'
-
 snapshot: 
   name_template: "{{ .Tag }}-next"
-
 release:
   name_template: "HarborCLI {{.Tag}}"
   # draft: true
   # prerelease: auto
-
+  
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+      - "merge conflict"
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(.+)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999

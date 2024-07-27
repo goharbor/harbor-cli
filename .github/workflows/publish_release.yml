@@ -1,26 +1,36 @@
-name: Publish Release
+name: Dagger Release Pipeline
 
 on:
   push:
     tags:
-      - v*
+      - "v*"
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Setup go env
-        uses: actions/setup-go@master
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.21"
-      - name: goreleaser with tag
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          version: latest
-          args: release --rm-dist
-        env:
+          go-version: "1.22.5"
+          cache: true
+
+      - name: Call Dagger Function
+        uses: dagger/dagger-for-github@v6.1.0
+        env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          module: github.com/bishal7679/harbor-cli@v0.6.0
+          args: release --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
