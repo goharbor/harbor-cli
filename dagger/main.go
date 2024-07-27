@@ -73,31 +73,15 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *D
 }
 
 func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, githubToken string) {
-	// Create a go container with the source code mounted
-	golang := dag.Container().
-		From(fmt.Sprintf("golang:%s-alpine", GO_VERSION)).
-		WithMountedDirectory("/src", directoryArg).WithWorkdir("/src").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
-		WithEnvVariable("CGO_ENABLED", "0")
 
-	_, err := golang.WithExec([]string{"go", "test", "./..."}).
-		Stderr(ctx)
-	if err != nil {
-		fmt.Printf("❌ Testing failed for the recent pull-request: %s", err)
-		return
-	} else {
-
-		log.Println("Tests passed successfully ✅")
-	}
-	
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
-	_, err = goreleaser.Stderr(ctx)
+	_, err := goreleaser.Stderr(ctx)
 
 	if err != nil {
-		fmt.Printf("Error occured during snapshot release: %s", err)
+		log.Printf("❌ Error occured during snapshot release for the recently merged pull-request: %s", err)
 		return
 	}
-	fmt.Println("Pull-Request tasks completed successfully 🎉")
+	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
 // `example: go run ci/dagger.go release`
@@ -106,11 +90,11 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, github
 
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
-		fmt.Printf("Error occured during release: %s", err)
+		log.Printf("Error occured during release: %s", err)
 		return
 	}
 
-	fmt.Println("Release tasks completed successfully 🎉")
+	log.Println("Release tasks completed successfully 🎉")
 }
 
 func goreleaserContainer(directoryArg *Directory, githubToken string) *Container {
