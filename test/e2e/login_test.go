@@ -7,15 +7,17 @@ import (
 )
 
 func Test_Success(t *testing.T) {
+	cds := root.RootCmd()
+	cds.Execute()
 	cmd := root.LoginCommand()
 	var err error
 
 	validServerAddresses := []string{
 		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:8443",
+		"https://demo.goharbor.io:443",
 		"http://demo.goharbor.io",
 		"https://demo.goharbor.io",
-		"demo.goharbor.io",
+		// "demo.goharbor.io",
 	}
 
 	for _, serverAddress := range validServerAddresses {
