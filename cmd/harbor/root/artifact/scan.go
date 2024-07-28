@@ -4,6 +4,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -31,17 +32,20 @@ func StartScanArtifactCommand() *cobra.Command {
 		Long:    `Start a scan of an artifact in Harbor Repository`,
 		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				api.StartScanArtifact(projectName, repoName, reference)
+				err = api.StartScanArtifact(projectName, repoName, reference)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)
 				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				api.StartScanArtifact(projectName, repoName, reference)
+				err = api.StartScanArtifact(projectName, repoName, reference)
 			}
-
+			if err != nil {
+				log.Errorf("failed to start scan of artifact: %v", err)
+			}
 		},
 	}
 	return cmd
@@ -54,17 +58,20 @@ func StopScanArtifactCommand() *cobra.Command {
 		Long:    `Stop a scan of an artifact in Harbor Repository`,
 		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				api.StopScanArtifact(projectName, repoName, reference)
+				err = api.StopScanArtifact(projectName, repoName, reference)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)
 				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				api.StopScanArtifact(projectName, repoName, reference)
+				err = api.StopScanArtifact(projectName, repoName, reference)
 			}
-
+			if err != nil {
+				log.Errorf("failed to stop scan of artifact: %v", err)
+			}
 		},
 	}
 	return cmd
