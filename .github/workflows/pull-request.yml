@@ -44,6 +44,7 @@ jobs:
 
       - name: Call Pull-Request Function
         uses: dagger/dagger-for-github@v6.1.0
+        if: always()
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

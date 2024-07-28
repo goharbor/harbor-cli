@@ -41,7 +41,7 @@ func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *dagger.Directory,
 func (m *HarborCli) LintCode(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
-		From("golangci/golangci-lint:latest").
+		From("golangci/golangci-lint:v1.59.1-alpine").
 		WithMountedDirectory("/src", directoryArg).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
