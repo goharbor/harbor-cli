@@ -1,6 +1,5 @@
 {
   "name": "harbor-cli",
   "sdk": "go",
-  "source": "dagger",
-  "engineVersion": "v0.9.10"
+  "engineVersion": "v0.12.3"
 }

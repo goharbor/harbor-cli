@@ -1,3 +1,17 @@
+// A generated module for HarborCli functions
+//
+// This module has been generated via dagger init and serves as a reference to
+// basic module structure as you get started with Dagger.
+//
+// Two functions have been pre-created. You can modify, delete, or add to them,
+// as needed. They demonstrate usage of arguments and return types using simple
+// echo and grep commands. The functions can be called from the dagger CLI or
+// from one of the SDKs.
+//
+// The first line in this comment block is a short description line and the
+// rest is a long description with more detail on the module's purpose or usage,
+// if appropriate. All modules should have a short description.
+
 package main
 
 import (
@@ -5,6 +19,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/goharbor/harbor-cli/internal/dagger"
 )
 
 const (
@@ -16,13 +32,17 @@ const (
 
 type HarborCli struct{}
 
-// example usage: "dagger call container-echo --string-arg yo stdout"
-func (m *HarborCli) ContainerEcho(stringArg string) *Container {
+func (m *HarborCli) Echo(stringArg string) string {
+	return stringArg
+}
+
+// Returns a container that echoes whatever string argument is provided
+func (m *HarborCli) ContainerEcho(stringArg string) *dagger.Container {
 	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
 }
 
-// example usage: "dagger call grep-dir --directory-arg . --pattern GrepDir"
-func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *Directory, pattern string) (string, error) {
+// Returns lines that match a pattern in the files of the provided Directory
+func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
 	return dag.Container().
 		From("alpine:latest").
 		WithMountedDirectory("/mnt", directoryArg).
@@ -31,7 +51,7 @@ func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *Directory, patter
 		Stdout(ctx)
 }
 
-func (m *HarborCli) LintCode(ctx context.Context, directoryArg *Directory) *Container {
+func (m *HarborCli) LintCode(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
 		From("golangci/golangci-lint:latest").
@@ -40,7 +60,7 @@ func (m *HarborCli) LintCode(ctx context.Context, directoryArg *Directory) *Cont
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
 }
 
-func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *Directory{
+func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Directory) *dagger.Directory{
 	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
@@ -50,7 +70,7 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *D
 		From("golang:latest").
 		WithMountedDirectory("/src", directoryArg).
 		WithWorkdir("/src").
-		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find . -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
+		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
 
 	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
 	main_go_txt_file, _ := golangcont.File("main_go_path.txt").Contents(ctx)
@@ -72,7 +92,7 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *Directory) *D
 	return outputs
 }
 
-func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, githubToken string) {
+func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
@@ -85,7 +105,7 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *Directory, gi
 }
 
 // `example: go run ci/dagger.go release`
-func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, githubToken string) {
+func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
 
 	_, err := goreleaser.Stderr(ctx)
@@ -97,7 +117,7 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *Directory, github
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-func goreleaserContainer(directoryArg *Directory, githubToken string) *Container {
+func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
 	token := dag.SetSecret("github_token", githubToken)
 
 	// Export the syft binary from the syft container as a file to generate SBOM
