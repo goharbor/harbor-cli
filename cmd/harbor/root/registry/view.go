@@ -17,15 +17,23 @@ func ViewCommand() *cobra.Command {
 		Short: "get registry by id",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+
 			if len(args) > 0 {
 				registryId, err := strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
 					log.Errorf("failed to parse registry id: %v", err)
 				}
-				api.GetRegistry(registryId)
+				err = api.GetRegistry(registryId)
+				if err != nil {
+					log.Errorf("failed to get registry: %v", err)
+				}
 			} else {
 				registryId := prompt.GetRegistryNameFromUser()
-				api.GetRegistry(registryId)
+				err = api.GetRegistry(registryId)
+			}
+			if err != nil {
+				log.Errorf("failed to get registry: %v", err)
 			}
 		},
 	}

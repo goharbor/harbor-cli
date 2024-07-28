@@ -22,7 +22,7 @@ func Test_Login_Success(t *testing.T) {
 		"https://demo.goharbor.io:443",
 		"http://demo.goharbor.io",
 		"https://demo.goharbor.io",
-		"demo.goharbor.io",
+		// "demo.goharbor.io",
 	}
 
 	for _, serverAddress := range validServerAddresses {

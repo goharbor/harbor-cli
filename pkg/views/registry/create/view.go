@@ -2,7 +2,6 @@ package create
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/charmbracelet/huh"
@@ -26,7 +25,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 	for i, registry := range registries {
 		registryOptions = append(registryOptions, RegistryOption{
 			ID:   strconv.FormatInt(int64(i), 10),
-			Name: fmt.Sprintf("%s", registry),
+			Name: registry,
 		})
 	}
 
