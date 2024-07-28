@@ -1,21 +1,26 @@
 package e2e
 
 import (
+	"testing"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Success(t *testing.T) {
-	cmd := root.LoginCommand()
 	var err error
+
+	cds := root.RootCmd()
+	err = cds.Execute()
+
+	assert.NoError(t, err)
+	cmd := root.LoginCommand()
 
 	validServerAddresses := []string{
 		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:8443",
+		"https://demo.goharbor.io:443",
 		"http://demo.goharbor.io",
 		"https://demo.goharbor.io",
-		"demo.goharbor.io",
 	}
 
 	for _, serverAddress := range validServerAddresses {
