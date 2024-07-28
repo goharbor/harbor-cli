@@ -1,6 +1,6 @@
 module github.com/goharbor/harbor-cli
 
-go 1.21
+go 1.22.5
 
 require (
 	github.com/charmbracelet/bubbles v0.18.0
