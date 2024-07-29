@@ -92,7 +92,7 @@ require (
 	go.mongodb.org/mongo-driver v1.7.3 // indirect
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.0.0-20240518090000-14441aefdf88
-	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.3.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.4.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.28.0
