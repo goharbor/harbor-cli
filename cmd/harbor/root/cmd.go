@@ -21,7 +21,7 @@ var (
 	verbose bool
 )
 
-func initConfig() {
+func InitConfig() {
 	viper.SetConfigType("yaml")
 
 	// cfgFile = viper.GetStering("config")
@@ -90,7 +90,7 @@ harbor help
 		// },
 	}
 
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(InitConfig)
 
 	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
 	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")

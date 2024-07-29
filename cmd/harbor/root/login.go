@@ -26,7 +26,6 @@ func LoginCommand() *cobra.Command {
 		Long:  "Authenticate with Harbor Registry.",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if len(args) > 0 {
 				serverAddress = args[0]
 			}
@@ -40,7 +39,8 @@ func LoginCommand() *cobra.Command {
 
 			var err error
 
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" && loginView.Name != "" {
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" &&
+				loginView.Name != "" {
 				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
@@ -75,6 +75,8 @@ func createLoginView(loginView *login.LoginView) error {
 }
 
 func runLogin(opts login.LoginView) error {
+	opts.Server = utils.FormatUrl(opts.Server)
+
 	clientConfig := &harbor.ClientSetConfig{
 		URL:      opts.Server,
 		Username: opts.Username,
