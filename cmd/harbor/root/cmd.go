@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -49,13 +50,11 @@ func InitConfig() {
 				}
 			}
 			err = utils.CreateConfigFile()
-
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			err = utils.AddCredentialsToConfigFile(utils.Credential{}, cfgFile)
-
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -67,7 +66,6 @@ func InitConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file: %s", err)
 	}
-
 }
 
 func RootCmd() *cobra.Command {
@@ -92,8 +90,10 @@ harbor help
 
 	cobra.OnInitialize(InitConfig)
 
-	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
-	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
+	root.PersistentFlags().
+		StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().
+		StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
@@ -109,6 +109,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		ldap.Ldap(),
 	)
 
 	return root
