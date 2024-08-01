@@ -3,12 +3,14 @@ package root
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -16,6 +18,7 @@ var (
 	Username      string
 	Password      string
 	Name          string
+	passwordStdin bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -28,6 +31,16 @@ func LoginCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				serverAddress = args[0]
+			}
+
+			if passwordStdin {
+				fmt.Print("Password: ")
+				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+				if err != nil {
+					return fmt.Errorf("failed to read password from stdin: %v", err)
+				}
+				fmt.Println()
+				Password = string(passwordBytes)
 			}
 
 			loginView := login.LoginView{
@@ -61,6 +74,7 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
 }
