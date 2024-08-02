@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
@@ -28,6 +29,11 @@ func LoginCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				serverAddress = args[0]
+			}
+
+			if Name == "" {
+				// Auto-generate the credential name if not provided
+				Name = generateCredentialName(serverAddress, Username)
 			}
 
 			loginView := login.LoginView{
@@ -59,6 +65,16 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 
 	return cmd
+}
+
+// generateCredentialName creates a default credential name based on server and username
+func generateCredentialName(server, username string) string {
+	serverName := strings.ReplaceAll(strings.Split(server, ":")[0], "https://", "")
+	serverName = strings.ReplaceAll(serverName, "http://", "")
+	if username != "" {
+		return fmt.Sprintf("%s_%s", serverName, username)
+	}
+	return serverName
 }
 
 func createLoginView(loginView *login.LoginView) error {
