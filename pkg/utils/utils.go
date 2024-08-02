@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -21,6 +22,14 @@ func PrintPayloadInJSONFormat(payload any) {
 	}
 
 	fmt.Println(string(jsonStr))
+}
+
+func SanitizeServerAddress(server string) string {
+	re := regexp.MustCompile(`^https?://`)
+	server = re.ReplaceAllString(server, "")
+	re = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	server = re.ReplaceAllString(server, "-")
+	return server
 }
 
 func ParseProjectRepo(projectRepo string) (string, string) {
