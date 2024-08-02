@@ -13,9 +13,9 @@ import (
 
 var (
 	serverAddress string
-	Username      string
-	Password      string
-	Name          string
+	username      string
+	password      string
+	name          string
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -32,15 +32,19 @@ func LoginCommand() *cobra.Command {
 
 			loginView := login.LoginView{
 				Server:   serverAddress,
-				Username: Username,
-				Password: Password,
-				Name:     Name,
+				Username: username,
+				Password: password,
+				Name:     name,
+			}
+
+			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+
 			}
 
 			var err error
 
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" &&
-				loginView.Name != "" {
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
 				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
@@ -54,9 +58,9 @@ func LoginCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
-	flags.StringVarP(&Username, "username", "u", "", "Username")
-	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.StringVarP(&name, "name", "", "", "name for the set of credentials")
+	flags.StringVarP(&username, "username", "u", "", "Username")
+	flags.StringVarP(&password, "password", "p", "", "Password")
 
 	return cmd
 }
@@ -71,6 +75,7 @@ func createLoginView(loginView *login.LoginView) error {
 		}
 	}
 	login.CreateView(loginView)
+
 	return runLogin(*loginView)
 }
 
