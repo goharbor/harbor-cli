@@ -13,6 +13,7 @@ import (
 )
 
 var columns = []table.Column{
+	{Title: "ID", Width: 6},
 	{Title: "Project Name", Width: 12},
 	{Title: "Access Level", Width: 12},
 	{Title: "Type", Width: 12},
@@ -35,6 +36,7 @@ func ListProjects(projects []*models.Project) {
 		}
 		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
 		rows = append(rows, table.Row{
+			strconv.FormatInt(int64(project.ProjectID), 10), // ProjectID
 			project.Name, // Project Name
 			accessLevel,  // Access Level
 			projectType,  // Type
