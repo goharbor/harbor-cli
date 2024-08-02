@@ -36,7 +36,7 @@ func Doc() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	folderName := "CLIDoc"
+	folderName := "cli-doc"
 	_, err = os.Stat(folderName)
 	if os.IsNotExist(err) {
 		err = os.Mkdir(folderName, 0755)
@@ -132,7 +132,7 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 	if _, err := os.Stat(filename); err == nil {
 		return nil
 	}
-	
+
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
