@@ -1,0 +1,22 @@
+{
+  "Payload": {
+    "creation_time": "2024-08-03T07:51:27.739Z",
+    "current_user_role_ids": null,
+    "cve_allowlist": {
+      "creation_time": "0001-01-01T00:00:00.000Z",
+      "id": 3,
+      "items": [],
+      "project_id": 3,
+      "update_time": "0001-01-01T00:00:00.000Z"
+    },
+    "metadata": {
+      "public": "false"
+    },
+    "name": "my-project",
+    "owner_id": 4,
+    "owner_name": "RolandK87",
+    "project_id": 3,
+    "repo_count": 1,
+    "update_time": "2024-08-03T07:51:27.739Z"
+  }
+}
