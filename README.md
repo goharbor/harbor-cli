@@ -117,12 +117,12 @@ sudo mv harbor /usr/local/bin/
 ## Linux
 tar -xzf harbor_0.0.1_linux_amd64.tar.gz
 cd harbor_0.0.1_linux_amd64
-sudo mv harbor /usr/local/bin/
+sudo mv harbor-cli /usr/local/bin/
 
 ## MacOS
 tar -xzf harbor_0.0.1_darwin_amd64.tar.gz
 cd harbor_0.0.1_darwin_amd64
-sudo mv harbor /usr/local/bin/
+sudo mv harbor-cli /usr/local/bin/
 ```
 
 ## Windows
