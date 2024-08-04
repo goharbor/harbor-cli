@@ -19,7 +19,7 @@ func GetPing() *cobra.Command {
                 return err
             }
 
-            // Initialize params even if not used
+            //Initialize params even if not used
             params := &ping.GetPingParams{}
 
             response, err := client.Ping.GetPing(ctx, params)
