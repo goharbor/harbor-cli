@@ -36,3 +36,16 @@ func CreateImmutable(opts create.CreateView, projectName string) error {
 	log.Info("Added Tag Immutability Rule")
 	return nil
 }
+
+func ListImmutable(projectName string)(immutable.ListImmuRulesOK,error){
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return immutable.ListImmuRulesOK{}, err
+	}
+	response,err := client.Immutable.ListImmuRules(ctx,&immutable.ListImmuRulesParams{ProjectNameOrID: projectName})
+	if err != nil {
+		return immutable.ListImmuRulesOK{}, err
+	}
+
+	return *response, nil
+}

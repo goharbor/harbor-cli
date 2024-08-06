@@ -71,6 +71,13 @@ func GetUserIdFromUser() int64 {
 
 }
 
+// func GetImmutableTagRule(projectName string) {
+// 	immutable := make(chan string)
+// 	go func() {
+
+// 	}()
+// }
+
 func GetTagFromUser(repoName, projectName, reference string) string {
 	tag := make(chan string)
 	go func() {

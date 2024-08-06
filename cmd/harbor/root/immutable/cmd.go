@@ -13,6 +13,7 @@ func Immutable() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateImmutableCommand(),
+		ListImmutableCommand(),
 	)
 
 	return cmd
