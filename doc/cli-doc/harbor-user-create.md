@@ -1,0 +1,31 @@
+---
+title: harbor user create
+weight: 155
+---
+## harbor user create
+
+#### create user
+
+```sh
+harbor user create [flags]
+```
+
+### Options
+
+```sh
+      --comment string    Comment
+      --email string      Email
+  -h, --help              help for create
+      --password string   Password
+      --realname string   Realname
+      --username string   Username
+```
+
+### Options inherited from parent commands
+
+```sh
+      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -o, --output-format string   Output format. One of: json|yaml
+  -v, --verbose                verbose output
+```
+
