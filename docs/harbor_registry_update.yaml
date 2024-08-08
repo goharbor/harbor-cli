@@ -1,0 +1,39 @@
+name: harbor registry update
+synopsis: update registry
+usage: harbor registry update [flags]
+options:
+    - name: credential-access-key
+      usage: Access key, e.g. user name when credential type is 'basic'
+    - name: credential-access-secret
+      usage: Access secret, e.g. password when credential type is 'basic'
+    - name: credential-type
+      usage: Credential type, such as 'basic', 'oauth'
+    - name: description
+      usage: Description of the registry
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for update
+    - name: insecure
+      default_value: "true"
+      usage: |
+        Whether or not the certificate will be verified when Harbor tries to access the server
+    - name: name
+      usage: Name of the registry
+    - name: type
+      usage: Type of the registry
+    - name: url
+      usage: Registry endpoint URL
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor registry - Manage registries

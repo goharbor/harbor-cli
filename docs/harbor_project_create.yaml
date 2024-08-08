@@ -1,0 +1,33 @@
+name: harbor project create
+synopsis: create project
+usage: harbor project create [project name] [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for create
+    - name: proxy-cache
+      default_value: "false"
+      usage: Whether the project is a proxy cache project
+    - name: public
+      default_value: "false"
+      usage: Project is public or private
+    - name: registry-id
+      usage: |
+        ID of referenced registry when creating the proxy cache project
+    - name: storage-limit
+      default_value: "-1"
+      usage: Storage quota of the project
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor project - Manage projects and assign resources to them

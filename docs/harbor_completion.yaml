@@ -1,0 +1,27 @@
+name: harbor completion
+synopsis: Generate the autocompletion script for the specified shell
+description: |
+    Generate the autocompletion script for harbor for the specified shell.
+    See each sub-command's help for details on how to use the generated script.
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for completion
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor completion bash - Generate the autocompletion script for bash
+    - harbor completion fish - Generate the autocompletion script for fish
+    - harbor completion powershell - Generate the autocompletion script for powershell
+    - harbor completion zsh - Generate the autocompletion script for zsh

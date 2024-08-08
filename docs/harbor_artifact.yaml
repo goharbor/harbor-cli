@@ -1,0 +1,27 @@
+name: harbor artifact
+synopsis: Manage artifacts
+description: Manage artifacts in Harbor Repository
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for artifact
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor artifact list'
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor artifact delete - delete an artifact
+    - harbor artifact info - Get info of an artifact
+    - harbor artifact list - list artifacts within a repository
+    - harbor artifact scan - Scan an artifact
+    - harbor artifact tags - Manage tags of an artifact

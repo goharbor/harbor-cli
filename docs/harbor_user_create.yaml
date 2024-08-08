@@ -1,0 +1,31 @@
+name: harbor user create
+synopsis: create user
+usage: harbor user create [flags]
+options:
+    - name: comment
+      usage: Comment
+    - name: email
+      usage: Email
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for create
+    - name: password
+      usage: Password
+    - name: realname
+      usage: Realname
+    - name: username
+      usage: Username
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor user - Manage users

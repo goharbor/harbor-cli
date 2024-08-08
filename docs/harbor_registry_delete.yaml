@@ -1,0 +1,21 @@
+name: harbor registry delete
+synopsis: delete registry by id
+usage: harbor registry delete [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for delete
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor registry - Manage registries

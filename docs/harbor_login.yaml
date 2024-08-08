@@ -1,0 +1,30 @@
+name: harbor login
+synopsis: Log in to Harbor registry
+description: Authenticate with Harbor Registry.
+usage: harbor login [server] [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for login
+    - name: name
+      usage: name for the set of credentials
+    - name: password
+      shorthand: p
+      usage: Password
+    - name: username
+      shorthand: u
+      usage: Username
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor - Official Harbor CLI

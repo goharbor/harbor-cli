@@ -1,0 +1,23 @@
+name: harbor repo delete
+synopsis: Delete a repository
+description: Delete a repository within a project in Harbor
+usage: harbor repo delete [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for delete
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor repository delete [project_name]/[repository_name]'
+see_also:
+    - harbor repo - Manage repositories

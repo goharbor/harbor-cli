@@ -93,7 +93,7 @@ harbor help
 	cobra.OnInitialize(InitConfig)
 
 	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
-	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file (default is $HOME/.harbor/config.yaml)")
+	root.PersistentFlags().StringVar(&cfgFile, "config", utils.DefaultConfigPath, "config file")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
@@ -104,6 +104,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
+		GenerateDocs(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),

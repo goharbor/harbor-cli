@@ -1,0 +1,26 @@
+name: harbor user
+synopsis: Manage users
+description: Manage users in Harbor
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for user
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor user list'
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor user create - create user
+    - harbor user delete - delete user
+    - harbor user elevate - elevate user
+    - harbor user list - list users

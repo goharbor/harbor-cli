@@ -1,0 +1,22 @@
+name: harbor artifact tags delete
+synopsis: Delete a tag of an artifact
+usage: harbor artifact tags delete [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for delete
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: harbor artifact tags delete <project>/<repository>/<reference> <tag>
+see_also:
+    - harbor artifact tags - Manage tags of an artifact

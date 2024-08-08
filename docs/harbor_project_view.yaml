@@ -1,0 +1,21 @@
+name: harbor project view
+synopsis: get project by name or id
+usage: harbor project view [NAME|ID] [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for view
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor project - Manage projects and assign resources to them
