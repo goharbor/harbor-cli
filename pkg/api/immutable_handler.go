@@ -49,3 +49,18 @@ func ListImmutable(projectName string)(immutable.ListImmuRulesOK,error){
 
 	return *response, nil
 }
+
+func DeleteImmutable(projectName string,ImmutableID int64) error{
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.Immutable.DeleteImmuRule(ctx,&immutable.DeleteImmuRuleParams{ProjectNameOrID: projectName,ImmutableRuleID: ImmutableID})
+	if err != nil {
+		return err
+	}
+
+	log.Info("immutable rule deleted successfully")
+
+	return nil
+}
