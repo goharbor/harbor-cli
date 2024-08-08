@@ -1,0 +1,24 @@
+name: harbor version
+synopsis: Version of Harbor CLI
+description: |
+    Get Harbor CLI version, git commit, go version, build time, release channel, os/arch, etc.
+usage: harbor version [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for version
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor version'
+see_also:
+    - harbor - Official Harbor CLI

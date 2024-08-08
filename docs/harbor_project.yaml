@@ -1,0 +1,27 @@
+name: harbor project
+synopsis: Manage projects and assign resources to them
+description: Manage projects in Harbor
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for project
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor project list'
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor project create - create project
+    - harbor project delete - delete project by name or id
+    - harbor project list - list project
+    - harbor project logs - get project logs
+    - harbor project view - get project by name or id

@@ -1,0 +1,45 @@
+name: harbor completion bash
+synopsis: Generate the autocompletion script for bash
+description: |
+    Generate the autocompletion script for the bash shell.
+
+    This script depends on the 'bash-completion' package.
+    If it is not installed already, you can install it via your OS's package manager.
+
+    To load completions in your current shell session:
+
+    	source <(harbor completion bash)
+
+    To load completions for every new session, execute once:
+
+    #### Linux:
+
+    	harbor completion bash > /etc/bash_completion.d/harbor
+
+    #### macOS:
+
+    	harbor completion bash > $(brew --prefix)/etc/bash_completion.d/harbor
+
+    You will need to start a new shell for this setup to take effect.
+usage: harbor completion bash
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for bash
+    - name: no-descriptions
+      default_value: "false"
+      usage: disable completion descriptions
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor completion - Generate the autocompletion script for the specified shell

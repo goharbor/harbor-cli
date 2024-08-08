@@ -1,0 +1,24 @@
+name: harbor repo
+synopsis: Manage repositories
+description: Manage repositories in Harbor context
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for repo
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor repo delete - Delete a repository
+    - harbor repo info - Get repository information
+    - harbor repo list - list repositories within a project

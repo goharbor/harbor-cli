@@ -1,0 +1,23 @@
+name: harbor repo info
+synopsis: Get repository information
+description: Get information of a particular repository in a project
+usage: harbor repo info [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for info
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor repo info <project_name>/<repo_name>'
+see_also:
+    - harbor repo - Manage repositories

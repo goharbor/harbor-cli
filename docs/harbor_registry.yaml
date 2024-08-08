@@ -1,0 +1,28 @@
+name: harbor registry
+synopsis: Manage registries
+description: Manage registries in Harbor
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for registry
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: '  harbor registry list'
+see_also:
+    - harbor - Official Harbor CLI
+    - harbor registry create - create registry
+    - harbor registry delete - delete registry by id
+    - harbor registry info - get registry info
+    - harbor registry list - list registry
+    - harbor registry update - update registry
+    - harbor registry view - get registry by id

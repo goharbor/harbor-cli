@@ -1,0 +1,37 @@
+name: harbor project list
+synopsis: list project
+usage: harbor project list [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for list
+    - name: name
+      usage: Name of the project
+    - name: page
+      default_value: "1"
+      usage: Page number
+    - name: page-size
+      default_value: "10"
+      usage: Size of per page
+    - name: public
+      default_value: "false"
+      usage: Project is public or private
+    - name: query
+      shorthand: q
+      usage: Query string to query resources
+    - name: sort
+      usage: Sort the resource list in ascending or descending order
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor project - Manage projects and assign resources to them

@@ -1,0 +1,23 @@
+name: harbor artifact scan start
+synopsis: Start a scan of an artifact
+description: Start a scan of an artifact in Harbor Repository
+usage: harbor artifact scan start [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for start
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: harbor artifact scan start <project>/<repository>/<reference>
+see_also:
+    - harbor artifact scan - Scan an artifact
