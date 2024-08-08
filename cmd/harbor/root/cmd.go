@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/immutable"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -109,6 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		immutable.Immutable(),
 	)
 
 	return root
