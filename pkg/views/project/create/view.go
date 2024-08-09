@@ -36,7 +36,10 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 func CreateProjectView(createView *CreateView) {
 	theme := huh.ThemeCharm()
 	// I want it to be a map of registry ID to registry name
-	registries, _ := getRegistryList()
+	registries, err := getRegistryList()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	registryOptions := map[string]string{}
 	for _, registry := range registries.Payload {
@@ -49,7 +52,7 @@ func CreateProjectView(createView *CreateView) {
 		registrySelectOptions = append(registrySelectOptions, huh.NewOption(name, id))
 	}
 
-	err := huh.NewForm(
+	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Project Name").
