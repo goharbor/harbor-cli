@@ -116,7 +116,7 @@ git clone https://github.com/goharbor/harbor-cli.git
 cd harbor-cli/cmd/harbor
 go build .
 ```
-Now, move harbor.exe to your preferred directory (e.g. C:\Program Files\harbor\`harbor.exe`)
+Now, move harbor.exe to your preferred directory (e.g. C:\Program Files\harbor\ `harbor.exe`)
 Add the directory to your PATH environment variable:
    - Open the Start menu and search for "Environment Variables"
    - Click on "Edit the system environment variables"
