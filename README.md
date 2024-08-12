@@ -102,12 +102,29 @@ Windows | ✅
 
 ## Build From Source
 
+### Linux and MacOS
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
 cd harbor-cli/cmd/harbor
 go build .
 sudo mv harbor /usr/local/bin/
 ```
+
+### Windows
+```bash
+git clone https://github.com/goharbor/harbor-cli.git
+cd harbor-cli/cmd/harbor
+go build .
+```
+Now, move harbor.exe to your preferred directory (e.g. C:\Program Files\harbor\`harbor.exe`)
+Add the directory to your PATH environment variable:
+   - Open the Start menu and search for "Environment Variables"
+   - Click on "Edit the system environment variables"
+   - Click the "Environment Variables" button
+   - Under "System variables", find and select the "Path" variable, then click "Edit"
+   - Click "New" and add the directory path (e.g., `C:\Program Files\harbor`)
+   - Click "OK" to close all dialogs
+
 
 ## Linux and MacOS
 
