@@ -8,7 +8,7 @@ import (
     "github.com/goharbor/go-client/pkg/sdk/v2.0/client/ping"
 )
 
-func GetPing() *cobra.Command {
+func PingCommand() *cobra.Command {
     cmd := &cobra.Command{
         Use:   "ping",
         Short: "Ping the Harbor API server",
