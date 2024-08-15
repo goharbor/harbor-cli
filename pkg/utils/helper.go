@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -34,4 +35,13 @@ func FormatUrl(url string) string {
 		url = "https://" + url
 	}
 	return url
+}
+
+func EmptyStringValidator(variable string) func(string) error {
+	return func(str string) error {
+		if str == "" {
+			return errors.New(fmt.Sprintf("%s cannot be empty", variable))
+		}
+		return nil
+	}
 }
