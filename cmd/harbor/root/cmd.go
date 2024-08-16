@@ -8,6 +8,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/security"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -109,6 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		security.Security(),
 	)
 
 	return root
