@@ -5,27 +5,32 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/health"
+	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
 var columns = []table.Column{
 	{Title: "Component", Width: 20},
-	{Title: "Status", Width: 20},
+	{Title: "Status", Width: 30},
 }
 
 type HealthModel struct {
 	tableModel tablelist.Model
 }
 
+func styleStatus(status string) string {
+	if status == "healthy" {
+		return views.GreenStyle.Render(status)
+	}
+	return views.RedStyle.Render(status)
+}
+
 func NewHealthModel(status *health.GetHealthOK) HealthModel {
 	var rows []table.Row
-
-	rows = append(rows, table.Row{"Overall", status.Payload.Status})
-
 	for _, component := range status.Payload.Components {
 		rows = append(rows, table.Row{
 			component.Name,
-			component.Status,
+			styleStatus(component.Status),
 		})
 	}
 	
@@ -35,8 +40,7 @@ func NewHealthModel(status *health.GetHealthOK) HealthModel {
 
 func PrintHealthStatus(status *health.GetHealthOK) {
 	m := NewHealthModel(status)
-	fmt.Println("Harbor Health Status:")
-	fmt.Printf("Status: %s\n", status.Payload.Status)
+	fmt.Printf("Harbor Health Status:: %s\n", styleStatus(status.Payload.Status))
 
 	p := tea.NewProgram(m.tableModel)
 	if _, err := p.Run(); err != nil {
