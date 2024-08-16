@@ -17,6 +17,8 @@ const (
 
 type HarborCli struct{}
 
+
+// Returns the same string argument as the output.
 func (m *HarborCli) Echo(stringArg string) string {
 	return stringArg
 }
@@ -38,6 +40,7 @@ func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *dagger.Directory,
 
 }
 
+// Return a container that run golangci-lint on a provided directory to check for code quality and style issues.
 func (m *HarborCli) LintCode(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
@@ -48,6 +51,7 @@ func (m *HarborCli) LintCode(ctx context.Context, directoryArg *dagger.Directory
 
 }
 
+// Returns a directory that contains the Harbor binary for different operating systems and architectures.
 func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Directory) *dagger.Directory {
 	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
@@ -79,6 +83,21 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Direct
 	return outputs
 }
 
+// Return a container that build the Harbor binary for development purposes.
+func (m *HarborCli) BuildDev(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
+    fmt.Println("🛠️  Building Harbor binary with Dagger...")
+
+    // Define the path for the binary output
+    binaryOutputPath := "/src/bin/harbor"
+    return dag.Container().
+        From("golang:latest").
+        WithMountedDirectory("/src", directoryArg).
+        WithWorkdir("/src/cmd/harbor").
+        WithExec([]string{"go", "build", "-o", binaryOutputPath, "main.go"}).
+        WithWorkdir("/src")
+}
+
+// Function that responsible for handling tasks related to creating a pull request.
 func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
@@ -89,6 +108,7 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
+// Function that responsible for handling tasks related to releasing the Harbor CLI tool.
 func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
 	_, err := goreleaser.Stderr(ctx)
@@ -99,6 +119,7 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
+// Returns container environment for running Goreleaser with specific configurations.
 func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
 	token := dag.SetSecret("github_token", githubToken)
 
