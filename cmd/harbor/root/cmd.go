@@ -109,6 +109,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		HealthCommand(),
 	)
 
 	return root
