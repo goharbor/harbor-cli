@@ -11,7 +11,7 @@ func Webhook() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateWebhookCmd(),
-		//ListWebhookCommand(),
+		ListWebhookCommand(),
 	)
 	return cmd
 }
