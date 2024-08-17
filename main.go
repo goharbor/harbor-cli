@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
+
 	"github.com/goharbor/harbor-cli/internal/dagger"
 )
 
@@ -87,17 +89,22 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Direct
 func (m *HarborCli) BuildDev(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
     fmt.Println("🛠️  Building Harbor binary with Dagger...")
 
+	goos := runtime.GOOS
+	goarch := runtime.GOARCH
+
     // Define the path for the binary output
     binaryOutputPath := "/src/bin/harbor"
     return dag.Container().
         From("golang:latest").
         WithMountedDirectory("/src", directoryArg).
         WithWorkdir("/src/cmd/harbor").
+		WithEnvVariable("GOOS", goos).
+		WithEnvVariable("GOARCH", goarch).
         WithExec([]string{"go", "build", "-o", binaryOutputPath, "main.go"}).
         WithWorkdir("/src")
 }
 
-// Function that responsible for handling tasks related to creating a pull request.
+// PullRequest handles tasks related to creating a snapshot release for a recently merged pull request.
 func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
@@ -108,7 +115,7 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
-// Function that responsible for handling tasks related to releasing the Harbor CLI tool.
+// Release handles building, tagging, and publishing the Harbor CLI tool.
 func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
 	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
 	_, err := goreleaser.Stderr(ctx)
@@ -119,7 +126,7 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-// Returns container environment for running Goreleaser with specific configurations.
+// Creates a Dagger container with GoReleaser and Syft, configuring caching, environment variables, and GitHub token for secure release management.
 func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
 	token := dag.SetSecret("github_token", githubToken)
 
