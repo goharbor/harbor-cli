@@ -29,7 +29,11 @@ func CreateWebhookCmd() *cobra.Command {
 				VerifyRemoteCertificate: opts.VerifyRemoteCertificate,
 			}
 
-			if opts.Name != "" && opts.PayloadFormat != "" {
+			if opts.ProjectName != "" &&
+				opts.Name != "" &&
+				opts.NotifyType != "" &&
+				len(opts.EventType) != 0 &&
+				opts.EndpointURL != "" {
 				err = api.CreateWebhook(&opts)
 			} else {
 				err = createWebhookView(createView)
@@ -48,6 +52,7 @@ func CreateWebhookCmd() *cobra.Command {
 	flags.StringVarP(&opts.NotifyType, "notify-type", "", "", "Notify Type (http, slack)")
 	flags.StringArrayVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
 	flags.StringVarP(&opts.EndpointURL, "endpoint-url", "", "", "Webhook Endpoint URL")
+	flags.StringVarP(&opts.PayloadFormat, "payload-format", "", "", "Payload Format (Default, CloudEvents)")
 	flags.StringVarP(&opts.AuthHeader, "auth-header", "", "", "Authentication Header")
 	flags.BoolVarP(&opts.VerifyRemoteCertificate, "verify-remote-certificate", "", true, "Verify Remote Certificate")
 

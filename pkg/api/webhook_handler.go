@@ -59,5 +59,24 @@ func CreateWebhook(opts *create.CreateView) error {
 	}
 
 	return nil
+}
 
+func DeleteWebhook(projectName string, webhookId int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		log.Errorf("%s", err)
+		return err
+	}
+	response, err := client.Webhook.DeleteWebhookPolicyOfProject(ctx, &webhook.DeleteWebhookPolicyOfProjectParams{
+		WebhookPolicyID: webhookId,
+		ProjectNameOrID: projectName,
+	})
+	if err != nil {
+		log.Errorf("%s", err)
+		return err
+	}
+	if response != nil {
+		log.Infof("Webhook Id:`%s` deleted successfully", webhookId)
+	}
+	return nil
 }

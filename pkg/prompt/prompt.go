@@ -8,6 +8,7 @@ import (
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
+	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -88,4 +89,17 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetWebhookFromUser(projectName string) int64 {
+	webhookName := make(chan int64)
+
+	go func() {
+		res, err := api.ListWebhooks(projectName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		wview.WebhookList(res.Payload, webhookName)
+	}()
+	return <-webhookName
 }
