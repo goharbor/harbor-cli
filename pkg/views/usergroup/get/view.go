@@ -10,16 +10,14 @@ import (
     "github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
-var columns = []table.Column{
-    {Title: "Field", Width: 20},
-    {Title: "Value", Width: 40},
-}
-
 func DisplayUserGroup(group *models.UserGroup) {
+    columns := []table.Column{
+        {Title: "Group Name", Width: 30},
+        {Title: "Group Type", Width: 20},
+    }
+
     rows := []table.Row{
-        {"ID", fmt.Sprintf("%d", group.ID)},
-        {"Group Name", group.GroupName},
-        {"Group Type", getGroupTypeString(group.GroupType)},
+        {group.GroupName, getGroupTypeString(group.GroupType)},
     }
 
     m := tablelist.NewModel(columns, rows, len(rows))
