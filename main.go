@@ -84,7 +84,7 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Direct
 }
 
 // Builds Harbor-Cli binary for development purposes.
-func (m *HarborCli) BuildDev( ctx context.Context, source *dagger.Directory, goos string, goarch string) *dagger.Directory {
+func (m *HarborCli) BuildDev(ctx context.Context, source *dagger.Directory, goos string, goarch string) *dagger.Directory {
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
 	// Define the path for the binary output
 	binaryOutputPath := "/src/bin/harbor"
