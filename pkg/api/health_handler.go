@@ -10,10 +10,10 @@ import (
 )
 
 func GetHealth() (*health.GetHealthOK, error) {
-	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
-
-	ctx := context.Background()
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
 	params := health.NewGetHealthParams().WithContext(ctx)
 
 	response, err := client.Health.GetHealth(ctx, params)
