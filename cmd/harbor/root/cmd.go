@@ -9,6 +9,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/systeminfo"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -107,6 +108,7 @@ harbor help
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
+		systeminfo.NewSystemInfoCommand(),
 		user.User(),
 		artifact.Artifact(),
 	)
