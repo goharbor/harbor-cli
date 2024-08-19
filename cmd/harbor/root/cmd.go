@@ -108,7 +108,7 @@ harbor help
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
-		systeminfo.NewSystemInfoCommand(),
+		systeminfo.SystemInfoCommand(),
 		user.User(),
 		artifact.Artifact(),
 	)

@@ -9,7 +9,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/systeminfo/volume"
 )
 
-func newGetVolumesCommand() *cobra.Command {
+func GetVolumesCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "volumes",
 		Short: "Get system volume information",

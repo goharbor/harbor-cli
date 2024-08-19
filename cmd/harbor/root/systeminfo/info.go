@@ -9,7 +9,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/systeminfo/info"
 )
 
-func newGetInfoCommand() *cobra.Command {
+func GetInfoCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "info",
 		Short: "Get general system information",

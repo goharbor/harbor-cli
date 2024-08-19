@@ -11,7 +11,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/systeminfo"
 )
 
-func newGetCertCommand() *cobra.Command {
+func GetCertCommand() *cobra.Command {
 	var outputFile string
 
 	cmd := &cobra.Command{

@@ -5,7 +5,7 @@ import (
 
 )
 
-func NewSystemInfoCommand() *cobra.Command {
+func SystemInfoCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "systeminfo",
 		Short: "Interact with system information",
@@ -13,9 +13,9 @@ func NewSystemInfoCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		newGetInfoCommand(),
-		newGetVolumesCommand(),
-		newGetCertCommand(),
+		GetInfoCommand(),
+		GetVolumesCommand(),
+		GetCertCommand(),
 	)
 
 	return cmd
