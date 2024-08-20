@@ -21,12 +21,7 @@ func UpdateSystemCveCommand() *cobra.Command {
 				ExpireDate: opts.ExpireDate,
 			}
 
-			if opts.CveId != "" {
-				api.UpdateSystemCve(*updateView)
-			} else {
-				err = updatecveView(updateView)
-			}
-
+			err = updatecveView(updateView)
 			if err != nil {
 				log.Errorf("failed to update systemcve: %v", err)
 			}
