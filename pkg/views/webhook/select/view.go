@@ -9,11 +9,11 @@ import (
 	"os"
 )
 
-func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- int64) {
+func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- models.WebhookPolicy) {
 	itemsList := make([]list.Item, len(webhooks))
 
-	for i, webhook := range webhooks {
-		itemsList[i] = selection.Item(webhook.Name)
+	for i, item := range webhooks {
+		itemsList[i] = selection.Item(item.Name)
 	}
 
 	m := selection.NewModel(itemsList, "Webhook")
@@ -28,7 +28,7 @@ func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		for _, webhook := range webhooks {
 			if webhook.Name == p.Choice {
-				choice <- webhook.ID
+				choice <- *webhook
 				break
 			}
 		}

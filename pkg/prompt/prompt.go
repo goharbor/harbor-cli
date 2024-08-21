@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
@@ -91,15 +92,14 @@ func GetTagNameFromUser() string {
 	return <-repoName
 }
 
-func GetWebhookFromUser(projectName string) int64 {
-	webhookName := make(chan int64)
-
+func GetWebhookFromUser(projectName string) models.WebhookPolicy {
+	selectedWebhook := make(chan models.WebhookPolicy)
 	go func() {
 		res, err := api.ListWebhooks(projectName)
 		if err != nil {
 			log.Fatal(err)
 		}
-		wview.WebhookList(res.Payload, webhookName)
+		wview.WebhookList(res.Payload, selectedWebhook)
 	}()
-	return <-webhookName
+	return <-selectedWebhook
 }

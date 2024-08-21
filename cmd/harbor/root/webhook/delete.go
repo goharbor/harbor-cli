@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ func DeleteWebhookCmd() *cobra.Command {
 	var projectName string
 	var webhookId string
 	var webhookIdInt int64
+	var selectedWebhook models.WebhookPolicy
 
 	cmd := &cobra.Command{
 		Use:   "delete",
@@ -26,8 +28,8 @@ func DeleteWebhookCmd() *cobra.Command {
 				err = api.DeleteWebhook(projectName, webhookIdInt)
 			} else {
 				projectName = prompt.GetProjectNameFromUser()
-				webhookIdInt = prompt.GetWebhookFromUser(projectName)
-				err = api.DeleteWebhook(projectName, webhookIdInt)
+				selectedWebhook = prompt.GetWebhookFromUser(projectName)
+				err = api.DeleteWebhook(projectName, selectedWebhook.ID)
 
 			}
 			if err != nil {

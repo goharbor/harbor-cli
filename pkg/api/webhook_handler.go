@@ -5,6 +5,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/create"
+	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -79,4 +80,41 @@ func DeleteWebhook(projectName string, webhookId int64) error {
 		log.Infof("Webhook Id:`%s` deleted successfully", webhookId)
 	}
 	return nil
+}
+
+func UpdateWebhook(opts *edit.EditView) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		log.Errorf("%s", err)
+		return err
+	}
+
+	response, err := client.Webhook.UpdateWebhookPolicyOfProject(ctx, &webhook.UpdateWebhookPolicyOfProjectParams{
+		ProjectNameOrID: opts.ProjectName,
+		WebhookPolicyID: opts.WebhookId,
+		Policy: &models.WebhookPolicy{
+			Description: opts.Description,
+			Enabled:     true,
+			EventTypes:  opts.EventType,
+			Name:        opts.Name,
+			Targets: []*models.WebhookTargetObject{
+				{
+					Address:        opts.EndpointURL,
+					AuthHeader:     opts.AuthHeader,
+					PayloadFormat:  models.PayloadFormatType(opts.PayloadFormat),
+					SkipCertVerify: !opts.VerifyRemoteCertificate,
+					Type:           opts.NotifyType,
+				},
+			},
+		},
+	})
+	if err != nil {
+		log.Errorf("%s", err)
+		return err
+	}
+	if response != nil {
+		log.Infof("Webhook Id:`%s` Updated successfully", opts.WebhookId)
+	}
+	return nil
+
 }
