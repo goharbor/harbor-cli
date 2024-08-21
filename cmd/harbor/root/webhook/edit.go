@@ -45,6 +45,19 @@ func EditWebhookCmd() *cobra.Command {
 
 		},
 	}
+	flags := cmd.Flags()
+
+	flags.StringVarP(&opts.ProjectName, "project", "", "", "Project Name")
+	flags.StringVarP(&opts.ProjectName, "webhook-id", "", "", "Webhook ID")
+	flags.StringVarP(&opts.Name, "name", "", "", "Webhook Name")
+	flags.StringVarP(&opts.Description, "description", "", "", "Webhook Description")
+	flags.StringVarP(&opts.NotifyType, "notify-type", "", "", "Notify Type (http, slack)")
+	flags.StringArrayVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
+	flags.StringVarP(&opts.EndpointURL, "endpoint-url", "", "", "Webhook Endpoint URL")
+	flags.StringVarP(&opts.PayloadFormat, "payload-format", "", "", "Payload Format (Default, CloudEvents)")
+	flags.StringVarP(&opts.AuthHeader, "auth-header", "", "", "Authentication Header")
+	flags.BoolVarP(&opts.VerifyRemoteCertificate, "verify-remote-certificate", "", true, "Verify Remote Certificate")
+
 	return cmd
 }
 
