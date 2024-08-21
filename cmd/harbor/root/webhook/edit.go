@@ -7,10 +7,13 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 func EditWebhookCmd() *cobra.Command {
 	var opts edit.EditView
+	var webhookId string
+	var webhookIdInt int64
 	cmd := &cobra.Command{
 		Use:   "edit",
 		Short: "webhook edit",
@@ -30,10 +33,13 @@ func EditWebhookCmd() *cobra.Command {
 				VerifyRemoteCertificate: opts.VerifyRemoteCertificate,
 			}
 			if opts.ProjectName != "" &&
+				webhookId != "" &&
 				opts.Name != "" &&
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
+				webhookIdInt, err = strconv.ParseInt(webhookId, 10, 64)
+				opts.WebhookId = webhookIdInt
 				err = api.UpdateWebhook(&opts)
 			} else {
 				err = editWebhookView(editView)
@@ -48,7 +54,7 @@ func EditWebhookCmd() *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.ProjectName, "project", "", "", "Project Name")
-	flags.StringVarP(&opts.ProjectName, "webhook-id", "", "", "Webhook ID")
+	flags.StringVarP(&webhookId, "webhook-id", "", "", "Webhook ID")
 	flags.StringVarP(&opts.Name, "name", "", "", "Webhook Name")
 	flags.StringVarP(&opts.Description, "description", "", "", "Webhook Description")
 	flags.StringVarP(&opts.NotifyType, "notify-type", "", "", "Notify Type (http, slack)")
@@ -57,6 +63,7 @@ func EditWebhookCmd() *cobra.Command {
 	flags.StringVarP(&opts.PayloadFormat, "payload-format", "", "", "Payload Format (Default, CloudEvents)")
 	flags.StringVarP(&opts.AuthHeader, "auth-header", "", "", "Authentication Header")
 	flags.BoolVarP(&opts.VerifyRemoteCertificate, "verify-remote-certificate", "", true, "Verify Remote Certificate")
+	flags.BoolVarP(&opts.Enabled, "enabled", "", true, "Webhook Enabled")
 
 	return cmd
 }

@@ -94,7 +94,7 @@ func UpdateWebhook(opts *edit.EditView) error {
 		WebhookPolicyID: opts.WebhookId,
 		Policy: &models.WebhookPolicy{
 			Description: opts.Description,
-			Enabled:     true,
+			Enabled:     opts.Enabled,
 			EventTypes:  opts.EventType,
 			Name:        opts.Name,
 			Targets: []*models.WebhookTargetObject{

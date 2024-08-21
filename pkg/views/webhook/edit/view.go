@@ -51,6 +51,13 @@ func WebhookEditView(editView *EditView) {
 					huh.NewOption("slack", "slack").Selected(editView.NotifyType == "slack"),
 				).
 				Value(&editView.NotifyType),
+
+			huh.NewConfirm().Title("Webhook Enabled").
+				Description("Determine whether the webhook should verify the certificate of a remote url "+
+					"Uncheck this box when the remote url uses a self-signed or untrusted certificate.").
+				Affirmative("True").
+				Negative("False").
+				Value(&editView.Enabled),
 		),
 	).WithTheme(theme).Run()
 
