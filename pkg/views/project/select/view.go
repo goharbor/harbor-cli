@@ -30,3 +30,26 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	}
 
 }
+
+func ProjectIdList(project []*models.Project, choice chan<- int32) {
+	itemsList := make([]list.Item, len(project))
+	items := map[string]int32{}
+	for i, p := range project {
+		items[p.Name] = p.ProjectID
+		itemsList[i] = selection.Item(p.Name)
+	}
+
+	m := selection.NewModel(itemsList, "Project")
+
+	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+
+	if err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+
+	if p, ok := p.(selection.Model); ok {
+		choice <- items[p.Choice]
+	}
+
+}
