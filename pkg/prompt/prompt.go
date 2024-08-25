@@ -112,6 +112,17 @@ func GetProjectIDFromUser() int64 {
 	return <-projectID
 }
 
+func GetProjectIDFromUser() int32 {
+	projectId := make(chan int32)
+	go func() {
+		response, _ := api.ListProject()
+		pview.ProjectIdList(response.Payload, projectId)
+
+	}()
+
+	return <-projectId
+}
+
 func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
