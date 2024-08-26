@@ -90,7 +90,7 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, regUsername string, regPassword *dagger.Secret, privateKey *dagger.Secret, password *dagger.Secret) string {
+func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, regUsername string, regPassword *dagger.Secret, privateKey *dagger.Secret, cosignPassword *dagger.Secret) string {
 
 builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
 builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
@@ -103,7 +103,7 @@ WithFile("/root/harbor", builder.File("/src/harbor")).
 WithEntrypoint([]string{"./harbor"})
 
 addr, _ := runtime.Publish(ctx,PUBLISH_ADDRESS)
-_ , err := dag.Cosign().Sign(ctx,privateKey,password,[]string{addr},dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
+_ , err := dag.Cosign().Sign(ctx,privateKey,cosignPassword,[]string{addr},dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
 if err != nil {
 	panic(err)
 }
