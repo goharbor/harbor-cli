@@ -18,7 +18,6 @@ jobs:
 
       - name: Call Docker-Publish Function
         uses: dagger/dagger-for-github@v6.1.0
-        if: always()
         env: 
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
@@ -28,4 +27,4 @@ jobs:
           version: "latest"
           verb: call
           module: github.com/bishal7679/harbor-cli@v0.6.2
-          args: docker-publish --directory-arg=. --reg-username=${{ env.REGISTRY_USERNAME }} --reg-password=${{ env.REGISTRY_PASSWORD }} --private-key=${{ env.COSIGN_KEY }} --password=${{ env.COSIGN_PASSWORD }}
+          args: docker-publish --directory-arg=. --reg-username=${{ env.REGISTRY_USERNAME }} --reg-password=${{ env.REGISTRY_PASSWORD }} --private-key=${{ env.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}
