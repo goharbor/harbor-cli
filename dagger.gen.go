@@ -305,7 +305,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg password", err))
 				}
 			}
-			return (*HarborCli).DockerPublish(&parent, ctx, directoryArg, regUsername, regPassword, privateKey, password), nil
+			return (*HarborCli).DockerPublish(&parent, ctx, directoryArg), nil
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}

@@ -5,15 +5,27 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
 	"github.com/goharbor/harbor-cli/internal/dagger"
 )
 
 const (
-	GO_VERSION = "1.22.5"
-	SYFT_VERSION = "v1.9.0"
+	GO_VERSION         = "1.22.5"
+	SYFT_VERSION       = "v1.9.0"
 	GORELEASER_VERSION = "v2.1.0"
-	APP_NAME = "dagger-harbor-cli"
-	PUBLISH_ADDRESS = "demo.goharbor.io/library/harbor-cli:0.0.3"
+	APP_NAME           = "dagger-harbor-cli"
+	PUBLISH_ADDRESS    = "demo.goharbor.io/library/harbor-cli:0.0.3"
+	key                = `-----BEGIN ENCRYPTED COSIGN PRIVATE KEY-----
+eyJrZGYiOnsibmFtZSI6InNjcnlwdCIsInBhcmFtcyI6eyJOIjozMjc2OCwiciI6
+OCwicCI6MX0sInNhbHQiOiJsTlFISmloQ0RXdXFvYkJWUUZ5eFhON29JVmRDakJ4
+T284aVA3OXlDSGVFPSJ9LCJjaXBoZXIiOnsibmFtZSI6Im5hY2wvc2VjcmV0Ym94
+Iiwibm9uY2UiOiJtalNQWk5WSlYzK1ZMb2lSb1M4NDZNdmJxNitGUGp2YSJ9LCJj
+aXBoZXJ0ZXh0IjoiZXF6OHdCTzlFZEU0UUVwVzU1L0FvMmNLWFFKSWxhRFNOVjB5
+dnVCY2VQV2VFRmtZd1hzb1JGTnJFL0dNRm5wM29kdVAxQlRyNW0zQ3ZNU1NoV1pu
+bTRvSXkyTlZFUlZHbDdxT0E2bmlZdlhzZnBBeERjeTZZL0dsZ2lOc3ZuaWV2cW12
+dFYzS3pFNzU1RVArMUpxT3pheCtMZUs5dEdQd3VlZTU4Y0hqV29KQ05veFpQTm9r
+Y0c5OTZJN0ZjNUtzbHdvbXZHQ0VRdkhBYlE9PSJ9
+-----END ENCRYPTED COSIGN PRIVATE KEY-----`
 )
 
 type HarborCli struct{}
@@ -90,41 +102,44 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, regUsername string, regPassword *dagger.Secret, privateKey *dagger.Secret, cosignPassword *dagger.Secret) string {
+func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, cosignPasword string, cosignKey string, regUsername string, regPassword string) string {
 
-builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
-builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
+	builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
+	builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
 
-// Create a minimal runtime container
-runtime := dag.Container().
-From("alpine:latest").
-WithWorkdir("/root/").
-WithFile("/root/harbor", builder.File("/src/harbor")).
-WithEntrypoint([]string{"./harbor"})
+	// Create a minimal runtime container
+	runtime := dag.Container().
+		From("alpine:latest").
+		WithWorkdir("/root/").
+		WithFile("/root/harbor", builder.File("/src/harbor")).
+		WithEntrypoint([]string{"./harbor"})
 
-addr, _ := runtime.Publish(ctx,PUBLISH_ADDRESS)
-_ , err := dag.Cosign().Sign(ctx,privateKey,cosignPassword,[]string{addr},dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
-if err != nil {
-	panic(err)
-}
-fmt.Printf("Published to %s 🎉\n", addr)
-return addr
+	addr, _ := runtime.Publish(ctx, PUBLISH_ADDRESS)
+	cosign_password := dag.SetSecret("cosign_password", cosignPasword)
+	cosign_key := dag.SetSecret("private_key", cosignKey)
+	regpassword := dag.SetSecret("reg_password", regPassword)
+	_, err := dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Published to %s 🎉\n", addr)
+	return addr
 }
 
 func fetchMainGoPath(ctx context.Context, directoryArg *dagger.Directory) (*dagger.Container, string) {
 
 	container := dag.Container().
-	From("golang:1.22-alpine").
-	WithMountedDirectory("/src", directoryArg).
-	WithWorkdir("/src").
-	WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
+		From("golang:1.22-alpine").
+		WithMountedDirectory("/src", directoryArg).
+		WithWorkdir("/src").
+		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
 
 	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
 	main_go_txt_file, _ := container.File("main_go_path.txt").Contents(ctx)
 	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
 	result := "/src/" + trimmedPath
 	main_go_path := strings.TrimRight(result, "\n")
-	
+
 	return container, main_go_path
 }
 
