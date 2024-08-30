@@ -15,17 +15,6 @@ const (
 	GORELEASER_VERSION = "v2.1.0"
 	APP_NAME           = "dagger-harbor-cli"
 	PUBLISH_ADDRESS    = "demo.goharbor.io/library/harbor-cli:0.0.3"
-	key                = `-----BEGIN ENCRYPTED COSIGN PRIVATE KEY-----
-eyJrZGYiOnsibmFtZSI6InNjcnlwdCIsInBhcmFtcyI6eyJOIjozMjc2OCwiciI6
-OCwicCI6MX0sInNhbHQiOiJsTlFISmloQ0RXdXFvYkJWUUZ5eFhON29JVmRDakJ4
-T284aVA3OXlDSGVFPSJ9LCJjaXBoZXIiOnsibmFtZSI6Im5hY2wvc2VjcmV0Ym94
-Iiwibm9uY2UiOiJtalNQWk5WSlYzK1ZMb2lSb1M4NDZNdmJxNitGUGp2YSJ9LCJj
-aXBoZXJ0ZXh0IjoiZXF6OHdCTzlFZEU0UUVwVzU1L0FvMmNLWFFKSWxhRFNOVjB5
-dnVCY2VQV2VFRmtZd1hzb1JGTnJFL0dNRm5wM29kdVAxQlRyNW0zQ3ZNU1NoV1pu
-bTRvSXkyTlZFUlZHbDdxT0E2bmlZdlhzZnBBeERjeTZZL0dsZ2lOc3ZuaWV2cW12
-dFYzS3pFNzU1RVArMUpxT3pheCtMZUs5dEdQd3VlZTU4Y0hqV29KQ05veFpQTm9r
-Y0c5OTZJN0ZjNUtzbHdvbXZHQ0VRdkhBYlE9PSJ9
------END ENCRYPTED COSIGN PRIVATE KEY-----`
 )
 
 type HarborCli struct{}
@@ -102,7 +91,7 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, cosignKey string, cosignPassword string, regUsername string, regPassword string) string {
+func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, cosignKey *dagger.Secret, cosignPassword string, regUsername string, regPassword string) string {
 
 	builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
 	builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
@@ -116,9 +105,8 @@ func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Dire
 
 	addr, _ := runtime.Publish(ctx, PUBLISH_ADDRESS)
 	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
-	cosign_key := dag.SetSecret("private_key", cosignKey)
 	regpassword := dag.SetSecret("reg_password", regPassword)
-	_, err := dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	_, err := dag.Cosign().Sign(ctx, cosignKey, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
 	if err != nil {
 		panic(err)
 	}
