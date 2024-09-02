@@ -82,7 +82,7 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 }
 
 func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
-	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
+	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
