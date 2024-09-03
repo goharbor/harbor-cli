@@ -1,8 +1,10 @@
 package api
 
 import (
+	"errors"
 	"strconv"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/retention"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -60,5 +62,53 @@ func CreateRetention(opts create.CreateView, projectId int32) error {
 	}
 
 	log.Info("Added Tag Retention Rule")
+	return nil
+}
+
+func ListRetention(projectID int32)(retention.ListRetentionExecutionsOK,error){
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return retention.ListRetentionExecutionsOK{}, err
+	}
+	response,err := client.Retention.ListRetentionExecutions(ctx,&retention.ListRetentionExecutionsParams{ID: int64(projectID)})
+	if err != nil {
+		return retention.ListRetentionExecutionsOK{}, err
+	}
+
+	return *response, nil
+}
+
+func GetRetentionId(projectId string) (string,error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return "",err
+	}
+
+	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectId})
+	if err != nil {
+        log.Errorf("failed to get project: %v", err)
+        return "", err
+    }
+
+	if response.Payload.Metadata == nil || response.Payload.Metadata.RetentionID == nil {
+        return "", errors.New("no retention policy present for the project")
+    }
+	retentionid := *response.Payload.Metadata.RetentionID
+
+	return retentionid,nil
+}
+
+func DeleteRetention(RetentionID int64) error{
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.Retention.DeleteRetention(ctx,&retention.DeleteRetentionParams{ID: RetentionID})
+	if err != nil {
+		return err
+	}
+
+	log.Info("retention rule deleted successfully")
+
 	return nil
 }
