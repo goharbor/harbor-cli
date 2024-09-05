@@ -102,6 +102,14 @@ Windows | ✅
 
 ## Build From Source
 
+#### Using Dagger
+```bash
+git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
+dagger call build-dev --source=. --goos=$(go env GOOS) --goarch=$(go env GOARCH) export --path=bin
+sudo cp bin/harbor /usr/local/bin/
+```
+
+#### Without Dagger
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
 cd harbor-cli/cmd/harbor
