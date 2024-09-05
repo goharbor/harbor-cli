@@ -14,9 +14,8 @@ func CreateProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [project name]",
 		Short: "create project",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			opts.ProjectName = args[0]
 			var err error
 			createView := &create.CreateView{
 				ProjectName:  opts.ProjectName,
@@ -27,8 +26,6 @@ func CreateProjectCommand() *cobra.Command {
 			}
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
-				err = api.CreateProject(opts)
-			} else if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
 				err = api.CreateProject(opts)
 			} else {
 				err = createProjectView(createView)
