@@ -1,4 +1,4 @@
-package systemcve
+package cveallowlist
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"

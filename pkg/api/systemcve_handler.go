@@ -53,7 +53,7 @@ func UpdateSystemCve(opts update.UpdateView) error {
 	}
 
 	if response != nil {
-		log.Info("system cveallowlist updated successfully")
+		log.Info("cveallowlist added successfully")
 	}
 	return nil
 }

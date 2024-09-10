@@ -1,19 +1,19 @@
-package systemcve
+package cveallowlist
 
 import (
 	"github.com/spf13/cobra"
 )
 
-func SystemCVEAllowlist() *cobra.Command {
+func CVEAllowlist() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "systemcve",
+		Use:     "cve-allowlist",
 		Short:   "Manage system CVE allowlist",
 		Long:    `Manage system level allowlist of CVE`,
-		Example: `harbor systemcve list`,
+		Example: `harbor cve-allowlist list`,
 	}
 	cmd.AddCommand(
 		ListCveCommand(),
-		UpdateSystemCveCommand(),
+		AddCveAllowlistCommand(),
 	)
 
 	return cmd

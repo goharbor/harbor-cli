@@ -1,4 +1,4 @@
-package systemcve
+package cveallowlist
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func UpdateSystemCveCommand() *cobra.Command {
+func AddCveAllowlistCommand() *cobra.Command {
 	var opts update.UpdateView
 
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "update systemcve allowlist",
+		Use:   "add",
+		Short: "add cve allowlist",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			updateView := &update.UpdateView{
@@ -23,7 +23,7 @@ func UpdateSystemCveCommand() *cobra.Command {
 
 			err = updatecveView(updateView)
 			if err != nil {
-				log.Errorf("failed to update systemcve: %v", err)
+				log.Errorf("failed to add cveallowlist: %v", err)
 			}
 		},
 	}
