@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
 	"github.com/goharbor/harbor-cli/internal/dagger"
 )
 
 const (
-	GO_VERSION = "1.22.5"
-	SYFT_VERSION = "v1.9.0"
+	GO_VERSION         = "1.22.5"
+	SYFT_VERSION       = "v1.9.0"
 	GORELEASER_VERSION = "v2.1.0"
-	APP_NAME = "dagger-harbor-cli"
+	APP_NAME           = "dagger-harbor-cli"
+	PUBLISH_ADDRESS    = "demo.goharbor.io/library/harbor-cli:0.0.3"
 )
 
 type HarborCli struct{}
@@ -53,17 +55,7 @@ func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Direct
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
 	outputs := dag.Directory()
-	golangcont := dag.Container().
-		From("golang:latest").
-		WithMountedDirectory("/src", directoryArg).
-		WithWorkdir("/src").
-		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
-
-	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
-	main_go_txt_file, _ := golangcont.File("main_go_path.txt").Contents(ctx)
-	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
-	result := "/src/" + trimmedPath
-	main_go_path := strings.TrimRight(result, "\n")
+	golangcont, main_go_path := fetchMainGoPath(ctx, directoryArg)
 
 	for _, goos := range oses {
 		for _, goarch := range arches {
@@ -90,13 +82,53 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 }
 
 func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
-	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"--clean"})
+	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
 		return
 	}
 	log.Println("Release tasks completed successfully 🎉")
+}
+
+func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, cosignKey *dagger.Secret, cosignPassword string, regUsername string, regPassword string) string {
+
+	builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
+	builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
+
+	// Create a minimal runtime container
+	runtime := dag.Container().
+		From("alpine:latest").
+		WithWorkdir("/root/").
+		WithFile("/root/harbor", builder.File("/src/harbor")).
+		WithEntrypoint([]string{"./harbor"})
+
+	addr, _ := runtime.Publish(ctx, PUBLISH_ADDRESS)
+	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
+	regpassword := dag.SetSecret("reg_password", regPassword)
+	_, err := dag.Cosign().Sign(ctx, cosignKey, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Published to %s 🎉\n", addr)
+	return addr
+}
+
+func fetchMainGoPath(ctx context.Context, directoryArg *dagger.Directory) (*dagger.Container, string) {
+
+	container := dag.Container().
+		From("golang:1.22-alpine").
+		WithMountedDirectory("/src", directoryArg).
+		WithWorkdir("/src").
+		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
+
+	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
+	main_go_txt_file, _ := container.File("main_go_path.txt").Contents(ctx)
+	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
+	result := "/src/" + trimmedPath
+	main_go_path := strings.TrimRight(result, "\n")
+
+	return container, main_go_path
 }
 
 func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
@@ -112,5 +144,4 @@ func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *da
 		WithMountedDirectory("/src", directoryArg).WithWorkdir("/src").
 		WithEnvVariable("TINI_SUBREAPER", "true").
 		WithSecretVariable("GITHUB_TOKEN", token)
-
 }

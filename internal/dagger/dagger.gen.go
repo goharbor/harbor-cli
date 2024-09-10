@@ -128,6 +128,9 @@ type CacheVolumeID string
 // The `ContainerID` scalar type represents an identifier for an object of type Container.
 type ContainerID string
 
+// The `CosignID` scalar type represents an identifier for an object of type Cosign.
+type CosignID string
+
 // The `CurrentModuleID` scalar type represents an identifier for an object of type CurrentModule.
 type CurrentModuleID string
 
@@ -1771,6 +1774,134 @@ func (r *Container) Workdir(ctx context.Context) (string, error) {
 	q := r.query.Select("workdir")
 
 	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// Cosign represents the cosign Dagger module type
+type Cosign struct {
+	query *querybuilder.Selection
+
+	id *CosignID
+}
+
+func (r *Cosign) WithGraphQLQuery(q *querybuilder.Selection) *Cosign {
+	return &Cosign{
+		query: q,
+	}
+}
+
+// A unique identifier for this Cosign.
+func (r *Cosign) ID(ctx context.Context) (CosignID, error) {
+	if r.id != nil {
+		return *r.id, nil
+	}
+	q := r.query.Select("id")
+
+	var response CosignID
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
+func (r *Cosign) XXX_GraphQLType() string {
+	return "Cosign"
+}
+
+// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
+func (r *Cosign) XXX_GraphQLIDType() string {
+	return "CosignID"
+}
+
+// XXX_GraphQLID is an internal function. It returns the underlying type ID
+func (r *Cosign) XXX_GraphQLID(ctx context.Context) (string, error) {
+	id, err := r.ID(ctx)
+	if err != nil {
+		return "", err
+	}
+	return string(id), nil
+}
+
+func (r *Cosign) MarshalJSON() ([]byte, error) {
+	id, err := r.ID(marshalCtx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(id)
+}
+func (r *Cosign) UnmarshalJSON(bs []byte) error {
+	var id string
+	err := json.Unmarshal(bs, &id)
+	if err != nil {
+		return err
+	}
+	*r = *dag.LoadCosignFromID(CosignID(id))
+	return nil
+}
+
+// CosignSignOpts contains options for Cosign.Sign
+type CosignSignOpts struct {
+	//
+	// registry username
+	//
+	RegistryUsername string
+	//
+	// name of the image
+	//
+	RegistryPassword *Secret
+	//
+	// Docker config
+	//
+	DockerConfig *File
+	//
+	// Cosign container image
+	//
+	CosignImage string
+	//
+	// Cosign container image user
+	//
+	CosignUser string
+}
+
+// Sign will run cosign from the image, as defined by the cosignImage
+// parameter, to sign the given Container image digests
+//
+// Note: keyless signing not supported as-is
+//
+// See https://edu.chainguard.dev/open-source/sigstore/cosign/an-introduction-to-cosign/
+func (r *Cosign) Sign(ctx context.Context, privateKey *Secret, password *Secret, digests []string, opts ...CosignSignOpts) ([]string, error) {
+	assertNotNil("privateKey", privateKey)
+	assertNotNil("password", password)
+	q := r.query.Select("sign")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `registryUsername` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RegistryUsername) {
+			q = q.Arg("registryUsername", opts[i].RegistryUsername)
+		}
+		// `registryPassword` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RegistryPassword) {
+			q = q.Arg("registryPassword", opts[i].RegistryPassword)
+		}
+		// `dockerConfig` optional argument
+		if !querybuilder.IsZeroValue(opts[i].DockerConfig) {
+			q = q.Arg("dockerConfig", opts[i].DockerConfig)
+		}
+		// `cosignImage` optional argument
+		if !querybuilder.IsZeroValue(opts[i].CosignImage) {
+			q = q.Arg("cosignImage", opts[i].CosignImage)
+		}
+		// `cosignUser` optional argument
+		if !querybuilder.IsZeroValue(opts[i].CosignUser) {
+			q = q.Arg("cosignUser", opts[i].CosignUser)
+		}
+	}
+	q = q.Arg("privateKey", privateKey)
+	q = q.Arg("password", password)
+	q = q.Arg("digests", digests)
+
+	var response []string
 
 	q = q.Bind(&response)
 	return response, q.Execute(ctx)
@@ -6229,6 +6360,14 @@ func (r *Client) Container(opts ...ContainerOpts) *Container {
 	}
 }
 
+func (r *Client) Cosign() *Cosign {
+	q := r.query.Select("cosign")
+
+	return &Cosign{
+		query: q,
+	}
+}
+
 // The FunctionCall context that the SDK caller is currently executing in.
 //
 // If the caller is not currently executing in a function, this will return an error.
@@ -6402,6 +6541,16 @@ func (r *Client) LoadContainerFromID(id ContainerID) *Container {
 	q = q.Arg("id", id)
 
 	return &Container{
+		query: q,
+	}
+}
+
+// Load a Cosign from its ID.
+func (r *Client) LoadCosignFromID(id CosignID) *Cosign {
+	q := r.query.Select("loadCosignFromID")
+	q = q.Arg("id", id)
+
+	return &Cosign{
 		query: q,
 	}
 }

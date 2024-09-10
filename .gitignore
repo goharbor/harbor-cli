@@ -23,3 +23,7 @@ go.work
 
 /harbor
 dist/
+/dagger.gen.go
+/internal/dagger
+/internal/querybuilder
+/internal/telemetry
