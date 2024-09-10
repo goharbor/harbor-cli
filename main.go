@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor-cli/internal/dagger"
 	"log"
 	"strings"
-	"github.com/goharbor/harbor-cli/internal/dagger"
 )
 
 const (
-	GO_VERSION = "1.22.5"
-	SYFT_VERSION = "v1.9.0"
+	GO_VERSION         = "1.22.5"
+	SYFT_VERSION       = "v1.9.0"
 	GORELEASER_VERSION = "v2.1.0"
-	APP_NAME = "dagger-harbor-cli"
+	APP_NAME           = "dagger-harbor-cli"
 )
 
 type HarborCli struct{}
