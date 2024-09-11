@@ -2,6 +2,8 @@ package health
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/health"
@@ -10,12 +12,26 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Component", Width: 20},
-	{Title: "Status", Width: 30},
+	{Title: "Component", Width: 18},
+	{Title: "Status", Width: 26},
 }
 
-type HealthModel struct {
-	tableModel tablelist.Model
+func PrintHealthStatus(status *health.GetHealthOK) {
+	var rows []table.Row
+	fmt.Printf("Harbor Health Status:: %s\n", styleStatus(status.Payload.Status))
+	for _, component := range status.Payload.Components {
+		rows = append(rows, table.Row{
+			component.Name,
+			styleStatus(component.Status),
+		})
+	}
+
+	m := tablelist.NewModel(columns, rows, len(rows))
+
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 }
 
 func styleStatus(status string) string {
@@ -23,28 +39,4 @@ func styleStatus(status string) string {
 		return views.GreenStyle.Render(status)
 	}
 	return views.RedStyle.Render(status)
-}
-
-func NewHealthModel(status *health.GetHealthOK) HealthModel {
-	var rows []table.Row
-	for _, component := range status.Payload.Components {
-		rows = append(rows, table.Row{
-			component.Name,
-			styleStatus(component.Status),
-		})
-	}
-	
-	tbl := tablelist.NewModel(columns, rows, len(rows)+1) // +1 for header
-	return HealthModel{tableModel: tbl}
-}
-
-func PrintHealthStatus(status *health.GetHealthOK) {
-	m := NewHealthModel(status)
-	fmt.Printf("Harbor Health Status:: %s\n", styleStatus(status.Payload.Status))
-
-	p := tea.NewProgram(m.tableModel)
-	if _, err := p.Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		return
-	}
 }
