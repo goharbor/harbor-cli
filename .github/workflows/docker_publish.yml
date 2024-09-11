@@ -1,0 +1,25 @@
+name: Docker Publish
+
+on:
+  push:
+    branches: [docker-publish]
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+jobs:
+  docker-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Call Docker-Publish Function
+        uses: dagger/dagger-for-github@v6.1.0
+        with:
+          version: "latest"
+          verb: call
+          module: github.com/bishal7679/harbor-cli@v0.6.4
+          args: docker-publish --directory-arg=. --cosign-key=${{ secrets.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}  --reg-username=${{ env.REGISTRY_USERNAME }}  --reg-password=${{ env.REGISTRY_PASSWORD }}
