@@ -54,7 +54,7 @@ func LoginCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
+	flags.StringVarP(&Name, "name", "n", "", "name for the set of credentials")
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 
