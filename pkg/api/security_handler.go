@@ -5,20 +5,18 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
-func GetSecuritySummary() error {
+func GetSecuritySummary() (*securityhub.GetSecuritySummaryOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	params := &securityhub.GetSecuritySummaryParams{}
-	response, err := client.Securityhub.GetSecuritySummary(ctx, params)
+	response, err := client.Securityhub.GetSecuritySummary(ctx,&securityhub.GetSecuritySummaryParams{})
 	if err != nil {
-		return err
+		return nil,err
 	}
 
-	utils.PrintPayloadInJSONFormat(response.Payload)
-	return nil
+	return response,nil
 }
 
 func ListVulnerabilities(query string) error {
