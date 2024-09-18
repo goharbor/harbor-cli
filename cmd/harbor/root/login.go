@@ -69,12 +69,16 @@ func LoginCommand() *cobra.Command {
 
 // generateCredentialName creates a default credential name based on server and username
 func generateCredentialName(server, username string) string {
-	serverName := strings.ReplaceAll(strings.Split(server, ":")[0], "https://", "")
-	serverName = strings.ReplaceAll(serverName, "http://", "")
-	if username != "" {
-		return fmt.Sprintf("%s_%s", serverName, username)
+	if strings.HasPrefix(server, "http://") {
+		server = strings.ReplaceAll(server, "http://", "")
 	}
-	return serverName
+	if strings.HasPrefix(server, "https://") {
+		server = strings.ReplaceAll(server, "https://", "")
+	}
+	if username != "" {
+		return fmt.Sprintf("%s@%s", username, server)
+	}
+	return server
 }
 
 func createLoginView(loginView *login.LoginView) error {
@@ -104,6 +108,9 @@ func runLogin(opts login.LoginView) error {
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
+	}
+	if opts.Name == "" {
+		opts.Name = generateCredentialName(opts.Server,opts.Username)
 	}
 
 	cred := utils.Credential{
