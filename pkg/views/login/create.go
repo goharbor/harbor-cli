@@ -38,7 +38,7 @@ func CreateView(loginView *LoginView) {
 				}),
 			huh.NewInput().
 				Title("Password").
-        EchoMode(huh.EchoModePassword).
+        		EchoMode(huh.EchoModePassword).
 				Value(&loginView.Password).
 				Validate(func(str string) error {
 					if str == "" {
@@ -48,13 +48,7 @@ func CreateView(loginView *LoginView) {
 				}),
 			huh.NewInput().
 				Title("Name of Credential").
-				Value(&loginView.Name).
-				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("credential name cannot be empty")
-					}
-					return nil
-				}),
+				Value(&loginView.Name),
 		),
 	).WithTheme(theme).Run()
 
