@@ -1,0 +1,24 @@
+name: harbor artifact tags
+synopsis: Manage tags of an artifact
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for tags
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+example: ' harbor artifact tags list <project>/<repository>/<reference>'
+see_also:
+    - harbor artifact - Manage artifacts
+    - harbor artifact tags create - Create a tag of an artifact
+    - harbor artifact tags delete - Delete a tag of an artifact
+    - harbor artifact tags list - List tags of an artifact

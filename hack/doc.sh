@@ -1,0 +1,1 @@
+go run cmd/harbor/main.go gen-docs

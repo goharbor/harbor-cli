@@ -26,11 +26,11 @@ var (
 )
 
 func SetLocation() {
-	home, err := os.UserHomeDir()
+	home, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	HarborFolder = filepath.Join(home, ".harbor")
+	HarborFolder = filepath.Join(home, "harbor")
 	DefaultConfigPath = filepath.Join(HarborFolder, "config.yaml")
 }
 

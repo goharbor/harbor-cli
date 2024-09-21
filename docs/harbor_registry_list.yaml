@@ -1,0 +1,32 @@
+name: harbor registry list
+synopsis: list registry
+usage: harbor registry list [flags]
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for list
+    - name: page
+      default_value: "1"
+      usage: Page number
+    - name: page-size
+      default_value: "10"
+      usage: Size of per page
+    - name: query
+      shorthand: q
+      usage: Query string to query resources
+    - name: sort
+      usage: Sort the resource list in ascending or descending order
+inherited_options:
+    - name: config
+      default_value: $HOME/.config/harbor/config.yaml
+      usage: config file
+    - name: output-format
+      shorthand: o
+      usage: 'Output format. One of: json|yaml'
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: verbose output
+see_also:
+    - harbor registry - Manage registries
