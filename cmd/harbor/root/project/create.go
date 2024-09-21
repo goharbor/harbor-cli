@@ -12,9 +12,9 @@ func CreateProjectCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use:   "create",
+		Use:   "create [project name]",
 		Short: "create project",
-		Args:  cobra.NoArgs,
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
@@ -24,8 +24,8 @@ func CreateProjectCommand() *cobra.Command {
 				StorageLimit: opts.StorageLimit,
 				ProxyCache:   false,
 			}
-
-			if opts.ProjectName != "" && opts.RegistryID != "" && opts.StorageLimit != "" {
+			if len(args) > 0 {
+				opts.ProjectName = args[0]
 				err = api.CreateProject(opts)
 			} else {
 				err = createProjectView(createView)
@@ -39,8 +39,7 @@ func CreateProjectCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.ProjectName, "name", "", "", "Name of the project")
-	flags.BoolVarP(&opts.Public, "public", "", true, "Project is public or private")
+	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.RegistryID, "registry-id", "", "", "ID of referenced registry when creating the proxy cache project")
 	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "-1", "Storage quota of the project")
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
@@ -52,7 +51,7 @@ func createProjectView(createView *create.CreateView) error {
 	if createView == nil {
 		createView = &create.CreateView{
 			ProjectName:  "",
-			Public:       true,
+			Public:       false,
 			RegistryID:   "",
 			StorageLimit: "-1",
 		}

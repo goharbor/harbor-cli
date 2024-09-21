@@ -50,7 +50,7 @@ func CreateUserView(createView *CreateView) {
 				}),
 			huh.NewInput().
 				Title("Password").
-				Password(true).
+        EchoMode(huh.EchoModePassword).
 				Value(&createView.Password).
 				Validate(func(str string) error {
 					if str == "" {

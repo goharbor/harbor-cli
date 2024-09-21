@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -24,4 +25,18 @@ func FormatCreatedTime(timestamp string) (string, error) {
 	} else {
 		return fmt.Sprintf("%d day ago", days), nil
 	}
+}
+
+func FormatUrl(url string) string {
+	// Check if URL starts with "http://" or "https://"
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		// If not, prepend "https://"
+		url = "https://" + url
+	}
+	return url
+}
+
+func FormatSize(size int64) string {
+	mbSize := float64(size) / (1024 * 1024)
+	return fmt.Sprintf("%.2fMiB", mbSize)
 }
