@@ -105,7 +105,7 @@ func runLogin(opts login.LoginView) error {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
 	}
 	if opts.Name == "" {
-		opts.Name = generateCredentialName(opts.Server,opts.Username)
+		opts.Name = generateCredentialName(opts.Server, opts.Username)
 	}
 
 	cred := utils.Credential{
