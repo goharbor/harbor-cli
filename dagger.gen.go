@@ -9,13 +9,14 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/goharbor/harbor-cli/internal/dagger"
-	"github.com/goharbor/harbor-cli/internal/telemetry"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/goharbor/harbor-cli/internal/dagger"
+	"github.com/goharbor/harbor-cli/internal/querybuilder"
+	"github.com/goharbor/harbor-cli/internal/telemetry"
 )
 
 var dag = dagger.Connect()
@@ -33,7 +34,7 @@ func setMarshalContext(ctx context.Context) {
 	dagger.SetMarshalContext(ctx)
 }
 
-type DaggerObject = dagger.DaggerObject
+type DaggerObject = querybuilder.GraphQLMarshaller
 
 type ExecError = dagger.ExecError
 
@@ -143,83 +144,34 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 	switch parentName {
 	case "HarborCli":
 		switch fnName {
-		case "Echo":
+		case "Build":
 			var parent HarborCli
 			err = json.Unmarshal(parentJSON, &parent)
 			if err != nil {
 				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
 			}
-			var stringArg string
-			if inputArgs["stringArg"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["stringArg"]), &stringArg)
+			var source *dagger.Directory
+			if inputArgs["source"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["source"]), &source)
 				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg stringArg", err))
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg source", err))
 				}
 			}
-			return (*HarborCli).Echo(&parent, stringArg), nil
-		case "ContainerEcho":
-			var parent HarborCli
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
-			}
-			var stringArg string
-			if inputArgs["stringArg"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["stringArg"]), &stringArg)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg stringArg", err))
-				}
-			}
-			return (*HarborCli).ContainerEcho(&parent, stringArg), nil
-		case "GrepDir":
-			var parent HarborCli
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
-			}
-			var directoryArg *dagger.Directory
-			if inputArgs["directoryArg"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["directoryArg"]), &directoryArg)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg directoryArg", err))
-				}
-			}
-			var pattern string
-			if inputArgs["pattern"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["pattern"]), &pattern)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg pattern", err))
-				}
-			}
-			return (*HarborCli).GrepDir(&parent, ctx, directoryArg, pattern)
+			return (*HarborCli).Build(&parent, ctx, source), nil
 		case "LintCode":
 			var parent HarborCli
 			err = json.Unmarshal(parentJSON, &parent)
 			if err != nil {
 				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
 			}
-			var directoryArg *dagger.Directory
-			if inputArgs["directoryArg"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["directoryArg"]), &directoryArg)
+			var source *dagger.Directory
+			if inputArgs["source"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["source"]), &source)
 				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg directoryArg", err))
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg source", err))
 				}
 			}
-			return (*HarborCli).LintCode(&parent, ctx, directoryArg), nil
-		case "BuildHarbor":
-			var parent HarborCli
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
-			}
-			var directoryArg *dagger.Directory
-			if inputArgs["directoryArg"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["directoryArg"]), &directoryArg)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg directoryArg", err))
-				}
-			}
-			return (*HarborCli).BuildHarbor(&parent, ctx, directoryArg), nil
+			return (*HarborCli).LintCode(&parent, ctx, source), nil
 		case "PullRequest":
 			var parent HarborCli
 			err = json.Unmarshal(parentJSON, &parent)
@@ -277,6 +229,20 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg directoryArg", err))
 				}
 			}
+			var cosignKey *dagger.Secret
+			if inputArgs["cosignKey"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["cosignKey"]), &cosignKey)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg cosignKey", err))
+				}
+			}
+			var cosignPassword string
+			if inputArgs["cosignPassword"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["cosignPassword"]), &cosignPassword)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg cosignPassword", err))
+				}
+			}
 			var regUsername string
 			if inputArgs["regUsername"] != nil {
 				err = json.Unmarshal([]byte(inputArgs["regUsername"]), &regUsername)
@@ -284,28 +250,14 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg regUsername", err))
 				}
 			}
-			var regPassword *dagger.Secret
+			var regPassword string
 			if inputArgs["regPassword"] != nil {
 				err = json.Unmarshal([]byte(inputArgs["regPassword"]), &regPassword)
 				if err != nil {
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg regPassword", err))
 				}
 			}
-			var privateKey *dagger.Secret
-			if inputArgs["privateKey"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["privateKey"]), &privateKey)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg privateKey", err))
-				}
-			}
-			var password *dagger.Secret
-			if inputArgs["password"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["password"]), &password)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg password", err))
-				}
-			}
-			return (*HarborCli).DockerPublish(&parent, ctx, directoryArg), nil
+			return (*HarborCli).DockerPublish(&parent, ctx, directoryArg, cosignKey, cosignPassword, regUsername, regPassword), nil
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
@@ -314,28 +266,13 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			WithObject(
 				dag.TypeDef().WithObject("HarborCli").
 					WithFunction(
-						dag.Function("Echo",
-							dag.TypeDef().WithKind(dagger.StringKind)).
-							WithArg("stringArg", dag.TypeDef().WithKind(dagger.StringKind))).
-					WithFunction(
-						dag.Function("ContainerEcho",
-							dag.TypeDef().WithObject("Container")).
-							WithDescription("Returns a container that echoes whatever string argument is provided").
-							WithArg("stringArg", dag.TypeDef().WithKind(dagger.StringKind))).
-					WithFunction(
-						dag.Function("GrepDir",
-							dag.TypeDef().WithKind(dagger.StringKind)).
-							WithDescription("Returns lines that match a pattern in the files of the provided Directory").
-							WithArg("directoryArg", dag.TypeDef().WithObject("Directory")).
-							WithArg("pattern", dag.TypeDef().WithKind(dagger.StringKind))).
+						dag.Function("Build",
+							dag.TypeDef().WithObject("Directory")).
+							WithArg("source", dag.TypeDef().WithObject("Directory").WithOptional(true), dagger.FunctionWithArgOpts{DefaultPath: "./"})).
 					WithFunction(
 						dag.Function("LintCode",
 							dag.TypeDef().WithObject("Container")).
-							WithArg("directoryArg", dag.TypeDef().WithObject("Directory"))).
-					WithFunction(
-						dag.Function("BuildHarbor",
-							dag.TypeDef().WithObject("Directory")).
-							WithArg("directoryArg", dag.TypeDef().WithObject("Directory"))).
+							WithArg("source", dag.TypeDef().WithObject("Directory").WithOptional(true), dagger.FunctionWithArgOpts{DefaultPath: "./"})).
 					WithFunction(
 						dag.Function("PullRequest",
 							dag.TypeDef().WithKind(dagger.VoidKind).WithOptional(true)).
@@ -350,10 +287,10 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 						dag.Function("DockerPublish",
 							dag.TypeDef().WithKind(dagger.StringKind)).
 							WithArg("directoryArg", dag.TypeDef().WithObject("Directory")).
+							WithArg("cosignKey", dag.TypeDef().WithObject("Secret")).
+							WithArg("cosignPassword", dag.TypeDef().WithKind(dagger.StringKind)).
 							WithArg("regUsername", dag.TypeDef().WithKind(dagger.StringKind)).
-							WithArg("regPassword", dag.TypeDef().WithObject("Secret")).
-							WithArg("privateKey", dag.TypeDef().WithObject("Secret")).
-							WithArg("password", dag.TypeDef().WithObject("Secret")))), nil
+							WithArg("regPassword", dag.TypeDef().WithKind(dagger.StringKind)))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}

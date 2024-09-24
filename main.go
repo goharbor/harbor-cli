@@ -19,56 +19,52 @@ const (
 
 type HarborCli struct{}
 
-func (m *HarborCli) Echo(stringArg string) string {
-	return stringArg
-}
+func (m *HarborCli) Build(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory) *dagger.Directory {
 
-// Returns a container that echoes whatever string argument is provided
-func (m *HarborCli) ContainerEcho(stringArg string) *dagger.Container {
-	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
-
-}
-
-// Returns lines that match a pattern in the files of the provided Directory
-func (m *HarborCli) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
-	return dag.Container().
-		From("alpine:latest").
-		WithMountedDirectory("/mnt", directoryArg).
-		WithWorkdir("/mnt").
-		WithExec([]string{"grep", "-R", pattern, "."}).
-		Stdout(ctx)
-
-}
-
-func (m *HarborCli) LintCode(ctx context.Context, directoryArg *dagger.Directory) *dagger.Container {
-	fmt.Println("👀 Running linter with Dagger...")
-	return dag.Container().
-		From("golangci/golangci-lint:v1.59.1-alpine").
-		WithMountedDirectory("/src", directoryArg).
-		WithWorkdir("/src").
-		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
-
-}
-
-func (m *HarborCli) BuildHarbor(ctx context.Context, directoryArg *dagger.Directory) *dagger.Directory {
 	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
 	outputs := dag.Directory()
-	golangcont, main_go_path := fetchMainGoPath(ctx, directoryArg)
+	golangcont, main_go_path := fetchMainGoPath(ctx, source)
 
 	for _, goos := range oses {
 		for _, goarch := range arches {
 			path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			build := golangcont.WithEnvVariable("GOOS", goos).
+				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+				WithEnvVariable("GOCACHE", "/go/build-cache").
 				WithEnvVariable("GOARCH", goarch).
 				WithExec([]string{"go", "build", "-o", path + "harbor", main_go_path})
-
 			// Get reference to build output directory in container
 			outputs = outputs.WithDirectory(path, build.Directory(path))
 		}
 	}
 	return outputs
+}
+
+func (m *HarborCli) LintCode(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+) *dagger.Container {
+	fmt.Println("👀 Running linter with Dagger...")
+	return dag.Container().
+		From("golangci/golangci-lint:v1.59.1-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src").
+		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
+
 }
 
 func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
