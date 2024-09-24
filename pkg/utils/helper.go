@@ -67,7 +67,7 @@ func ValidatePassword(password string) (bool, error) {
 }
 
 // check if the tag name is valid
-func VaildateTagName(tagname string) bool {
+func ValidateTagName(tagname string) bool {
 	pattern := `^[\w][\w.-]{0,127}$`
 
 	re := regexp.MustCompile(pattern)
