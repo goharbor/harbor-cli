@@ -96,3 +96,11 @@ func ValidateStorageLimit(sl string) error {
 	}
 	return nil
 }
+
+func ValidateRegistryName(rn string) bool {
+	pattern := `^[\w][\w.-]{0,63}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(rn)
+}

@@ -2,10 +2,13 @@ package create
 
 import (
 	"errors"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -58,8 +61,11 @@ func CreateRegistryView(createView *api.CreateRegView) {
 				Title("Name").
 				Value(&createView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("name cannot be empty or only spaces")
+					}
+					if isVaild := utils.ValidateRegistryName(str); !isVaild {
+						return errors.New("enter the correct name format")
 					}
 					return nil
 				}),
@@ -70,8 +76,12 @@ func CreateRegistryView(createView *api.CreateRegView) {
 				Title("URL").
 				Value(&createView.URL).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("url cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("url cannot be empty or only spaces")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
+						return errors.New("enter the correct url format")
 					}
 					return nil
 				}),
