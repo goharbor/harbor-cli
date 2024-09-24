@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
-
 	"github.com/goharbor/harbor-cli/internal/dagger"
+	"log"
 )
 
 const (
@@ -29,26 +27,28 @@ func (m *HarborCli) Build(
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
 	outputs := dag.Directory()
-	golangcont, main_go_path := fetchMainGoPath(ctx, source)
-
 	for _, goos := range oses {
 		for _, goarch := range arches {
-			path := fmt.Sprintf("build/%s/%s/", goos, goarch)
-			build := golangcont.WithEnvVariable("GOOS", goos).
+			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
+			builder := dag.Container().
+				From("golang:"+GO_VERSION+"-alpine").
+				WithMountedDirectory("/src", source).
+				WithWorkdir("/src").
 				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 				WithEnvVariable("GOCACHE", "/go/build-cache").
+				WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-o", path + "harbor", main_go_path})
+				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"})
 			// Get reference to build output directory in container
-			outputs = outputs.WithDirectory(path, build.Directory(path))
+			outputs = outputs.WithDirectory(bin_path, builder.Directory(bin_path))
 		}
 	}
 	return outputs
 }
 
-func (m *HarborCli) LintCode(
+func (m *HarborCli) Lint(
 	ctx context.Context,
 	// +optional
 	// +defaultPath="./"
@@ -87,19 +87,26 @@ func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory,
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Directory, cosignKey *dagger.Secret, cosignPassword string, regUsername string, regPassword string) string {
+func (m *HarborCli) PublishImage(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	cosignKey *dagger.Secret,
+	cosignPassword string,
+	regUsername string,
+	regPassword string,
+) string {
 
-	builder, main_go_path := fetchMainGoPath(ctx, directoryArg)
-	builder = builder.WithWorkdir("/src").WithExec([]string{"go", "build", "-o", "harbor", main_go_path})
-
-	// Create a minimal runtime container
-	runtime := dag.Container().
+	builder := m.Build(ctx, source)
+	// Create a minimal cli_runtime container
+	cli_runtime := dag.Container().
 		From("alpine:latest").
 		WithWorkdir("/root/").
-		WithFile("/root/harbor", builder.File("/src/harbor")).
+		WithFile("/root/harbor", builder.File("/")).
 		WithEntrypoint([]string{"./harbor"})
 
-	addr, _ := runtime.Publish(ctx, PUBLISH_ADDRESS)
+	addr, _ := cli_runtime.Publish(ctx, PUBLISH_ADDRESS)
 	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
 	regpassword := dag.SetSecret("reg_password", regPassword)
 	_, err := dag.Cosign().Sign(ctx, cosignKey, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
@@ -108,23 +115,6 @@ func (m *HarborCli) DockerPublish(ctx context.Context, directoryArg *dagger.Dire
 	}
 	fmt.Printf("Published to %s 🎉\n", addr)
 	return addr
-}
-
-func fetchMainGoPath(ctx context.Context, directoryArg *dagger.Directory) (*dagger.Container, string) {
-
-	container := dag.Container().
-		From("golang:1.22-alpine").
-		WithMountedDirectory("/src", directoryArg).
-		WithWorkdir("/src").
-		WithExec([]string{"sh", "-c", "export MAIN_GO_PATH=$(find ./cmd -type f -name 'main.go' -print -quit) && echo $MAIN_GO_PATH > main_go_path.txt"})
-
-	// Reading the content of main_go_path.txt file and fetching the actual path of main.go
-	main_go_txt_file, _ := container.File("main_go_path.txt").Contents(ctx)
-	trimmedPath := strings.TrimPrefix(main_go_txt_file, "./")
-	result := "/src/" + trimmedPath
-	main_go_path := strings.TrimRight(result, "\n")
-
-	return container, main_go_path
 }
 
 func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
