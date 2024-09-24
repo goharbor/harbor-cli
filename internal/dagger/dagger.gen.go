@@ -49,7 +49,7 @@ func assertNotNil(argName string, value any) {
 	}
 }
 
-type DaggerObject querybuilder.GraphQLMarshaller
+type DaggerObject = querybuilder.GraphQLMarshaller
 
 // getCustomError parses a GraphQL error into a more specific error type.
 func getCustomError(err error) error {
@@ -127,6 +127,9 @@ type CacheVolumeID string
 
 // The `ContainerID` scalar type represents an identifier for an object of type Container.
 type ContainerID string
+
+// The `CosignID` scalar type represents an identifier for an object of type Cosign.
+type CosignID string
 
 // The `CurrentModuleID` scalar type represents an identifier for an object of type CurrentModule.
 type CurrentModuleID string
@@ -352,6 +355,7 @@ type Container struct {
 	stderr      *string
 	stdout      *string
 	sync        *ContainerID
+	up          *Void
 	user        *string
 	workdir     *string
 }
@@ -816,34 +820,6 @@ func (r *Container) Mounts(ctx context.Context) ([]string, error) {
 	return response, q.Execute(ctx)
 }
 
-// ContainerPipelineOpts contains options for Container.Pipeline
-type ContainerPipelineOpts struct {
-	// Description of the sub-pipeline.
-	Description string
-	// Labels to apply to the sub-pipeline.
-	Labels []PipelineLabel
-}
-
-// Creates a named sub-pipeline.
-func (r *Container) Pipeline(name string, opts ...ContainerPipelineOpts) *Container {
-	q := r.query.Select("pipeline")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `description` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Description) {
-			q = q.Arg("description", opts[i].Description)
-		}
-		// `labels` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Labels) {
-			q = q.Arg("labels", opts[i].Labels)
-		}
-	}
-	q = q.Arg("name", name)
-
-	return &Container{
-		query: q,
-	}
-}
-
 // The platform this container executes and publishes as.
 func (r *Container) Platform(ctx context.Context) (Platform, error) {
 	if r.platform != nil {
@@ -994,6 +970,38 @@ func (r *Container) Terminal(opts ...ContainerTerminalOpts) *Container {
 	}
 }
 
+// ContainerUpOpts contains options for Container.Up
+type ContainerUpOpts struct {
+	// List of frontend/backend port mappings to forward.
+	//
+	// Frontend is the port accepting traffic on the host, backend is the service port.
+	Ports []PortForward
+	// Bind each tunnel port to a random port on the host.
+	Random bool
+}
+
+// Starts a Service and creates a tunnel that forwards traffic from the caller's network to that service.
+//
+// Be sure to set any exposed ports before calling this api.
+func (r *Container) Up(ctx context.Context, opts ...ContainerUpOpts) error {
+	if r.up != nil {
+		return nil
+	}
+	q := r.query.Select("up")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `ports` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Ports) {
+			q = q.Arg("ports", opts[i].Ports)
+		}
+		// `random` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Random) {
+			q = q.Arg("random", opts[i].Random)
+		}
+	}
+
+	return q.Execute(ctx)
+}
+
 // Retrieves the user to be set for all commands.
 func (r *Container) User(ctx context.Context) (string, error) {
 	if r.user != nil {
@@ -1005,6 +1013,17 @@ func (r *Container) User(ctx context.Context) (string, error) {
 
 	q = q.Bind(&response)
 	return response, q.Execute(ctx)
+}
+
+// Retrieves this container plus the given OCI anotation.
+func (r *Container) WithAnnotation(name string, value string) *Container {
+	q := r.query.Select("withAnnotation")
+	q = q.Arg("name", name)
+	q = q.Arg("value", value)
+
+	return &Container{
+		query: q,
+	}
 }
 
 // Configures default arguments for future commands.
@@ -1134,8 +1153,6 @@ func (r *Container) WithEnvVariable(name string, value string, opts ...Container
 
 // ContainerWithExecOpts contains options for Container.WithExec
 type ContainerWithExecOpts struct {
-	// DEPRECATED: For true this can be removed. For false, use `useEntrypoint` instead.
-	SkipEntrypoint bool
 	// If the container has an entrypoint, prepend it to the args.
 	UseEntrypoint bool
 	// Content to write to the command's standard input before closing (e.g., "Hello world").
@@ -1156,10 +1173,6 @@ type ContainerWithExecOpts struct {
 func (r *Container) WithExec(args []string, opts ...ContainerWithExecOpts) *Container {
 	q := r.query.Select("withExec")
 	for i := len(opts) - 1; i >= 0; i-- {
-		// `skipEntrypoint` optional argument
-		if !querybuilder.IsZeroValue(opts[i].SkipEntrypoint) {
-			q = q.Arg("skipEntrypoint", opts[i].SkipEntrypoint)
-		}
 		// `useEntrypoint` optional argument
 		if !querybuilder.IsZeroValue(opts[i].UseEntrypoint) {
 			q = q.Arg("useEntrypoint", opts[i].UseEntrypoint)
@@ -1598,6 +1611,16 @@ func (r *Container) WithWorkdir(path string) *Container {
 	}
 }
 
+// Retrieves this container minus the given OCI annotation.
+func (r *Container) WithoutAnnotation(name string) *Container {
+	q := r.query.Select("withoutAnnotation")
+	q = q.Arg("name", name)
+
+	return &Container{
+		query: q,
+	}
+}
+
 // Retrieves this container with unset default arguments for future commands.
 func (r *Container) WithoutDefaultArgs() *Container {
 	q := r.query.Select("withoutDefaultArgs")
@@ -1674,6 +1697,16 @@ func (r *Container) WithoutExposedPort(port int, opts ...ContainerWithoutExposed
 func (r *Container) WithoutFile(path string) *Container {
 	q := r.query.Select("withoutFile")
 	q = q.Arg("path", path)
+
+	return &Container{
+		query: q,
+	}
+}
+
+// Retrieves this container with the files at the given paths removed.
+func (r *Container) WithoutFiles(paths []string) *Container {
+	q := r.query.Select("withoutFiles")
+	q = q.Arg("paths", paths)
 
 	return &Container{
 		query: q,
@@ -1771,6 +1804,134 @@ func (r *Container) Workdir(ctx context.Context) (string, error) {
 	q := r.query.Select("workdir")
 
 	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// Cosign represents the cosign Dagger module type
+type Cosign struct {
+	query *querybuilder.Selection
+
+	id *CosignID
+}
+
+func (r *Cosign) WithGraphQLQuery(q *querybuilder.Selection) *Cosign {
+	return &Cosign{
+		query: q,
+	}
+}
+
+// A unique identifier for this Cosign.
+func (r *Cosign) ID(ctx context.Context) (CosignID, error) {
+	if r.id != nil {
+		return *r.id, nil
+	}
+	q := r.query.Select("id")
+
+	var response CosignID
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
+func (r *Cosign) XXX_GraphQLType() string {
+	return "Cosign"
+}
+
+// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
+func (r *Cosign) XXX_GraphQLIDType() string {
+	return "CosignID"
+}
+
+// XXX_GraphQLID is an internal function. It returns the underlying type ID
+func (r *Cosign) XXX_GraphQLID(ctx context.Context) (string, error) {
+	id, err := r.ID(ctx)
+	if err != nil {
+		return "", err
+	}
+	return string(id), nil
+}
+
+func (r *Cosign) MarshalJSON() ([]byte, error) {
+	id, err := r.ID(marshalCtx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(id)
+}
+func (r *Cosign) UnmarshalJSON(bs []byte) error {
+	var id string
+	err := json.Unmarshal(bs, &id)
+	if err != nil {
+		return err
+	}
+	*r = *dag.LoadCosignFromID(CosignID(id))
+	return nil
+}
+
+// CosignSignOpts contains options for Cosign.Sign
+type CosignSignOpts struct {
+	//
+	// registry username
+	//
+	RegistryUsername string
+	//
+	// name of the image
+	//
+	RegistryPassword *Secret
+	//
+	// Docker config
+	//
+	DockerConfig *File
+	//
+	// Cosign container image
+	//
+	CosignImage string
+	//
+	// Cosign container image user
+	//
+	CosignUser string
+}
+
+// Sign will run cosign from the image, as defined by the cosignImage
+// parameter, to sign the given Container image digests
+//
+// Note: keyless signing not supported as-is
+//
+// See https://edu.chainguard.dev/open-source/sigstore/cosign/an-introduction-to-cosign/
+func (r *Cosign) Sign(ctx context.Context, privateKey *Secret, password *Secret, digests []string, opts ...CosignSignOpts) ([]string, error) {
+	assertNotNil("privateKey", privateKey)
+	assertNotNil("password", password)
+	q := r.query.Select("sign")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `registryUsername` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RegistryUsername) {
+			q = q.Arg("registryUsername", opts[i].RegistryUsername)
+		}
+		// `registryPassword` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RegistryPassword) {
+			q = q.Arg("registryPassword", opts[i].RegistryPassword)
+		}
+		// `dockerConfig` optional argument
+		if !querybuilder.IsZeroValue(opts[i].DockerConfig) {
+			q = q.Arg("dockerConfig", opts[i].DockerConfig)
+		}
+		// `cosignImage` optional argument
+		if !querybuilder.IsZeroValue(opts[i].CosignImage) {
+			q = q.Arg("cosignImage", opts[i].CosignImage)
+		}
+		// `cosignUser` optional argument
+		if !querybuilder.IsZeroValue(opts[i].CosignUser) {
+			q = q.Arg("cosignUser", opts[i].CosignUser)
+		}
+	}
+	q = q.Arg("privateKey", privateKey)
+	q = q.Arg("password", password)
+	q = q.Arg("digests", digests)
+
+	var response []string
 
 	q = q.Bind(&response)
 	return response, q.Execute(ctx)
@@ -2254,6 +2415,7 @@ func (r *DaggerEngineCacheEntrySet) UnmarshalJSON(bs []byte) error {
 type Directory struct {
 	query *querybuilder.Selection
 
+	digest *string
 	export *string
 	id     *DirectoryID
 	sync   *DirectoryID
@@ -2313,6 +2475,19 @@ func (r *Directory) Diff(other *Directory) *Directory {
 	return &Directory{
 		query: q,
 	}
+}
+
+// Return the directory's digest. The format of the digest is not guaranteed to be stable between releases of Dagger. It is guaranteed to be stable between invocations of the same Dagger engine.
+func (r *Directory) Digest(ctx context.Context) (string, error) {
+	if r.digest != nil {
+		return *r.digest, nil
+	}
+	q := r.query.Select("digest")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // Retrieves a directory at the given path.
@@ -2488,34 +2663,6 @@ func (r *Directory) UnmarshalJSON(bs []byte) error {
 	}
 	*r = *dag.LoadDirectoryFromID(DirectoryID(id))
 	return nil
-}
-
-// DirectoryPipelineOpts contains options for Directory.Pipeline
-type DirectoryPipelineOpts struct {
-	// Description of the sub-pipeline.
-	Description string
-	// Labels to apply to the sub-pipeline.
-	Labels []PipelineLabel
-}
-
-// Creates a named sub-pipeline.
-func (r *Directory) Pipeline(name string, opts ...DirectoryPipelineOpts) *Directory {
-	q := r.query.Select("pipeline")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `description` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Description) {
-			q = q.Arg("description", opts[i].Description)
-		}
-		// `labels` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Labels) {
-			q = q.Arg("labels", opts[i].Labels)
-		}
-	}
-	q = q.Arg("name", name)
-
-	return &Directory{
-		query: q,
-	}
 }
 
 // Force evaluation in the engine.
@@ -2718,6 +2865,16 @@ func (r *Directory) WithoutDirectory(path string) *Directory {
 func (r *Directory) WithoutFile(path string) *Directory {
 	q := r.query.Select("withoutFile")
 	q = q.Arg("path", path)
+
+	return &Directory{
+		query: q,
+	}
+}
+
+// Retrieves this directory with the files at the given paths removed.
+func (r *Directory) WithoutFiles(paths []string) *Directory {
+	q := r.query.Select("withoutFiles")
+	q = q.Arg("paths", paths)
 
 	return &Directory{
 		query: q,
@@ -3147,6 +3304,7 @@ type File struct {
 	query *querybuilder.Selection
 
 	contents *string
+	digest   *string
 	export   *string
 	id       *FileID
 	name     *string
@@ -3174,6 +3332,31 @@ func (r *File) Contents(ctx context.Context) (string, error) {
 		return *r.contents, nil
 	}
 	q := r.query.Select("contents")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// FileDigestOpts contains options for File.Digest
+type FileDigestOpts struct {
+	// If true, exclude metadata from the digest.
+	ExcludeMetadata bool
+}
+
+// Return the file's digest. The format of the digest is not guaranteed to be stable between releases of Dagger. It is guaranteed to be stable between invocations of the same Dagger engine.
+func (r *File) Digest(ctx context.Context, opts ...FileDigestOpts) (string, error) {
+	if r.digest != nil {
+		return *r.digest, nil
+	}
+	q := r.query.Select("digest")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `excludeMetadata` optional argument
+		if !querybuilder.IsZeroValue(opts[i].ExcludeMetadata) {
+			q = q.Arg("excludeMetadata", opts[i].ExcludeMetadata)
+		}
+	}
 
 	var response string
 
@@ -3463,6 +3646,10 @@ type FunctionWithArgOpts struct {
 	Description string
 	// A default value to use for this argument if not explicitly set by the caller, if any
 	DefaultValue JSON
+	// If the argument is a Directory or File type, default to load path from context directory, relative to root directory.
+	DefaultPath string
+	// Patterns to ignore when loading the contextual argument value.
+	Ignore []string
 }
 
 // Returns the function with the provided argument
@@ -3477,6 +3664,14 @@ func (r *Function) WithArg(name string, typeDef *TypeDef, opts ...FunctionWithAr
 		// `defaultValue` optional argument
 		if !querybuilder.IsZeroValue(opts[i].DefaultValue) {
 			q = q.Arg("defaultValue", opts[i].DefaultValue)
+		}
+		// `defaultPath` optional argument
+		if !querybuilder.IsZeroValue(opts[i].DefaultPath) {
+			q = q.Arg("defaultPath", opts[i].DefaultPath)
+		}
+		// `ignore` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Ignore) {
+			q = q.Arg("ignore", opts[i].Ignore)
 		}
 	}
 	q = q.Arg("name", name)
@@ -3503,6 +3698,7 @@ func (r *Function) WithDescription(description string) *Function {
 type FunctionArg struct {
 	query *querybuilder.Selection
 
+	defaultPath  *string
 	defaultValue *JSON
 	description  *string
 	id           *FunctionArgID
@@ -3513,6 +3709,19 @@ func (r *FunctionArg) WithGraphQLQuery(q *querybuilder.Selection) *FunctionArg {
 	return &FunctionArg{
 		query: q,
 	}
+}
+
+// Only applies to arguments of type File or Directory. If the argument is not set, load it from the given path in the context directory
+func (r *FunctionArg) DefaultPath(ctx context.Context) (string, error) {
+	if r.defaultPath != nil {
+		return *r.defaultPath, nil
+	}
+	q := r.query.Select("defaultPath")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // A default value to use for this argument when not explicitly set by the caller, if any.
@@ -3588,6 +3797,16 @@ func (r *FunctionArg) UnmarshalJSON(bs []byte) error {
 	}
 	*r = *dag.LoadFunctionArgFromID(FunctionArgID(id))
 	return nil
+}
+
+// Only applies to arguments of type Directory. The ignore patterns are applied to the input directory, and matching entries are filtered out, in a cache-efficient manner.
+func (r *FunctionArg) Ignore(ctx context.Context) ([]string, error) {
+	q := r.query.Select("ignore")
+
+	var response []string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // The name of the argument in lowerCamelCase format.
@@ -3974,8 +4193,9 @@ func (r *GeneratedCode) WithVCSIgnoredPaths(paths []string) *GeneratedCode {
 type GitModuleSource struct {
 	query *querybuilder.Selection
 
-	cloneURL    *string
+	cloneRef    *string
 	commit      *string
+	htmlRepoURL *string
 	htmlURL     *string
 	id          *GitModuleSourceID
 	root        *string
@@ -3989,12 +4209,12 @@ func (r *GitModuleSource) WithGraphQLQuery(q *querybuilder.Selection) *GitModule
 	}
 }
 
-// The URL to clone the root of the git repo from
-func (r *GitModuleSource) CloneURL(ctx context.Context) (string, error) {
-	if r.cloneURL != nil {
-		return *r.cloneURL, nil
+// The ref to clone the root of the git repo from
+func (r *GitModuleSource) CloneRef(ctx context.Context) (string, error) {
+	if r.cloneRef != nil {
+		return *r.cloneRef, nil
 	}
-	q := r.query.Select("cloneURL")
+	q := r.query.Select("cloneRef")
 
 	var response string
 
@@ -4022,6 +4242,19 @@ func (r *GitModuleSource) ContextDirectory() *Directory {
 	return &Directory{
 		query: q,
 	}
+}
+
+// The URL to access the web view of the repository (e.g., GitHub, GitLab, Bitbucket)
+func (r *GitModuleSource) HTMLRepoURL(ctx context.Context) (string, error) {
+	if r.htmlRepoURL != nil {
+		return *r.htmlRepoURL, nil
+	}
+	q := r.query.Select("htmlRepoURL")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // The URL to the source's git repo in a web browser
@@ -4788,6 +5021,7 @@ type LocalModuleSource struct {
 	query *querybuilder.Selection
 
 	id          *LocalModuleSourceID
+	relHostPath *string
 	rootSubpath *string
 }
 
@@ -4853,6 +5087,19 @@ func (r *LocalModuleSource) UnmarshalJSON(bs []byte) error {
 	}
 	*r = *dag.LoadLocalModuleSourceFromID(LocalModuleSourceID(id))
 	return nil
+}
+
+// The relative path to the module root from the host directory
+func (r *LocalModuleSource) RelHostPath(ctx context.Context) (string, error) {
+	if r.relHostPath != nil {
+		return *r.relHostPath, nil
+	}
+	q := r.query.Select("relHostPath")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // The path to the root of the module source under the context directory. This directory contains its configuration file. It also contains its source code (possibly as a subdirectory).
@@ -5360,6 +5607,7 @@ type ModuleSource struct {
 
 	asString                     *string
 	configExists                 *bool
+	digest                       *string
 	id                           *ModuleSourceID
 	kind                         *ModuleSourceKind
 	moduleName                   *string
@@ -5488,6 +5736,19 @@ func (r *ModuleSource) Dependencies(ctx context.Context) ([]ModuleDependency, er
 	}
 
 	return convert(response), nil
+}
+
+// Return the module source's content digest. The format of the digest is not guaranteed to be stable between releases of Dagger. It is guaranteed to be stable between invocations of the same Dagger engine.
+func (r *ModuleSource) Digest(ctx context.Context) (string, error) {
+	if r.digest != nil {
+		return *r.digest, nil
+	}
+	q := r.query.Select("digest")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
 }
 
 // The directory containing the module configuration and source code (source code may be in a subdir).
@@ -5727,6 +5988,27 @@ func (r *ModuleSource) WithContextDirectory(dir *Directory) *ModuleSource {
 func (r *ModuleSource) WithDependencies(dependencies []*ModuleDependency) *ModuleSource {
 	q := r.query.Select("withDependencies")
 	q = q.Arg("dependencies", dependencies)
+
+	return &ModuleSource{
+		query: q,
+	}
+}
+
+// ModuleSourceWithInitOpts contains options for ModuleSource.WithInit
+type ModuleSourceWithInitOpts struct {
+	// Merge module dependencies into the current project's
+	Merge bool
+}
+
+// Sets module init arguments
+func (r *ModuleSource) WithInit(opts ...ModuleSourceWithInitOpts) *ModuleSource {
+	q := r.query.Select("withInit")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `merge` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Merge) {
+			q = q.Arg("merge", opts[i].Merge)
+		}
+	}
 
 	return &ModuleSource{
 		query: q,
@@ -6157,15 +6439,6 @@ func (r *Port) Protocol(ctx context.Context) (NetworkProtocol, error) {
 	return response, q.Execute(ctx)
 }
 
-type WithClientFunc func(r *Client) *Client
-
-// With calls the provided function with current Client.
-//
-// This is useful for reusability and readability by not breaking the calling chain.
-func (r *Client) With(f WithClientFunc) *Client {
-	return f(r)
-}
-
 func (r *Client) WithGraphQLQuery(q *querybuilder.Selection) *Client {
 	return &Client{
 		query:  q,
@@ -6225,6 +6498,14 @@ func (r *Client) Container(opts ...ContainerOpts) *Container {
 	}
 
 	return &Container{
+		query: q,
+	}
+}
+
+func (r *Client) Cosign() *Cosign {
+	q := r.query.Select("cosign")
+
+	return &Cosign{
 		query: q,
 	}
 }
@@ -6402,6 +6683,16 @@ func (r *Client) LoadContainerFromID(id ContainerID) *Container {
 	q = q.Arg("id", id)
 
 	return &Container{
+		query: q,
+	}
+}
+
+// Load a Cosign from its ID.
+func (r *Client) LoadCosignFromID(id CosignID) *Cosign {
+	q := r.query.Select("loadCosignFromID")
+	q = q.Arg("id", id)
+
+	return &Cosign{
 		query: q,
 	}
 }
@@ -6792,6 +7083,8 @@ func (r *Client) ModuleDependency(source *ModuleSource, opts ...ModuleDependency
 type ModuleSourceOpts struct {
 	// If true, enforce that the source is a stable version for source kinds that support versioning.
 	Stable bool
+	// The relative path to the module root from the host directory
+	RelHostPath string
 }
 
 // Create a new module source instance from a source ref string.
@@ -6802,40 +7095,15 @@ func (r *Client) ModuleSource(refString string, opts ...ModuleSourceOpts) *Modul
 		if !querybuilder.IsZeroValue(opts[i].Stable) {
 			q = q.Arg("stable", opts[i].Stable)
 		}
+		// `relHostPath` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RelHostPath) {
+			q = q.Arg("relHostPath", opts[i].RelHostPath)
+		}
 	}
 	q = q.Arg("refString", refString)
 
 	return &ModuleSource{
 		query: q,
-	}
-}
-
-// PipelineOpts contains options for Client.Pipeline
-type PipelineOpts struct {
-	// Description of the sub-pipeline.
-	Description string
-	// Labels to apply to the sub-pipeline.
-	Labels []PipelineLabel
-}
-
-// Creates a named sub-pipeline.
-func (r *Client) Pipeline(name string, opts ...PipelineOpts) *Client {
-	q := r.query.Select("pipeline")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `description` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Description) {
-			q = q.Arg("description", opts[i].Description)
-		}
-		// `labels` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Labels) {
-			q = q.Arg("labels", opts[i].Labels)
-		}
-	}
-	q = q.Arg("name", name)
-
-	return &Client{
-		query:  q,
-		client: r.client,
 	}
 }
 
@@ -7943,7 +8211,7 @@ func getClientParams() (graphql.Client, *querybuilder.Selection) {
 			r = r.WithContext(fallbackSpanContext(r.Context()))
 
 			// propagate span context via headers (i.e. for Dagger-in-Dagger)
-			otel.GetTextMapPropagator().Inject(r.Context(), propagation.HeaderCarrier(r.Header))
+			telemetry.Propagator.Inject(r.Context(), propagation.HeaderCarrier(r.Header))
 
 			return dialTransport.RoundTrip(r)
 		}),
@@ -7957,7 +8225,7 @@ func fallbackSpanContext(ctx context.Context) context.Context {
 	if trace.SpanContextFromContext(ctx).IsValid() {
 		return ctx
 	}
-	return otel.GetTextMapPropagator().Extract(ctx, telemetry.NewEnvCarrier(true))
+	return telemetry.Propagator.Extract(ctx, telemetry.NewEnvCarrier(true))
 }
 
 // TODO: pollutes namespace, move to non internal package in dagger.io/dagger

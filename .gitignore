@@ -23,3 +23,5 @@ go.work
 
 /harbor
 dist/
+/dagger.gen.go
+/internal/*

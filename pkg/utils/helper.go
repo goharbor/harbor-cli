@@ -35,3 +35,8 @@ func FormatUrl(url string) string {
 	}
 	return url
 }
+
+func FormatSize(size int64) string {
+	mbSize := float64(size) / (1024 * 1024)
+	return fmt.Sprintf("%.2fMiB", mbSize)
+}

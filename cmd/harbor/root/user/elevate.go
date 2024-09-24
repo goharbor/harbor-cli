@@ -5,6 +5,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/views"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -25,10 +26,12 @@ func ElevateUserCmd() *cobra.Command {
 				userId = prompt.GetUserIdFromUser()
 			}
 
-			// Todo : Ask for the confirmation before elevating the user to admin role
-
-			err = api.ElevateUser(userId)
-
+			confirm, err := views.ConfirmElevation()
+			if confirm {
+				err = api.ElevateUser(userId)
+			} else {
+				log.Error("Permission denied for elevate user to admin.")
+			}
 			if err != nil {
 				log.Errorf("failed to elevate user: %v", err)
 			}
