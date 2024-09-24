@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
@@ -55,8 +56,11 @@ func CreateProjectView(createView *CreateView) {
 				Title("Project Name").
 				Value(&createView.ProjectName).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("project name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("project name cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateProjectName(str); !isValid {
+						return errors.New("please enter correct project name format")
 					}
 					return nil
 				}),
@@ -70,6 +74,12 @@ func CreateProjectView(createView *CreateView) {
 				Value(&createView.StorageLimit).
 				Validate(func(str string) error {
 					// Assuming StorageLimit is an int64
+					if strings.TrimSpace(str) == "" {
+						return errors.New("storage limit cannot be empty or only spaces")
+					}
+					if err := utils.ValidateStorageLimit(str); err != nil {
+						return err
+					}
 					return nil
 				}),
 

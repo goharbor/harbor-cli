@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -67,10 +68,31 @@ func ValidatePassword(password string) (bool, error) {
 }
 
 // check if the tag name is valid
-func ValidateTagName(tagname string) bool {
+func ValidateTagName(tagName string) bool {
 	pattern := `^[\w][\w.-]{0,127}$`
 
 	re := regexp.MustCompile(pattern)
 
-	return re.MatchString(tagname)
+	return re.MatchString(tagName)
+}
+
+// check if the project name is valid
+func ValidateProjectName(projectName string) bool {
+	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(projectName)
+}
+
+func ValidateStorageLimit(sl string) error {
+	storageLimit, err := strconv.Atoi(sl)
+	if err != nil {
+		return errors.New("the storage limit only takes integer values")
+	}
+
+	if storageLimit < -1 || (storageLimit > -1 && storageLimit < 0) || storageLimit > 1024 {
+		return errors.New("the maximum value for the storage cannot exceed 1024 terabytes and -1 for no limit")
+	}
+	return nil
 }
