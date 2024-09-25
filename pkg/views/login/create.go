@@ -51,8 +51,7 @@ func CreateView(loginView *LoginView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("password cannot be empty")
 					}
-					isVaild, err := utils.ValidatePassword(str)
-					if !isVaild {
+					if err := utils.ValidatePassword(str); err != nil {
 						return err
 					}
 					return nil
