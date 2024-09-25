@@ -44,19 +44,19 @@ func FormatSize(size int64) string {
 	return fmt.Sprintf("%.2fMiB", mbSize)
 }
 
-func VaildUserName(username string) bool {
+func ValidateUserName(username string) bool {
 	pattern := `^[a-zA-Z0-9]{1,255}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(username)
 }
 
-func VaildEmail(email string) bool {
+func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(email)
 }
 
-func VaildFL(name string) bool {
+func ValidateFL(name string) bool {
 	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(name)

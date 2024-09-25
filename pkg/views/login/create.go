@@ -30,7 +30,7 @@ func CreateView(loginView *LoginView) {
 					}
 					formattedUrl := utils.FormatUrl(str)
 					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("enter the correct server format")
+						return errors.New("please enter the correct server format")
 					}
 					return nil
 				}),
@@ -39,7 +39,10 @@ func CreateView(loginView *LoginView) {
 				Value(&loginView.Username).
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
-						return errors.New("username cannot be empty")
+						return errors.New("username cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateUserName(str); !isValid {
+						return errors.New("please enter correct username format")
 					}
 					return nil
 				}),
@@ -49,7 +52,7 @@ func CreateView(loginView *LoginView) {
 				Value(&loginView.Password).
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
-						return errors.New("password cannot be empty")
+						return errors.New("password cannot be empty or only spaces")
 					}
 					if err := utils.ValidatePassword(str); err != nil {
 						return err
@@ -62,6 +65,9 @@ func CreateView(loginView *LoginView) {
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("credential name cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateUserName(str); !isValid {
+						return errors.New("please enter correct credential name format")
 					}
 					return nil
 				}),

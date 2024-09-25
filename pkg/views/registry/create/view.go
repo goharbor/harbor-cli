@@ -65,7 +65,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 						return errors.New("name cannot be empty or only spaces")
 					}
 					if isVaild := utils.ValidateRegistryName(str); !isVaild {
-						return errors.New("enter the correct name format")
+						return errors.New("please enter the correct name format")
 					}
 					return nil
 				}),
@@ -81,7 +81,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 					}
 					formattedUrl := utils.FormatUrl(str)
 					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("enter the correct url format")
+						return errors.New("please enter the correct url format")
 					}
 					return nil
 				}),
