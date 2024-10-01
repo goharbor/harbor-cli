@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,10 +35,12 @@ func CreateUserView(createView *CreateView) {
 				Validate(func(str string) error {
 					if str == "" {
 						return errors.New("email cannot be empty")
+					} else if !utils.ValidEmail(str) {
+						return errors.New("email should be a valid email address like name@example.com")
+					} else {
+						return nil
 					}
-					return nil
 				}),
-
 			huh.NewInput().
 				Title("First and Last Name").
 				Value(&createView.Realname).
@@ -54,9 +57,13 @@ func CreateUserView(createView *CreateView) {
 				Validate(func(str string) error {
 					if str == "" {
 						return errors.New("password cannot be empty")
+					} else if !utils.ValidatePassword(str) {
+						return errors.New("password should contain 8-128 characters long with at least 1 uppercase, 1 lowercase and 1 number")
+					} else {
+						return nil
 					}
-					return nil
-				}),
+				}).
+				Description("Password should be 8-128 characters long with at least 1 uppercase, 1 lowercase and 1 number."),
 			huh.NewInput().
 				Title("Comment").
 				Value(&createView.Comment),
