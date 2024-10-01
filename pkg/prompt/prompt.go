@@ -8,6 +8,7 @@ import (
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
+	iview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -88,4 +89,16 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetInstanceFromUser() string {
+	instanceName := make(chan string)
+
+	go func() {
+		response, _ := api.ListInstance()
+		iview.InstanceList(response.Payload, instanceName)
+	}()
+
+	return <-instanceName
+
 }
