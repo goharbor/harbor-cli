@@ -1,4 +1,4 @@
-package doc
+package main
 
 import (
 	"bytes"
@@ -179,4 +179,11 @@ func hasSeeAlso(cmd *cobra.Command) bool {
 		return true
 	}
 	return false
+}
+
+func main(){
+	err := Doc()
+	if err != nil{
+		log.Fatal(err)
+	}
 }
