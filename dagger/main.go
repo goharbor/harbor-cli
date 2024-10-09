@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor-cli/internal/dagger"
 	"log"
+        "dagger/harbor-cli/internal/dagger"
+
 )
 
 const (
