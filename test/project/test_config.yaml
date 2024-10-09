@@ -1,0 +1,4 @@
+harbor:
+  url: "demo.goharbor.io"
+  username: "admin"
+  password: "Harbor12345"
