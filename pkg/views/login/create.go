@@ -63,11 +63,8 @@ func CreateView(loginView *LoginView) {
 				Title("Name of Credential").
 				Value(&loginView.Name).
 				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("credential name cannot be empty or only spaces")
-					}
-					if isValid := utils.ValidateUserName(str); !isValid {
-						return errors.New("please enter correct credential name format")
+					if str == "" {
+						return errors.New("credential name cannot be empty")
 					}
 					return nil
 				}),
