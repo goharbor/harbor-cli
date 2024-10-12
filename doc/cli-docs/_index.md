@@ -1,5 +1,5 @@
 ---
-title: Harbor CLI Documentation
+title: Harbor CLI Commands
 weight: 25
 ---
 
