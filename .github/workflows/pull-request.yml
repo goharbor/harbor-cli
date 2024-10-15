@@ -39,7 +39,6 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.1
           args: lint-code --directory-arg=.
 
       - name: Call Pull-Request Function
@@ -50,5 +49,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.1
           args: pull-request --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
