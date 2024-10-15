@@ -21,5 +21,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.4
-          args: docker-publish --directory-arg=. --cosign-key=${{ secrets.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}  --reg-username=${{ env.REGISTRY_USERNAME }}  --reg-password=${{ env.REGISTRY_PASSWORD }}
+          args: publish-image --source=. --cosign-key=${{ secrets.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}  --reg-username=${{ env.REGISTRY_USERNAME }}  --reg-password=${{ env.REGISTRY_PASSWORD }}

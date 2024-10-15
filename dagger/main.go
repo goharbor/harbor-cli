@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
+	"dagger/harbor-cli/internal/dagger"
 	"fmt"
 	"log"
-        "dagger/harbor-cli/internal/dagger"
-
 )
 
 const (
@@ -78,8 +77,13 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
-	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--clean"})
+func (m *HarborCli) Release(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	githubToken string) {
+	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
