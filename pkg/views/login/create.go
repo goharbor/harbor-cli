@@ -2,8 +2,11 @@ package login
 
 import (
 	"errors"
+	"net/url"
+	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,8 +25,12 @@ func CreateView(loginView *LoginView) {
 				Title("Server").
 				Value(&loginView.Server).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("server cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("server cannot be empty or only spaces")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
+						return errors.New("please enter the correct server format")
 					}
 					return nil
 				}),
@@ -31,8 +38,11 @@ func CreateView(loginView *LoginView) {
 				Title("User Name").
 				Value(&loginView.Username).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("username cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("username cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateUserName(str); !isValid {
+						return errors.New("please enter correct username format")
 					}
 					return nil
 				}),
@@ -41,14 +51,23 @@ func CreateView(loginView *LoginView) {
 				EchoMode(huh.EchoModePassword).
 				Value(&loginView.Password).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("password cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("password cannot be empty or only spaces")
+					}
+					if err := utils.ValidatePassword(str); err != nil {
+						return err
 					}
 					return nil
 				}),
 			huh.NewInput().
 				Title("Name of Credential").
-				Value(&loginView.Name),
+				Value(&loginView.Name).
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("credential name cannot be empty")
+					}
+					return nil
+				}),
 		),
 	).WithTheme(theme).Run()
 
