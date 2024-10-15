@@ -32,5 +32,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.1
-          args: release --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
+          args: release --source=. --github-token=${{ env.GITHUB_TOKEN }}
