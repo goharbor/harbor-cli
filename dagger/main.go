@@ -68,8 +68,12 @@ func (m *HarborCli) Lint(
 
 }
 
-func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
-	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
+func (m *HarborCli) PullRequest(ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	githubToken string) {
+	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("❌ Error occured during snapshot release for the recently merged pull-request: %s", err)
