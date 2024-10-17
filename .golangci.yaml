@@ -1,6 +1,3 @@
-#linters-settings:
-#  gofumpt:
-#    extra-rules: true
 
 linters:
   enable:
