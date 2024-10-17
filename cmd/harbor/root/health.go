@@ -2,8 +2,8 @@ package root
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/spf13/cobra"
 	"github.com/goharbor/harbor-cli/pkg/views/health"
+	"github.com/spf13/cobra"
 )
 
 func HealthCommand() *cobra.Command {

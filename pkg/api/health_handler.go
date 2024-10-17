@@ -13,7 +13,7 @@ func GetHealth() (*health.GetHealthOK, error) {
 		return nil, err
 	}
 
-	response, err := client.Health.GetHealth(ctx,&health.GetHealthParams{})
+	response, err := client.Health.GetHealth(ctx, &health.GetHealthParams{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting health status: %w", err)
 	}
