@@ -1,0 +1,16 @@
+#linters-settings:
+#  gofumpt:
+#    extra-rules: true
+
+linters:
+  enable:
+    # default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+
+    - gofmt
