@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22.5"
           cache: true
@@ -39,8 +39,7 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.1
-          args: lint-code --directory-arg=.
+          args: lint --source=.
 
       - name: Call Pull-Request Function
         uses: dagger/dagger-for-github@v6.1.0
@@ -50,5 +49,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          module: github.com/bishal7679/harbor-cli@v0.6.1
           args: pull-request --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}

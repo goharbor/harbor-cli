@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
+	"dagger/harbor-cli/internal/dagger"
 	"fmt"
-	"github.com/goharbor/harbor-cli/internal/dagger"
 	"log"
 )
 
 const (
-	GO_VERSION         = "1.22.5"
-	SYFT_VERSION       = "v1.9.0"
-	GORELEASER_VERSION = "v2.1.0"
-	APP_NAME           = "dagger-harbor-cli"
-	PUBLISH_ADDRESS    = "demo.goharbor.io/library/harbor-cli:0.0.3"
+	GOLANGCILINT_VERSION = "v1.61.0"
+	GO_VERSION           = "1.22.5"
+	SYFT_VERSION         = "v1.9.0"
+	GORELEASER_VERSION   = "v2.1.0"
+	APP_NAME             = "dagger-harbor-cli"
+	PUBLISH_ADDRESS      = "demo.goharbor.io/library/harbor-cli:0.0.3"
 )
 
 type HarborCli struct{}
@@ -56,7 +57,7 @@ func (m *HarborCli) Lint(
 ) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
-		From("golangci/golangci-lint:v1.59.1-alpine").
+		From("golangci/golangci-lint:"+GOLANGCILINT_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
@@ -77,8 +78,13 @@ func (m *HarborCli) PullRequest(ctx context.Context, directoryArg *dagger.Direct
 	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
-func (m *HarborCli) Release(ctx context.Context, directoryArg *dagger.Directory, githubToken string) {
-	goreleaser := goreleaserContainer(directoryArg, githubToken).WithExec([]string{"release", "--clean"})
+func (m *HarborCli) Release(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	githubToken string) {
+	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
