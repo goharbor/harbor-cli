@@ -26,7 +26,7 @@ jobs:
           cache: true
 
       - name: Call Dagger Function
-        uses: dagger/dagger-for-github@v6.1.0
+        uses: dagger/dagger-for-github@v6.13.0
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
