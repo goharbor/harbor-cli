@@ -56,4 +56,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          args: pull-request --directory-arg=. --github-token=${{ env.GITHUB_TOKEN }}
+          args: pull-request --source=. --github-token=${{ env.GITHUB_TOKEN }}
