@@ -110,6 +110,7 @@ harbor help
 		user.User(),
 		artifact.Artifact(),
 		HealthCommand(),
+		pingCommand(),
 	)
 
 	return root
