@@ -181,9 +181,9 @@ func hasSeeAlso(cmd *cobra.Command) bool {
 	return false
 }
 
-func main(){
+func main() {
 	err := Doc()
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 }
