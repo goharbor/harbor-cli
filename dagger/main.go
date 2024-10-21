@@ -137,3 +137,13 @@ func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *da
 		WithEnvVariable("TINI_SUBREAPER", "true").
 		WithSecretVariable("GITHUB_TOKEN", token)
 }
+
+func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) *dagger.Directory {
+	fmt.Println("Running doc.go file using Dagger...")
+	return dag.Container().
+		From("golang:latest").
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src/doc").
+		WithExec([]string{"go", "run", "doc.go"}).
+		WithWorkdir("/src").Directory("/src/doc")
+}
