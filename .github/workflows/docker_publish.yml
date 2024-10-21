@@ -8,9 +8,45 @@ on:
       - "v*"
 
 jobs:
+  github-get-tags:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: GitHub Tag Name example
+        run: |
+          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+          echo "cosign password: ${{  secrets.COSIGN_PASSWORD }}"
+          echo "reg password: ${{  secrets.REGISTRY_PASSWORD  }}"
+          echo "reg password: ${{  secrets.doesnotexist  }}"
+          echo "reg username: ${{  env.REGISTRY_USERNAME }}"
+          echo "publish publish-address: ${{ vars.PUBLISH_ADDRESS }}"
   docker-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    environment: production
+    env:
+      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      PUBLISH_ADDRESS: ${{ vars.PUBLISH_ADDRESS }}
+      TAG: ${{ github.ref_name }}
+
     steps:
+      - name: Debugging
+        run: |
+          echo "COSIGN_KEY: ${{ secrets.COSIGN_KEY }}"
+          echo "COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}"
+          echo "REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}"
+          echo "REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}"
+          echo "PUBLISH_ADDRESS: ${{ env.PUBLISH_ADDRESS }}"
+          echo "TAG: ${{ env.TAG }}"
+          echo "Environment Variables:"
+          env  # List all environment variables for debugging
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -21,4 +57,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          args: publish-image --source=. --cosign-key=${{ secrets.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}  --reg-username=${{ env.REGISTRY_USERNAME }}  --reg-password=${{ env.REGISTRY_PASSWORD }}
+          args: "publish-image --source=. --cosign-password='${{ env.COSIGN_PASSWORD }}' --cosign-key='${{ env.COSIGN_KEY }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='${{ env.REGISTRY_PASSWORD }}' --publish-address='${{ env.PUBLISH_ADDRESS }}' --tag='${{ env.TAG }}'"
