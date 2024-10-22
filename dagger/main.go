@@ -11,7 +11,7 @@ const (
 	GOLANGCILINT_VERSION = "v1.61.0"
 	GO_VERSION           = "1.22.5"
 	SYFT_VERSION         = "v1.9.0"
-	GORELEASER_VERSION   = "v2.1.0"
+	GORELEASER_VERSION   = "v2.3.2"
 )
 
 type HarborCli struct{}
@@ -89,7 +89,7 @@ func (m *HarborCli) Release(
 	source *dagger.Directory,
 	githubToken string,
 ) {
-	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--clean"})
+	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"ls", "-la"}).WithExec([]string{"goreleaser", "release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
@@ -114,6 +114,7 @@ func (m *HarborCli) PublishImage(
 	cosignPassword string,
 	regUsername string,
 	regPassword string,
+	regAddress string,
 	publishAddress string,
 	tag string,
 ) string {
@@ -144,42 +145,24 @@ func (m *HarborCli) PublishImage(
 		}
 	}
 
-	//  	// Create a builder container for multi-architecture images
-	// multiArchBuilder := dag.Container().
-	// 	From("docker/buildx:latest").
-	// 	WithWorkdir("/workspace")
-	//
-	// // Add binaries for each OS and architecture to the multi-arch image
-	// oses := []string{"linux", "darwin", "windows"}
-	// arches := []string{"amd64", "arm64"}
-	//
-	// for _, goos := range oses {
-	// 	for _, goarch := range arches {
-	// 		binPath := fmt.Sprintf("build/%s/%s/harbor", goos, goarch)
-	// 		multiArchBuilder = multiArchBuilder.WithFile(fmt.Sprintf("/workspace/%s/%s/harbor", goos, goarch), builder.File(binPath))
-	// 	}
-	// }
-
-	// Build the multi-architecture image
-	// multiArchImage := fmt.Sprintf("%s:%s", publishAddress, tag)
-
 	cosign_key := dag.SetSecret("cosign_key", cosignKey)
 	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
 	regpassword := dag.SetSecret("reg_password", regPassword)
 
+  publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
 	// Push the versioned tag
 	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
-	addr, err := cli_runtime.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
+	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
+	if err != nil {
+		panic(err)
+	}
+	// Push the latest tag
+	latestAddress := fmt.Sprintf("%s:latest", publishAddress)
+	addr, err = publisher.Publish(ctx, latestAddress)
 	if err != nil {
 		panic(err)
 	}
 
-	// Push the latest tag
-	latestAddress := fmt.Sprintf("%s:latest", publishAddress)
-	addr, err = cli_runtime.Publish(ctx, latestAddress)
-	if err != nil {
-		panic(err)
-	}
 	_, err = dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
 	if err != nil {
 		panic(err)

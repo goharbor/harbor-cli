@@ -1,14 +1,15 @@
+version: 2
 project_name: harbor
 
 before:
   hooks:
     - go mod tidy
-     
+
 builds:
 - main: ./cmd/harbor/main.go
 
   env:
-    - CGO_ENABLED=0 
+    - CGO_ENABLED=0
   ldflags:
     - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
   goos:
@@ -18,7 +19,7 @@ builds:
   goarch:
     - amd64
     - arm64
-  ignore: 
+  ignore:
     - goos: windows
       goarch: arm
     - goos: windows
@@ -46,21 +47,27 @@ sboms:
 
 checksum:
   name_template: 'checksums.txt'
-snapshot: 
-  name_template: "{{ .Tag }}-next"
+snapshot:
+  version_template: "{{ .Tag }}-next"
 release:
   name_template: "HarborCLI {{.Tag}}"
-  # draft: true
-  # prerelease: auto
-  
+  draft: false               # Set to false to ensure that releases are published, not kept as drafts
+  prerelease: auto            # Auto-detect prereleases based on tag
+  disable: false              # Ensure release publishing is enabled
+  github:
+    owner: bupd           # Your GitHub repository owner
+    name: harbor-cli          # Your GitHub repository name
+
 changelog:
-  sort: asc
   use: github
+  format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
+  sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
       - "merge conflict"
+
   groups:
     - title: Dependency updates
       regexp: '^.*?(.+)\(deps\)!?:.+$'
