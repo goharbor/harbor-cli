@@ -12,7 +12,7 @@ import (
 
 // NewUpdateRegistryCommand creates a new `harbor update registry` command
 func UpdateRegistryCommand() *cobra.Command {
-	var opts create.CreateView
+	var opts api.CreateRegView
 
 	cmd := &cobra.Command{
 		Use:   "update",
@@ -22,12 +22,12 @@ func UpdateRegistryCommand() *cobra.Command {
 			var err error
 			var registryId int64
 
-			updateView := &create.CreateView{
+			updateView := &api.CreateRegView{
 				Name:        opts.Name,
 				Type:        opts.Type,
 				Description: opts.Description,
 				URL:         opts.URL,
-				Credential: create.RegistryCredential{
+				Credential: api.RegistryCredential{
 					AccessKey:    opts.Credential.AccessKey,
 					Type:         opts.Credential.Type,
 					AccessSecret: opts.Credential.AccessSecret,
@@ -62,17 +62,41 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.StringVarP(&opts.Type, "type", "", "", "Type of the registry")
 	flags.StringVarP(&opts.URL, "url", "", "", "Registry endpoint URL")
 	flags.StringVarP(&opts.Description, "description", "", "", "Description of the registry")
-	flags.BoolVarP(&opts.Insecure, "insecure", "", true, "Whether or not the certificate will be verified when Harbor tries to access the server")
-	flags.StringVarP(&opts.Credential.AccessKey, "credential-access-key", "", "", "Access key, e.g. user name when credential type is 'basic'")
-	flags.StringVarP(&opts.Credential.AccessSecret, "credential-access-secret", "", "", "Access secret, e.g. password when credential type is 'basic'")
-	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
+	flags.BoolVarP(
+		&opts.Insecure,
+		"insecure",
+		"",
+		true,
+		"Whether or not the certificate will be verified when Harbor tries to access the server",
+	)
+	flags.StringVarP(
+		&opts.Credential.AccessKey,
+		"credential-access-key",
+		"",
+		"",
+		"Access key, e.g. user name when credential type is 'basic'",
+	)
+	flags.StringVarP(
+		&opts.Credential.AccessSecret,
+		"credential-access-secret",
+		"",
+		"",
+		"Access secret, e.g. password when credential type is 'basic'",
+	)
+	flags.StringVarP(
+		&opts.Credential.Type,
+		"credential-type",
+		"",
+		"",
+		"Credential type, such as 'basic', 'oauth'",
+	)
 
 	return cmd
 }
 
-func updateRegistryView(updateView *create.CreateView, projectID int64) error {
+func updateRegistryView(updateView *api.CreateRegView, projectID int64) error {
 	if updateView == nil {
-		updateView = &create.CreateView{}
+		updateView = &api.CreateRegView{}
 	}
 
 	create.CreateRegistryView(updateView)
