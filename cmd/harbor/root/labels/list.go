@@ -10,7 +10,7 @@ import (
 )
 
 func ListLabelCommand() *cobra.Command {
-	var opts api.ListLabelFlags
+	var opts api.ListFlags
 
 	cmd := &cobra.Command{
 		Use:   "list",

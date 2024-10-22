@@ -4,6 +4,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
+	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
@@ -88,4 +89,14 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetLabelIdFromUser(opts api.ListFlags) int64 {
+	labelId := make(chan int64)
+	go func() {
+		response, _ := api.ListLabel(opts)
+		lview.LabelList(response.Payload, labelId)
+	}()
+
+	return <-labelId
 }

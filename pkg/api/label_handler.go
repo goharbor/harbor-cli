@@ -4,25 +4,9 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/label"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/goharbor/harbor-cli/pkg/views/label/create"
-	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
+	log "github.com/sirupsen/logrus"
 )
-
-func GetLabelIdFromUser(opts *models.Label) int64 {
-	labelId := make(chan int64)
-	go func() {
-		ctx, client, _ := utils.ContextWithClient()
-		response, err := client.Label.ListLabels(ctx, &label.ListLabelsParams{Scope: &opts.Scope, ProjectID: &opts.ProjectID})
-		if err != nil {
-			log.Fatal(err)
-		}
-		lview.LabelList(response.Payload, labelId)
-
-	}()
-
-	return <-labelId
-}
 
 func CreateLabels(opts create.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
@@ -55,24 +39,24 @@ func DeleteLabel(Labelid int64) error {
 	return nil
 }
 
-func ListLabel(opts ...ListLabelFlags) (*label.ListLabelsOK, error) {
+func ListLabel(opts ...ListFlags) (*label.ListLabelsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 
-	var listFlags ListLabelFlags
+	var listFlags ListFlags
 
 	if len(opts) > 0 {
 		listFlags = opts[0]
 	}
 
 	response, err := client.Label.ListLabels(ctx, &label.ListLabelsParams{
-		Page:     &listFlags.Page,
-		PageSize: &listFlags.PageSize,
-		Q:        &listFlags.Q,
-		Sort:     &listFlags.Sort,
-		Scope: &listFlags.Scope,
+		Page:      &listFlags.Page,
+		PageSize:  &listFlags.PageSize,
+		Q:         &listFlags.Q,
+		Sort:      &listFlags.Sort,
+		Scope:     &listFlags.Scope,
 		ProjectID: &listFlags.ProjectID,
 	})
 
@@ -81,4 +65,42 @@ func ListLabel(opts ...ListLabelFlags) (*label.ListLabelsOK, error) {
 	}
 
 	return response, nil
+}
+
+func UpdateLabel(updateView *models.Label, Labelid int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	labelUpdate := &models.Label{
+		Name:        updateView.Name,
+		Color:       updateView.Color,
+		Description: updateView.Description,
+		Scope:       updateView.Scope,
+	}
+
+	_, err = client.Label.UpdateLabel(
+		ctx,
+		&label.UpdateLabelParams{LabelID: Labelid, Label: labelUpdate},
+	)
+	if err != nil {
+		return err
+	}
+
+	log.Info("label updated successfully")
+
+	return nil
+}
+
+func GetLabel(labelid int64) *models.Label {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil
+	}
+	response, err := client.Label.GetLabelByID(ctx, &label.GetLabelByIDParams{LabelID: labelid})
+	if err != nil {
+		return nil
+	}
+
+	return response.GetPayload()
 }

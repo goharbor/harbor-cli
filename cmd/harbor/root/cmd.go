@@ -110,7 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-    HealthCommand(),
+		HealthCommand(),
 		labels.Labels(),
 	)
 

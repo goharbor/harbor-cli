@@ -11,16 +11,16 @@ func CreateLabelCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use: "create",
+		Use:   "create",
 		Short: "create label",
-		Long: "crate label in harbor",
-		Args: cobra.NoArgs,
+		Long:  "crate label in harbor",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
-				Name:	opts.Name,
-				Color:	opts.Color,
-				Scope:	opts.Scope,
+				Name:        opts.Name,
+				Color:       opts.Color,
+				Scope:       opts.Scope,
 				Description: opts.Description,
 			}
 			if opts.Name != "" && opts.Scope != "" {
@@ -32,7 +32,7 @@ func CreateLabelCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create label: %v", err)
 			}
-			
+
 		},
 	}
 
@@ -41,7 +41,7 @@ func CreateLabelCommand() *cobra.Command {
 	flags.StringVarP(&opts.Color, "color", "c", "", "Color of the label.color is in hexadecimal value")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
-	
+
 	return cmd
 }
 
@@ -53,4 +53,3 @@ func createLabelView(createView *create.CreateView) error {
 	create.CreateLabelView(createView)
 	return api.CreateLabels(*createView)
 }
-

@@ -11,6 +11,7 @@ func Labels() *cobra.Command {
 		CreateLabelCommand(),
 		DeleteLabelCommand(),
 		ListLabelCommand(),
+		UpdateLableCommand(),
 	)
 
 	return cmd
