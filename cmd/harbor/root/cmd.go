@@ -110,6 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+    HealthCommand(),
 		cveallowlist.CVEAllowlist(),
 	)
 
