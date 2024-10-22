@@ -11,9 +11,7 @@ const (
 	GOLANGCILINT_VERSION = "v1.61.0"
 	GO_VERSION           = "1.22.5"
 	SYFT_VERSION         = "v1.9.0"
-	GORELEASER_VERSION   = "v2.1.0"
-	APP_NAME             = "dagger-harbor-cli"
-	PUBLISH_ADDRESS      = "demo.goharbor.io/library/harbor-cli:0.0.3"
+	GORELEASER_VERSION   = "v2.3.2"
 )
 
 type HarborCli struct{}
@@ -22,12 +20,13 @@ func (m *HarborCli) Build(
 	ctx context.Context,
 	// +optional
 	// +defaultPath="./"
-	source *dagger.Directory) *dagger.Directory {
+	source *dagger.Directory,
+) []*dagger.Container {
+	var builds []*dagger.Container
 
 	fmt.Println("🛠️  Building with Dagger...")
 	oses := []string{"linux", "darwin", "windows"}
 	arches := []string{"amd64", "arm64"}
-	outputs := dag.Directory()
 	for _, goos := range oses {
 		for _, goarch := range arches {
 			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
@@ -41,12 +40,13 @@ func (m *HarborCli) Build(
 				WithEnvVariable("GOCACHE", "/go/build-cache").
 				WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"})
-			// Get reference to build output directory in container
-			outputs = outputs.WithDirectory(bin_path, builder.Directory(bin_path))
+				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
+				WithWorkdir(bin_path).WithExec([]string{"ls"}).WithEntrypoint([]string{"./harbor"})
+
+			builds = append(builds, builder)
 		}
 	}
-	return outputs
+	return builds
 }
 
 func (m *HarborCli) Lint(
@@ -65,14 +65,14 @@ func (m *HarborCli) Lint(
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
-
 }
 
 func (m *HarborCli) PullRequest(ctx context.Context,
 	// +optional
 	// +defaultPath="./"
 	source *dagger.Directory,
-	githubToken string) {
+	githubToken string,
+) {
 	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
@@ -87,8 +87,9 @@ func (m *HarborCli) Release(
 	// +optional
 	// +defaultPath="./"
 	source *dagger.Directory,
-	githubToken string) {
-	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--clean"})
+	githubToken string,
+) {
+	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"ls", "-la"}).WithExec([]string{"goreleaser", "release", "--clean"})
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
@@ -97,34 +98,86 @@ func (m *HarborCli) Release(
 	log.Println("Release tasks completed successfully 🎉")
 }
 
+// PublishImage publishes a Docker image to a registry with a specific tag and signs it using Cosign.
+// cosignKey: the secret used for signing the image
+// cosignPassword: the password for the cosign secret
+// regUsername: the username for the registry
+// regPassword: the password for the registry
+// publishAddress: the address of the registry to publish the image
+// tag: the version tag for the image
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
 	// +optional
 	// +defaultPath="./"
 	source *dagger.Directory,
-	cosignKey *dagger.Secret,
+	cosignKey string,
 	cosignPassword string,
 	regUsername string,
 	regPassword string,
+	regAddress string,
+	publishAddress string,
+	tag string,
 ) string {
+	var container *dagger.Container
+	var filteredBuilders []*dagger.Container
 
-	builder := m.Build(ctx, source)
+	builders := m.Build(ctx, source)
+	if len(builders) > 0 {
+		fmt.Println(len(builders))
+		container = builders[0]
+		builders = builders[3:6]
+	}
+	dir := dag.Directory()
+	dir = dir.WithDirectory(".", container.Directory("."))
+
 	// Create a minimal cli_runtime container
 	cli_runtime := dag.Container().
 		From("alpine:latest").
 		WithWorkdir("/root/").
-		WithFile("/root/harbor", builder.File("/")).
+		WithFile("/root/harbor", dir.File("./harbor")).
+		WithExec([]string{"ls"}).
+		WithExec([]string{"./harbor", "--help"}).
 		WithEntrypoint([]string{"./harbor"})
 
-	addr, _ := cli_runtime.Publish(ctx, PUBLISH_ADDRESS)
+	for _, builder := range builders {
+		if !(buildPlatform(ctx, builder) == "linux/amd64") {
+			filteredBuilders = append(filteredBuilders, builder)
+		}
+	}
+
+	cosign_key := dag.SetSecret("cosign_key", cosignKey)
 	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
 	regpassword := dag.SetSecret("reg_password", regPassword)
-	_, err := dag.Cosign().Sign(ctx, cosignKey, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+
+	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
+	// Push the versioned tag
+	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
+	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Published to %s 🎉\n", addr)
+	// Push the latest tag
+	latestAddress := fmt.Sprintf("%s:latest", publishAddress)
+	addr, err = publisher.Publish(ctx, latestAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Successfully published image to %s 🎉\n", addr)
+
 	return addr
+}
+
+func buildPlatform(ctx context.Context, container *dagger.Container) string {
+	platform, err := container.Platform(ctx)
+	if err != nil {
+		log.Fatalf("error getting platform", err)
+	}
+	return string(platform)
 }
 
 func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {

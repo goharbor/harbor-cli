@@ -1,8 +1,6 @@
 name: Docker Publish
 
 on:
-  release:
-    types: [published]
   push:
     tags:
       - "v*"
@@ -10,6 +8,19 @@ on:
 jobs:
   docker-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    environment: production
+    env:
+      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+      PUBLISH_ADDRESS: ${{ vars.PUBLISH_ADDRESS }}
+      TAG: ${{ github.ref_name }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -21,4 +32,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          args: publish-image --source=. --cosign-key=${{ secrets.COSIGN_KEY }} --cosign-password=${{ env.COSIGN_PASSWORD }}  --reg-username=${{ env.REGISTRY_USERNAME }}  --reg-password=${{ env.REGISTRY_PASSWORD }}
+          args: "publish-image --source=. --cosign-password='${{ env.COSIGN_PASSWORD }}' --cosign-key='${{ env.COSIGN_KEY }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='${{ env.REGISTRY_PASSWORD }}' --reg-address='${{ env.REGISTRY_ADDRESS }}' --publish-address='${{ env.PUBLISH_ADDRESS }}' --tag='${{ env.TAG }}'"
