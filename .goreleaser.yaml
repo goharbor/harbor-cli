@@ -55,7 +55,7 @@ release:
   prerelease: auto            # Auto-detect prereleases based on tag
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: bupd           # Your GitHub repository owner
+    owner: goharbor           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 changelog:

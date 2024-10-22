@@ -149,7 +149,7 @@ func (m *HarborCli) PublishImage(
 	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
 	regpassword := dag.SetSecret("reg_password", regPassword)
 
-  publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
+	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
 	// Push the versioned tag
 	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
 	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
