@@ -3,16 +3,16 @@ package registry
 import (
 	"strconv"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
+	"github.com/goharbor/harbor-cli/pkg/views/registry/update"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// NewUpdateRegistryCommand creates a new `harbor update registry` command
 func UpdateRegistryCommand() *cobra.Command {
-	var opts api.CreateRegView
+	var opts models.Registry
 
 	cmd := &cobra.Command{
 		Use:   "update",
@@ -22,12 +22,22 @@ func UpdateRegistryCommand() *cobra.Command {
 			var err error
 			var registryId int64
 
-			updateView := &api.CreateRegView{
+			if len(args) > 0 {
+				registryId, err = strconv.ParseInt(args[0], 10, 64)
+			} else {
+				registryId = prompt.GetRegistryNameFromUser()
+			}
+			if err != nil {
+				log.Errorf("failed to parse registry id: %v", err)
+			}
+
+			opts = *api.GetRegistryResponse(registryId)
+			updateView := &models.Registry{
 				Name:        opts.Name,
 				Type:        opts.Type,
 				Description: opts.Description,
 				URL:         opts.URL,
-				Credential: api.RegistryCredential{
+				Credential: &models.RegistryCredential{
 					AccessKey:    opts.Credential.AccessKey,
 					Type:         opts.Credential.Type,
 					AccessSecret: opts.Credential.AccessSecret,
@@ -35,70 +45,13 @@ func UpdateRegistryCommand() *cobra.Command {
 				Insecure: opts.Insecure,
 			}
 
-			if len(args) > 0 {
-				registryId, err = strconv.ParseInt(args[0], 10, 64)
-			} else {
-				registryId = prompt.GetRegistryNameFromUser()
-			}
-
-			if err != nil {
-				log.Errorf("failed to parse registry id: %v", err)
-			}
-
-			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
-				err = api.UpdateRegistry(updateView, registryId)
-			} else {
-				err = updateRegistryView(updateView, registryId)
-			}
-
+			update.UpdateRegistryView(updateView)
+			err = api.UpdateRegistry(updateView, registryId)
 			if err != nil {
 				log.Errorf("failed to update registry: %v", err)
 			}
 		},
 	}
 
-	flags := cmd.Flags()
-	flags.StringVarP(&opts.Name, "name", "", "", "Name of the registry")
-	flags.StringVarP(&opts.Type, "type", "", "", "Type of the registry")
-	flags.StringVarP(&opts.URL, "url", "", "", "Registry endpoint URL")
-	flags.StringVarP(&opts.Description, "description", "", "", "Description of the registry")
-	flags.BoolVarP(
-		&opts.Insecure,
-		"insecure",
-		"",
-		true,
-		"Whether or not the certificate will be verified when Harbor tries to access the server",
-	)
-	flags.StringVarP(
-		&opts.Credential.AccessKey,
-		"credential-access-key",
-		"",
-		"",
-		"Access key, e.g. user name when credential type is 'basic'",
-	)
-	flags.StringVarP(
-		&opts.Credential.AccessSecret,
-		"credential-access-secret",
-		"",
-		"",
-		"Access secret, e.g. password when credential type is 'basic'",
-	)
-	flags.StringVarP(
-		&opts.Credential.Type,
-		"credential-type",
-		"",
-		"",
-		"Credential type, such as 'basic', 'oauth'",
-	)
-
 	return cmd
-}
-
-func updateRegistryView(updateView *api.CreateRegView, projectID int64) error {
-	if updateView == nil {
-		updateView = &api.CreateRegView{}
-	}
-
-	create.CreateRegistryView(updateView)
-	return api.UpdateRegistry(updateView, projectID)
 }
