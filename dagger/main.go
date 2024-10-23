@@ -51,7 +51,7 @@ func (m *HarborCli) Build(
 	return outputs
 }
 
-// Build builds the Go binary for the specified platforms, like '--platform "linux/amd64"'
+// Builds the Go binary for the specified platforms, like '--platform "linux/amd64"'
 func (m *HarborCli) BuildDev(
 	ctx context.Context,
 	// +optional
@@ -59,7 +59,7 @@ func (m *HarborCli) BuildDev(
 	source *dagger.Directory,
 	platform string) *dagger.Directory {
 
-	fmt.Println("🛠️  Building with Dagger...")
+	fmt.Println("🛠️  Building Go Binary for the specified platforms with Dagger...")
 
 	os := platformFormat.MustParse(platform).OS
 	arch := platformFormat.MustParse(platform).Architecture
