@@ -5,6 +5,8 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 	"fmt"
 	"log"
+
+	platformFormat "github.com/containerd/platforms"
 )
 
 const (
@@ -47,6 +49,37 @@ func (m *HarborCli) Build(
 		}
 	}
 	return builds
+}
+
+// Builds the Go binary for the specified platforms, like '--platform "linux/amd64"'
+func (m *HarborCli) BuildDev(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	platform string) *dagger.Directory {
+
+	fmt.Println("🛠️  Building Go Binary for the specified platforms with Dagger...")
+
+	os := platformFormat.MustParse(platform).OS
+	arch := platformFormat.MustParse(platform).Architecture
+
+	bin_path := fmt.Sprintf("build/%s/%s/", os, arch)
+	outputs := dag.Directory()
+	builder := dag.Container().
+				From("golang:"+GO_VERSION+"-alpine").
+				WithMountedDirectory("/src", source).
+				WithWorkdir("/src").
+				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+				WithEnvVariable("GOCACHE", "/go/build-cache").
+				WithEnvVariable("GOOS", os).
+				WithEnvVariable("GOARCH", arch).
+				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"})
+			// Get reference to build output directory in container
+			outputs = outputs.WithDirectory(bin_path, builder.Directory(bin_path))
+	return outputs
 }
 
 func (m *HarborCli) Lint(
