@@ -5,6 +5,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -30,9 +31,7 @@ func ListArtifactCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to list artifacts: %v", err)
 			}
-
-			log.Infof("Artifacts: %v", resp)
-
+			artifactViews.ListArtifacts(resp.Payload)
 		},
 	}
 

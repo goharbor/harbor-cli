@@ -110,7 +110,9 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-		schedule.Schedule(),
+		HealthCommand(),
+    schedule.Schedule(),
+
 	)
 
 	return root
