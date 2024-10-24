@@ -9,6 +9,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -110,6 +111,8 @@ harbor help
 		user.User(),
 		artifact.Artifact(),
 		HealthCommand(),
+    schedule.Schedule(),
+
 	)
 
 	return root
