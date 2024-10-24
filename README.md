@@ -120,6 +120,14 @@ winget install harbor
 
 Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your system. 
 
+#### Using Dagger
+```bash
+git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
+dagger call build-dev --platform darwin/arm64 export --path=.
+./harbor-dev --help
+
+```
+
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
 dagger call build

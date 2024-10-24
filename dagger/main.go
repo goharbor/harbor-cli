@@ -5,6 +5,7 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 	"fmt"
 	"log"
+	"strings"
 )
 
 const (
@@ -15,6 +16,35 @@ const (
 )
 
 type HarborCli struct{}
+
+// Dev Build of Harbor CLI for local testing and development
+func (m *HarborCli) BuildDev(ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+	platform string) *dagger.Directory {
+
+	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
+	// Define the path for the binary output
+	os, arch, err := parsePlatform(platform)
+	if err != nil {
+		log.Fatalf("Error parsing platform: %v", err)
+	}
+
+	builder := dag.Container().
+		From("golang:latest").
+		WithMountedDirectory("/src", source). // Ensure the source directory with go.mod is mounted
+		WithWorkdir("/src").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithEnvVariable("GOOS", os).
+		WithEnvVariable("GOARCH", arch).
+		WithExec([]string{"go", "build", "-o", "/src/bin/harbor-dev", "/src/cmd/harbor/main.go"})
+
+	return dag.Directory().WithFile("harbor-dev", builder.File("/src/bin/harbor-dev"))
+}
 
 func (m *HarborCli) Build(
 	ctx context.Context,
@@ -42,7 +72,6 @@ func (m *HarborCli) Build(
 				WithEnvVariable("GOARCH", goarch).
 				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
 				WithWorkdir(bin_path).WithExec([]string{"ls"}).WithEntrypoint([]string{"./harbor"})
-
 			builds = append(builds, builder)
 		}
 	}
@@ -203,4 +232,12 @@ func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) *dagge
 		WithWorkdir("/src/doc").
 		WithExec([]string{"go", "run", "doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
+}
+
+func parsePlatform(platform string) (string, string, error) {
+	parts := strings.Split(platform, "/")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("Invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
+	}
+	return parts[0], parts[1], nil
 }
