@@ -29,6 +29,35 @@ type HarborCli struct {
 	Source *dagger.Directory
 }
 
+// Dev Build of Harbor CLI for local testing and development
+func (m *HarborCli) BuildDev(
+	ctx context.Context,
+	// platform to build for
+	platform string,
+) *dagger.File {
+
+	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
+	// Define the path for the binary output
+	os, arch, err := parsePlatform(platform)
+	if err != nil {
+		log.Fatalf("Error parsing platform: %v", err)
+	}
+
+	builder := dag.Container().
+		From("golang:latest").
+		WithMountedDirectory("/src", m.Source). // Ensure the source directory with go.mod is mounted
+		WithWorkdir("/src").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("dev-go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("dev-go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithEnvVariable("GOOS", os).
+		WithEnvVariable("GOARCH", arch).
+		WithExec([]string{"go", "build", "-o", "/src/bin/harbor-dev", "/src/cmd/harbor/main.go"})
+
+	return builder.File("/src/bin/harbor-dev")
+}
+
 // Return list of containers for list of oses and arches
 //
 // FIXME: there is a bug where you cannot return a list of containers right now

@@ -123,9 +123,8 @@ Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your sy
 #### Using Dagger
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-dagger call build-dev --platform darwin/arm64 export --path=.
+dagger call build-dev --platform darwin/arm64 export --path=./harbor-dev
 ./harbor-dev --help
-
 ```
 
 ```bash
