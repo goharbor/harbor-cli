@@ -200,6 +200,9 @@ func (m *HarborCli) RunDoc(
 	fmt.Println("Running doc.go file using Dagger...")
 	return dag.Container().
 		From("golang:latest").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src/doc").
 		WithExec([]string{"go", "run", "doc.go"}).
