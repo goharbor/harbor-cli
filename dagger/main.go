@@ -5,6 +5,7 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 	"fmt"
 	"log"
+	"strings"
 )
 
 const (
@@ -66,6 +67,7 @@ func (m *HarborCli) build(
 	return builds
 }
 
+// Return container with source mounted and execute golangci-lint
 func (m *HarborCli) Lint(
 	ctx context.Context,
 ) *dagger.Container {
@@ -81,6 +83,7 @@ func (m *HarborCli) Lint(
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
 }
 
+// Create snapshot release with goreleaser
 func (m *HarborCli) PullRequest(
 	ctx context.Context,
 	// Github API token
@@ -231,4 +234,12 @@ func (m *HarborCli) RunDoc(
 		WithWorkdir("/src/doc").
 		WithExec([]string{"go", "run", "doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
+}
+
+func parsePlatform(platform string) (string, string, error) {
+	parts := strings.Split(platform, "/")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("Invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
+	}
+	return parts[0], parts[1], nil
 }
