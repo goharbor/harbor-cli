@@ -191,6 +191,7 @@ func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *da
 		WithSecretVariable("GITHUB_TOKEN", token)
 }
 
+// Generate CLI Documentation with doc.go and return the directory containing the generated files
 func (m *HarborCli) RunDoc(
 	ctx context.Context,
 	// +optional
