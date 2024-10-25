@@ -32,4 +32,4 @@ jobs:
         with:
           version: "latest"
           verb: call
-          args: "publish-image --source=. --cosign-password='${{ env.COSIGN_PASSWORD }}' --cosign-key='${{ env.COSIGN_KEY }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='${{ env.REGISTRY_PASSWORD }}' --reg-address='${{ env.REGISTRY_ADDRESS }}' --publish-address='${{ env.PUBLISH_ADDRESS }}' --tag='${{ env.TAG }}'"
+          args: "publish-image --cosign-password='env:${{ env.COSIGN_PASSWORD }}' --cosign-key='env:${{ env.COSIGN_KEY }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='env:${{ env.REGISTRY_PASSWORD }}' --reg-address='${{ env.REGISTRY_ADDRESS }}' --publish-address='${{ env.PUBLISH_ADDRESS }}' --tag='${{ env.TAG }}'"

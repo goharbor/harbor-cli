@@ -110,10 +110,10 @@ func (m *HarborCli) PublishImage(
 	// +optional
 	// +defaultPath="./"
 	source *dagger.Directory,
-	cosignKey string,
-	cosignPassword string,
+	cosignKey *dagger.Secret,
+	cosignPassword *dagger.Secret,
 	regUsername string,
-	regPassword string,
+	regPassword *dagger.Secret,
 	regAddress string,
 	publishAddress string,
 	tag string,
@@ -145,11 +145,7 @@ func (m *HarborCli) PublishImage(
 		}
 	}
 
-	cosign_key := dag.SetSecret("cosign_key", cosignKey)
-	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
-	regpassword := dag.SetSecret("reg_password", regPassword)
-
-	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
+	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regPassword)
 	// Push the versioned tag
 	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
 	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
@@ -163,7 +159,7 @@ func (m *HarborCli) PublishImage(
 		panic(err)
 	}
 
-	_, err = dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
 	if err != nil {
 		panic(err)
 	}
@@ -195,7 +191,12 @@ func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *da
 		WithSecretVariable("GITHUB_TOKEN", token)
 }
 
-func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) *dagger.Directory {
+func (m *HarborCli) RunDoc(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="./"
+	source *dagger.Directory,
+) *dagger.Directory {
 	fmt.Println("Running doc.go file using Dagger...")
 	return dag.Container().
 		From("golang:latest").
