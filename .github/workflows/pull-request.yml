@@ -29,14 +29,14 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint-report export --path=golangci-lint-report.txt
+          args: lint-report export --path=golangci-lint-report.sarif
 
       - uses: reviewdog/action-setup@v1
       - name: Run Reviewdog
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          reviewdog -f=golangci-lint -name="Golang Linter Report" -reporter=github-pr-review -filter-mode nofilter -fail-level any -log-level debug < golangci-lint-report.txt
+          reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-pr-review -filter-mode nofilter -fail-level any -log-level debug < golangci-lint-report.sarif
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
