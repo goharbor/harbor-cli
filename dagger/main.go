@@ -44,14 +44,15 @@ func (m *HarborCli) BuildDev(
 	}
 	builder := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("dev-go-mod-"+GO_VERSION)).
-		WithMountedCache("/go/build-cache", dag.CacheVolume("dev-go-build-"+GO_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source). // Ensure the source directory with go.mod is mounted
 		WithWorkdir("/src").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch).
 		WithExec([]string{"go", "build", "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
-
 	return builder.File("bin/harbor-cli")
 }
 
@@ -75,7 +76,9 @@ func (m *HarborCli) build(
 			builder := dag.Container().
 				From("golang:"+GO_VERSION+"-alpine").
 				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+				WithEnvVariable("GOCACHE", "/go/build-cache").
 				WithMountedDirectory("/src", m.Source).
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", goos).
@@ -232,7 +235,10 @@ func (m *HarborCli) goreleaserContainer(
 
 	return dag.Container().
 		From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("goreleaser-gomod")).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithFile("/bin/syft", syft).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
