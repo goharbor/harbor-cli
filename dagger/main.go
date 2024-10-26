@@ -96,13 +96,11 @@ func (m *HarborCli) Lint(ctx context.Context) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
 		From("golangci/golangci-lint:"+GOLANGCILINT_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
-		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
-		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedCache("/lint-cache", dag.CacheVolume("/lint-cache")).
+		WithEnvVariable("GOLANGCI_LINT_CACHE", "/lint-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
+		WithExec([]string{"golangci-lint", "run"})
 }
 
 // Create snapshot release with goreleaser
