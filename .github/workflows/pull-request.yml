@@ -31,6 +31,10 @@ jobs:
           verb: call
           args: lint
 
+      - name: golangci-lint
+        if: failure() # Only run if the previous step failed. Aware results might be different
+        uses: reviewdog/action-golangci-lint@v2
+
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
         with:
@@ -44,6 +48,8 @@ jobs:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build-dev --platform linux/amd64
+
+
 
   push-snapshop-release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
