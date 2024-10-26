@@ -25,24 +25,19 @@ jobs:
       - name: Dagger Version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22.5"
-          cache: true
-
-      - name: Install dependencies
-        run: go mod download
-
-      - name: Test with the Go CLI
-        run: go test -v ./...
-
-      - name: Call Linting Function
+      - name: Run Linters
         uses: dagger/dagger-for-github@v6
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint --source=.
+          args: lint
+
+      - name: Run Tests
+        uses: dagger/dagger-for-github@v6
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test
 
       - name: Call Build Function
         uses: dagger/dagger-for-github@v6

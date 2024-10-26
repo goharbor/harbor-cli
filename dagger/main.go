@@ -50,9 +50,9 @@ func (m *HarborCli) BuildDev(
 		WithWorkdir("/src").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch).
-		WithExec([]string{"go", "build", "-o", "bin/harbor-dev", "cmd/harbor/main.go"})
+		WithExec([]string{"go", "build", "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
 
-	return builder.File("bin/harbor-dev")
+	return builder.File("bin/harbor-cli")
 }
 
 // Return list of containers for list of oses and arches
@@ -243,7 +243,7 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 }
 
 // Executes Go tests and returns the directory containing the test results
-func (m *HarborCli) RunGoTests(ctx context.Context) *dagger.Directory {
+func (m *HarborCli) Test(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
