@@ -3,6 +3,7 @@ package list
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,6 +13,7 @@ import (
 )
 
 var columns = []table.Column{
+	{Title: "ID", Width: 6},
 	{Title: "Name", Width: 16},
 	{Title: "Administrator", Width: 16},
 	{Title: "Email", Width: 20},
@@ -27,6 +29,7 @@ func ListUsers(users []*models.UserResp) {
 		}
 		createdTime, _ := utils.FormatCreatedTime(user.CreationTime.String())
 		rows = append(rows, table.Row{
+			strconv.FormatInt(int64(user.UserID), 10), // UserID
 			user.Username,
 			isAdmin,
 			user.Email,

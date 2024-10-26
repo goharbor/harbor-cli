@@ -100,36 +100,38 @@ Windows | ✅
 
 # Installation
 
-## Build From Source
-
-```bash
-git clone https://github.com/goharbor/harbor-cli.git
-cd harbor-cli/cmd/harbor
-go build .
-sudo mv harbor /usr/local/bin/
-```
 
 ## Linux and MacOS
 
- use `amd64/arm64` as per your system architecture
+Homebrew is the recommended way to install Harbor CLI on MacOS and Linux.
 
-```bash
-## Linux
-tar -xzf harbor_0.0.1_linux_amd64.tar.gz
-cd harbor_0.0.1_linux_amd64
-sudo mv harbor /usr/local/bin/
-
-## MacOS
-tar -xzf harbor_0.0.1_darwin_amd64.tar.gz
-cd harbor_0.0.1_darwin_amd64
-sudo mv harbor /usr/local/bin/
-```
 
 ## Windows
 
-```bash
+```shell
+
 winget install harbor
+
 ```
+
+
+
+# Build From Source
+
+Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your system. 
+
+#### Using Dagger
+```bash
+git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
+dagger call build-dev --platform darwin/arm64 export --path=./harbor-dev
+./harbor-dev --help
+```
+
+```bash
+git clone https://github.com/goharbor/harbor-cli.git
+dagger call build
+```
+
 
 # Community
 

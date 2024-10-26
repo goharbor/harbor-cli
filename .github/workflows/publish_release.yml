@@ -1,26 +1,29 @@
-name: Publish Release
+name: Dagger Release Pipeline
 
 on:
   push:
     tags:
-      - v*
+      - "v*"
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup go env
-        uses: actions/setup-go@master
-        with:
-          go-version: "1.21"
-      - name: goreleaser with tag
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          version: latest
-          args: release --rm-dist
-        env:
+      - name: Call Dagger Function
+        uses: dagger/dagger-for-github@v6.13.0
+        env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          args: release --github-token='env:${{ env.GITHUB_TOKEN }}'
