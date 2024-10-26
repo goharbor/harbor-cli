@@ -1,4 +1,4 @@
-name: Pull Request Pipeline
+name: Main and Pull Request Pipeline
 
 on:
   push:
@@ -9,10 +9,10 @@ on:
       - 'assets/**'
 
 jobs:
-  test-code:
+  lint:
     permissions:
       checks: write
-      contents: read
+      contents: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +39,14 @@ jobs:
           reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-pr-review -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
           reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
 
+  test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
         with:
@@ -52,6 +60,7 @@ jobs:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build-dev --platform linux/amd64
+
   push-snapshop-release:
     permissions:
       contents: write
