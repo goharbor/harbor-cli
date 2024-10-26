@@ -15,14 +15,26 @@ const (
 	GORELEASER_VERSION   = "v2.3.2"
 )
 
-type HarborCli struct{}
-
-// Dev Build of Harbor CLI for local testing and development
-func (m *HarborCli) BuildDev(ctx context.Context,
+func New(
+	// Local or remote directory with source code, defaults to "./"
 	// +optional
 	// +defaultPath="./"
 	source *dagger.Directory,
-	platform string) *dagger.Directory {
+) *HarborCli {
+	return &HarborCli{Source: source}
+}
+
+type HarborCli struct {
+	// Local or remote directory with source code, defaults to "./"
+	Source *dagger.Directory
+}
+
+// Dev Build of Harbor CLI for local testing and development
+func (m *HarborCli) BuildDev(
+	ctx context.Context,
+	// platform to build for
+	platform string,
+) *dagger.File {
 
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
 	// Define the path for the binary output
@@ -33,24 +45,27 @@ func (m *HarborCli) BuildDev(ctx context.Context,
 
 	builder := dag.Container().
 		From("golang:latest").
-		WithMountedDirectory("/src", source). // Ensure the source directory with go.mod is mounted
+		WithMountedDirectory("/src", m.Source). // Ensure the source directory with go.mod is mounted
 		WithWorkdir("/src").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("dev-go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("dev-go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch).
 		WithExec([]string{"go", "build", "-o", "/src/bin/harbor-dev", "/src/cmd/harbor/main.go"})
 
-	return dag.Directory().WithFile("harbor-dev", builder.File("/src/bin/harbor-dev"))
+	return builder.File("/src/bin/harbor-dev")
 }
 
-func (m *HarborCli) Build(
+// Return list of containers for list of oses and arches
+//
+// FIXME: there is a bug where you cannot return a list of containers right now
+// this function works as expected because it is only called by other functions but
+// calling it via the CLI results in an error. That is why this into a private function for
+// now so that no one calls this https://github.com/dagger/dagger/issues/8202#issuecomment-2317291483
+func (m *HarborCli) build(
 	ctx context.Context,
-	// +optional
-	// +defaultPath="./"
-	source *dagger.Directory,
 ) []*dagger.Container {
 	var builds []*dagger.Container
 
@@ -62,7 +77,7 @@ func (m *HarborCli) Build(
 			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			builder := dag.Container().
 				From("golang:"+GO_VERSION+"-alpine").
-				WithMountedDirectory("/src", source).
+				WithMountedDirectory("/src", m.Source).
 				WithWorkdir("/src").
 				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
@@ -71,18 +86,19 @@ func (m *HarborCli) Build(
 				WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
 				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
-				WithWorkdir(bin_path).WithExec([]string{"ls"}).WithEntrypoint([]string{"./harbor"})
+				WithWorkdir(bin_path).
+				WithExec([]string{"ls"}).
+				WithEntrypoint([]string{"./harbor"})
+
 			builds = append(builds, builder)
 		}
 	}
 	return builds
 }
 
+// Return container with source mounted and execute golangci-lint
 func (m *HarborCli) Lint(
 	ctx context.Context,
-	// +optional
-	// +defaultPath="./"
-	source *dagger.Directory,
 ) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
@@ -91,19 +107,21 @@ func (m *HarborCli) Lint(
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
-		WithMountedDirectory("/src", source).
+		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"})
 }
 
-func (m *HarborCli) PullRequest(ctx context.Context,
-	// +optional
-	// +defaultPath="./"
-	source *dagger.Directory,
-	githubToken string,
+// Create snapshot release with goreleaser
+func (m *HarborCli) PullRequest(
+	ctx context.Context,
+	// Github API token
+	githubToken *dagger.Secret,
 ) {
-	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"release", "--snapshot", "--clean"})
-	_, err := goreleaser.Stderr(ctx)
+	_, err := m.
+		goreleaserContainer(githubToken).
+		WithExec([]string{"release", "--snapshot", "--clean"}).
+		Stderr(ctx)
 	if err != nil {
 		log.Printf("❌ Error occured during snapshot release for the recently merged pull-request: %s", err)
 		return
@@ -111,14 +129,16 @@ func (m *HarborCli) PullRequest(ctx context.Context,
 	log.Println("Pull-Request tasks completed successfully 🎉")
 }
 
+// Create release with goreleaser
 func (m *HarborCli) Release(
 	ctx context.Context,
-	// +optional
-	// +defaultPath="./"
-	source *dagger.Directory,
-	githubToken string,
+	// Github API token
+	githubToken *dagger.Secret,
 ) {
-	goreleaser := goreleaserContainer(source, githubToken).WithExec([]string{"ls", "-la"}).WithExec([]string{"goreleaser", "release", "--clean"})
+	goreleaser := m.goreleaserContainer(githubToken).
+		WithExec([]string{"ls", "-la"}).
+		WithExec([]string{"goreleaser", "release", "--clean"})
+
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
@@ -128,29 +148,27 @@ func (m *HarborCli) Release(
 }
 
 // PublishImage publishes a Docker image to a registry with a specific tag and signs it using Cosign.
-// cosignKey: the secret used for signing the image
-// cosignPassword: the password for the cosign secret
-// regUsername: the username for the registry
-// regPassword: the password for the registry
-// publishAddress: the address of the registry to publish the image
-// tag: the version tag for the image
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	// +optional
-	// +defaultPath="./"
-	source *dagger.Directory,
-	cosignKey string,
-	cosignPassword string,
+	// the secret used for signing the image
+	cosignKey *dagger.Secret,
+	// the password for the cosign secret
+	cosignPassword *dagger.Secret,
+	// the username for the registry
 	regUsername string,
-	regPassword string,
+	// the password for the registry
+	regPassword *dagger.Secret,
+	// the address of the registry to publish the image
 	regAddress string,
+	// the address of the registry to publish the image
 	publishAddress string,
+	// the version tag for the image
 	tag string,
 ) string {
 	var container *dagger.Container
 	var filteredBuilders []*dagger.Container
 
-	builders := m.Build(ctx, source)
+	builders := m.build(ctx)
 	if len(builders) > 0 {
 		fmt.Println(len(builders))
 		container = builders[0]
@@ -174,11 +192,7 @@ func (m *HarborCli) PublishImage(
 		}
 	}
 
-	cosign_key := dag.SetSecret("cosign_key", cosignKey)
-	cosign_password := dag.SetSecret("cosign_password", cosignPassword)
-	regpassword := dag.SetSecret("reg_password", regPassword)
-
-	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regpassword)
+	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regPassword)
 	// Push the versioned tag
 	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
 	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
@@ -192,7 +206,7 @@ func (m *HarborCli) PublishImage(
 		panic(err)
 	}
 
-	_, err = dag.Cosign().Sign(ctx, cosign_key, cosign_password, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regpassword})
+	_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
 	if err != nil {
 		panic(err)
 	}
@@ -201,7 +215,12 @@ func (m *HarborCli) PublishImage(
 	return addr
 }
 
-func buildPlatform(ctx context.Context, container *dagger.Container) string {
+// Return the platform of the container
+func buildPlatform(
+	ctx context.Context,
+	// container to check
+	container *dagger.Container,
+) string {
 	platform, err := container.Platform(ctx)
 	if err != nil {
 		log.Fatalf("error getting platform", err)
@@ -209,26 +228,38 @@ func buildPlatform(ctx context.Context, container *dagger.Container) string {
 	return string(platform)
 }
 
-func goreleaserContainer(directoryArg *dagger.Directory, githubToken string) *dagger.Container {
-	token := dag.SetSecret("github_token", githubToken)
-
+// Return a container with the goreleaser binary mounted and the source directory mounted.
+func (m *HarborCli) goreleaserContainer(
+	// Github API token
+	githubToken *dagger.Secret,
+) *dagger.Container {
 	// Export the syft binary from the syft container as a file to generate SBOM
-	syft := dag.Container().From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
+	syft := dag.Container().
+		From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("syft-gomod")).
 		File("/syft")
-	return dag.Container().From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).
+
+	return dag.Container().
+		From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("goreleaser-gomod")).
 		WithFile("/bin/syft", syft).
-		WithMountedDirectory("/src", directoryArg).WithWorkdir("/src").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
 		WithEnvVariable("TINI_SUBREAPER", "true").
-		WithSecretVariable("GITHUB_TOKEN", token)
+		WithSecretVariable("GITHUB_TOKEN", githubToken)
 }
 
-func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) *dagger.Directory {
+// Generate CLI Documentation with doc.go and return the directory containing the generated files
+func (m *HarborCli) RunDoc(
+	ctx context.Context,
+) *dagger.Directory {
 	fmt.Println("Running doc.go file using Dagger...")
 	return dag.Container().
 		From("golang:latest").
-		WithMountedDirectory("/src", source).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
 		WithExec([]string{"go", "run", "doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
