@@ -55,7 +55,7 @@ Use "harbor [command] --help" for more information about a command.
 #### Log in to Harbor Registry
 
 ```bash
-harbor login demo.goharbor.io -u admin -p Harbor12345
+harbor login demo.goharbor.io -u harbor-cli -p Harbor12345
 ```
 
 #### Create a New Project
@@ -123,13 +123,15 @@ Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your sy
 #### Using Dagger
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-dagger call build-dev --platform darwin/arm64 export --path=./harbor-dev
+dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 ./harbor-dev --help
 ```
 
+If golang is installed in your system, you can also build the project using the following commands:
+
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
-dagger call build
+go build -o harbor-cli cmd/harbor/main.go
 ```
 
 

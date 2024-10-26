@@ -1,5 +1,5 @@
 version: 2
-project_name: harbor
+project_name: harbor-cli
 
 before:
   hooks:
@@ -47,8 +47,11 @@ sboms:
 
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
-  version_template: "{{ .Tag }}-next"
+  name_template: "HarborCLI Snapshot {{.Commit}}"
+  publish: true
+
 release:
   name_template: "HarborCLI {{.Tag}}"
   draft: false               # Set to false to ensure that releases are published, not kept as drafts
