@@ -21,7 +21,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -37,14 +40,14 @@ jobs:
       - name: Call Linting Function
         uses: dagger/dagger-for-github@v6
         with:
-          version: "latest"
+          version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: lint --source=.
 
       - name: Call Build Function
         uses: dagger/dagger-for-github@v6
         with:
-          version: "latest"
+          version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build --source=.
 
@@ -53,6 +56,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: "latest"
+          version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: pull-request --source=. --github-token=${{ env.GITHUB_TOKEN }}
