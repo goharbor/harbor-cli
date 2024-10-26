@@ -35,23 +35,22 @@ jobs:
         run: go test -v ./...
 
       - name: Call Linting Function
-        uses: dagger/dagger-for-github@v6.13.0
+        uses: dagger/dagger-for-github@v6
         with:
           version: "latest"
           verb: call
           args: lint --source=.
 
       - name: Call Build Function
-        uses: dagger/dagger-for-github@v6.1.0
+        uses: dagger/dagger-for-github@v6
         with:
           version: "latest"
           verb: call
           args: build --source=.
 
       - name: Call Pull-Request Function
-        uses: dagger/dagger-for-github@v6.13.0
-        if: always()
-        env: 
+        uses: dagger/dagger-for-github@v6
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "latest"

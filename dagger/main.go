@@ -29,10 +29,9 @@ type HarborCli struct {
 	Source *dagger.Directory
 }
 
-// Dev Build of Harbor CLI for local testing and development
+// Create build of Harbor CLI for local testing and development
 func (m *HarborCli) BuildDev(
 	ctx context.Context,
-	// platform to build for
 	platform string,
 ) *dagger.File {
 
@@ -115,7 +114,6 @@ func (m *HarborCli) Lint(
 // Create snapshot release with goreleaser
 func (m *HarborCli) PullRequest(
 	ctx context.Context,
-	// Github API token
 	githubToken *dagger.Secret,
 ) {
 	_, err := m.
@@ -147,22 +145,15 @@ func (m *HarborCli) Release(
 	log.Println("Release tasks completed successfully 🎉")
 }
 
-// PublishImage publishes a Docker image to a registry with a specific tag and signs it using Cosign.
+// PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	// the secret used for signing the image
 	cosignKey *dagger.Secret,
-	// the password for the cosign secret
 	cosignPassword *dagger.Secret,
-	// the username for the registry
 	regUsername string,
-	// the password for the registry
 	regPassword *dagger.Secret,
-	// the address of the registry to publish the image
 	regAddress string,
-	// the address of the registry to publish the image
 	publishAddress string,
-	// the version tag for the image
 	tag string,
 ) string {
 	var container *dagger.Container
@@ -253,9 +244,8 @@ func (m *HarborCli) goreleaserContainer(
 func (m *HarborCli) RunDoc(
 	ctx context.Context,
 ) *dagger.Directory {
-	fmt.Println("Running doc.go file using Dagger...")
 	return dag.Container().
-		From("golang:latest").
+		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
@@ -265,10 +255,24 @@ func (m *HarborCli) RunDoc(
 		WithWorkdir("/src").Directory("/src/doc")
 }
 
+// Executes Go tests and returns the directory containing the test results
+func (m *HarborCli) RunGoTests(ctx context.Context) *dagger.Directory {
+	return dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"go", "test", "-v", "./..."}).
+		Directory("/src")
+}
+
+// Parse the platform string into os and arch
 func parsePlatform(platform string) (string, string, error) {
 	parts := strings.Split(platform, "/")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("Invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
+		return "", "", fmt.Errorf("invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
 	}
 	return parts[0], parts[1], nil
 }
