@@ -1,4 +1,4 @@
-name: Dagger Pull Request Pipeline
+name: Pull Request Pipeline
 
 on:
   push:
@@ -39,18 +39,9 @@ jobs:
           verb: call
           args: test
 
-      - name: Call Build Function
+      - name: Build Binary
         uses: dagger/dagger-for-github@v6
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: build --source=.
-
-      - name: Call Pull-Request Function
-        uses: dagger/dagger-for-github@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: pull-request --source=. --github-token=${{ env.GITHUB_TOKEN }}
+          args: build-dev --platform linux/amd64

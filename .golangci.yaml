@@ -9,7 +9,7 @@ linters:
     - nilnil
     # - wrapcheck
     # - gocritic
-    # - revive, enalgbe once current issues are resolved
+    - revive #, enalgbe once current issues are resolved
 issues:
   exclude-dirs:
     - dagger/internal

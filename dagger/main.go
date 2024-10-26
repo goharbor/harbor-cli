@@ -104,7 +104,7 @@ func (m *HarborCli) Lint(ctx context.Context) *dagger.Container {
 }
 
 // Create snapshot release with goreleaser
-func (m *HarborCli) PullRequest(
+func (m *HarborCli) SnapshotRelease(
 	ctx context.Context,
 	githubToken *dagger.Secret,
 ) {
