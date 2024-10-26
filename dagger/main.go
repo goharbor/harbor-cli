@@ -38,23 +38,21 @@ func (m *HarborCli) BuildDev(
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
 	// Define the path for the binary output
 	os, arch, err := parsePlatform(platform)
+
 	if err != nil {
 		log.Fatalf("Error parsing platform: %v", err)
 	}
-
 	builder := dag.Container().
-		From("golang:latest").
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("dev-go-mod-"+GO_VERSION)).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("dev-go-build-"+GO_VERSION)).
 		WithMountedDirectory("/src", m.Source). // Ensure the source directory with go.mod is mounted
 		WithWorkdir("/src").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("dev-go-mod-"+GO_VERSION)).
-		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("dev-go-build-"+GO_VERSION)).
-		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch).
-		WithExec([]string{"go", "build", "-o", "/src/bin/harbor-dev", "/src/cmd/harbor/main.go"})
+		WithExec([]string{"go", "build", "-o", "bin/harbor-dev", "cmd/harbor/main.go"})
 
-	return builder.File("/src/bin/harbor-dev")
+	return builder.File("bin/harbor-dev")
 }
 
 // Return list of containers for list of oses and arches
@@ -76,12 +74,10 @@ func (m *HarborCli) build(
 			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			builder := dag.Container().
 				From("golang:"+GO_VERSION+"-alpine").
+				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 				WithMountedDirectory("/src", m.Source).
 				WithWorkdir("/src").
-				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
-				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
-				WithEnvVariable("GOCACHE", "/go/build-cache").
 				WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
 				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
@@ -96,9 +92,7 @@ func (m *HarborCli) build(
 }
 
 // Return container with source mounted and execute golangci-lint
-func (m *HarborCli) Lint(
-	ctx context.Context,
-) *dagger.Container {
+func (m *HarborCli) Lint(ctx context.Context) *dagger.Container {
 	fmt.Println("👀 Running linter with Dagger...")
 	return dag.Container().
 		From("golangci/golangci-lint:"+GOLANGCILINT_VERSION+"-alpine").
@@ -207,11 +201,7 @@ func (m *HarborCli) PublishImage(
 }
 
 // Return the platform of the container
-func buildPlatform(
-	ctx context.Context,
-	// container to check
-	container *dagger.Container,
-) string {
+func buildPlatform(ctx context.Context, container *dagger.Container) string {
 	platform, err := container.Platform(ctx)
 	if err != nil {
 		log.Fatalf("error getting platform", err)
@@ -241,13 +231,12 @@ func (m *HarborCli) goreleaserContainer(
 }
 
 // Generate CLI Documentation with doc.go and return the directory containing the generated files
-func (m *HarborCli) RunDoc(
-	ctx context.Context,
-) *dagger.Directory {
+func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
@@ -259,8 +248,9 @@ func (m *HarborCli) RunDoc(
 func (m *HarborCli) RunGoTests(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod")).
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build")).
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
