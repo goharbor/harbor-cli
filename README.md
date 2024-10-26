@@ -55,7 +55,7 @@ Use "harbor [command] --help" for more information about a command.
 #### Log in to Harbor Registry
 
 ```bash
-harbor login demo.goharbor.io -u admin -p Harbor12345
+harbor login demo.goharbor.io -u harbor-cli -p Harbor12345
 ```
 
 #### Create a New Project
