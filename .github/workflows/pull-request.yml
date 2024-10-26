@@ -35,9 +35,8 @@ jobs:
       - name: Run Reviewdog
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cat golangci-lint-report.txt
-          reviewdog -f=golangci-lint -name=golangci-pr-review -reporter=github-pr-review < golangci-lint-report.txt
+        run: |          
+          reviewdog -f=golangci-lint -name=golangci-pr-review -reporter=github-pr-review < golangci-lint-report.txt -fail-level any
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
