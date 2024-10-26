@@ -24,7 +24,7 @@ jobs:
       - name: Dagger Version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
-      - name: Run Linters
+      - name: Run Dagger golangci-lint
         uses: dagger/dagger-for-github@v6
         with:
           version: ${{ steps.dagger_version.outputs.version }}
@@ -35,8 +35,8 @@ jobs:
       - name: Run Reviewdog
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |          
-          cat golangci-lint-report.txt | reviewdog -f=golangci-lint -name="Golang Linter Report" -reporter=github-pr-review -filter-mode nofilter -fail-level any -log-level debug
+        run: |
+          reviewdog -f=golangci-lint -name="Golang Linter Report" -reporter=github-pr-review -filter-mode nofilter -fail-level any -log-level debug < golangci-lint-report.txt
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
