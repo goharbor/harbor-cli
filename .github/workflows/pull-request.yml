@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   test-code:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -45,3 +44,23 @@ jobs:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build-dev --platform linux/amd64
+
+  push-snapshop-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: test-code
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
+      - name: Push Release
+        uses: dagger/dagger-for-github@v6
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: snapshot-release --github-token=${{ env.GITHUB_TOKEN }}
