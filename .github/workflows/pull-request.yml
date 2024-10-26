@@ -8,10 +8,6 @@ on:
       - '*.md'
       - 'assets/**'
 
-permissions:
-  contents: write # This is required for actions/checkout
-  packages: write # This is required for publishing the package
-
 jobs:
   test-code:
     runs-on: ubuntu-latest
@@ -29,11 +25,13 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint
+          args: lint-report export --path=golangci-lint-report.txt
 
-      - name: golangci-lint
-        if: failure() # Only run if the previous step failed. Aware results might be different
-        uses: reviewdog/action-golangci-lint@v2
+      - uses: reviewdog/action-setup@v1
+      - name: Run Reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: reviewdog -f=golangci-lint -name=golangci-pr-review -reporter=github-pr-review < golangci-lint-report.txt
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v6
@@ -48,10 +46,11 @@ jobs:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build-dev --platform linux/amd64
-
-
-
   push-snapshop-release:
+    permissions:
+      contents: write
+      packages: write
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-code

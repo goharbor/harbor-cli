@@ -91,16 +91,28 @@ func (m *HarborCli) build(
 	return builds
 }
 
-// Return container with source mounted and execute golangci-lint
-func (m *HarborCli) Lint(ctx context.Context) *dagger.Container {
-	fmt.Println("👀 Running linter with Dagger...")
-	return dag.Container().
+// Run linter golangci-lint and write the linting results to a file golangci-lint-report.txt
+func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
+	report := "golangci-lint-report.txt"
+	return m.lint(ctx).WithExec([]string{"golangci-lint", "run",
+		"--out-format", "line-number:" + report,
+		"--issues-exit-code", "0"}).File(report)
+}
+
+// Run linter golangci-lint
+func (m *HarborCli) Lint(ctx context.Context) (string, error) {
+	return m.lint(ctx).WithExec([]string{"golangci-lint", "run"}).Stderr(ctx)
+}
+
+func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
+	fmt.Println("👀 Running linter and printing results to file golangci-lint.txt.")
+	linter := dag.Container().
 		From("golangci/golangci-lint:"+GOLANGCILINT_VERSION+"-alpine").
 		WithMountedCache("/lint-cache", dag.CacheVolume("/lint-cache")).
 		WithEnvVariable("GOLANGCI_LINT_CACHE", "/lint-cache").
 		WithMountedDirectory("/src", m.Source).
-		WithWorkdir("/src").
-		WithExec([]string{"golangci-lint", "run"})
+		WithWorkdir("/src")
+	return linter
 }
 
 // Create snapshot release with goreleaser
