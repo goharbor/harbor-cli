@@ -96,7 +96,7 @@ func (m *HarborCli) build(
 
 // Run linter golangci-lint and write the linting results to a file golangci-lint-report.txt
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
-	report := "golangci-lint-report.txt"
+	report := "golangci-lint-report.sarif"
 	return m.lint(ctx).WithExec([]string{"golangci-lint", "run",
 		"--out-format", "sarif:" + report,
 		"--issues-exit-code", "0"}).File(report)
