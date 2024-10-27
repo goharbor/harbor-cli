@@ -80,13 +80,13 @@ jobs:
           verb: call
           args: snapshot-release export --path=dist
 
-      - uses: crowbarmaster/GH-Automatic-Releases@latest
+      - uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          draft: false
-          generate_notes: true
+          tag_name: nightly
+          name: 'Snapshot Release $$'
           prerelease: true
-          automatic_release_tag: "snapshot"
-          title: "Development Build"
+          body: 'Snapshot'
           files: |
             ./dist/harbor_dev-*
