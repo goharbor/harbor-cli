@@ -191,7 +191,7 @@ func buildPlatform(ctx context.Context, container *dagger.Container) string {
 // Create snapshot release with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
 	return m.goreleaserContainer().
-		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean"}).
+		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean", "--skip", "validate"}).
 		Directory("/src/dist")
 }
 
