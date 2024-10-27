@@ -85,6 +85,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           generate_notes: true
           prerelease: true
+          automatic_release_tag: "snapshot"
           title: "Development Build"
           files: |
             ./dist/harbor_dev-*
