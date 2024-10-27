@@ -80,10 +80,11 @@ jobs:
           verb: call
           args: snapshot-release export --path=dist
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: crowbarmaster/GH-Automatic-Releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
+          generate_notes: true
           prerelease: true
           title: "Development Build"
           files: |
