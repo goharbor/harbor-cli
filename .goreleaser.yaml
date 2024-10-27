@@ -50,7 +50,6 @@ checksum:
 
 snapshot:
   name_template: "HarborCLI Snapshot {{.Commit}}"
-  publish: true
 
 release:
   name_template: "HarborCLI {{.Tag}}"
