@@ -135,11 +135,7 @@ func (m *HarborCli) SnapshotRelease(
 }
 
 // Create release with goreleaser
-func (m *HarborCli) Release(
-	ctx context.Context,
-	// Github API token
-	githubToken *dagger.Secret,
-) {
+func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 	goreleaser := m.goreleaserContainer(githubToken).
 		WithExec([]string{"ls", "-la"}).
 		WithExec([]string{"goreleaser", "release", "--clean"})

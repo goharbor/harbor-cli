@@ -55,6 +55,8 @@ release:
   name_template: "HarborCLI {{.Tag}}"
   draft: true               # Set to false to ensure that releases are published, not kept as drafts
   prerelease: auto            # Auto-detect prereleases based on tag
+  replace_existing_draft: true
+  replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
     owner: vad1mo           # Your GitHub repository owner
