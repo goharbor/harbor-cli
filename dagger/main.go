@@ -118,37 +118,6 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 	return linter
 }
 
-// Create snapshot release with goreleaser
-func (m *HarborCli) SnapshotRelease(
-	ctx context.Context,
-	githubToken *dagger.Secret,
-) {
-	_, err := m.
-		goreleaserContainer(githubToken).
-		WithEnvVariable("GORELEASER_CURRENT_TAG", "v0.0.0").
-		WithExec([]string{"goreleaser", "release", "--skip", "validate", "--clean"}).
-		Stderr(ctx)
-	if err != nil {
-		log.Printf("❌ Error occured during snapshot release for the recently merged pull-request: %s", err)
-		return
-	}
-	log.Println("Pull-Request tasks completed successfully 🎉")
-}
-
-// Create release with goreleaser
-func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
-	goreleaser := m.goreleaserContainer(githubToken).
-		WithExec([]string{"ls", "-la"}).
-		WithExec([]string{"goreleaser", "release", "--skip", "validate", "--clean"})
-
-	_, err := goreleaser.Stderr(ctx)
-	if err != nil {
-		log.Printf("Error occured during release: %s", err)
-		return
-	}
-	log.Println("Release tasks completed successfully 🎉")
-}
-
 // PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
@@ -219,11 +188,28 @@ func buildPlatform(ctx context.Context, container *dagger.Container) string {
 	return string(platform)
 }
 
+// Create snapshot release with goreleaser
+func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
+	return m.goreleaserContainer().
+		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean"}).
+		Directory("/src/dist")
+}
+
+// Create release with goreleaser
+func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
+	goreleaser := m.goreleaserContainer().
+		WithSecretVariable("GITHUB_TOKEN", githubToken).
+		WithExec([]string{"goreleaser", "release", "--clean"})
+	_, err := goreleaser.Stderr(ctx)
+	if err != nil {
+		log.Printf("Error occured during release: %s", err)
+		return
+	}
+	log.Println("Release tasks completed successfully 🎉")
+}
+
 // Return a container with the goreleaser binary mounted and the source directory mounted.
-func (m *HarborCli) goreleaserContainer(
-	// Github API token
-	githubToken *dagger.Secret,
-) *dagger.Container {
+func (m *HarborCli) goreleaserContainer() *dagger.Container {
 	// Export the syft binary from the syft container as a file to generate SBOM
 	syft := dag.Container().
 		From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
@@ -239,8 +225,8 @@ func (m *HarborCli) goreleaserContainer(
 		WithFile("/bin/syft", syft).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithEnvVariable("TINI_SUBREAPER", "true").
-		WithSecretVariable("GITHUB_TOKEN", githubToken)
+		WithEnvVariable("TINI_SUBREAPER", "true")
+
 }
 
 // Generate CLI Documentation with doc.go and return the directory containing the generated files

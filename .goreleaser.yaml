@@ -1,5 +1,5 @@
 version: 2
-project_name: harbor-cli
+project_name: harbor
 
 before:
   hooks:
@@ -7,7 +7,6 @@ before:
 
 builds:
 - main: ./cmd/harbor/main.go
-
   env:
     - CGO_ENABLED=0
   ldflags:
@@ -25,17 +24,18 @@ builds:
     - goos: windows
       goarch: arm64
   mod_timestamp: "{{ .CommitTimestamp }}"
+
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
 nfpms:
-  - package_name: harbor
+  -
     homepage: https://github.com/goharbor/harbor-cli/
-    maintainer: Vadim Bauer
+    maintainer: Harbor Community
     description: |-
-      [Sandbox] Official Harbor CLI
+      CLI for Harbor Container Registry
     formats:
       - rpm
       - deb
@@ -49,17 +49,17 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "HarborCLI Snapshot {{.Commit}}"
+  version_template: "dev-{{.ShortCommit}}"
 
 release:
   name_template: "HarborCLI {{.Tag}}"
-  draft: true               # Set to false to ensure that releases are published, not kept as drafts
-  prerelease: true            # Auto-detect prereleases based on tag
+  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
+  prerelease: auto            # Auto-detect prereleases based on tag
   replace_existing_draft: true
   replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: vad1mo           # Your GitHub repository owner
+    owner: vad1mo             # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 changelog:
