@@ -125,7 +125,7 @@ func (m *HarborCli) SnapshotRelease(
 ) {
 	_, err := m.
 		goreleaserContainer(githubToken).
-		WithEnvVariable("GORELEASER_CURRENT_TAG", "snapshot").
+		WithEnvVariable("GORELEASER_CURRENT_TAG", "v0.0.0").
 		WithExec([]string{"goreleaser", "release", "--skip", "validate", "--clean"}).
 		Stderr(ctx)
 	if err != nil {
