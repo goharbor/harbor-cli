@@ -83,6 +83,7 @@ jobs:
       - uses: crowbarmaster/GH-Automatic-Releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          draft: false
           generate_notes: true
           prerelease: true
           automatic_release_tag: "snapshot"
