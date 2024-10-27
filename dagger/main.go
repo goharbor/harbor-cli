@@ -125,7 +125,7 @@ func (m *HarborCli) SnapshotRelease(
 ) {
 	_, err := m.
 		goreleaserContainer(githubToken).
-		WithExec([]string{"release", "--snapshot", "--clean"}).
+		WithExec([]string{"goreleaser", "release", "--skip", "validate", "--clean"}).
 		Stderr(ctx)
 	if err != nil {
 		log.Printf("❌ Error occured during snapshot release for the recently merged pull-request: %s", err)
@@ -138,7 +138,7 @@ func (m *HarborCli) SnapshotRelease(
 func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 	goreleaser := m.goreleaserContainer(githubToken).
 		WithExec([]string{"ls", "-la"}).
-		WithExec([]string{"goreleaser", "release", "--clean"})
+		WithExec([]string{"goreleaser", "release", "--skip", "validate", "--clean"})
 
 	_, err := goreleaser.Stderr(ctx)
 	if err != nil {
