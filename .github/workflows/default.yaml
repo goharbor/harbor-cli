@@ -80,13 +80,12 @@ jobs:
           verb: call
           args: snapshot-release export --path=dist
 
-      - uses: andelf/nightly-release@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: IsaacShelton/update-existing-release@v1
         with:
-          tag_name: nightly
-          name: 'Snapshot Release $$'
+          token: ${{secrets.GITHUB_TOKEN}}
+          release: "Snapshot Release $$"
+          tag: "snapshot"
+          replace: true
           prerelease: true
-          body: 'Snapshot'
           files: |
             ./dist/harbor_dev-*
