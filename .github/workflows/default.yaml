@@ -81,4 +81,4 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: snapshot-release --github-token=${{ env.GITHUB_TOKEN }}
+          args: snapshot-release --github-token=GITHUB_TOKEN
