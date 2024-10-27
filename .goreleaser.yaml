@@ -53,11 +53,11 @@ snapshot:
 
 release:
   name_template: "HarborCLI {{.Tag}}"
-  draft: false               # Set to false to ensure that releases are published, not kept as drafts
+  draft: true               # Set to false to ensure that releases are published, not kept as drafts
   prerelease: auto            # Auto-detect prereleases based on tag
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: goharbor           # Your GitHub repository owner
+    owner: vad1mo           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 changelog:
