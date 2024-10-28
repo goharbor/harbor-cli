@@ -75,4 +75,4 @@ jobs:
             --image-tag='${{ env.TAG }}' \
             --github-token=env:GITHUB_TOKEN \
             --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
-            --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN
+            --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"
