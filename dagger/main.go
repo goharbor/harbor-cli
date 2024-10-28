@@ -240,8 +240,8 @@ func (m *HarborCli) PublishImageAndSign(
 	registryPassword, githubToken, actionsIdTokenRequestToken *dagger.Secret,
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
-	// Publish the image
 	imageAddr := m.PublishImage(ctx, registry, registryUsername, imageTag, registryPassword)
+	fmt.Printf("Published Image: %s\n", imageAddr)
 
 	// Sign the published image
 	signedImage, err := m.Sign(
@@ -263,9 +263,12 @@ func (m *HarborCli) PublishImageAndSign(
 }
 
 func (m *HarborCli) Sign(ctx context.Context,
-	githubToken *dagger.Secret, actionsIdTokenRequestUrl string, actionsIdTokenRequestToken *dagger.Secret,
-
-	registry, registryUsername, imageName string, registryPassword *dagger.Secret) (string, error) {
+	githubToken *dagger.Secret,
+	actionsIdTokenRequestUrl string,
+	actionsIdTokenRequestToken *dagger.Secret,
+	registry, registryUsername, imageName string,
+	registryPassword *dagger.Secret,
+) (string, error) {
 	reg_password, _ := registryPassword.Plaintext(ctx)
 
 	return dag.Container().
