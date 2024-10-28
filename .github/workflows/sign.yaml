@@ -32,13 +32,12 @@ jobs:
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ vars.ACTIONS_ID_TOKEN_REQUEST_URL }}
           IMAGE: "library/harbor-cli@sha256:9183ba01537f21c44d2aba0ca8ad500ffe6d80baea748f52b72d75be1dd19a84"
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: "sign --github-token=env:GITHUB_TOKEN \
-          --actions-id-token-request-url='${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}' \
+          --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
           --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN \
           --registry='${{ env.REGISTRY_ADDRESS }}' \
           --registry-username='${{ env.REGISTRY_USERNAME }}' \
