@@ -152,7 +152,7 @@ func (m *HarborCli) PublishImage(
 		panic(err)
 	}
 	fmt.Printf("Published image address: %s\n", addr)
-	return "addr"
+	return addr
 }
 
 // Create snapshot release with goreleaser
@@ -241,7 +241,6 @@ func (m *HarborCli) PublishImageAndSign(
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
 	imageAddr := m.PublishImage(ctx, registry, registryUsername, imageTag, registryPassword)
-	fmt.Printf("Published Image: %s\n", imageAddr)
 
 	// Sign the published image
 	signedImage, err := m.Sign(
@@ -249,10 +248,9 @@ func (m *HarborCli) PublishImageAndSign(
 		githubToken,
 		actionsIdTokenRequestUrl,
 		actionsIdTokenRequestToken,
-		registry,
 		registryUsername,
-		imageAddr,
 		registryPassword,
+		imageAddr,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign image: %w", err)
@@ -266,8 +264,9 @@ func (m *HarborCli) Sign(ctx context.Context,
 	githubToken *dagger.Secret,
 	actionsIdTokenRequestUrl string,
 	actionsIdTokenRequestToken *dagger.Secret,
-	registry, registryUsername, imageAddr string,
+	registryUsername string,
 	registryPassword *dagger.Secret,
+	imageAddr string,
 ) (string, error) {
 	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
 
@@ -280,7 +279,8 @@ func (m *HarborCli) Sign(ctx context.Context,
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
 			"--registry-username", registryUsername,
-			"--registry-password", registryPasswordPlain, imageAddr,
+			"--registry-password", registryPasswordPlain,
+			imageAddr,
 		}).
 		Stdout(ctx)
 }
