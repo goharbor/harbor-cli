@@ -121,62 +121,88 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 // PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	cosignKey *dagger.Secret,
-	cosignPassword *dagger.Secret,
 	regUsername string,
 	regPassword *dagger.Secret,
 	regAddress string,
-	publishAddress string,
 	tag string,
 ) string {
-	var container *dagger.Container
-	var filteredBuilders []*dagger.Container
-
 	builders := m.build(ctx)
-	if len(builders) > 0 {
-		fmt.Println(len(builders))
-		container = builders[0]
-		builders = builders[3:6]
-	}
-	dir := dag.Directory()
-	dir = dir.WithDirectory(".", container.Directory("."))
-
-	// Create a minimal cli_runtime container
-	cli_runtime := dag.Container().
-		From("alpine:latest").
-		WithWorkdir("/root/").
-		WithFile("/root/harbor", dir.File("./harbor")).
-		WithExec([]string{"ls"}).
-		WithExec([]string{"./harbor", "--help"}).
-		WithEntrypoint([]string{"./harbor"})
+	releaseImages := []*dagger.Container{}
 
 	for _, builder := range builders {
-		if !(buildPlatform(ctx, builder) == "linux/amd64") {
-			filteredBuilders = append(filteredBuilders, builder)
+		os, _ := builder.EnvVariable(ctx, "GOOS")
+		arch, _ := builder.EnvVariable(ctx, "GOARCH")
+
+		if os != "linux" {
+			continue
 		}
+
+		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
+			From("alpine:latest").
+			WithFile("/harbor", builder.File("./harbor")).
+			WithExec([]string{"./harbor", "--help"}).
+			WithEntrypoint([]string{"./harbor"})
+		releaseImages = append(releaseImages, ctr)
 	}
 
-	publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regPassword)
-	// Push the versioned tag
-	versionedAddress := fmt.Sprintf("%s:%s", publishAddress, tag)
-	addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
+	addr, err := dag.Container().
+		WithRegistryAuth(regAddress, regUsername, regPassword).
+		Publish(ctx,
+			fmt.Sprintf("%s/%s/harbor-cli:%s", regAddress, "library", tag),
+			dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
+		)
+
 	if err != nil {
 		panic(err)
 	}
-	// Push the latest tag
-	latestAddress := fmt.Sprintf("%s:latest", publishAddress)
-	addr, err = publisher.Publish(ctx, latestAddress)
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println(addr)
 
 	_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Successfully published image to %s 🎉\n", addr)
 
-	return addr
+	//
+	//if len(builders) > 0 {
+	//	fmt.Println(len(builders))
+	//	container = builders[0]
+	//	builders = builders[3:6]
+	//}
+	//dir := dag.Directory()
+	//dir = dir.WithDirectory(".", container.Directory("."))
+	//
+	//// Create a minimal cli_runtime container
+	//cli_runtime := dag.Container().
+	//	From("alpine:latest").
+	//	WithWorkdir("/root/").
+	//	WithFile("/root/harbor", dir.File("./harbor")).
+	//	WithExec([]string{"./harbor", "--help"}).
+	//	WithEntrypoint([]string{"./harbor"})
+	//
+	//for _, builder := range builders {
+	//	if !(buildPlatform(ctx, builder) == "linux/amd64") {
+	//		filteredBuilders = append(filteredBuilders, builder)
+	//	}
+	//}
+	//
+	//publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regPassword)
+	//// Push the versioned tag
+	//versionedAddress := fmt.Sprintf("%s:%s", "ASDF", tag)
+	//addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//// Push the latest tag
+	//latestAddress := fmt.Sprintf("%s:latest", "ASDF")
+	//addr, err = publisher.Publish(ctx, latestAddress)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	//_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("Successfully published image to %s 🎉\n", addr)
+
+	return "addr"
 }
 
 // Return the platform of the container

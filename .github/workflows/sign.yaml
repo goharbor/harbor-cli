@@ -1,0 +1,27 @@
+name: Sign
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate uuid from shortened commit SHA
+        id: uuid
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Check install!
+        run: cosign version
+
+      - name: Sign Image
+        run: cosign sign --yes --recursive --registry-username 'robot_library+test' --registry-password 'rZeHlu1hEe1OtvVqWR1qZOW26Nx08qtd' demo.goharbor.io/library/harbor-cli@sha256:9183ba01537f21c44d2aba0ca8ad500ffe6d80baea748f52b72d75be1dd19a84
