@@ -42,26 +42,10 @@ jobs:
         with:
           fetch-depth: 0
 
-#      - name: Run Tests
-#        uses: dagger/dagger-for-github@v6
-#        with:
-#          version: ${{ steps.dagger_version.outputs.version }}
-#          verb: call
-#          args: test
-
-#      - name: Build Binary
-#        uses: dagger/dagger-for-github@v6
-#        with:
-#          version: ${{ steps.dagger_version.outputs.version }}
-#          verb: call
-#          args: build-dev --platform linux/amd64
-
   push-snapshop-release:
     if: github.event_name == 'push'
     permissions:
-      contents: write
-      packages: write
-      issues: write
+      contents: read
       id-token: write
     runs-on: ubuntu-latest
     steps:
@@ -73,16 +57,10 @@ jobs:
       - name: Dagger Version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
-      - name: Push Snapshot Release
-        uses: dagger/dagger-for-github@v6
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: snapshot-release export --path=dist
-
-      - name: Publish Images
+      - name: Published and Sign Sanpshot Image
         uses: dagger/dagger-for-github@v6
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
@@ -90,8 +68,11 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: "publish-image --reg-address='${{ env.REGISTRY_ADDRESS }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='env:${{ env.REGISTRY_PASSWORD }}'  --tag='${{ env.TAG }}'"
-
-
-
-
+          args: "publish-image-and-sign \
+            --registry='${{ env.REGISTRY_ADDRESS }}' \
+            --registry-username='${{ env.REGISTRY_USERNAME }}' \
+            --registry-password=env:REGISTRY_PASSWORD \
+            --image-tag='${{ env.TAG }}' \
+            --github-token=env:GITHUB_TOKEN \
+            --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
+            --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN

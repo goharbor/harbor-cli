@@ -151,65 +151,9 @@ func (m *HarborCli) PublishImage(
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(addr)
-
-	//_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
-
-	//
-	//if len(builders) > 0 {
-	//	fmt.Println(len(builders))
-	//	container = builders[0]
-	//	builders = builders[3:6]
-	//}
-	//dir := dag.Directory()
-	//dir = dir.WithDirectory(".", container.Directory("."))
-	//
-	//// Create a minimal cli_runtime container
-	//cli_runtime := dag.Container().
-	//	From("alpine:latest").
-	//	WithWorkdir("/root/").
-	//	WithFile("/root/harbor", dir.File("./harbor")).
-	//	WithExec([]string{"./harbor", "--help"}).
-	//	WithEntrypoint([]string{"./harbor"})
-	//
-	//for _, builder := range builders {
-	//	if !(buildPlatform(ctx, builder) == "linux/amd64") {
-	//		filteredBuilders = append(filteredBuilders, builder)
-	//	}
-	//}
-	//
-	//publisher := cli_runtime.WithRegistryAuth(regAddress, regUsername, regPassword)
-	//// Push the versioned tag
-	//versionedAddress := fmt.Sprintf("%s:%s", "ASDF", tag)
-	//addr, err := publisher.Publish(ctx, versionedAddress, dagger.ContainerPublishOpts{PlatformVariants: filteredBuilders})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//// Push the latest tag
-	//latestAddress := fmt.Sprintf("%s:latest", "ASDF")
-	//addr, err = publisher.Publish(ctx, latestAddress)
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	//_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Printf("Successfully published image to %s 🎉\n", addr)
-
+	fmt.Printf("Published image address: %s\n", addr)
 	return "addr"
 }
-
-//
-//// Return the platform of the container
-//func buildPlatform(ctx context.Context, container *dagger.Container) string {
-//	platform, err := container.Platform(ctx)
-//	if err != nil {
-//		log.Fatalf("error getting platform", err)
-//	}
-//	return string(platform)
-//}
 
 // Create snapshot release with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
@@ -287,6 +231,35 @@ func parsePlatform(platform string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
 	}
 	return parts[0], parts[1], nil
+}
+
+// PublishImageAndSign publishes a container image to a registry with a specific tag and signs it using Cosign.
+func (m *HarborCli) PublishImageAndSign(
+	ctx context.Context,
+	registry, registryUsername, imageTag string,
+	registryPassword, githubToken, actionsIdTokenRequestToken *dagger.Secret,
+	actionsIdTokenRequestUrl string,
+) (string, error) {
+	// Publish the image
+	imageAddr := m.PublishImage(ctx, registry, registryUsername, imageTag, registryPassword)
+
+	// Sign the published image
+	signedImage, err := m.Sign(
+		ctx,
+		githubToken,
+		actionsIdTokenRequestUrl,
+		actionsIdTokenRequestToken,
+		registry,
+		registryUsername,
+		imageAddr,
+		registryPassword,
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign image: %w", err)
+	}
+
+	fmt.Printf("Signed image: %s\n", signedImage)
+	return imageAddr, nil
 }
 
 func (m *HarborCli) Sign(ctx context.Context,
