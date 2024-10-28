@@ -300,6 +300,9 @@ func (m *HarborCli) Sign(ctx context.Context,
 		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken).
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
-		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername, "--registry-password", "$REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName)}).
+		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername,
+			"--registry-password", "$REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName),
+			"--verbose",
+		}).
 		Stdout(ctx)
 }
