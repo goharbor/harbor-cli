@@ -294,6 +294,6 @@ func (m *HarborCli) Sign(ctx context.Context, githubToken *dagger.Secret, regist
 		From("cgr.dev/chainguard/cosign").
 		WithSecretVariable("GITHUB_TOKEN", githubToken).
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
-		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername, "--registry-password", "env://REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName)}).
+		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername, "--registry-password", "$REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName)}).
 		Stdout(ctx)
 }
