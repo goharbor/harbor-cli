@@ -36,4 +36,4 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: "sign --github-token=env:'${{ env.GITHUB_TOKEN }}' --registry='${{ env.REGISTRY_ADDRESS }}' --registry-username='${{ env.REGISTRY_USERNAME }}' --registry-password=env:REGISTRY_PASSWORD --image-name='${{ env.IMAGE }}'"
+          args: "sign --github-token=env:GITHUB_TOKEN --actions-id-token-request-url=env:ACTIONS_ID_TOKEN_REQUEST_URL --registry='${{ env.REGISTRY_ADDRESS }}' --registry-username='${{ env.REGISTRY_USERNAME }}' --registry-password=env:REGISTRY_PASSWORD --image-name='${{ env.IMAGE }}'"

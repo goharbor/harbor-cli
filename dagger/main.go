@@ -289,10 +289,15 @@ func parsePlatform(platform string) (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-func (m *HarborCli) Sign(ctx context.Context, githubToken *dagger.Secret, registry, registryUsername, imageName string, registryPassword *dagger.Secret) (string, error) {
+func (m *HarborCli) Sign(ctx context.Context,
+	githubToken *dagger.Secret, actionsIdTokenRequestUrl string,
+
+	registry, registryUsername, imageName string, registryPassword *dagger.Secret) (string, error) {
+
 	return dag.Container().
 		From("cgr.dev/chainguard/cosign").
 		WithSecretVariable("GITHUB_TOKEN", githubToken).
+		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername, "--registry-password", "$REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName)}).
 		Stdout(ctx)
