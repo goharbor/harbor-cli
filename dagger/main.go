@@ -266,10 +266,10 @@ func (m *HarborCli) Sign(ctx context.Context,
 	githubToken *dagger.Secret,
 	actionsIdTokenRequestUrl string,
 	actionsIdTokenRequestToken *dagger.Secret,
-	registry, registryUsername, imageName string,
+	registry, registryUsername, imageAddr string,
 	registryPassword *dagger.Secret,
 ) (string, error) {
-	reg_password, _ := registryPassword.Plaintext(ctx)
+	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
 
 	return dag.Container().
 		From("cgr.dev/chainguard/cosign").
@@ -278,9 +278,9 @@ func (m *HarborCli) Sign(ctx context.Context,
 		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken).
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
-		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername,
-			"--registry-password", reg_password, fmt.Sprintf("%s/%s", registry, imageName),
-			"--verbose",
+		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
+			"--registry-username", registryUsername,
+			"--registry-password", registryPasswordPlain, imageAddr,
 		}).
 		Stdout(ctx)
 }
