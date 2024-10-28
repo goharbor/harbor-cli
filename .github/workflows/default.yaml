@@ -80,12 +80,18 @@ jobs:
           verb: call
           args: snapshot-release export --path=dist
 
-      - uses: IsaacShelton/update-existing-release@v1.3.4
+      - name: Publish Images
+        uses: dagger/dagger-for-github@v6
+        env:
+          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          TAG: latest
         with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          release: "Snapshot Release $$"
-          tag: "snapshot"
-          replace: true
-          prerelease: true
-          files: |
-            ./dist/harbor_dev-*
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: "publish-image --reg-address='${{ env.REGISTRY_ADDRESS }}' --reg-username='${{ env.REGISTRY_USERNAME }}' --reg-password='env:${{ env.REGISTRY_PASSWORD }}'  --tag='${{ env.TAG }}'"
+
+
+
+

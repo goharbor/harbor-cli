@@ -16,15 +16,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate uuid from shortened commit SHA
-        id: uuid
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3.7.0
+      - name: Save state
+        run: echo "{name}={value}" >> $GITHUB_STATE
 
-      - name: Check install!
-        run: cosign version
+      - name: Set output
+        run: echo "{name}={value}" >> $GITHUB_OUTPUT
 
       - name: Sign Image
-        run: cosign sign --yes --recursive --registry-username 'robot_library+test' --registry-password 'rZeHlu1hEe1OtvVqWR1qZOW26Nx08qtd' demo.goharbor.io/library/harbor-cli@sha256:9183ba01537f21c44d2aba0ca8ad500ffe6d80baea748f52b72d75be1dd19a84
+        uses: dagger/dagger-for-github@v6
+        env:
+          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          IMAGE: "library/harbor-cli@sha256:9183ba01537f21c44d2aba0ca8ad500ffe6d80baea748f52b72d75be1dd19a84"
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: "sign --github-token= --registry='${{ env.REGISTRY_ADDRESS }}' --registry-username='${{ env.REGISTRY_USERNAME }}' --registry-password='${{ env.REGISTRY_PASSWORD }}' --image-name='${{ env.IMAGE }}'"

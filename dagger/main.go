@@ -121,11 +121,7 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 // PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	regUsername string,
-	regPassword *dagger.Secret,
-	regAddress string,
-	tag string,
-) string {
+	registry, registryUsername, imageTag string, registryPassword *dagger.Secret) string {
 	builders := m.build(ctx)
 	releaseImages := []*dagger.Container{}
 
@@ -146,9 +142,9 @@ func (m *HarborCli) PublishImage(
 	}
 
 	addr, err := dag.Container().
-		WithRegistryAuth(regAddress, regUsername, regPassword).
+		WithRegistryAuth(registry, registryUsername, registryPassword).
 		Publish(ctx,
-			fmt.Sprintf("%s/%s/harbor-cli:%s", regAddress, "library", tag),
+			fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "library", imageTag),
 			dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
 		)
 
@@ -157,7 +153,7 @@ func (m *HarborCli) PublishImage(
 	}
 	fmt.Println(addr)
 
-	_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
+	//_, err = dag.Cosign().Sign(ctx, cosignKey, cosignPassword, []string{addr}, dagger.CosignSignOpts{RegistryUsername: regUsername, RegistryPassword: regPassword})
 
 	//
 	//if len(builders) > 0 {
@@ -205,14 +201,15 @@ func (m *HarborCli) PublishImage(
 	return "addr"
 }
 
-// Return the platform of the container
-func buildPlatform(ctx context.Context, container *dagger.Container) string {
-	platform, err := container.Platform(ctx)
-	if err != nil {
-		log.Fatalf("error getting platform", err)
-	}
-	return string(platform)
-}
+//
+//// Return the platform of the container
+//func buildPlatform(ctx context.Context, container *dagger.Container) string {
+//	platform, err := container.Platform(ctx)
+//	if err != nil {
+//		log.Fatalf("error getting platform", err)
+//	}
+//	return string(platform)
+//}
 
 // Create snapshot release with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
@@ -290,4 +287,13 @@ func parsePlatform(platform string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
 	}
 	return parts[0], parts[1], nil
+}
+
+func (m *HarborCli) Sign(ctx context.Context, githubToken *dagger.Secret, registry, registryUsername, imageName string, registryPassword *dagger.Secret) (string, error) {
+	return dag.Container().
+		From("cgr.dev/chainguard/cosign").
+		WithSecretVariable("GITHUB_TOKEN", githubToken).
+		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+		WithExec([]string{"cosign", "sign", "--yes", "--recursive", "--registry-username", registryUsername, "--registry-password", "env:REGISTRY_PASSWORD", fmt.Sprintf("%s/%s", registry, imageName)}).
+		Stdout(ctx)
 }
