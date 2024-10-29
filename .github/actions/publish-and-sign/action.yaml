@@ -43,8 +43,8 @@ runs:
       uses: dagger/dagger-for-github@v6
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+#        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+#        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
         REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
         REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
@@ -58,5 +58,5 @@ runs:
           --registry-password=env:REGISTRY_PASSWORD \
           --image-tags='${{ env.IMAGE_TAGS}}' \
           --github-token=env:GITHUB_TOKEN \
-          --actions-id-token-request-url=${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }} \
+          --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
           --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"
