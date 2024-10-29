@@ -20,7 +20,12 @@ jobs:
           fetch-depth: 0
 
       - name: Print GitHub Event Name
-        run: echo "GitHub_Event-Name=${{ github.event_name }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "::notice:: The Event Name is ${{ github.event_name }}"
+          echo "::notice:: The Ref is ${{ github.ref }}"
+          echo "::notice:: The Ref Name is ${{ github.ref_name }}"
+          echo "::notice:: The Event Payload is ${{ toJson(github.event) }}"
+
 
 
   #      - name: Dagger Version
@@ -63,7 +68,7 @@ jobs:
 #          args: build-dev --platform linux/amd64
 
   push-latest-images:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event.pull_request == null
     needs:
       - lint
       - test-code
