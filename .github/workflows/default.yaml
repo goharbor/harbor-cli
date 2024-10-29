@@ -73,14 +73,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Publish and Sign Snapshot Image
-        uses: ./.github/actions/publish-and-sign
-        with:
-          tag: latest
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+#      - name: Publish and Sign Snapshot Image
+#        uses: ./.github/actions/publish-and-sign
+#        with:
+#          tag: latest
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+#          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+#          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
   publish-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
