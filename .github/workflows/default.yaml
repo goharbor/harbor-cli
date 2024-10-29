@@ -68,7 +68,7 @@ jobs:
 #          args: build-dev --platform linux/amd64
 
   push-latest-images:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event.pull_request == null
+    if: github.event.pull_request == null
     needs:
       - lint
       - test-code
@@ -92,7 +92,7 @@ jobs:
 #          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
   publish-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs:
       - lint
       - test-code
@@ -108,12 +108,10 @@ jobs:
           fetch-depth: 0
       - name: Create Release
         uses: dagger/dagger-for-github@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "latest"
           verb: call
-          args: release --github-token='env:${{ env.GITHUB_TOKEN }}'
+          args: "release --github-token=env:GITHUB_TOKEN"
 
       - name: Publish and Sign Snapshot Image
         uses: ./.github/actions/publish-and-sign
