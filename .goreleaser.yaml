@@ -49,7 +49,7 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  version_template: "dev-{{.ShortCommit}}"
+  version_template: "{{ incpatch .Version }}-next"
 
 release:
   name_template: "HarborCLI {{.Tag}}"
@@ -59,21 +59,18 @@ release:
   replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: vad1mo             # Your GitHub repository owner
+    owner: goharbor           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 changelog:
   use: github
-  format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
-  sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
       - "merge conflict"
-
   groups:
-    - title: Dependency updates
+    - title: "Dependency updates"
       regexp: '^.*?(.+)\(deps\)!?:.+$'
       order: 300
     - title: "New Features"
@@ -91,5 +88,5 @@ changelog:
     - title: "Build process updates"
       regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
       order: 400
-    - title: Other work
+    - title: "Other work"
       order: 9999
