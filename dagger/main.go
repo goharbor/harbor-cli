@@ -258,10 +258,10 @@ func (m *HarborCli) PublishImageAndSign(
 	actionsIdTokenRequestToken *dagger.Secret,
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
+
+	fmt.Printf("Provided VARS actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
-
-	fmt.Printf("env VARS actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
-
 	_, err := m.Sign(
 		ctx,
 		githubToken,
