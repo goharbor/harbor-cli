@@ -309,7 +309,7 @@ func (m *HarborCli) Sign(ctx context.Context,
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
-	cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+	cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
 		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 
