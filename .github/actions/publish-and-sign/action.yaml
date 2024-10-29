@@ -35,14 +35,6 @@ runs:
 
     - name: Check Env Variables
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ inputs.ACTIONS_ID_TOKEN_REQUEST_URL }}
-        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ inputs.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-        REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
-        REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
-        REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
-        IMAGE_TAGS: ${{ inputs.IMAGE_TAGS }}
       run: cosign env
 
     - name: Publish and Sign Snapshot Image
