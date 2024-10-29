@@ -16,9 +16,9 @@ const (
 )
 
 func New(
-	// Local or remote directory with source code, defaults to "./"
-	// +optional
-	// +defaultPath="./"
+// Local or remote directory with source code, defaults to "./"
+// +optional
+// +defaultPath="./"
 	source *dagger.Directory,
 ) *HarborCli {
 	return &HarborCli{Source: source}
@@ -94,7 +94,7 @@ func (m *HarborCli) build(
 	return builds
 }
 
-// Run linter golangci-lint and write the linting results to a file golangci-lint-report.txt
+// LintReport Executes the Linter and writes the linting results to a file golangci-lint-report.sarif
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint-report.sarif"
 	return m.lint(ctx).WithExec([]string{"golangci-lint", "run",
@@ -102,7 +102,7 @@ func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 		"--issues-exit-code", "0"}).File(report)
 }
 
-// Run linter golangci-lint
+// Lint Run the linter golangci-lint
 func (m *HarborCli) Lint(ctx context.Context) (string, error) {
 	return m.lint(ctx).WithExec([]string{"golangci-lint", "run"}).Stderr(ctx)
 }
@@ -122,8 +122,8 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
 	registry, registryUsername string,
-	// +optional
-	// +default=["latest"]
+// +optional
+// +default=["latest"]
 	imageTags []string,
 	registryPassword *dagger.Secret) []string {
 	builders := m.build(ctx)
@@ -169,14 +169,14 @@ func (m *HarborCli) PublishImage(
 	return imageAddrs
 }
 
-// Create snapshot release with goreleaser
+// SnapshotRelease Create snapshot non OCI artifacts with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
 	return m.goreleaserContainer().
 		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean", "--skip", "validate"}).
 		Directory("/src/dist")
 }
 
-// Create release with goreleaser
+// Release Create release with goreleaser
 func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 	goreleaser := m.goreleaserContainer().
 		WithSecretVariable("GITHUB_TOKEN", githubToken).
@@ -210,7 +210,7 @@ func (m *HarborCli) goreleaserContainer() *dagger.Container {
 
 }
 
-// Generate CLI Documentation with doc.go and return the directory containing the generated files
+// RunDoc Generate CLI Documentation with doc.go and return the directory containing the generated files
 func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
@@ -224,7 +224,7 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 		WithWorkdir("/src").Directory("/src/doc")
 }
 
-// Executes Go tests and returns the directory containing the test results
+// Test Executes Go tests and returns the directory containing the test results
 func (m *HarborCli) Test(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
@@ -247,19 +247,20 @@ func parsePlatform(platform string) (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-// PublishImageAndSign publishes a container image to a registry with a specific tag and signs it using Cosign.
+// PublishImageAndSign builds and publishes container images to a registry with a specific tags and then signs them using Cosign.
 func (m *HarborCli) PublishImageAndSign(
 	ctx context.Context,
 	registry string,
 	registryUsername string,
 	registryPassword *dagger.Secret,
 	imageTags []string,
+// +optional
 	githubToken *dagger.Secret,
+// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
+// +optional
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
-
-	fmt.Printf("PublishImageAndSign Provided VARS githubToken (exists=%t) actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", githubToken, actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
 	_, err := m.Sign(
@@ -279,9 +280,13 @@ func (m *HarborCli) PublishImageAndSign(
 	return imageAddrs[0], nil
 }
 
+// Sign signs a container image using Cosign, works also with GitHub Actions
 func (m *HarborCli) Sign(ctx context.Context,
+// +optional
 	githubToken *dagger.Secret,
+// +optional
 	actionsIdTokenRequestUrl string,
+// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
 	registryUsername string,
 	registryPassword *dagger.Secret,
@@ -291,28 +296,17 @@ func (m *HarborCli) Sign(ctx context.Context,
 
 	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
 
-	plaintext, err := githubToken.Plaintext(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to get github token: %w", err)
-	}
-
-	fmt.Printf("Sign Provided VARS githubToken (exists=%d) actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", len(plaintext), actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
-
 	// If githubToken is provided, use it to sign the image
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
 			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 		}
-		fmt.Printf("Setting the ENV Vars for the cosign container")
-		cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
+		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
-
-	cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
-		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
-		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
-
+	
 	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
