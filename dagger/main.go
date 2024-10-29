@@ -295,9 +295,10 @@ func (m *HarborCli) Sign(ctx context.Context,
 
 	ctr := dag.Container()
 	// If githubToken is provided, use it to sign the image
+
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
-			return "", fmt.Errorf("actionsIdTokenRequestUrl and actionsIdTokenRequestToken must be provided when githubToken is provided")
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (%s) and actionsIdTokenRequestToken (%s) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken)
 		}
 		ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).

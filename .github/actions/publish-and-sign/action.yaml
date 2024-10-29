@@ -30,6 +30,20 @@ runs:
     - name: Dagger Version
       uses: sagikazarmark/dagger-version-action@v0.0.1
 
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.7.0
+
+    - name: Check install!
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ inputs.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ inputs.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+        REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
+        REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
+        REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
+        IMAGE_TAGS: ${{ inputs.IMAGE_TAGS }}
+      run: cosign env
+
     - name: Publish and Sign Snapshot Image
       uses: dagger/dagger-for-github@v6
       env:
