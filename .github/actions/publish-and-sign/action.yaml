@@ -17,12 +17,6 @@ inputs:
   REGISTRY_USERNAME:
     description: 'Registry username'
     required: true
-  ACTIONS_ID_TOKEN_REQUEST_URL:
-    description: 'Actions ID token request URL'
-    required: true
-  ACTIONS_ID_TOKEN_REQUEST_TOKEN:
-    description: 'Actions ID token request token'
-    required: true
 
 runs:
   using: "composite"
@@ -43,8 +37,6 @@ runs:
       uses: dagger/dagger-for-github@v6
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-#        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-#        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
         REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
         REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}

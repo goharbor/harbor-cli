@@ -306,7 +306,7 @@ func (m *HarborCli) Sign(ctx context.Context,
 			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
-	
+
 	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
