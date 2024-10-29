@@ -289,7 +289,8 @@ func (m *HarborCli) Sign(ctx context.Context,
 ) (string, error) {
 	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
 
-	ctr := dag.Container().From("cgr.dev/chainguard/cosign")
+	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
+
 	plaintext, err := githubToken.Plaintext(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get github token: %w", err)
@@ -302,16 +303,17 @@ func (m *HarborCli) Sign(ctx context.Context,
 		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
 			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 		}
-		ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		fmt.Printf("Setting the ENV Vars for the cosign container")
+		cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
-	ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+	cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
 		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 
-	return ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
 			"--registry-username", registryUsername,
