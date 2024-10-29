@@ -259,7 +259,7 @@ func (m *HarborCli) PublishImageAndSign(
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
 
-	fmt.Printf("Provided VARS actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+	fmt.Printf("PublishImageAndSign Provided VARS githubToken (exists=%t) actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", githubToken, actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
 	_, err := m.Sign(
@@ -290,8 +290,9 @@ func (m *HarborCli) Sign(ctx context.Context,
 	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
 
 	ctr := dag.Container()
-	// If githubToken is provided, use it to sign the image
+	fmt.Printf("Sign Provided VARS githubToken (exists=%t) actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", githubToken, actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 
+	// If githubToken is provided, use it to sign the image
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
 			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
@@ -300,6 +301,10 @@ func (m *HarborCli) Sign(ctx context.Context,
 			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
+
+	ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
+		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 
 	return ctr.From("cgr.dev/chainguard/cosign").
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
