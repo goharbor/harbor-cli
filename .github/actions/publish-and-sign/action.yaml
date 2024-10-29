@@ -2,7 +2,7 @@ name: Publish and Sign Snapshot Image
 description: Publishes and signs a snapshot image using Dagger.
 
 inputs:
-  tag:
+  IMAGE_TAG:
     description: 'Tag for the image'
     required: true
   GITHUB_TOKEN:
@@ -39,7 +39,7 @@ runs:
         REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
         REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
         REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
-        TAG: ${{ inputs.tag }}
+        IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
       with:
         version: ${{ steps.dagger_version.outputs.version }}
         verb: call
@@ -47,7 +47,7 @@ runs:
           --registry='${{ env.REGISTRY_ADDRESS }}' \
           --registry-username='${{ env.REGISTRY_USERNAME }}' \
           --registry-password=env:REGISTRY_PASSWORD \
-          --image-tag='${{ env.TAG }}' \
+          --image-tag='${{ env.IMAGE_TAG }}' \
           --github-token=env:GITHUB_TOKEN \
           --actions-id-token-request-url=${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }} \
           --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"

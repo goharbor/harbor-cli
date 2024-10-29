@@ -121,17 +121,21 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 // PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	registry, registryUsername,
+	registry, registryUsername string,
 	// +optional
-	// +default="latest"
-	imageTag string,
-	registryPassword *dagger.Secret) string {
+	// +default=["latest"]
+	imageTags []string,
+	registryPassword *dagger.Secret) []string {
 	builders := m.build(ctx)
 	releaseImages := []*dagger.Container{}
 
-	if strings.HasPrefix(imageTag, "v") {
-		imageTag = strings.TrimPrefix(imageTag, "v")
+	for i, tag := range imageTags {
+		imageTags[i] = strings.TrimSpace(tag)
+		if strings.HasPrefix(imageTags[i], "v") {
+			imageTags[i] = strings.TrimPrefix(imageTags[i], "v")
+		}
 	}
+	fmt.Printf("provided tags: %s\n", imageTags)
 
 	for _, builder := range builders {
 		os, _ := builder.EnvVariable(ctx, "GOOS")
@@ -148,18 +152,21 @@ func (m *HarborCli) PublishImage(
 		releaseImages = append(releaseImages, ctr)
 	}
 
-	addr, err := dag.Container().
-		WithRegistryAuth(registry, registryUsername, registryPassword).
-		Publish(ctx,
-			fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "library", imageTag),
-			dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
-		)
+	imageAddrs := []string{}
+	for _, imageTag := range imageTags {
+		addr, err := dag.Container().WithRegistryAuth(registry, registryUsername, registryPassword).
+			Publish(ctx,
+				fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "library", imageTag),
+				dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
+			)
 
-	if err != nil {
-		panic(err)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Published image address: %s\n", addr)
+		imageAddrs = append(imageAddrs, addr)
 	}
-	fmt.Printf("Published image address: %s\n", addr)
-	return addr
+	return imageAddrs
 }
 
 // Create snapshot release with goreleaser
@@ -243,33 +250,42 @@ func parsePlatform(platform string) (string, string, error) {
 // PublishImageAndSign publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImageAndSign(
 	ctx context.Context,
-	registry, registryUsername, imageTag string,
-	registryPassword, githubToken, actionsIdTokenRequestToken *dagger.Secret,
+	registry string,
+	registryUsername string,
+	registryPassword *dagger.Secret,
+	imageTags []string,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestToken *dagger.Secret,
+	// +optional
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
-	imageAddr := m.PublishImage(ctx, registry, registryUsername, imageTag, registryPassword)
+	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
 
-	// Sign the published image
-	signedImage, err := m.Sign(
+	_, err := m.Sign(
 		ctx,
 		githubToken,
 		actionsIdTokenRequestUrl,
 		actionsIdTokenRequestToken,
 		registryUsername,
 		registryPassword,
-		imageAddr,
+		imageAddrs[0],
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign image: %w", err)
 	}
 
-	fmt.Printf("Signed image: %s\n", signedImage)
-	return imageAddr, nil
+	fmt.Printf("Signed image: %s\n", imageAddrs)
+	return imageAddrs[0], nil
 }
 
 func (m *HarborCli) Sign(ctx context.Context,
+	// +optional
 	githubToken *dagger.Secret,
+	// +optional
 	actionsIdTokenRequestUrl string,
+	// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
 	registryUsername string,
 	registryPassword *dagger.Secret,
@@ -277,17 +293,24 @@ func (m *HarborCli) Sign(ctx context.Context,
 ) (string, error) {
 	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
 
-	return dag.Container().
-		From("cgr.dev/chainguard/cosign").
-		WithSecretVariable("GITHUB_TOKEN", githubToken).
-		WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
-		WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken).
+	ctr := dag.Container()
+	// If githubToken is provided, use it to sign the image
+	if githubToken != nil {
+		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
+			return "", fmt.Errorf("actionsIdTokenRequestUrl and actionsIdTokenRequestToken must be provided when githubToken is provided")
+		}
+		ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
+			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
+	}
+
+	return ctr.From("cgr.dev/chainguard/cosign").
 		WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
 			"--registry-username", registryUsername,
 			"--registry-password", registryPasswordPlain,
 			imageAddr,
-		}).
-		Stdout(ctx)
+			"--timeout", "1m",
+		}).Stdout(ctx)
 }
