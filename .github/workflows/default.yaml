@@ -76,7 +76,7 @@ jobs:
       - name: Publish and Sign Snapshot Image
         uses: ./.github/actions/publish-and-sign
         with:
-          IMAGE_TAG: latest
+          IMAGE_TAGS: latest
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
           ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
@@ -114,7 +114,7 @@ jobs:
         if: success()
         uses: ./.github/actions/publish-and-sign
         with:
-          IMAGE_TAG: "latest, ${{ github.ref_name }}"
+          IMAGE_TAGS: "latest, ${{ github.ref_name }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
           ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
