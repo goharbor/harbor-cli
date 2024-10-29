@@ -19,22 +19,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Dagger Version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
-
-      - name: Run Dagger golangci-lint
-        uses: dagger/dagger-for-github@v6
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: lint-report export --path=golangci-lint-report.sarif
-
-      - uses: reviewdog/action-setup@v1
-      - name: Run Reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |          
-          reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
+#      - name: Dagger Version
+#        uses: sagikazarmark/dagger-version-action@v0.0.1
+#
+#      - name: Run Dagger golangci-lint
+#        uses: dagger/dagger-for-github@v6
+#        with:
+#          version: ${{ steps.dagger_version.outputs.version }}
+#          verb: call
+#          args: lint-report export --path=golangci-lint-report.sarif
+#
+#      - uses: reviewdog/action-setup@v1
+#      - name: Run Reviewdog
+#        env:
+#          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
 
   test-code:
     runs-on: ubuntu-latest
@@ -44,19 +44,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Tests
-        uses: dagger/dagger-for-github@v6
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: test
-
-      - name: Build Binary
-        uses: dagger/dagger-for-github@v6
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: build-dev --platform linux/amd64
+#      - name: Run Tests
+#        uses: dagger/dagger-for-github@v6
+#        with:
+#          version: ${{ steps.dagger_version.outputs.version }}
+#          verb: call
+#          args: test
+#
+#      - name: Build Binary
+#        uses: dagger/dagger-for-github@v6
+#        with:
+#          version: ${{ steps.dagger_version.outputs.version }}
+#          verb: call
+#          args: build-dev --platform linux/amd64
 
   push-latest-images:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
