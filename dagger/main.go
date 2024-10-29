@@ -121,9 +121,17 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 // PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	registry, registryUsername, imageTag string, registryPassword *dagger.Secret) string {
+	registry, registryUsername,
+	// +optional
+	// +default="latest"
+	imageTag string,
+	registryPassword *dagger.Secret) string {
 	builders := m.build(ctx)
 	releaseImages := []*dagger.Container{}
+
+	if strings.HasPrefix(imageTag, "v") {
+		imageTag = strings.TrimPrefix(imageTag, "v")
+	}
 
 	for _, builder := range builders {
 		os, _ := builder.EnvVariable(ctx, "GOOS")
@@ -136,7 +144,6 @@ func (m *HarborCli) PublishImage(
 		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
 			From("alpine:latest").
 			WithFile("/harbor", builder.File("./harbor")).
-			WithExec([]string{"./harbor", "--help"}).
 			WithEntrypoint([]string{"./harbor"})
 		releaseImages = append(releaseImages, ctr)
 	}

@@ -3,6 +3,8 @@ name: Main and Pull Request Pipeline
 on:
   push:
     branches: [main]
+    tags:
+      - "v*.*.*"
   pull_request:
     paths-ignore:
       - '*.md'
@@ -42,8 +44,25 @@ jobs:
         with:
           fetch-depth: 0
 
-  push-snapshop-release:
-    if: github.event_name == 'push'
+      - name: Run Tests
+        uses: dagger/dagger-for-github@v6
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test
+
+      - name: Build Binary
+        uses: dagger/dagger-for-github@v6
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: build-dev --platform linux/amd64
+
+  push-latest-images:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - lint
+      - test-code
     permissions:
       contents: read
       id-token: write
@@ -54,25 +73,45 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Dagger Version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
+      - name: Publish and Sign Snapshot Image
+        uses: ./.github/actions/publish-and-sign
+        with:
+          tag: latest
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
-      - name: Published and Sign Sanpshot Image
+  publish-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - lint
+      - test-code
+      - push-latest-images
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create Release
         uses: dagger/dagger-for-github@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          args: release --github-token='env:${{ env.GITHUB_TOKEN }}'
+
+      - name: Publish and Sign Snapshot Image
+        uses: ./.github/actions/publish-and-sign
+        with:
+          tag: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          TAG: latest
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: "publish-image-and-sign \
-            --registry='${{ env.REGISTRY_ADDRESS }}' \
-            --registry-username='${{ env.REGISTRY_USERNAME }}' \
-            --registry-password=env:REGISTRY_PASSWORD \
-            --image-tag='${{ env.TAG }}' \
-            --github-token=env:GITHUB_TOKEN \
-            --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
-            --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+
