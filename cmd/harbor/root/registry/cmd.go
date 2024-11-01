@@ -17,7 +17,6 @@ func Registry() *cobra.Command {
 		DeleteRegistryCommand(),
 		ListRegistryCommand(),
 		UpdateRegistryCommand(),
-		ViewCommand(),
 	)
 
 	return cmd
