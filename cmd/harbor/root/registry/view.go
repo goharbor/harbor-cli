@@ -11,10 +11,10 @@ import (
 // NewGetRegistryCommand creates a new `harbor get registry` command
 func ViewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view",
-		Short: "get registry by id",
+		Use:     "view",
+		Short:   "get registry by id",
 		Example: "harbor registry view [registryname]",
-		Args:  cobra.MaximumNArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 

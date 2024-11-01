@@ -13,10 +13,10 @@ func UpdateRegistryCommand() *cobra.Command {
 	var opts api.CreateRegView
 
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "update registry",
+		Use:     "update",
+		Short:   "update registry",
 		Example: "harbor registry update [registryname]",
-		Args:  cobra.MaximumNArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var registryId int64

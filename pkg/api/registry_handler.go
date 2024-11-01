@@ -92,8 +92,8 @@ func InfoRegistry(registryId int64) error {
 		return err
 	}
 	if response.Payload.ID == 0 {
-        return fmt.Errorf("registry is not found")
-    }
+		return fmt.Errorf("registry is not found")
+	}
 
 	utils.PrintPayloadInJSONFormat(response.Payload)
 	return nil
@@ -109,8 +109,8 @@ func GetRegistry(registryId int64) error {
 		return err
 	}
 	if response.Payload.ID == 0 {
-        return fmt.Errorf("registry is not found")
-    }
+		return fmt.Errorf("registry is not found")
+	}
 
 	utils.PrintPayloadInJSONFormat(response.GetPayload())
 	return nil
@@ -161,19 +161,19 @@ func GetRegistryProviders() ([]string, error) {
 	return response.Payload, nil
 }
 
-func GetRegistryIdByName(registryName string) (int64,error) {
+func GetRegistryIdByName(registryName string) (int64, error) {
 	var opts ListFlags
-    
-    r, err := ListRegistries(opts)
-    if err != nil {
-        return 0, err
-    }
-    
-    for _, registry := range r.Payload {
-        if registry.Name == registryName {
-            return registry.ID, nil
-        }
-    }
-    
-    return 0, err
+
+	r, err := ListRegistries(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, registry := range r.Payload {
+		if registry.Name == registryName {
+			return registry.ID, nil
+		}
+	}
+
+	return 0, err
 }

@@ -9,10 +9,10 @@ import (
 
 func InfoRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "info",
-		Short: "get registry info",
+		Use:     "info",
+		Short:   "get registry info",
 		Example: "harbor registry info [registryname]",
-		Args:  cobra.MaximumNArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 

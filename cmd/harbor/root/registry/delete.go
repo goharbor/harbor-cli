@@ -10,10 +10,10 @@ import (
 func DeleteRegistryCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "delete registry by id",
+		Use:     "delete",
+		Short:   "delete registry by id",
 		Example: "harbor registry delete [registryname]",
-		Args:  cobra.MaximumNArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 

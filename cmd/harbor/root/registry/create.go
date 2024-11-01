@@ -11,10 +11,10 @@ func CreateRegistryCommand() *cobra.Command {
 	var opts api.CreateRegView
 
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "create registry",
+		Use:     "create",
+		Short:   "create registry",
 		Example: "harbor registry create",
-		Args:  cobra.NoArgs,
+		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &api.CreateRegView{
