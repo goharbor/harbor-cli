@@ -111,7 +111,7 @@ harbor help
 		user.User(),
 		artifact.Artifact(),
 		HealthCommand(),
-    schedule.Schedule(),
+    		schedule.Schedule(),
 
 	)
 
