@@ -48,7 +48,7 @@ func preblock(filename string) string {
 	file := strings.Split(filename, markdownExtension)
 	name := filepath.Base(file[0])
 	title := strings.ReplaceAll(name, "-", " ")
-	randomNumber := rand.Intn(20)
+	randomNumber := rand.Intn(20) //nolint:gosec
 	weight := randomNumber * 5
 
 	return fmt.Sprintf(frontmdtemplate, title, weight)
