@@ -99,23 +99,6 @@ func InfoRegistry(registryId int64) error {
 	return nil
 }
 
-func GetRegistry(registryId int64) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
-	if err != nil {
-		return err
-	}
-	if response.Payload.ID == 0 {
-		return fmt.Errorf("registry is not found")
-	}
-
-	utils.PrintPayloadInJSONFormat(response.GetPayload())
-	return nil
-}
-
 func UpdateRegistry(updateView *CreateRegView, projectID int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
