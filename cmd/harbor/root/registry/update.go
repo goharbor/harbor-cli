@@ -1,8 +1,6 @@
 package registry
 
 import (
-	"strconv"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
@@ -17,6 +15,7 @@ func UpdateRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "update registry",
+		Example: "harbor registry update [registryname]",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -36,7 +35,7 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			if len(args) > 0 {
-				registryId, err = strconv.ParseInt(args[0], 10, 64)
+				registryId, err = api.GetRegistryIdByName(args[0])
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
 			}

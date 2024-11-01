@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCreateRegistryCommand creates a new `harbor create registry` command
 func CreateRegistryCommand() *cobra.Command {
 	var opts api.CreateRegView
 
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create registry",
+		Example: "harbor registry create",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
