@@ -31,7 +31,7 @@ func Test_Login_Success(t *testing.T) {
 			cmd.SetArgs(args)
 
 			assert.NoError(t, cmd.Flags().Set("name", "test"))
-			assert.NoError(t, cmd.Flags().Set("username", "admin"))
+			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
 			err := cmd.Execute()
@@ -46,7 +46,7 @@ func Test_Login_Failure_WrongServer(t *testing.T) {
 	cmd.SetArgs(args)
 
 	assert.NoError(t, cmd.Flags().Set("name", "test"))
-	assert.NoError(t, cmd.Flags().Set("username", "admin"))
+	assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
 	err := cmd.Execute()
@@ -59,7 +59,7 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 	cmd.SetArgs(args)
 
 	assert.NoError(t, cmd.Flags().Set("name", "test"))
-	assert.NoError(t, cmd.Flags().Set("username", "wrong"))
+	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
 	err := cmd.Execute()
