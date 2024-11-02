@@ -18,7 +18,9 @@ func HealthCommand() *cobra.Command {
 			health.PrintHealthStatus(status)
 			return nil
 		},
+		Example: `  # Get the health status of Harbor components`,
 	}
 
 	return cmd
+
 }
