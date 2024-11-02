@@ -1,8 +1,6 @@
 package labels
 
 import (
-	"strconv"
-
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -13,9 +11,10 @@ import (
 func DeleteLabelCommand() *cobra.Command {
 	var opts models.Label
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "delete label by id",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "delete",
+		Short:   "delete label",
+		Example: "harbor label delete [labelname]",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			deleteView := &api.ListFlags{
@@ -23,7 +22,7 @@ func DeleteLabelCommand() *cobra.Command {
 			}
 
 			if len(args) > 0 {
-				labelId, _ := strconv.ParseInt(args[0], 10, 64)
+				labelId, _ := api.GetLabelIdByName(args[0])
 				err = api.DeleteLabel(labelId)
 			} else {
 				labelId := prompt.GetLabelIdFromUser(*deleteView)
@@ -35,7 +34,7 @@ func DeleteLabelCommand() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).p for project labels.Query scope of the label")
+	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
 
 	return cmd
 }

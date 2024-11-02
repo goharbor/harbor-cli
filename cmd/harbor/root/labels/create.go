@@ -11,10 +11,11 @@ func CreateLabelCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "create label",
-		Long:  "crate label in harbor",
-		Args:  cobra.NoArgs,
+		Use:     "create",
+		Short:   "create label",
+		Long:    "create label in harbor",
+		Example: "harbor label create",
+		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
@@ -24,7 +25,7 @@ func CreateLabelCommand() *cobra.Command {
 				Description: opts.Description,
 			}
 			if opts.Name != "" && opts.Scope != "" {
-				err = api.CreateLabels(opts)
+				err = api.CreateLabel(opts)
 			} else {
 				err = createLabelView(createView)
 			}
@@ -51,5 +52,5 @@ func createLabelView(createView *create.CreateView) error {
 	}
 
 	create.CreateLabelView(createView)
-	return api.CreateLabels(*createView)
+	return api.CreateLabel(*createView)
 }

@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func CreateLabels(opts create.CreateView) error {
+func CreateLabel(opts create.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -50,13 +50,13 @@ func ListLabel(opts ...ListFlags) (*label.ListLabelsOK, error) {
 	if len(opts) > 0 {
 		listFlags = opts[0]
 	}
-
+	scope := "g"
 	response, err := client.Label.ListLabels(ctx, &label.ListLabelsParams{
 		Page:      &listFlags.Page,
 		PageSize:  &listFlags.PageSize,
 		Q:         &listFlags.Q,
 		Sort:      &listFlags.Sort,
-		Scope:     &listFlags.Scope,
+		Scope:     &scope,
 		ProjectID: &listFlags.ProjectID,
 	})
 
@@ -103,4 +103,21 @@ func GetLabel(labelid int64) *models.Label {
 	}
 
 	return response.GetPayload()
+}
+
+func GetLabelIdByName(labelName string) (int64, error) {
+	var opts ListFlags
+
+	l, err := ListLabel(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, label := range l.Payload {
+		if label.Name == labelName {
+			return label.ID, nil
+		}
+	}
+
+	return 0, err
 }

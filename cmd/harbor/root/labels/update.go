@@ -1,8 +1,6 @@
 package labels
 
 import (
-	"strconv"
-
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -12,34 +10,53 @@ import (
 )
 
 func UpdateLableCommand() *cobra.Command {
-	var opts models.Label
+	opts := &models.Label{}
 
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "update labels",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "update",
+		Short:   "update label",
+		Example: "harbor label update [labelname]",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var labelId int64
-			updateflags := &api.ListFlags{
+			updateflags := api.ListFlags{
 				Scope: opts.Scope,
 			}
 
 			if len(args) > 0 {
-				labelId, err = strconv.ParseInt(args[0], 10, 64)
+				labelId, err = api.GetLabelIdByName(args[0])
 			} else {
-				labelId = prompt.GetLabelIdFromUser(*updateflags)
+				labelId = prompt.GetLabelIdFromUser(updateflags)
 			}
 			if err != nil {
 				log.Errorf("failed to parse label id: %v", err)
 			}
 
-			opts = *api.GetLabel(labelId)
+			existingLabel := api.GetLabel(labelId)
+			if existingLabel == nil {
+				log.Errorf("label is not found")
+				return
+			}
 			updateView := &models.Label{
-				Name:        opts.Name,
-				Color:       opts.Color,
-				Description: opts.Description,
-				Scope:       opts.Scope,
+				Name:        existingLabel.Name,
+				Color:       existingLabel.Color,
+				Description: existingLabel.Description,
+				Scope:       existingLabel.Scope,
+			}
+
+			flags := cmd.Flags()
+			if flags.Changed("name") {
+				updateView.Name = opts.Name
+			}
+			if flags.Changed("color") {
+				updateView.Color = opts.Color
+			}
+			if flags.Changed("description") {
+				updateView.Description = opts.Description
+			}
+			if flags.Changed("scope") {
+				updateView.Scope = opts.Scope
 			}
 
 			update.UpdateLabelView(updateView)
@@ -50,7 +67,10 @@ func UpdateLableCommand() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).p for project labels.Query scope of the label")
+	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the label")
+	flags.StringVarP(&opts.Color, "color", "c", "", "Color of the label.color is in hexadecimal value")
+	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
+	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
 
 	return cmd
 }

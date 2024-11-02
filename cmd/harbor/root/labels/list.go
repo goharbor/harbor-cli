@@ -14,9 +14,8 @@ func ListLabelCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "list labels in Harbor",
+		Short: "list labels",
 		Run: func(cmd *cobra.Command, args []string) {
-
 			label, err := api.ListLabel(opts)
 			if err != nil {
 				log.Fatalf("failed to get label list: %v", err)
@@ -34,7 +33,7 @@ func ListLabelCommand() *cobra.Command {
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 20, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).p for project labels.Query scope of the label")
+	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
 	flags.Int64VarP(&opts.ProjectID, "projectid", "i", 1, "project ID when query project labels")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
 
