@@ -19,7 +19,6 @@ var columns = []table.Column{
 	{Title: "Creation Time", Width: 24},
 }
 
-
 func ListLabels(labels []*models.Label) {
 	var rows []table.Row
 	for _, regis := range labels {

@@ -7,11 +7,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct{
-	Name	string
-	Color	string
-	Description	string
-	Scope	string
+type CreateView struct {
+	Name        string
+	Color       string
+	Description string
+	Scope       string
 }
 
 func CreateLabelView(createView *CreateView) {
