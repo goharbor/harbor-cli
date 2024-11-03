@@ -89,3 +89,20 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 
 	return response, nil
 }
+
+func GetUsersIdByName(userName string) (int64, error) {
+	var opts ListFlags
+
+	u, err := ListUsers(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, user := range u.Payload {
+		if user.Username == userName {
+			return user.UserID, nil
+		}
+	}
+
+	return 0, err
+}
