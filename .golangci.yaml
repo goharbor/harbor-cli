@@ -1,13 +1,17 @@
-
+run:
+  timeout: 3m
 linters:
   enable:
-    # default linters
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
+    # Default linters are already enabled, these are the additional ones
     - typecheck
-    - unused
-
     - gofmt
+    - gosec
+    - nilnil
+    # - wrapcheck
+    # - gocritic
+    # - revive #, enable once current issues are resolved
+issues:
+  exclude-dirs:
+    - dagger/internal
+  exclude-files:
+    - ^.*\\.gen\\.go$

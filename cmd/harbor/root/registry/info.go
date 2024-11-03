@@ -1,8 +1,6 @@
 package registry
 
 import (
-	"strconv"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -11,15 +9,16 @@ import (
 
 func InfoRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "info",
-		Short: "get registry info",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "info",
+		Short:   "get registry info",
+		Example: "harbor registry info [registryname]",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
 			if len(args) > 0 {
-				registryId, _ := strconv.ParseInt(args[0], 10, 64)
-				err = api.InfoRegistry(registryId)
+				registryName, _ := api.GetRegistryIdByName(args[0])
+				err = api.InfoRegistry(registryName)
 			} else {
 				registryId := prompt.GetRegistryNameFromUser()
 				err = api.InfoRegistry(registryId)
