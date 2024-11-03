@@ -7,7 +7,6 @@ before:
 
 builds:
 - main: ./cmd/harbor/main.go
-
   env:
     - CGO_ENABLED=0
   ldflags:
@@ -25,17 +24,18 @@ builds:
     - goos: windows
       goarch: arm64
   mod_timestamp: "{{ .CommitTimestamp }}"
+
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
 nfpms:
-  - package_name: harbor
+  -
     homepage: https://github.com/goharbor/harbor-cli/
-    maintainer: Vadim Bauer
+    maintainer: Harbor Community
     description: |-
-      [Sandbox] Official Harbor CLI
+      CLI for Harbor Container Registry
     formats:
       - rpm
       - deb
@@ -47,12 +47,16 @@ sboms:
 
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
-  version_template: "{{ .Tag }}-next"
+  version_template: "{{ incpatch .Version }}-next"
+
 release:
   name_template: "HarborCLI {{.Tag}}"
-  draft: false               # Set to false to ensure that releases are published, not kept as drafts
+  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
   prerelease: auto            # Auto-detect prereleases based on tag
+  replace_existing_draft: true
+  replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
     owner: goharbor           # Your GitHub repository owner
@@ -60,16 +64,13 @@ release:
 
 changelog:
   use: github
-  format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
-  sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
       - "merge conflict"
-
   groups:
-    - title: Dependency updates
+    - title: "Dependency updates"
       regexp: '^.*?(.+)\(deps\)!?:.+$'
       order: 300
     - title: "New Features"
@@ -87,5 +88,5 @@ changelog:
     - title: "Build process updates"
       regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
       order: 400
-    - title: Other work
+    - title: "Other work"
       order: 9999

@@ -3,6 +3,8 @@
 
 **Welcome to the Harbor CLI project! This powerful command-line tool facilitates seamless interaction with the Harbor container registry. It simplifies various tasks such as creating, updating, and managing projects, registries, and other resources in Harbor.**
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/harbor-cli)](https://artifacthub.io/packages/search?repo=harbor-cli)
+
 # Project Scope 🧪
 
 The Harbor CLI is designed to enhance your interaction with the Harbor container registry. Built on Golang, it offers a user-friendly interface to perform various tasks related to projects, registries, and more. Whether you're creating, updating, or managing resources, the Harbor CLI streamlines your workflow efficiently.
@@ -15,10 +17,52 @@ The Harbor CLI is designed to enhance your interaction with the Harbor container
  🔹 Run commands with various flags for enhanced functionality <br>
  🔹 More features coming soon... 🚧
 
-# Example Commands💡
 
+# Installation
+
+## Container 
+
+It is straightforward to use the Harbor CLI as a container. You can run the following command to use the Harbor CLI as a container:
+
+```shell
+docker run -ti --rm -v $HOME/.harbor/config.yaml:/root/.harbor/config.yaml registry.goharbor.io/harbor-cli/harbor-cli --help
+
+```
+
+# Add the following command to create an alias and append the alias to your .zshrc or .bashrc file
+```shell
+echo "alias harbor='docker run -ti --rm -v \$HOME/.harbor/config.yaml:/root/.harbor/config.yaml registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc
+source ~/.zshrc # or restart your terminal
+```
+
+
+## Linux, MacOS and Windows
+
+Harbor CLI will soon be published on Homebrew.
+Meantime, we recommend using Harbor in the Container
+or download the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases)
+
+
+
+## Add the Harbor CLI to your Container Image
+
+Using Curl or Wget isn't recommended
+for adding the Harbor CLI to your container.
+Instead, we recommend copying the Harbor CLI from our official image
+by using the following Dockerfile:
+
+```Dockerfile
+#...
+COPY --from=registry.goharbor.io/harbor-cli/harbor-cli:latest /harbor /usr/local/bin/harbor
+# --chown and --chmod flags can be used to set the permissions
+```
+
+
+
+# Example Commands💡
 ```bash
-➜ harbor --help
+>./harbor    
+
 Official Harbor CLI
 
 Usage:
@@ -34,7 +78,9 @@ harbor help
 
 
 Available Commands:
+  artifact    Manage artifacts
   completion  Generate the autocompletion script for the specified shell
+  health      Get the health status of Harbor components
   help        Help about any command
   login       Log in to Harbor registry
   project     Manage projects and assign resources to them
@@ -44,18 +90,24 @@ Available Commands:
   version     Version of Harbor CLI
 
 Flags:
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/bishal/.harbor/config.yaml")
+      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/Users/vadim/.harbor/config.yaml")
   -h, --help                   help for harbor
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 
 Use "harbor [command] --help" for more information about a command.
+
+
 ```
+
+
+
+
 
 #### Log in to Harbor Registry
 
 ```bash
-harbor login demo.goharbor.io -u admin -p Harbor12345
+harbor login demo.goharbor.io -u harbor-cli -p Harbor12345
 ```
 
 #### Create a New Project
@@ -98,22 +150,6 @@ Linux | ✅
 macOS | ✅
 Windows | ✅
 
-# Installation
-
-
-## Linux and MacOS
-
-Homebrew is the recommended way to install Harbor CLI on MacOS and Linux.
-
-
-## Windows
-
-```shell
-
-winget install harbor
-
-```
-
 
 
 # Build From Source
@@ -123,14 +159,25 @@ Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your sy
 #### Using Dagger
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-dagger call build-dev --platform darwin/arm64 export --path=./harbor-dev
+dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 ./harbor-dev --help
 ```
 
+If golang is installed in your system, you can also build the project using the following commands:
+
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git
-dagger call build
+go build -o harbor-cli cmd/harbor/main.go
 ```
+
+# Version Compatibility With Harbor
+
+At the moment, the Harbor CLI is developed and tested with Harbor 2.11.
+The CLI should work with versions prior to 2.11,
+but not all functionalities may be available or work as expected.
+
+Harbor <2.0.0 is not supported.
+
 
 
 # Community
