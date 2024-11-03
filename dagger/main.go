@@ -19,9 +19,6 @@ func New(
 	// Local or remote directory with source code, defaults to "./"
 	// +optional
 	// +defaultPath="./"
-	// Local or remote directory with source code, defaults to "./"
-	// +optional
-	// +defaultPath="./"
 	source *dagger.Directory,
 ) *HarborCli {
 	return &HarborCli{Source: source}
@@ -125,8 +122,6 @@ func (m *HarborCli) lint(ctx context.Context) *dagger.Container {
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
 	registry, registryUsername string,
-	// +optional
-	// +default=["latest"]
 	// +optional
 	// +default=["latest"]
 	imageTags []string,
@@ -260,12 +255,9 @@ func (m *HarborCli) PublishImageAndSign(
 	registryPassword *dagger.Secret,
 	imageTags []string,
 	// +optional
-	// +optional
 	githubToken *dagger.Secret,
 	// +optional
-	// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
-	// +optional
 	// +optional
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
@@ -291,12 +283,9 @@ func (m *HarborCli) PublishImageAndSign(
 // Sign signs a container image using Cosign, works also with GitHub Actions
 func (m *HarborCli) Sign(ctx context.Context,
 	// +optional
-	// +optional
 	githubToken *dagger.Secret,
 	// +optional
-	// +optional
 	actionsIdTokenRequestUrl string,
-	// +optional
 	// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
 	registryUsername string,
