@@ -24,7 +24,6 @@ func PrintPayloadInJSONFormat(payload any) {
 	fmt.Println(string(jsonStr))
 }
 
-
 func PrintPayloadInYAMLFormat(payload any) {
 	if payload == nil {
 		return

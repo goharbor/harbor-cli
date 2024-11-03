@@ -26,7 +26,7 @@ func ListRegistryCommand() *cobra.Command {
 			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(registry)
 				return
-			} 
+			}
 			if FormatFlag == "yaml" {
 				utils.PrintPayloadInYAMLFormat(registry)
 				return
