@@ -47,7 +47,8 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Value(&updateView.Credential.AccessKey),
 			huh.NewInput().
 				Title("Access Secret").
-				Description("Replace the Access Secret").
+				EchoMode(huh.EchoModePassword).
+				Description("Replace the Access Secret to the real one").
 				Value(&updateView.Credential.AccessSecret),
 			huh.NewConfirm().
 				Title("Verify Cert").

@@ -108,6 +108,9 @@ func GetRegistryResponse(registryId int64) *models.Registry {
 	if err != nil {
 		return nil
 	}
+	if response.Payload.ID == 0 {
+		return nil
+	}
 
 	return response.GetPayload()
 }
