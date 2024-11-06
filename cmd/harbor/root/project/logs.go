@@ -30,13 +30,21 @@ func LogsProjectCommmand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to get project logs: %v", err)
 			}
-			auditLog.LogsProject(resp.Payload)
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(resp)
+				if FormatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(resp)
+					return
+				}
+				if FormatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(resp)
+					return
+				}
+				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
 				return
 			}
+			auditLog.LogsProject(resp.Payload)
 
 		},
 	}

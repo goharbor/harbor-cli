@@ -23,10 +23,18 @@ func UserListCmd() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(response.Payload)
-			} else {
-				list.ListUsers(response.Payload)
+				if FormatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(response.Payload)
+					return
+				}
+				if FormatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(response.Payload)
+					return
+				}
+				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
+				return
 			}
+			list.ListUsers(response.Payload)
 		},
 	}
 

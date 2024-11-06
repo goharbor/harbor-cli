@@ -23,12 +23,16 @@ func ListRegistryCommand() *cobra.Command {
 				log.Fatalf("failed to get projects list: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag == "json" {
-				utils.PrintPayloadInJSONFormat(registry)
-				return
-			}
-			if FormatFlag == "yaml" {
-				utils.PrintPayloadInYAMLFormat(registry)
+			if FormatFlag != "" {
+				if FormatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(registry)
+					return
+				}
+				if FormatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(registry)
+					return
+				}
+				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
 				return
 			}
 			list.ListRegistry(registry.Payload)

@@ -23,10 +23,17 @@ func ListProjectCommand() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(projects)
+				if FormatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(projects)
+					return
+				}
+				if FormatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(projects)
+					return
+				}
+				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
 				return
 			}
-
 			list.ListProjects(projects.Payload)
 		},
 	}
