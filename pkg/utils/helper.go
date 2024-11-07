@@ -46,6 +46,7 @@ func FormatSize(size int64) string {
 
 // ValidateUserName checks if the username is valid by length and allowed characters.
 func ValidateUserName(username string) bool {
+	username = strings.TrimSpace(username)
 	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
 }
 
