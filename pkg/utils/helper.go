@@ -132,5 +132,5 @@ func PrintFormat[T any](resp T, format string) error {
 		PrintPayloadInYAMLFormat(resp)
 		return nil
 	}
-	return errors.New(fmt.Sprintf("Unable to output in the specified '%s' format", format))
+	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
