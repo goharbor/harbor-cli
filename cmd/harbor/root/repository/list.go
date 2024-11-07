@@ -32,23 +32,16 @@ func ListRepositoryCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to list repositories: %v", err)
 			}
-			
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				if FormatFlag == "json" {
-					utils.PrintPayloadInJSONFormat(repos)
-					return
+				err = utils.PrintFormat(repos, FormatFlag)
+				if err != nil {
+					log.Error(err)
 				}
-				if FormatFlag == "yaml" {
-					utils.PrintPayloadInYAMLFormat(repos)
-					return
-				}
-				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
-				return
+			} else {
+				list.ListRepositories(repos.Payload)
 			}
-
-			list.ListRepositories(repos.Payload)
-
 		},
 	}
 

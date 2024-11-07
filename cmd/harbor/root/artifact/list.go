@@ -36,19 +36,13 @@ func ListArtifactCommand() *cobra.Command {
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				if FormatFlag == "json" {
-					utils.PrintPayloadInJSONFormat(artifacts)
-					return
+				err = utils.PrintFormat(artifacts, FormatFlag)
+				if err != nil {
+					log.Error(err)
 				}
-				if FormatFlag == "yaml" {
-					utils.PrintPayloadInYAMLFormat(artifacts)
-					return
-				}
-				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
-				return
+			} else {
+				artifactViews.ListArtifacts(artifacts.Payload)
 			}
-			
-			artifactViews.ListArtifacts(artifacts.Payload)
 		},
 	}
 
