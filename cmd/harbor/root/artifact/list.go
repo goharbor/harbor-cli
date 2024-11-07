@@ -8,6 +8,7 @@ import (
 	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ListArtifactCommand() *cobra.Command {
@@ -17,21 +18,37 @@ func ListArtifactCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var resp artifact.ListArtifactsOK
+			var artifacts artifact.ListArtifactsOK
+			var projectName, repoName string
 
 			if len(args) > 0 {
-				projectName, repoName := utils.ParseProjectRepo(args[0])
-				resp, err = api.ListArtifact(projectName, repoName)
+				projectName, repoName = utils.ParseProjectRepo(args[0])
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				resp, err = api.ListArtifact(projectName, repoName)
+				projectName = prompt.GetProjectNameFromUser()
+				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
+
+			artifacts, err = api.ListArtifact(projectName, repoName)
 
 			if err != nil {
 				log.Errorf("failed to list artifacts: %v", err)
 			}
-			artifactViews.ListArtifacts(resp.Payload)
+
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				if FormatFlag == "json" {
+					utils.PrintPayloadInJSONFormat(artifacts)
+					return
+				}
+				if FormatFlag == "yaml" {
+					utils.PrintPayloadInYAMLFormat(artifacts)
+					return
+				}
+				log.Errorf("Unable to output in the specified '%s' format", FormatFlag)
+				return
+			}
+			
+			artifactViews.ListArtifacts(artifacts.Payload)
 		},
 	}
 
