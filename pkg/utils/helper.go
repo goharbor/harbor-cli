@@ -44,10 +44,10 @@ func FormatSize(size int64) string {
 	return fmt.Sprintf("%.2fMiB", mbSize)
 }
 
-// ValidateUserName checks if the username is valid by length and allowed characters.
 func ValidateUserName(username string) bool {
-	username = strings.TrimSpace(username)
-	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
+	pattern := `^[a-zA-Z0-9]{1,255}$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(username)
 }
 
 func ValidateEmail(email string) bool {
