@@ -31,6 +31,10 @@ func LoginCommand() *cobra.Command {
 				serverAddress = args[0]
 			}
 
+			if Name == "" {
+				Name = generateCredentialName(serverAddress, Username)
+			}
+
 			loginView := login.LoginView{
 				Server:   serverAddress,
 				Username: Username,
