@@ -3,7 +3,6 @@ package root
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
@@ -38,10 +37,14 @@ func LoginCommand() *cobra.Command {
 				Name:     Name,
 			}
 
+			// autogenerate name
+			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+			}
+
 			var err error
 
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" &&
-				loginView.Name != "" {
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
 				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
@@ -62,20 +65,6 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
-// generateCredentialName creates a default credential name based on server and username
-func generateCredentialName(server, username string) string {
-	if strings.HasPrefix(server, "http://") {
-		server = strings.ReplaceAll(server, "http://", "")
-	}
-	if strings.HasPrefix(server, "https://") {
-		server = strings.ReplaceAll(server, "https://", "")
-	}
-	if username != "" {
-		return fmt.Sprintf("%s@%s", username, server)
-	}
-	return server
-}
-
 func createLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
@@ -86,6 +75,7 @@ func createLoginView(loginView *login.LoginView) error {
 		}
 	}
 	login.CreateView(loginView)
+
 	return runLogin(*loginView)
 }
 
@@ -103,9 +93,6 @@ func runLogin(opts login.LoginView) error {
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
-	}
-	if opts.Name == "" {
-		opts.Name = generateCredentialName(opts.Server, opts.Username)
 	}
 
 	cred := utils.Credential{
