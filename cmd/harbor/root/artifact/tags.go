@@ -6,6 +6,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/artifact/tags/create"
+	tagViews "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -14,7 +15,7 @@ func ArtifactTagsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "tags",
 		Short:   "Manage tags of an artifact",
-		Example: ` harbor artifact tags list <project>/<repository>/<reference>`,
+		Example: `harbor artifact tags list <project>/<repository>/<reference>`,
 	}
 
 	cmd.AddCommand(
@@ -77,7 +78,7 @@ func ListTagsCmd() *cobra.Command {
 				log.Errorf("failed to list tags: %v", err)
 			}
 
-			log.Info(resp.Payload)
+			tagViews.ListTagArtifact(resp.Payload)
 		},
 	}
 
