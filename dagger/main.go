@@ -234,7 +234,7 @@ func (m *HarborCli) Test(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"go", "test", "-v", "./..."}).
+		WithExec([]string{"go", "test", "./..."}).
 		Directory("/src")
 }
 
