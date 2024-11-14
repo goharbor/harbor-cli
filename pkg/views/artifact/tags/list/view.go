@@ -13,11 +13,9 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: 6},
-	{Title: "Repo ID", Width: 10},
-	{Title: "Artifact ID", Width: 12},
 	{Title: "Tag Name", Width: 15},
-	{Title: "Pull Time", Width: 15},
-	{Title: "Push Time", Width: 15},
+	{Title: "Pull Time", Width: 18},
+	{Title: "Push Time", Width: 18},
 }
 
 func ListTagArtifact(artifacts []*models.Tag) {
@@ -27,8 +25,6 @@ func ListTagArtifact(artifacts []*models.Tag) {
 		pullTime, _ := utils.FormatCreatedTime(tag.PullTime.String())
 		rows = append(rows, table.Row{
 			strconv.FormatInt(int64(tag.ID), 10),
-			strconv.FormatInt(int64(tag.RepositoryID), 10),
-			strconv.FormatInt(int64(tag.ArtifactID), 10),
 			tag.Name,
 			pullTime,
 			pushTime,
