@@ -23,7 +23,7 @@ jobs:
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Run Dagger golangci-lint
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -45,14 +45,14 @@ jobs:
           fetch-depth: 0
 
       - name: Run Tests
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: test
 
       - name: Build Binary
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -99,7 +99,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create Release
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
