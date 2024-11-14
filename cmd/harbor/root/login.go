@@ -3,13 +3,14 @@ package root
 import (
 	"context"
 	"fmt"
-	"strings"
+	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 	Username      string
 	Password      string
 	Name          string
+	passwordStdin bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -31,6 +33,16 @@ func LoginCommand() *cobra.Command {
 				serverAddress = args[0]
 			}
 
+			if passwordStdin {
+				fmt.Print("Password: ")
+				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+				if err != nil {
+					return fmt.Errorf("failed to read password from stdin: %v", err)
+				}
+				fmt.Println()
+				Password = string(passwordBytes)
+			}
+
 			loginView := login.LoginView{
 				Server:   serverAddress,
 				Username: Username,
@@ -38,10 +50,14 @@ func LoginCommand() *cobra.Command {
 				Name:     Name,
 			}
 
+			// autogenerate name
+			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+			}
+
 			var err error
 
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" &&
-				loginView.Name != "" {
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
 				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
@@ -58,22 +74,9 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
-}
-
-// generateCredentialName creates a default credential name based on server and username
-func generateCredentialName(server, username string) string {
-	if strings.HasPrefix(server, "http://") {
-		server = strings.ReplaceAll(server, "http://", "")
-	}
-	if strings.HasPrefix(server, "https://") {
-		server = strings.ReplaceAll(server, "https://", "")
-	}
-	if username != "" {
-		return fmt.Sprintf("%s@%s", username, server)
-	}
-	return server
 }
 
 func createLoginView(loginView *login.LoginView) error {
@@ -86,6 +89,7 @@ func createLoginView(loginView *login.LoginView) error {
 		}
 	}
 	login.CreateView(loginView)
+
 	return runLogin(*loginView)
 }
 
@@ -103,9 +107,6 @@ func runLogin(opts login.LoginView) error {
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
-	}
-	if opts.Name == "" {
-		opts.Name = generateCredentialName(opts.Server, opts.Username)
 	}
 
 	cred := utils.Credential{
