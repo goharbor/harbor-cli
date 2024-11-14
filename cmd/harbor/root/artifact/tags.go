@@ -57,6 +57,7 @@ func CreateTagsCmd() *cobra.Command {
 }
 
 func ListTagsCmd() *cobra.Command {
+	var opts api.ListFlags
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List tags of an artifact",
@@ -67,7 +68,7 @@ func ListTagsCmd() *cobra.Command {
 			var resp artifact.ListTagsOK
 			if len(args) > 0 {
 				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				resp, err = api.ListTags(projectName, repoName, reference)
+				resp, err = api.ListTags(projectName, repoName, reference, opts)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)
@@ -81,6 +82,11 @@ func ListTagsCmd() *cobra.Command {
 			tagViews.ListTagArtifact(resp.Payload)
 		},
 	}
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
