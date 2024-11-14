@@ -225,8 +225,8 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 }
 
 // Test Executes Go tests and returns the directory containing the test results
-func (m *HarborCli) Test(ctx context.Context) *dagger.Directory {
-	return dag.Container().
+func (m *HarborCli) Test(ctx context.Context) (string, error) {
+	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
@@ -234,8 +234,8 @@ func (m *HarborCli) Test(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"go", "test", "./..."}).
-		Directory("/src")
+		WithExec([]string{"go", "test", "-v", "./..."})
+	return test.Stdout(ctx)
 }
 
 // Parse the platform string into os and arch
