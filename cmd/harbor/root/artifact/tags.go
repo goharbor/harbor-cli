@@ -73,7 +73,7 @@ func ListTagsCmd() *cobra.Command {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)
 				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				resp, err = api.ListTags(projectName, repoName, reference)
+				resp, err = api.ListTags(projectName, repoName, reference, opts)
 			}
 			if err != nil {
 				log.Errorf("failed to list tags: %v", err)
