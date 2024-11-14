@@ -49,7 +49,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test export --path=./testResults
+          args: test
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v6
