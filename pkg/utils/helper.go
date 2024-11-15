@@ -56,6 +56,12 @@ func ValidateEmail(email string) bool {
 	return re.MatchString(email)
 }
 
+func ValidateConfigPath(configPath string) bool {
+	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(configPath)
+}
+
 func ValidateFL(name string) bool {
 	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
 	re := regexp.MustCompile(pattern)

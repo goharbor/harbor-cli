@@ -9,7 +9,9 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/term"
 )
 
@@ -43,11 +45,17 @@ func LoginCommand() *cobra.Command {
 				Password = string(passwordBytes)
 			}
 
+			configValue := viper.GetString("config")
+			if configValue == "" {
+				configValue = utils.DefaultConfigPath
+			}
+
 			loginView := login.LoginView{
 				Server:   serverAddress,
 				Username: Username,
 				Password: Password,
 				Name:     Name,
+				Config:   configValue,
 			}
 
 			// autogenerate name
@@ -116,7 +124,13 @@ func runLogin(opts login.LoginView) error {
 		ServerAddress: opts.Server,
 	}
 
-	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
+	existingCred, err := utils.GetCredentials(opts.Name)
+	if err == nil && existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
+		log.Warn("Credentials already exist in the config file. They were not added again.")
+		return nil
+	}
+
+	if err = utils.AddCredentialsToConfigFile(cred, opts.Config); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
