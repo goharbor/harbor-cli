@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -45,17 +46,11 @@ func LoginCommand() *cobra.Command {
 				Password = string(passwordBytes)
 			}
 
-			configValue := viper.GetString("config")
-			if configValue == "" {
-				configValue = utils.DefaultConfigPath
-			}
-
 			loginView := login.LoginView{
 				Server:   serverAddress,
 				Username: Username,
 				Password: Password,
 				Name:     Name,
-				Config:   configValue,
 			}
 
 			// autogenerate name
@@ -124,6 +119,14 @@ func runLogin(opts login.LoginView) error {
 		ServerAddress: opts.Server,
 	}
 
+	configPath := viper.GetString("config")
+	if isValid := utils.ValidateConfigPath(configPath); !isValid {
+		return errors.New("The config file path is not valid. It should be a valid path with a .yaml or .yml extension")
+	}
+	if configPath == "" {
+		configPath = utils.DefaultConfigPath
+	}
+
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
@@ -132,21 +135,21 @@ func runLogin(opts login.LoginView) error {
 				return nil
 			} else {
 				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
-				if err = utils.UpdateCredentialsInConfigFile(cred, opts.Config); err != nil {
+				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 					return fmt.Errorf("failed to update the credential: %s", err)
 				}
 				return nil
 			}
 		} else {
 			log.Warn("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
-			if err = utils.UpdateCredentialsInConfigFile(cred, opts.Config); err != nil {
+			if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 				return fmt.Errorf("failed to update the credential: %s", err)
 			}
 			return nil
 		}
 	}
 
-	if err = utils.AddCredentialsToConfigFile(cred, opts.Config); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred, configPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	return nil
