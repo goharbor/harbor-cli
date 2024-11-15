@@ -16,6 +16,7 @@ type LoginView struct {
 	Username string
 	Password string
 	Name     string
+	Config   string
 }
 
 func CreateView(loginView *LoginView) {
@@ -81,8 +82,22 @@ func CreateView(loginView *LoginView) {
 					}
 					return nil
 				}),
+			huh.NewInput().
+				Title("Config File").
+				Value(&loginView.Config).
+				Description("Path to the config file").
+				Validate(func(str string) error {
+					if strings.TrimSpace(str) == "" {
+						return errors.New("config file cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateConfigPath(str); !isValid {
+						return errors.New("The config file path is not valid. It should be a valid path with a .yaml or .yml extension")
+					}
+					return nil
+				}),
 		),
-	).WithTheme(theme).Run()
+	).WithTheme(theme).
+		Run()
 	if err != nil {
 		log.Fatal(err)
 	}

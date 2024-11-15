@@ -1,0 +1,8 @@
+config: config.yaml
+credentials:
+    - name: qcserestipy@demo-goharbor-io
+      username: qcserestipy
+      password: 0608-PeYt-Jp242
+      serveraddress: https://demo.goharbor.io
+current-credential-name: qcserestipy@demo-goharbor-io
+output-format: ""

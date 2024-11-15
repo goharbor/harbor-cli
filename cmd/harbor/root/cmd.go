@@ -24,7 +24,6 @@ var (
 func InitConfig() {
 	viper.SetConfigType("yaml")
 
-	// cfgFile = viper.GetStering("config")
 	viper.SetConfigFile(cfgFile)
 
 	if cfgFile != utils.DefaultConfigPath {
@@ -65,7 +64,7 @@ func InitConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file: %s", err)
+		log.Fatalf("Error reading config file: %s. Please ensure the config file exists.", err)
 	}
 
 }
@@ -97,6 +96,11 @@ harbor help
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	err = viper.BindPFlag("config", root.PersistentFlags().Lookup("config"))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
