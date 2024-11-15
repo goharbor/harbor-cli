@@ -125,9 +125,25 @@ func runLogin(opts login.LoginView) error {
 	}
 
 	existingCred, err := utils.GetCredentials(opts.Name)
-	if err == nil && existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
-		log.Warn("Credentials already exist in the config file. They were not added again.")
-		return nil
+	if err == nil {
+		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
+			if existingCred.Password == opts.Password {
+				log.Warn("Credentials already exist in the config file. They were not added again.")
+				return nil
+			} else {
+				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				if err = utils.UpdateCredentialsInConfigFile(cred, opts.Config); err != nil {
+					return fmt.Errorf("failed to update the credential: %s", err)
+				}
+				return nil
+			}
+		} else {
+			log.Warn("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
+			if err = utils.UpdateCredentialsInConfigFile(cred, opts.Config); err != nil {
+				return fmt.Errorf("failed to update the credential: %s", err)
+			}
+			return nil
+		}
 	}
 
 	if err = utils.AddCredentialsToConfigFile(cred, opts.Config); err != nil {

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -99,4 +100,43 @@ func GetCredentials(credentialName string) (Credential, error) {
 		}
 	}
 	return Credential{}, nil
+}
+
+func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath string) error {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return err
+	}
+
+	viper.SetConfigFile(configPath)
+	err := viper.ReadInConfig()
+	if err != nil {
+		return err
+	}
+
+	c := HarborConfig{}
+	err = viper.Unmarshal(&c)
+	if err != nil {
+		return err
+	}
+
+	updated := false
+	for i, cred := range c.Credentials {
+		if cred.Name == updatedCredential.Name {
+			c.Credentials[i] = updatedCredential
+			updated = true
+			break
+		}
+	}
+
+	if !updated {
+		return fmt.Errorf("credential with name %s not found", updatedCredential.Name)
+	}
+
+	viper.Set("current-credential-name", c.CurrentCredentialName)
+	viper.Set("credentials", c.Credentials)
+	err = viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+	return nil
 }
