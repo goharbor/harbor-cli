@@ -116,26 +116,25 @@ func runLogin(opts login.LoginView) error {
 		Password:      opts.Password,
 		ServerAddress: opts.Server,
 	}
-	fmt.Println("Login Succeeded")
 	configPath := (*utils.GetHarborData()).ConfigPath
-	fmt.Println("Checking if credentials already exist in the config file...")
+	log.Info("Checking if credentials already exist in the config file...")
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
 			if existingCred.Password == opts.Password {
-				log.Println("Credentials already exist in the config file. They were not added again.")
+				log.Warn("Credentials already exist in the config file. They were not added again.")
 				return nil
 			} else {
-				log.Println("Credentials already exist in the config file but the password is different. Updating the password.")
+				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
 				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
-					return fmt.Errorf("failed to update the credential: %s", err)
+					log.Fatalf("failed to update the credential: %s", err)
 				}
 				return nil
 			}
 		} else {
-			log.Println("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
+			log.Warn("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
 			if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
-				return fmt.Errorf("failed to update the credential: %s", err)
+				log.Fatalf("failed to update the credential: %s", err)
 			}
 			return nil
 		}
