@@ -9,7 +9,6 @@ import (
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -20,12 +19,19 @@ var (
 
 func GetClient() (*v2client.HarborAPI, error) {
 	clientOnce.Do(func() {
-		credentialName := viper.GetString("current-credential-name")
+		credentialName := GetCurrentConfig().GetCurrentCredentialName()
+		if credentialName == "" {
+			clientErr = fmt.Errorf("current-credential-name is not set in config file")
+			return
+		}
+
 		clientInstance = GetClientByCredentialName(credentialName)
 		if clientErr != nil {
 			log.Errorf("failed to initialize client: %v", clientErr)
+			return
 		}
 	})
+
 	return clientInstance, clientErr
 }
 
