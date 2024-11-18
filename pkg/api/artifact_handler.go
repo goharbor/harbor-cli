@@ -51,15 +51,23 @@ func InfoArtifact(projectName, repoName, reference string) error {
 }
 
 // RunListArtifact lists all artifacts in a repository.
-func ListArtifact(projectName, repoName string) (artifact.ListArtifactsOK, error) {
+func ListArtifact(projectName, repoName string, opts ...ListFlags) (artifact.ListArtifactsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return artifact.ListArtifactsOK{}, err
 	}
 
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
 	response, err := client.Artifact.ListArtifacts(ctx, &artifact.ListArtifactsParams{
 		ProjectName:    projectName,
 		RepositoryName: repoName,
+		Page:           &listFlags.Page,
+		PageSize:       &listFlags.PageSize,
+		Q:              &listFlags.Q,
+		Sort:           &listFlags.Sort,
 	})
 	if err != nil {
 		return artifact.ListArtifactsOK{}, err

@@ -34,7 +34,7 @@ func UserListCmd() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "n", 25, "Size of per page")
+	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
 
