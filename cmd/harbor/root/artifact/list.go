@@ -12,6 +12,8 @@ import (
 )
 
 func ListArtifactCommand() *cobra.Command {
+	var opts api.ListFlags
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list artifacts within a repository",
@@ -45,6 +47,12 @@ func ListArtifactCommand() *cobra.Command {
 			}
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }

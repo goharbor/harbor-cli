@@ -38,20 +38,21 @@ func CreateProject(opts create.CreateView) error {
 	return nil
 }
 
-func GetProject(projectName string) error {
+func GetProject(projectName string) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+	var response = &project.GetProjectOK{}
 
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
 
 func DeleteProject(projectName string) error {
@@ -80,6 +81,22 @@ func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
 		listFlags = opts[0]
 	}
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name, Public: &listFlags.Public})
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
+func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name})
 	if err != nil {
 		return project.ListProjectsOK{}, err
 	}

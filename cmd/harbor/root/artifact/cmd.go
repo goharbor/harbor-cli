@@ -15,7 +15,7 @@ func Artifact() *cobra.Command {
 
 	cmd.AddCommand(
 		ListArtifactCommand(),
-		InfoArtifactCommmand(),
+		ViewArtifactCommmand(),
 		DeleteArtifactCommand(),
 		ScanArtifactCommand(),
 		ArtifactTagsCmd(),

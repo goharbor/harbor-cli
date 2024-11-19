@@ -13,9 +13,11 @@ import (
 
 func ListRepositoryCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list repositories within a project",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "list",
+		Short:   "list repositories within a project",
+		Example: `  harbor repo list <project_name>`,
+		Long:    `Get information of all repositories in a project`,
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var repos repository.ListRepositoriesOK
