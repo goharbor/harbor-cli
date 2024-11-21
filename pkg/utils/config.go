@@ -23,50 +23,178 @@ type HarborConfig struct {
 	Credentials           []Credential `mapstructure:"credentials" yaml:"credentials"`
 }
 
+type HarborData struct {
+	ConfigPath string `mapstructure:"configpath" yaml:"configpath"`
+}
+
 var (
 	CurrentHarborData    *HarborData
-	CurrentConfig        *HarborConfig
+	CurrentHarborConfig  *HarborConfig
 	configMutex          sync.RWMutex
 	configInitialization sync.Once
 	configInitError      error
 )
 
-type HarborData struct {
-	ConfigPath string `yaml:"configpath"`
+func InitConfig(cfgFile string, userSpecifiedConfig bool) {
+	configInitialization.Do(func() {
+		// Determine paths
+		harborDataPath, harborDataDir := getDataPaths()
+		harborConfigPath, err := determineConfigPath(cfgFile, userSpecifiedConfig)
+		if err != nil {
+			configInitError = err
+			log.Fatalf("%v", err)
+		}
+
+		// Ensure data directory exists
+		if err := os.MkdirAll(harborDataDir, os.ModePerm); err != nil {
+			configInitError = fmt.Errorf("failed to create data directory: %w", err)
+			log.Fatalf("%v", configInitError)
+		}
+
+		// Update or create data file
+		if err := updateDataFile(harborDataPath, harborConfigPath); err != nil {
+			configInitError = err
+			log.Fatalf("%v", err)
+		}
+
+		// Ensure config file exists
+		if err := ensureConfigFileExists(harborConfigPath); err != nil {
+			configInitError = err
+			log.Fatalf("%v", err)
+		}
+
+		// Read and unmarshal the config file
+		v, err := readConfig(harborConfigPath)
+		if err != nil {
+			configInitError = err
+			log.Fatalf("%v", err)
+		}
+
+		var harborConfig HarborConfig
+		if err := v.Unmarshal(&harborConfig); err != nil {
+			configInitError = fmt.Errorf("failed to unmarshal config file: %w", err)
+			log.Fatalf("%v", configInitError)
+		}
+
+		// Update current config and data
+		configMutex.Lock()
+		CurrentHarborConfig = &harborConfig
+		CurrentHarborData = &HarborData{ConfigPath: harborConfigPath}
+		configMutex.Unlock()
+
+		log.Infof("Using config file: %s", v.ConfigFileUsed())
+	})
 }
 
-var (
-	HarborConfigDir   string
-	HarborDataDir     string
-	DefaultConfigPath string
-	DefaultDataPath   string
-)
-
-func SetLocation() {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf("Unable to determine user home directory: %v", err)
-	}
-
-	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
-	if xdgConfigHome == "" {
-		xdgConfigHome = filepath.Join(home, ".config")
-	}
-
+// Helper function to get data paths
+func getDataPaths() (harborDataPath string, harborDataDir string) {
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
 	if xdgDataHome == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatalf("Unable to determine user home directory: %v", err)
+		}
 		xdgDataHome = filepath.Join(home, ".local", "share")
 	}
+	harborDataDir = filepath.Join(xdgDataHome, "harbor-cli")
+	harborDataPath = filepath.Join(harborDataDir, "data.yaml")
+	return
+}
 
-	HarborConfigDir = filepath.Join(xdgConfigHome, "harbor-cli")
-	HarborDataDir = filepath.Join(xdgDataHome, "harbor-cli")
+// Helper function to determine the config path
+func determineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, error) {
+	var harborConfigPath string
+	var err error
 
-	DefaultConfigPath = filepath.Join(HarborConfigDir, "config.yaml")
-	DefaultDataPath = filepath.Join(HarborDataDir, "data.yaml")
+	// 1. Check if user specified --config
+	if userSpecifiedConfig && cfgFile != "" {
+		harborConfigPath, err = filepath.Abs(cfgFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve absolute path for config file: %w", err)
+		}
+		return harborConfigPath, nil
+	}
+
+	// 2. Check HARBOR_CLI_CONFIG environment variable
+	harborEnvVar := os.Getenv("HARBOR_CLI_CONFIG")
+	if harborEnvVar != "" {
+		harborConfigPath, err = filepath.Abs(harborEnvVar)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve absolute path for config file from HARBOR_CLI_CONFIG: %w", err)
+		}
+		return harborConfigPath, nil
+	}
+
+	// 3. Use default XDG config path
+	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+	if xdgConfigHome == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("unable to determine user home directory: %w", err)
+		}
+		xdgConfigHome = filepath.Join(home, ".config")
+	}
+	harborConfigPath, err = filepath.Abs(filepath.Join(xdgConfigHome, "harbor-cli", "config.yaml"))
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path for default config file: %w", err)
+	}
+	return harborConfigPath, nil
+}
+
+// Helper function to update or create the data file
+func updateDataFile(harborDataPath, harborConfigPath string) error {
+	dataFileContent, err := ReadDataFile(harborDataPath)
+	if err == nil {
+		if dataFileContent.ConfigPath != harborConfigPath {
+			if err := UpdateDataFile(harborDataPath, harborConfigPath); err != nil {
+				return fmt.Errorf("failed to update data file: %w", err)
+			}
+		} else if dataFileContent.ConfigPath == "" {
+			if err := CreateDataFile(harborDataPath, harborConfigPath); err != nil {
+				return fmt.Errorf("failed to create data file: %w", err)
+			}
+		} else {
+			log.Infof("Data file already exists with the same config path: %s", harborConfigPath)
+		}
+	} else {
+		// Data file does not exist, create it
+		if err := CreateDataFile(harborDataPath, harborConfigPath); err != nil {
+			return fmt.Errorf("failed to create data file: %w", err)
+		}
+	}
+	return nil
+}
+
+// Helper function to ensure config file exists
+func ensureConfigFileExists(harborConfigPath string) error {
+	// Ensure parent directory exists
+	configDir := filepath.Dir(harborConfigPath)
+	if err := os.MkdirAll(configDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Create config file if it doesn't exist
+	if _, err := os.Stat(harborConfigPath); os.IsNotExist(err) {
+		if err := CreateConfigFile(harborConfigPath); err != nil {
+			return fmt.Errorf("failed to create config file: %w", err)
+		}
+	}
+	return nil
+}
+
+// Helper function to read the config file using Viper
+func readConfig(harborConfigPath string) (*viper.Viper, error) {
+	v := viper.New()
+	v.SetConfigFile(harborConfigPath)
+	v.SetConfigType("yaml")
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
+	}
+	return v, nil
 }
 
 // Check for ERROR management
-func GetCurrentConfig() *HarborConfig {
+func GetCurrentHarborConfig() *HarborConfig {
 	configInitialization.Do(func() {
 		// No action needed; InitConfig should have been called before
 	})
@@ -78,14 +206,14 @@ func GetCurrentConfig() *HarborConfig {
 	configMutex.RLock()
 	defer configMutex.RUnlock()
 
-	if CurrentConfig == nil {
+	if CurrentHarborConfig == nil {
 		return nil
 	}
 
-	return CurrentConfig
+	return CurrentHarborConfig
 }
 
-func GetHarborData() *HarborData {
+func GetCurrentHarborData() *HarborData {
 	return CurrentHarborData
 }
 
@@ -202,7 +330,7 @@ func CreateConfigFile(configPath string) error {
 }
 
 func GetCredentials(credentialName string) (Credential, error) {
-	currentConfig := GetCurrentConfig()
+	currentConfig := GetCurrentHarborConfig()
 	for _, cred := range currentConfig.Credentials {
 		if cred.Name == credentialName {
 			return cred, nil
@@ -288,117 +416,4 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 
 	log.Infof("Updated credential '%s' in config file at %s", updatedCredential.Name, configPath)
 	return nil
-}
-
-func InitConfig(cfgFile string, userSpecifiedConfig bool) {
-	configInitialization.Do(func() {
-		SetLocation()
-		dataFilePath := DefaultDataPath
-
-		// Ensure data directory exists
-		if err := os.MkdirAll(HarborDataDir, os.ModePerm); err != nil {
-			configInitError = fmt.Errorf("failed to create data directory: %w", err)
-			log.Fatalf("failed to create data directory: %v", err)
-		}
-
-		var configPath string
-
-		// Check if data file exists and read it
-		dataFile, err := ReadDataFile(dataFilePath)
-		if err == nil && dataFile.ConfigPath != "" {
-			configPath = dataFile.ConfigPath
-		} else {
-			// Data file does not exist or failed to read
-			if userSpecifiedConfig && cfgFile != "" {
-				// Create data file with the specified config path
-				if err := CreateDataFile(dataFilePath, cfgFile); err != nil {
-					configInitError = fmt.Errorf("failed to create data file: %w", err)
-					log.Fatalf("failed to create data file: %v", err)
-				}
-				configPath = cfgFile
-			} else {
-				// Create data file with the default config path
-				if err := CreateDataFile(dataFilePath, DefaultConfigPath); err != nil {
-					configInitError = fmt.Errorf("failed to create data file: %w", err)
-					log.Fatalf("failed to create data file: %v", err)
-				}
-				configPath = DefaultConfigPath
-			}
-		}
-
-		// If user specified --config, override and update data file
-		if userSpecifiedConfig && cfgFile != "" {
-			configPath, err = filepath.Abs(cfgFile)
-			if err != nil {
-				configInitError = fmt.Errorf("failed to resolve absolute path for config file: %w", err)
-				log.Fatalf("failed to resolve absolute path for config file: %v", err)
-			}
-			// Update the data file with the new config path
-			if err := UpdateDataFile(dataFilePath, configPath); err != nil {
-				configInitError = fmt.Errorf("failed to update data file: %w", err)
-				log.Fatalf("failed to update data file: %v", err)
-			}
-		}
-
-		// If configPath is still not set, use the default config path
-		if configPath == "" {
-			configPath = DefaultConfigPath
-		}
-		// Initialize Viper for the main config
-		v := viper.New()
-		v.SetConfigFile(configPath)
-		v.SetConfigType("yaml")
-		// Handle default config path
-		if configPath == DefaultConfigPath {
-			stat, err := os.Stat(configPath)
-			if err == nil && stat.Size() == 0 {
-				log.Println("Config file is empty, creating a new one")
-			}
-
-			if os.IsNotExist(err) {
-				log.Infof("Config file not found at %s, creating a new one", configPath)
-			}
-
-			if os.IsNotExist(err) || (err == nil && stat.Size() == 0) {
-				// Ensure the config directory exists
-				if _, err := os.Stat(HarborConfigDir); os.IsNotExist(err) {
-					log.Println("Creating config directory:", HarborConfigDir)
-					if err := os.MkdirAll(HarborConfigDir, os.ModePerm); err != nil {
-						configInitError = fmt.Errorf("failed to create config directory: %w", err)
-						return
-					}
-				}
-
-				// Create the config file
-				if err := CreateConfigFile(configPath); err != nil {
-					configInitError = fmt.Errorf("failed to create config file: %w", err)
-					return
-				}
-
-				log.Infof("Config file created at %s", configPath)
-			}
-		}
-
-		// Read in the main config file
-		if err := v.ReadInConfig(); err != nil {
-			configInitError = fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
-			log.Fatalf("error reading config file: %v. Please ensure the config file exists.", err)
-		}
-		// Unmarshal into HarborConfig struct
-		var harborConfig HarborConfig
-		if err := v.Unmarshal(&harborConfig); err != nil {
-			configInitError = fmt.Errorf("failed to unmarshal config file: %w", err)
-			log.Fatalf("failed to unmarshal config file: %v", err)
-		}
-		// Assign to global variable with thread safety
-		configMutex.Lock()
-		CurrentConfig = &harborConfig
-		configMutex.Unlock()
-
-		CurrentHarborData = &HarborData{
-			ConfigPath: configPath,
-		}
-
-		log.Infof("Using config file: %s", v.ConfigFileUsed())
-	})
 }
