@@ -116,7 +116,11 @@ func runLogin(opts login.LoginView) error {
 		Password:      opts.Password,
 		ServerAddress: opts.Server,
 	}
-	configPath := (*utils.GetCurrentHarborData()).ConfigPath
+	harborData, err := utils.GetCurrentHarborData()
+	if err != nil {
+		return fmt.Errorf("failed to get current harbor data: %s", err)
+	}
+	configPath := harborData.ConfigPath
 	log.Info("Checking if credentials already exist in the config file...")
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {

@@ -19,7 +19,12 @@ var (
 
 func GetClient() (*v2client.HarborAPI, error) {
 	clientOnce.Do(func() {
-		credentialName := GetCurrentHarborConfig().GetCurrentCredentialName()
+		config, err := GetCurrentHarborConfig()
+		if err != nil {
+			clientErr = fmt.Errorf("failed to get current credential name: %v", err)
+			return
+		}
+		credentialName := config.CurrentCredentialName
 		if credentialName == "" {
 			clientErr = fmt.Errorf("current-credential-name is not set in config file")
 			return
