@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -89,22 +91,11 @@ func InfoRegistry(registryId int64) error {
 	if err != nil {
 		return err
 	}
+	if response.Payload.ID == 0 {
+		return fmt.Errorf("registry is not found")
+	}
 
 	utils.PrintPayloadInJSONFormat(response.Payload)
-	return nil
-}
-
-func GetRegistry(registryId int64) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
-	if err != nil {
-		return err
-	}
-
-	utils.PrintPayloadInJSONFormat(response.GetPayload())
 	return nil
 }
 
@@ -151,4 +142,21 @@ func GetRegistryProviders() ([]string, error) {
 	}
 
 	return response.Payload, nil
+}
+
+func GetRegistryIdByName(registryName string) (int64, error) {
+	var opts ListFlags
+
+	r, err := ListRegistries(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, registry := range r.Payload {
+		if registry.Name == registryName {
+			return registry.ID, nil
+		}
+	}
+
+	return 0, err
 }

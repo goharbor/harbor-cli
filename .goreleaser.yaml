@@ -1,14 +1,14 @@
+version: 2
 project_name: harbor
 
 before:
   hooks:
     - go mod tidy
-     
+
 builds:
 - main: ./cmd/harbor/main.go
-
   env:
-    - CGO_ENABLED=0 
+    - CGO_ENABLED=0
   ldflags:
     - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
   goos:
@@ -18,23 +18,24 @@ builds:
   goarch:
     - amd64
     - arm64
-  ignore: 
+  ignore:
     - goos: windows
       goarch: arm
     - goos: windows
       goarch: arm64
   mod_timestamp: "{{ .CommitTimestamp }}"
+
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
 nfpms:
-  - package_name: harbor
+  -
     homepage: https://github.com/goharbor/harbor-cli/
-    maintainer: Vadim Bauer
+    maintainer: Harbor Community
     description: |-
-      [Sandbox] Official Harbor CLI
+      CLI for Harbor Container Registry
     formats:
       - rpm
       - deb
@@ -46,15 +47,22 @@ sboms:
 
 checksum:
   name_template: 'checksums.txt'
-snapshot: 
-  name_template: "{{ .Tag }}-next"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
 release:
   name_template: "HarborCLI {{.Tag}}"
-  # draft: true
-  # prerelease: auto
-  
+  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
+  prerelease: auto            # Auto-detect prereleases based on tag
+  replace_existing_draft: true
+  replace_existing_artifacts: true
+  disable: false              # Ensure release publishing is enabled
+  github:
+    owner: goharbor           # Your GitHub repository owner
+    name: harbor-cli          # Your GitHub repository name
+
 changelog:
-  sort: asc
   use: github
   filters:
     exclude:
@@ -62,7 +70,7 @@ changelog:
       - "^test:"
       - "merge conflict"
   groups:
-    - title: Dependency updates
+    - title: "Dependency updates"
       regexp: '^.*?(.+)\(deps\)!?:.+$'
       order: 300
     - title: "New Features"
@@ -80,5 +88,5 @@ changelog:
     - title: "Build process updates"
       regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
       order: 400
-    - title: Other work
+    - title: "Other work"
       order: 9999

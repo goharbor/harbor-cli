@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -37,4 +38,12 @@ func ParseProjectRepoReference(projectRepoReference string) (string, string, str
 		log.Fatalf("invalid project/repository/reference format: %s", projectRepoReference)
 	}
 	return split[0], split[1], split[2]
+}
+
+func SanitizeServerAddress(server string) string {
+	re := regexp.MustCompile(`^https?://`)
+	server = re.ReplaceAllString(server, "")
+	re = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	server = re.ReplaceAllString(server, "-")
+	return server
 }

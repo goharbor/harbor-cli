@@ -87,6 +87,22 @@ func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
 	return *response, nil
 }
 
+func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name})
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
 func SearchProject(query string) (search.SearchOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
