@@ -28,17 +28,29 @@ type HarborData struct {
 	ConfigPath string `mapstructure:"configpath" yaml:"configpath"`
 }
 
+type Once struct {
+	once sync.Once
+}
+
+func (o *Once) Do(f func()) {
+	o.once.Do(f)
+}
+
+func (o *Once) Reset() {
+	o.once = sync.Once{}
+}
+
 var (
-	CurrentHarborData    *HarborData
-	CurrentHarborConfig  *HarborConfig
-	configMutex          sync.RWMutex
-	configInitialization sync.Once
-	configInitError      error
+	CurrentHarborData   *HarborData
+	CurrentHarborConfig *HarborConfig
+	configMutex         sync.RWMutex
+	configInitError     error
 )
 
+var ConfigInitialization = &Once{}
+
 func InitConfig(cfgFile string, userSpecifiedConfig bool) {
-	configInitialization.Do(func() {
-		// Determine paths
+	ConfigInitialization.Do(func() {
 		harborDataPath, harborDataDir := GetDataPaths()
 		harborConfigPath, err := DetermineConfigPath(cfgFile, userSpecifiedConfig)
 		if err != nil {
@@ -77,13 +89,10 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 			log.Fatalf("%v", configInitError)
 		}
 
-		// Update current config and data
 		configMutex.Lock()
+		defer configMutex.Unlock()
 		CurrentHarborConfig = &harborConfig
 		CurrentHarborData = &HarborData{ConfigPath: harborConfigPath}
-		configMutex.Unlock()
-
-		log.Debugf("Using config file: %s", v.ConfigFileUsed())
 	})
 }
 
@@ -170,7 +179,7 @@ func ReadConfig(harborConfigPath string) (*viper.Viper, error) {
 }
 
 func GetCurrentHarborConfig() (*HarborConfig, error) {
-	configInitialization.Do(func() {
+	ConfigInitialization.Do(func() {
 		// No action needed; InitConfig should have been called before
 	})
 
@@ -189,7 +198,7 @@ func GetCurrentHarborConfig() (*HarborConfig, error) {
 }
 
 func GetCurrentHarborData() (*HarborData, error) {
-	configInitialization.Do(func() {
+	ConfigInitialization.Do(func() {
 		// No action needed; initialization should have been called before
 	})
 
@@ -205,10 +214,6 @@ func GetCurrentHarborData() (*HarborData, error) {
 	}
 
 	return CurrentHarborData, nil
-}
-
-func (hc *HarborConfig) GetCurrentCredentialName() string {
-	return hc.CurrentCredentialName
 }
 
 func CreateDataFile(dataFilePath string, initialConfigPath string) error {

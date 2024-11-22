@@ -121,7 +121,7 @@ func runLogin(opts login.LoginView) error {
 		return fmt.Errorf("failed to get current harbor data: %s", err)
 	}
 	configPath := harborData.ConfigPath
-	log.Info("Checking if credentials already exist in the config file...")
+	log.Debugf("Checking if credentials already exist in the config file...")
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
@@ -144,10 +144,9 @@ func runLogin(opts login.LoginView) error {
 		}
 	}
 
-	fmt.Println("Adding credentials to the config file...")
 	if err = utils.AddCredentialsToConfigFile(cred, configPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
-	log.Println("Credentials successfully added to the config file.")
+	log.Debugf("Credentials successfully added to the config file.")
 	return nil
 }

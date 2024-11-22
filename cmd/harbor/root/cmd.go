@@ -35,7 +35,6 @@ harbor help
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Determine if --config was explicitly set
 			userSpecifiedConfig := cmd.Flags().Changed("config")
-
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
@@ -44,7 +43,7 @@ harbor help
 	}
 
 	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
-	root.PersistentFlags().StringVar(&cfgFile, "config", "$HOME/.config/harbor-cli/config.yaml", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
+	root.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
