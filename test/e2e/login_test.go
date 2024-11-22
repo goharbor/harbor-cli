@@ -7,15 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func initialize(t *testing.T) {
-	cds := root.RootCmd()
-	err := cds.Execute()
-	assert.NoError(t, err, "Expected no error for Root command")
-}
-
 func Test_Login_Success(t *testing.T) {
-	initialize(t) // Initialize the root command
-
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
 	cmd := root.LoginCommand()
 	validServerAddresses := []string{
 		"http://demo.goharbor.io:80",
@@ -41,9 +36,12 @@ func Test_Login_Success(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongServer(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+
 	cmd := root.LoginCommand()
-	args := []string{"wrongserver"}
-	cmd.SetArgs(args)
+	cmd.SetArgs([]string{"wrongserver"})
 
 	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
@@ -54,9 +52,12 @@ func Test_Login_Failure_WrongServer(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongUsername(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+
 	cmd := root.LoginCommand()
-	args := []string{"http://demo.goharbor.io"}
-	cmd.SetArgs(args)
+	cmd.SetArgs([]string{"http://demo.goharbor.io"})
 
 	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
@@ -67,9 +68,12 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongPassword(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+
 	cmd := root.LoginCommand()
-	args := []string{"http://demo.goharbor.io"}
-	cmd.SetArgs(args)
+	cmd.SetArgs([]string{"http://demo.goharbor.io"})
 
 	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "admin"))
