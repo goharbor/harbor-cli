@@ -5,16 +5,16 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
 var columns = []table.Column{
 	{Title: "Repository Name", Width: 30},
 	{Title: "Project Id", Width: 11},
-	{Title: "Project Name", Width: 14},
+	{Title: "Project Name", Width: 16},
 	{Title: "Access Level", Width: 12},
 	{Title: "Artifact Count", Width: 14},
 	{Title: "Pull Count", Width: 12},

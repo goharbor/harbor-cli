@@ -64,6 +64,6 @@ func SearchRepository(query string) (search.SearchOK, error) {
 	if err != nil {
 		return search.SearchOK{}, err
 	}
-	
+
 	return *response, nil
 }
