@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,4 +52,18 @@ func ListRepository(projectName string) (repository.ListRepositoriesOK, error) {
 
 	return *response, nil
 
+}
+
+func SearchRepository(query string) (search.SearchOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return search.SearchOK{}, err
+	}
+
+	response, err := client.Search.Search(ctx, &search.SearchParams{Q: query})
+	if err != nil {
+		return search.SearchOK{}, err
+	}
+
+	return *response, nil
 }
