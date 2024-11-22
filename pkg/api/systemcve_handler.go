@@ -32,7 +32,7 @@ func UpdateSystemCve(opts update.UpdateView) error {
 	}
 	var unixTimestamp int64
 	if opts.IsExpire {
-		expiresAt, err := time.Parse("01/02/2006", opts.ExpireDate)
+		expiresAt, err := time.Parse("2006/01/02", opts.ExpireDate)
 		if err != nil {
 			return err
 		}

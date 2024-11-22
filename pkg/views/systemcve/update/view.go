@@ -30,7 +30,7 @@ func UpdateCveView(updateView *UpdateView) {
 			huh.NewConfirm().
 				Title("Expires").
 				Value(&updateView.IsExpire).
-				Affirmative("yes").
+				Affirmative("Date").
 				Negative("never"),
 		),
 		huh.NewGroup(
@@ -41,7 +41,7 @@ func UpdateCveView(updateView *UpdateView) {
 					}
 					return nil
 				}).
-				Description("Expire Date in the format MM/DD/YYYY").
+				Description("Expire Date in the format YYYY/MM/DD").
 				Title("Expire Date").
 				Value(&updateView.ExpireDate),
 		).WithHideFunc(func() bool {
