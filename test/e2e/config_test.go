@@ -76,6 +76,7 @@ func Test_Config_EnvVar(t *testing.T) {
 	assert.NoError(t, err, "Expected no error for Root command execution")
 
 	currentData, err := utils.GetCurrentHarborData()
+	assert.NoError(t, err, "Expected no error when fetching HarborData")
 	defer ConfigCleanup(t, currentData)
 
 	currentConfig, err := utils.GetCurrentHarborConfig()
@@ -93,8 +94,8 @@ func Test_Config_Vanilla(t *testing.T) {
 	err := cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
 	assert.NoError(t, err, "Expected no error for Root command execution")
-
 	currentData, err := utils.GetCurrentHarborData()
+	assert.NoError(t, err, "Expected no error when fetching HarborData")
 	defer ConfigCleanup(t, currentData)
 
 	currentConfig, err := utils.GetCurrentHarborConfig()
@@ -118,6 +119,7 @@ func Test_Config_Xdg(t *testing.T) {
 	assert.NoError(t, err, "Expected no error for Root command execution")
 
 	currentData, err := utils.GetCurrentHarborData()
+	assert.NoError(t, err, "Expected no error when fetching HarborData")
 	defer ConfigCleanup(t, currentData)
 
 	currentConfig, err := utils.GetCurrentHarborConfig()
