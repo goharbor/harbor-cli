@@ -26,7 +26,7 @@ func GetRegistryNameFromUser() int64 {
 func GetProjectNameFromUser() string {
 	projectName := make(chan string)
 	go func() {
-		response, _ := api.ListProject()
+		response, _ := api.ListAllProjects()
 		pview.ProjectList(response.Payload, projectName)
 
 	}()
