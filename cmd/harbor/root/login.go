@@ -9,6 +9,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -115,9 +116,37 @@ func runLogin(opts login.LoginView) error {
 		Password:      opts.Password,
 		ServerAddress: opts.Server,
 	}
+	harborData, err := utils.GetCurrentHarborData()
+	if err != nil {
+		return fmt.Errorf("failed to get current harbor data: %s", err)
+	}
+	configPath := harborData.ConfigPath
+	log.Debugf("Checking if credentials already exist in the config file...")
+	existingCred, err := utils.GetCredentials(opts.Name)
+	if err == nil {
+		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
+			if existingCred.Password == opts.Password {
+				log.Warn("Credentials already exist in the config file. They were not added again.")
+				return nil
+			} else {
+				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
+					log.Fatalf("failed to update the credential: %s", err)
+				}
+				return nil
+			}
+		} else {
+			log.Warn("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
+			if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
+				log.Fatalf("failed to update the credential: %s", err)
+			}
+			return nil
+		}
+	}
 
-	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred, configPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
+	log.Debugf("Credentials successfully added to the config file.")
 	return nil
 }
