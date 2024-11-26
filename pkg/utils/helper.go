@@ -128,3 +128,15 @@ func ValidateRegistryName(rn string) bool {
 
 	return re.MatchString(rn)
 }
+
+func PrintFormat[T any](resp T, format string) error {
+	if format == "json" {
+		PrintPayloadInJSONFormat(resp)
+		return nil
+	}
+	if format == "yaml" {
+		PrintPayloadInYAMLFormat(resp)
+		return nil
+	}
+	return fmt.Errorf("unable to output in the specified '%s' format", format)
+}

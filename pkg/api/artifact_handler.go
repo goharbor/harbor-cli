@@ -30,24 +30,25 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 }
 
 // InfoArtifact retrieves information about a specific artifact.
-func InfoArtifact(projectName, repoName, reference string) error {
+func ViewArtifact(projectName, repoName, reference string) (*artifact.GetArtifactOK, error) {
 	ctx, client, err := utils.ContextWithClient()
+	var response = &artifact.GetArtifactOK{}
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	response, err := client.Artifact.GetArtifact(ctx, &artifact.GetArtifactParams{
+	response, err = client.Artifact.GetArtifact(ctx, &artifact.GetArtifactParams{
 		ProjectName:    projectName,
 		RepositoryName: repoName,
 		Reference:      reference,
 	})
+
 	if err != nil {
 		log.Errorf("Failed to get artifact info: %v", err)
-		return err
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response.Payload)
-	return nil
+	return response, nil
 }
 
 // RunListArtifact lists all artifacts in a repository.
@@ -141,10 +142,10 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 }
 
 // ListTags lists all tags of a specific artifact.
-func ListTags(projectName, repoName, reference string) (artifact.ListTagsOK, error) {
+func ListTags(projectName, repoName, reference string) (*artifact.ListTagsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return artifact.ListTagsOK{}, err
+		return &artifact.ListTagsOK{}, err
 	}
 
 	resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
@@ -152,12 +153,13 @@ func ListTags(projectName, repoName, reference string) (artifact.ListTagsOK, err
 		RepositoryName: repoName,
 		Reference:      reference,
 	})
+
 	if err != nil {
 		log.Errorf("Failed to list tags: %v", err)
-		return artifact.ListTagsOK{}, err
+		return &artifact.ListTagsOK{}, err
 	}
 
-	return *resp, nil
+	return resp, nil
 }
 
 // CreateTag creates a tag for a specific artifact.
