@@ -60,6 +60,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
+		InfoCommand(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
