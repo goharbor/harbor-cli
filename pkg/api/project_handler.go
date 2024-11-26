@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -55,10 +56,31 @@ func GetProject(projectName string) error {
 	return nil
 }
 
-func DeleteProject(projectName string) error {
+func DeleteProject(projectName string, forceDelete bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
+	}
+
+	if forceDelete {
+		var resp repository.ListRepositoriesOK
+
+		resp, err = ListRepository(projectName)
+
+		if err != nil {
+			log.Errorf("failed to list repositories: %v", err)
+			return err
+		}
+
+		for _, repo := range resp.Payload {
+			_, repoName := utils.ParseProjectRepo(repo.Name)
+			err = RepoDelete(projectName, repoName)
+
+			if err != nil {
+				log.Errorf("failed to delete repository: %v", err)
+				return err
+			}
+		}
 	}
 
 	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
@@ -67,7 +89,7 @@ func DeleteProject(projectName string) error {
 		return err
 	}
 
-	log.Info("project deleted successfully")
+	log.Infof("Project %s deleted successfully", projectName)
 	return nil
 }
 
