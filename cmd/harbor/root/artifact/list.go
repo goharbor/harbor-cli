@@ -30,7 +30,7 @@ func ListArtifactCommand() *cobra.Command {
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
 
-			artifacts, err = api.ListArtifact(projectName, repoName)
+			artifacts, err = api.ListArtifact(projectName, repoName, opts)
 
 			if err != nil {
 				log.Errorf("failed to list artifacts: %v", err)

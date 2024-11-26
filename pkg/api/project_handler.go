@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
@@ -99,6 +100,19 @@ func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name})
 	if err != nil {
 		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
+func SearchProject(query string) (search.SearchOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return search.SearchOK{}, err
+	}
+
+	response, err := client.Search.Search(ctx, &search.SearchParams{Q: query})
+	if err != nil {
+		return search.SearchOK{}, err
 	}
 	return *response, nil
 }
