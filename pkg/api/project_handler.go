@@ -40,20 +40,21 @@ func CreateProject(opts create.CreateView) error {
 	return nil
 }
 
-func GetProject(projectName string) error {
+func GetProject(projectName string) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+	var response = &project.GetProjectOK{}
 
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
 
 func DeleteProject(projectName string, forceDelete bool) error {

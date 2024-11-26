@@ -13,7 +13,7 @@ func Registry() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateRegistryCommand(),
-		InfoRegistryCommand(),
+		ViewRegistryCommand(),
 		DeleteRegistryCommand(),
 		ListRegistryCommand(),
 		UpdateRegistryCommand(),

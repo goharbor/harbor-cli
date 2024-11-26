@@ -22,20 +22,20 @@ func RepoDelete(projectName, repoName string) error {
 	return nil
 }
 
-func RepoInfo(projectName, repoName string) error {
+func RepoView(projectName, repoName string) (*repository.GetRepositoryOK, error) {
 	ctx, client, err := utils.ContextWithClient()
+	var response = &repository.GetRepositoryOK{}
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	response, err := client.Repository.GetRepository(ctx, &repository.GetRepositoryParams{ProjectName: projectName, RepositoryName: repoName})
+	response, err = client.Repository.GetRepository(ctx, &repository.GetRepositoryParams{ProjectName: projectName, RepositoryName: repoName})
 
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response.Payload)
-	return nil
+	return response, nil
 }
 
 func ListRepository(projectName string) (repository.ListRepositoriesOK, error) {
