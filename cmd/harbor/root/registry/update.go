@@ -42,6 +42,7 @@ func UpdateRegistryCommand() *cobra.Command {
 
 			if err != nil {
 				log.Errorf("failed to parse registry id: %v", err)
+				return
 			}
 
 			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
