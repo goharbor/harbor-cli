@@ -52,7 +52,19 @@ func (m *HarborCli) BuildDev(
 		WithWorkdir("/src").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch).
-		WithExec([]string{"go", "build", "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
+		WithExec([]string{"apk", "add", "--no-cache", "git"}).
+		WithExec([]string{
+			"sh",
+			"-c",
+			fmt.Sprintf(`
+				go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo \"v0.0.1\") \
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$(go version | awk '{print $3}') \
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$(git rev-parse --short HEAD) \
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ") \
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.System=$(go env GOOS)/$(go env GOARCH)" \
+					  -o %s %s
+			`, "bin/harbor-cli", "cmd/harbor/main.go"),
+		})
 	return builder.File("bin/harbor-cli")
 }
 
@@ -83,7 +95,19 @@ func (m *HarborCli) build(
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", goos).
 				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
+				WithExec([]string{"apk", "add", "--no-cache", "git"}).
+				WithExec([]string{
+					"sh",
+					"-c",
+					fmt.Sprintf(`
+						go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo \"v0.0.1\") \
+								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$(go version | awk '{print $3}') \
+								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$(git rev-parse --short HEAD) \
+								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ") \
+								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.System=$(go env GOOS)/$(go env GOARCH)" \
+							  -o %s %s
+					`, bin_path+"harbor", "/src/cmd/harbor/main.go"),
+				}).
 				WithWorkdir(bin_path).
 				WithExec([]string{"ls"}).
 				WithEntrypoint([]string{"./harbor"})
