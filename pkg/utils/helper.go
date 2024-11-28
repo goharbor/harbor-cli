@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 func FormatCreatedTime(timestamp string) (string, error) {
@@ -37,6 +38,42 @@ func FormatUrl(url string) string {
 		url = "https://" + url
 	}
 	return url
+}
+
+// ValidateDomain checks if the given domain string is non-empty, properly formatted, and a valid domain.
+func FormatToValidDomain(input string) (string, error) {
+	parts := strings.Split(input, ".")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("invalid server address input, must be in the format: subdomain.example.tld")
+	}
+
+	for _, part := range parts {
+		if !isValidLabel(part) {
+			return "", fmt.Errorf("invalid domain label: %s", part)
+		}
+	}
+
+	return strings.Join(parts, "."), nil
+}
+
+// isValidLabel checks if a domain label is valid according to DNS rules
+func isValidLabel(label string) bool {
+	if len(label) == 0 || len(label) > 63 {
+		return false
+	}
+	trimedLabel := strings.TrimSpace(label)
+	if len(trimedLabel) != len(label) {
+		return false
+	}
+	for _, ch := range label {
+		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && ch != '-' {
+			return false
+		}
+	}
+	if label[0] == '-' || label[len(label)-1] == '-' {
+		return false
+	}
+	return true
 }
 
 func FormatSize(size int64) string {
