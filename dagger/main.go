@@ -57,11 +57,10 @@ func (m *HarborCli) BuildDev(
 			"sh",
 			"-c",
 			fmt.Sprintf(`
-				go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo \"v0.0.1\") \
+				go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev \
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$(go version | awk '{print $3}') \
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$(git rev-parse --short HEAD) \
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ") \
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.System=$(go env GOOS)/$(go env GOARCH)" \
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ")" \
 					  -o %s %s
 			`, "bin/harbor-cli", "cmd/harbor/main.go"),
 		})
@@ -100,11 +99,10 @@ func (m *HarborCli) build(
 					"sh",
 					"-c",
 					fmt.Sprintf(`
-						go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo \"v0.0.1\") \
+						go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --abbrev=0 2>/dev/null) \
 								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$(go version | awk '{print $3}') \
 								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$(git rev-parse --short HEAD) \
 								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ") \
-								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.System=$(go env GOOS)/$(go env GOARCH)" \
 							  -o %s %s
 					`, bin_path+"harbor", "/src/cmd/harbor/main.go"),
 				}).
