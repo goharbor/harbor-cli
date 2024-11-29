@@ -147,6 +147,7 @@ func (m *HarborCli) PublishImage(
 
 		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
 			From("alpine:latest").
+			WithExec([]string{"apk", "add", "--no-cache", "jq"}).
 			WithFile("/harbor", builder.File("./harbor")).
 			WithEntrypoint([]string{"./harbor"})
 		releaseImages = append(releaseImages, ctr)
