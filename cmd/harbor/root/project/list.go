@@ -37,11 +37,13 @@ func ListProjectCommand() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(projects)
-				return
+				err = utils.PrintFormat(projects, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.ListProjects(projects.Payload)
 			}
-
-			list.ListProjects(projects.Payload)
 		},
 	}
 

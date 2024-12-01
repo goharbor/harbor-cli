@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
@@ -38,26 +40,48 @@ func CreateProject(opts create.CreateView) error {
 	return nil
 }
 
-func GetProject(projectName string) error {
+func GetProject(projectName string) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+	var response = &project.GetProjectOK{}
 
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
 
-func DeleteProject(projectName string) error {
+func DeleteProject(projectName string, forceDelete bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
+	}
+
+	if forceDelete {
+		var resp repository.ListRepositoriesOK
+
+		resp, err = ListRepository(projectName)
+
+		if err != nil {
+			log.Errorf("failed to list repositories: %v", err)
+			return err
+		}
+
+		for _, repo := range resp.Payload {
+			_, repoName := utils.ParseProjectRepo(repo.Name)
+			err = RepoDelete(projectName, repoName)
+
+			if err != nil {
+				log.Errorf("failed to delete repository: %v", err)
+				return err
+			}
+		}
 	}
 
 	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
@@ -66,7 +90,7 @@ func DeleteProject(projectName string) error {
 		return err
 	}
 
-	log.Info("project deleted successfully")
+	log.Infof("Project %s deleted successfully", projectName)
 	return nil
 }
 
@@ -98,6 +122,19 @@ func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name})
 	if err != nil {
 		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
+func SearchProject(query string) (search.SearchOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return search.SearchOK{}, err
+	}
+
+	response, err := client.Search.Search(ctx, &search.SearchParams{Q: query})
+	if err != nil {
+		return search.SearchOK{}, err
 	}
 	return *response, nil
 }

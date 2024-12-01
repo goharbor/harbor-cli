@@ -44,16 +44,22 @@ func FormatSize(size int64) string {
 	return fmt.Sprintf("%.2fMiB", mbSize)
 }
 
+// ValidateUserName checks if the username is valid by length and allowed characters.
 func ValidateUserName(username string) bool {
-	pattern := `^[a-zA-Z0-9]{1,255}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(username)
+	username = strings.TrimSpace(username)
+	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
 }
 
 func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(email)
+}
+
+func ValidateConfigPath(configPath string) bool {
+	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(configPath)
 }
 
 func ValidateFL(name string) bool {
@@ -121,4 +127,16 @@ func ValidateRegistryName(rn string) bool {
 	re := regexp.MustCompile(pattern)
 
 	return re.MatchString(rn)
+}
+
+func PrintFormat[T any](resp T, format string) error {
+	if format == "json" {
+		PrintPayloadInJSONFormat(resp)
+		return nil
+	}
+	if format == "yaml" {
+		PrintPayloadInYAMLFormat(resp)
+		return nil
+	}
+	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }

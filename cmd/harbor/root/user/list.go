@@ -25,7 +25,10 @@ func UserListCmd() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(response.Payload)
+				err = utils.PrintFormat(response, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
 			} else {
 				list.ListUsers(response.Payload)
 			}

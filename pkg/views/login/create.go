@@ -16,6 +16,7 @@ type LoginView struct {
 	Username string
 	Password string
 	Name     string
+	Config   string
 }
 
 func CreateView(loginView *LoginView) {
@@ -82,7 +83,8 @@ func CreateView(loginView *LoginView) {
 					return nil
 				}),
 		),
-	).WithTheme(theme).Run()
+	).WithTheme(theme).
+		Run()
 	if err != nil {
 		log.Fatal(err)
 	}

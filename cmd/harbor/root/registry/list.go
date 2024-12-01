@@ -24,10 +24,13 @@ func ListRegistryCommand() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(registry)
-				return
+				err = utils.PrintFormat(registry, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.ListRegistry(registry.Payload)
 			}
-			list.ListRegistry(registry.Payload)
 		},
 	}
 
