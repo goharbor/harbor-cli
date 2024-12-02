@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/harbor"
@@ -30,7 +29,7 @@ func GetClient() (*v2client.HarborAPI, error) {
 			return
 		}
 
-		clientInstance = GetClientByCredentialName(credentialName)
+		clientInstance, clientErr = GetClientByCredentialName(credentialName)
 		if clientErr != nil {
 			log.Errorf("failed to initialize client: %v", clientErr)
 			return
@@ -58,16 +57,28 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 }
 
 // Returns Harbor v2 client after resolving the credential name
-func GetClientByCredentialName(credentialName string) *v2client.HarborAPI {
+func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, error) {
 	credential, err := GetCredentials(credentialName)
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to get credentials: %w", err)
 	}
+
+	// Get encryption key
+	key, err := GetEncryptionKey()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get encryption key: %w", err)
+	}
+
+	// Decrypt password
+	decryptedPassword, err := Decrypt(key, string(credential.Password))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt password: %w", err)
+	}
+
 	clientConfig := &harbor.ClientSetConfig{
 		URL:      credential.ServerAddress,
 		Username: credential.Username,
-		Password: credential.Password,
+		Password: decryptedPassword,
 	}
-	return GetClientByConfig(clientConfig)
+	return GetClientByConfig(clientConfig), nil
 }
