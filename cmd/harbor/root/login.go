@@ -143,10 +143,26 @@ func runLogin(opts login.LoginView) error {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
 	}
 
+	if err := utils.GenerateEncryptionKey(); err != nil {
+		fmt.Println("Encryption key already exists or could not be created:", err)
+	}
+
+	key, err := utils.GetEncryptionKey()
+	if err != nil {
+		fmt.Println("Error getting encryption key:", err)
+		return fmt.Errorf("failed to get encryption key: %s", err)
+	}
+
+	encryptedPassword, err := utils.Encrypt(key, []byte(opts.Password))
+	if err != nil {
+		fmt.Println("Error encrypting password:", err)
+		return fmt.Errorf("failed to encrypt password: %s", err)
+	}
+
 	cred := utils.Credential{
 		Name:          opts.Name,
 		Username:      opts.Username,
-		Password:      opts.Password,
+		Password:      encryptedPassword,
 		ServerAddress: opts.Server,
 	}
 	harborData, err := utils.GetCurrentHarborData()
