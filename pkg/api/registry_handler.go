@@ -100,7 +100,23 @@ func ViewRegistry(registryId int64) (*registry.GetRegistryOK, error) {
 	return response, nil
 }
 
-func UpdateRegistry(updateView *CreateRegView, projectID int64) error {
+func GetRegistryResponse(registryId int64) *models.Registry {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil
+	}
+	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
+	if err != nil {
+		return nil
+	}
+	if response.Payload.ID == 0 {
+		return nil
+	}
+
+	return response.GetPayload()
+}
+
+func UpdateRegistry(updateView *models.Registry, projectID int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
