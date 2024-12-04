@@ -53,7 +53,10 @@ func ConfigCleanup(t *testing.T, data *utils.HarborData) {
 func SetMockKeyring(t *testing.T) {
 	mockKeyring := utils.NewMockKeyring()
 	utils.SetKeyringProvider(mockKeyring)
-	defer utils.SetKeyringProvider(&utils.SystemKeyring{}) // Restore original provider after test
+
+	t.Cleanup(func() {
+		utils.SetKeyringProvider(&utils.SystemKeyring{})
+	})
 }
 
 func Initialize(t *testing.T, tempDir string) *utils.HarborData {
