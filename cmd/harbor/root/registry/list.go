@@ -21,6 +21,7 @@ func ListRegistryCommand() *cobra.Command {
 
 			if err != nil {
 				log.Fatalf("failed to get projects list: %v", err)
+				return
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
