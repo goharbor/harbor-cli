@@ -11,6 +11,32 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
+type KeyringProvider interface {
+	Set(service, user, password string) error
+	Get(service, user string) (string, error)
+	Delete(service, user string) error
+}
+
+type SystemKeyring struct{}
+
+func (s *SystemKeyring) Set(service, user, password string) error {
+	return keyring.Set(service, user, password)
+}
+
+func (s *SystemKeyring) Get(service, user string) (string, error) {
+	return keyring.Get(service, user)
+}
+
+func (s *SystemKeyring) Delete(service, user string) error {
+	return keyring.Delete(service, user)
+}
+
+var keyringProvider KeyringProvider = &SystemKeyring{}
+
+func SetKeyringProvider(provider KeyringProvider) {
+	keyringProvider = provider
+}
+
 const KeyringService = "harbor-cli"
 const KeyringUser = "harbor-cli-encryption-key"
 
@@ -19,11 +45,11 @@ func GenerateEncryptionKey() error {
 	if _, err := rand.Read(key); err != nil {
 		return fmt.Errorf("failed to generate encryption key: %w", err)
 	}
-	return keyring.Set(KeyringService, KeyringUser, base64.StdEncoding.EncodeToString(key))
+	return keyringProvider.Set(KeyringService, KeyringUser, base64.StdEncoding.EncodeToString(key))
 }
 
 func GetEncryptionKey() ([]byte, error) {
-	keyBase64, err := keyring.Get(KeyringService, KeyringUser)
+	keyBase64, err := keyringProvider.Get(KeyringService, KeyringUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve encryption key: %w", err)
 	}
@@ -33,10 +59,9 @@ func GetEncryptionKey() ([]byte, error) {
 func Encrypt(key, plaintext []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", fmt.Errorf("failedto create cipher: %w", err)
+		return "", fmt.Errorf("failed to create cipher: %w", err)
 	}
 
-	// GCM mode
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
 		return "", fmt.Errorf("failed to create GCM: %w", err)
