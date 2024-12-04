@@ -42,11 +42,13 @@ import (
 // 			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 // 			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
-// 			err := cmd.Execute()
-// 			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
-// 		})
-// 	}
-// }
+			SetMockKeyring(t)
+			defer SetMockKeyring(t)
+			err := cmd.Execute()
+			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
+		})
+	}
+}
 
 func Test_Login_Failure_WrongServer(t *testing.T) {
 	tempDir := t.TempDir()
