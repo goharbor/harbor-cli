@@ -20,18 +20,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func Test_Login_Success(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	data := Initialize(t, tempDir)
-// 	defer ConfigCleanup(t, data)
-// 	cmd := root.LoginCommand()
-// 	validServerAddresses := []string{
-// 		"http://demo.goharbor.io:80",
-// 		"https://demo.goharbor.io:443",
-// 		"http://demo.goharbor.io",
-// 		"https://demo.goharbor.io",
-// 		// "demo.goharbor.io",
-// 	}
+func Test_Login_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+
+	SetMockKeyring(t)
+
+	cmd := root.LoginCommand()
+	validServerAddresses := []string{
+		"http://demo.goharbor.io:80",
+		"https://demo.goharbor.io:443",
+		"http://demo.goharbor.io",
+		"https://demo.goharbor.io",
+	}
 
 // 	for _, serverAddress := range validServerAddresses {
 // 		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
@@ -42,8 +44,6 @@ import (
 // 			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 // 			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
-			SetMockKeyring(t)
-			defer SetMockKeyring(t)
 			err := cmd.Execute()
 			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
 		})
