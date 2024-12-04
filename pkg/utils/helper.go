@@ -3,11 +3,11 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 )
 
 func FormatCreatedTime(timestamp string) (string, error) {
@@ -40,38 +40,55 @@ func FormatUrl(url string) string {
 	return url
 }
 
-// ValidateDomain checks if the given domain string is non-empty, properly formatted, and a valid domain.
-func FormatToValidDomain(input string) (string, error) {
-	parts := strings.Split(input, ".")
-	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid server address input, must be in the format: subdomain.example.tld")
+// ValidateDomain validates subdomain, IP, or top-level domain formats
+func ValidateDomain(domain string) error {
+	if strings.Contains(domain, ":") {
+		parts := strings.Split(domain, ":")
+		if len(parts) != 2 {
+			return errors.New("invalid domain format: too many colons")
+		}
+		port, err := strconv.Atoi(parts[1])
+		if err != nil || port < 0 || port > 65535 {
+			return errors.New("invalid port number")
+		}
+		domain = parts[0]
+	}
+
+	if net.ParseIP(domain) != nil {
+		return nil
+	}
+
+	parts := strings.Split(domain, ".")
+	if len(parts) < 2 {
+		return errors.New("invalid domain: must have at least one dot")
 	}
 
 	for _, part := range parts {
 		if !isValidLabel(part) {
-			return "", fmt.Errorf("invalid domain label: %s", part)
+			return fmt.Errorf("invalid domain label: %s", part)
 		}
 	}
 
-	return strings.Join(parts, "."), nil
+	if len(parts[len(parts)-1]) < 2 {
+		return errors.New("invalid top-level domain: must be at least 2 characters")
+	}
+
+	return nil
 }
 
-// isValidLabel checks if a domain label is valid according to DNS rules
+// Helper function to validate individual domain labels
 func isValidLabel(label string) bool {
 	if len(label) == 0 || len(label) > 63 {
 		return false
 	}
-	trimedLabel := strings.TrimSpace(label)
-	if len(trimedLabel) != len(label) {
-		return false
-	}
-	for _, ch := range label {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && ch != '-' {
+
+	for i, ch := range label {
+		if !(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '-') {
 			return false
 		}
-	}
-	if label[0] == '-' || label[len(label)-1] == '-' {
-		return false
+		if (i == 0 || i == len(label)-1) && ch == '-' {
+			return false
+		}
 	}
 	return true
 }

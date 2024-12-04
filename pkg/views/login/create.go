@@ -31,7 +31,7 @@ func CreateView(loginView *LoginView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("server cannot be empty or only spaces")
 					}
-					_, err := utils.FormatToValidDomain(str)
+					err := utils.ValidateDomain(str)
 					if err != nil {
 						return err
 					}
