@@ -8,6 +8,25 @@ weight: 15
 
 ##### Log in to Harbor registry
 
+Authenticate with Harbor Registry. Depending on how the command is invoked, it behaves differently:
+
+##### With `-u` / `-p` Flags and `server`
+  - Opens the login view to obtain new credentials.
+  - Updates the config file with the new credentials.
+  - If the specified credential name already exists, it updates the existing entry.
+  - If the credential name does not exist, it adds a new entry for the credential.
+
+##### Without `-u` / `-p` Flags and `server`
+a. No Existing Credentials in Config:
+  - Opens the login view to input credentials.
+  - Stores the entered credentials in the config file.
+
+b. Existing Credentials in Config:
+  - Uses the stored credentials from the config file.
+  - Skips the login view and proceeds to authenticate using the existing credentials.
+
+For more info on the harbor-cli config management see the [harbor config docs](harbor-config.md)
+
 ### Synopsis
 
 Authenticate with Harbor Registry.
@@ -36,4 +55,5 @@ harbor login [server] [flags]
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor config](harbor-config.md) - Harbor Config Management
 

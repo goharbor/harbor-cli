@@ -23,9 +23,13 @@ type CreateView struct {
 
 func getRegistryList() (*registry.ListRegistriesOK, error) {
 	credentialName := viper.GetString("current-credential-name")
-	client := utils.GetClientByCredentialName(credentialName)
+	client, err := utils.GetClientByCredentialName(credentialName)
+	if err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
-	response, err := client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{})
+	var response *registry.ListRegistriesOK
+	response, err = client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{})
 
 	if err != nil {
 		return nil, err

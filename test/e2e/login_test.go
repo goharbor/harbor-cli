@@ -11,13 +11,15 @@ func Test_Login_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
+
+	SetMockKeyring(t)
+
 	cmd := root.LoginCommand()
 	validServerAddresses := []string{
 		"http://demo.goharbor.io:80",
 		"https://demo.goharbor.io:443",
 		"http://demo.goharbor.io",
 		"https://demo.goharbor.io",
-		// "demo.goharbor.io",
 	}
 
 	for _, serverAddress := range validServerAddresses {
