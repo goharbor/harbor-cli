@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -37,7 +38,7 @@ func CreateRegistryCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Errorf("failed to create registry: %v", err)
+				log.Errorf("failed to create registry: %v", errors.ErrorCreateRegistry(err))
 			}
 		},
 	}
