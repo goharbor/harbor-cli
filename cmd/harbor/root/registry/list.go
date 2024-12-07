@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/list"
 	log "github.com/sirupsen/logrus"
@@ -20,7 +21,7 @@ func ListRegistryCommand() *cobra.Command {
 			registry, err := api.ListRegistries(opts)
 
 			if err != nil {
-				log.Fatalf("failed to get projects list: %v", err)
+				log.Fatalf("failed to get projects list: %v", errors.ErrorListRegistry(err))
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
