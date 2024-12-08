@@ -67,17 +67,42 @@ func ElevateUser(userId int64) error {
 	return nil
 }
 
-func ListUsers() (*user.ListUsersOK, error) {
+func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
 
-	response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
-
+	response, err := client.User.ListUsers(ctx, &user.ListUsersParams{
+		Page:     &listFlags.Page,
+		PageSize: &listFlags.PageSize,
+		Q:        &listFlags.Q,
+		Sort:     &listFlags.Sort,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return response, nil
+}
+
+func GetUsersIdByName(userName string) (int64, error) {
+	var opts ListFlags
+
+	u, err := ListUsers(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, user := range u.Payload {
+		if user.Username == userName {
+			return user.UserID, nil
+		}
+	}
+
+	return 0, err
 }

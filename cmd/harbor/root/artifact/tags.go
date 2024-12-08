@@ -6,7 +6,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/artifact/tags/create"
-	tagViews "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/list"
+	"github.com/goharbor/harbor-cli/pkg/views/artifact/tags/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +15,7 @@ func ArtifactTagsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "tags",
 		Short:   "Manage tags of an artifact",
-		Example: `harbor artifact tags list <project>/<repository>/<reference>`,
+		Example: `harbor artifact tags list <project>/<repository>@<reference>`,
 	}
 
 	cmd.AddCommand(
@@ -31,7 +31,7 @@ func CreateTagsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create",
 		Short:   "Create a tag of an artifact",
-		Example: `harbor artifact tags create <project>/<repository>/<reference> <tag>`,
+		Example: `harbor artifact tags create <project>/<repository>@<reference> <tag>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
@@ -61,7 +61,7 @@ func ListTagsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List tags of an artifact",
-		Example: `harbor artifact tags list <project>/<repository>/<reference>`,
+		Example: `harbor artifact tags list <project>/<repository>@<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
@@ -79,7 +79,7 @@ func ListTagsCmd() *cobra.Command {
 				log.Errorf("failed to list tags: %v", err)
 			}
 
-			tagViews.ListTagArtifact(resp.Payload)
+			list.ListTagArtifact(resp.Payload)
 		},
 	}
 	flags := cmd.Flags()
@@ -95,7 +95,7 @@ func DeleteTagsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Short:   "Delete a tag of an artifact",
-		Example: `harbor artifact tags delete <project>/<repository>/<reference> <tag>`,
+		Example: `harbor artifact tags delete <project>/<repository>@<reference> <tag>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 

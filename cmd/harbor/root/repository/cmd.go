@@ -10,8 +10,9 @@ func Repository() *cobra.Command {
 	}
 	cmd.AddCommand(
 		ListRepositoryCommand(),
-		RepoInfoCmd(),
+		RepoViewCmd(),
 		RepoDeleteCmd(),
+		SearchRepoCmd(),
 	)
 
 	return cmd
