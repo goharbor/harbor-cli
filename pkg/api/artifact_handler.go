@@ -21,7 +21,6 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to delete artifact: %v", err)
 		return err
 	}
 
@@ -44,7 +43,6 @@ func ViewArtifact(projectName, repoName, reference string) (*artifact.GetArtifac
 	})
 
 	if err != nil {
-		log.Errorf("Failed to get artifact info: %v", err)
 		return response, err
 	}
 
@@ -90,7 +88,6 @@ func StartScanArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to start scan: %v", err)
 		return err
 	}
 
@@ -111,7 +108,6 @@ func StopScanArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to stop scan: %v", err)
 		return err
 	}
 
@@ -133,7 +129,6 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 		TagName:        tag,
 	})
 	if err != nil {
-		log.Errorf("Failed to delete tag: %v", err)
 		return err
 	}
 
@@ -182,7 +177,6 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 		},
 	})
 	if err != nil {
-		log.Errorf("Failed to create tag: %v", err)
 		return err
 	}
 	log.Infof("Tag created successfully: %s/%s@%s:%s", projectName, repoName, reference, tagName)
