@@ -90,7 +90,7 @@ Available Commands:
   version     Version of Harbor CLI
 
 Flags:
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/Users/vadim/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -h, --help                   help for harbor
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
@@ -100,8 +100,32 @@ Use "harbor [command] --help" for more information about a command.
 
 ```
 
+#### Config Management
 
+##### Hierachy
+  Use the `--config` flag to specify a custom configuration file path (highest priority).
+  ```bash
+  harbor --config /path/to/custom/config.yaml artifact list
+  ```
+  If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
+  ```bash
+  export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
+  harbor artifact list
+  ```
+  If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
+  ```bash
+  harbor artifact list
+  ```  
 
+##### Data Path
+  - Data paths are determined by the `XDG_DATA_HOME` environment variable.
+  - If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
+  - The data file always contains the path of the latest config used.
+
+##### Config TL;DR
+  - `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
+  - Environment variables override default settings, and the `--config` flag takes precedence over both environment variables and defaults.
+  - The data file always contains the path of the latest config used.
 
 
 #### Log in to Harbor Registry
