@@ -20,13 +20,17 @@ func SearchProjectCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to get projects: %v", err)
 			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(projects)
-				return
+				err = utils.PrintFormat(projects, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.SearchProjects(projects.Payload.Project)
 			}
 
-			list.SearchProjects(projects.Payload.Project)
 		},
 	}
 	return cmd
