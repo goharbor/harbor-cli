@@ -3,6 +3,7 @@ package registry
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/view"
@@ -35,7 +36,7 @@ func ViewRegistryCommand() *cobra.Command {
 			registry, err = api.ViewRegistry(registryId)
 
 			if err != nil {
-				log.Errorf("failed to get registry info: %v", err)
+				log.Errorf("failed to get registry info: %v", errors.ErrorViewRegistry(err))
 				return
 			}
 
