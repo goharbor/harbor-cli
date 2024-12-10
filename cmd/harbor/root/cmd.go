@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -67,6 +68,7 @@ harbor help
 		artifact.Artifact(),
 		HealthCommand(),
 		schedule.Schedule(),
+		labels.Labels(),
 	)
 
 	return root
