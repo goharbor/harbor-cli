@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
 	"regexp"
 	"strconv"
 	"strings"
@@ -37,6 +38,59 @@ func FormatUrl(url string) string {
 		url = "https://" + url
 	}
 	return url
+}
+
+// ValidateDomain validates subdomain, IP, or top-level domain formats
+func ValidateDomain(domain string) error {
+	if strings.Contains(domain, ":") {
+		parts := strings.Split(domain, ":")
+		if len(parts) != 2 {
+			return errors.New("invalid domain format: too many colons")
+		}
+		port, err := strconv.Atoi(parts[1])
+		if err != nil || port < 0 || port > 65535 {
+			return errors.New("invalid port number")
+		}
+		domain = parts[0]
+	}
+
+	if net.ParseIP(domain) != nil {
+		return nil
+	}
+
+	parts := strings.Split(domain, ".")
+	if len(parts) < 2 {
+		return errors.New("invalid domain: must have at least one dot")
+	}
+
+	for _, part := range parts {
+		if !isValidLabel(part) {
+			return fmt.Errorf("invalid domain label: %s", part)
+		}
+	}
+
+	if len(parts[len(parts)-1]) < 2 {
+		return errors.New("invalid top-level domain: must be at least 2 characters")
+	}
+
+	return nil
+}
+
+// Helper function to validate individual domain labels
+func isValidLabel(label string) bool {
+	if len(label) == 0 || len(label) > 63 {
+		return false
+	}
+
+	for i, ch := range label {
+		if !(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '-') {
+			return false
+		}
+		if (i == 0 || i == len(label)-1) && ch == '-' {
+			return false
+		}
+	}
+	return true
 }
 
 func FormatSize(size int64) string {
