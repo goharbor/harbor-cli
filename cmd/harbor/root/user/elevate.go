@@ -1,8 +1,6 @@
 package user
 
 import (
-	"strconv"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
@@ -20,7 +18,7 @@ func ElevateUserCmd() *cobra.Command {
 			var err error
 			var userId int64
 			if len(args) > 0 {
-				userId, _ = strconv.ParseInt(args[0], 10, 64)
+				userId, _ = api.GetUsersIdByName(args[0])
 
 			} else {
 				userId = prompt.GetUserIdFromUser()

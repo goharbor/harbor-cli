@@ -3,13 +3,15 @@ package root
 import (
 	"context"
 	"fmt"
-	"strings"
+	"os"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -17,6 +19,7 @@ var (
 	Username      string
 	Password      string
 	Name          string
+	passwordStdin bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -31,6 +34,16 @@ func LoginCommand() *cobra.Command {
 				serverAddress = args[0]
 			}
 
+			if passwordStdin {
+				fmt.Print("Password: ")
+				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+				if err != nil {
+					return fmt.Errorf("failed to read password from stdin: %v", err)
+				}
+				fmt.Println()
+				Password = string(passwordBytes)
+			}
+
 			loginView := login.LoginView{
 				Server:   serverAddress,
 				Username: Username,
@@ -38,10 +51,14 @@ func LoginCommand() *cobra.Command {
 				Name:     Name,
 			}
 
+			// autogenerate name
+			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+			}
+
 			var err error
 
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" &&
-				loginView.Name != "" {
+			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
 				err = runLogin(loginView)
 			} else {
 				err = createLoginView(&loginView)
@@ -58,22 +75,9 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "name", "", "", "name for the set of credentials")
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
-}
-
-// generateCredentialName creates a default credential name based on server and username
-func generateCredentialName(server, username string) string {
-	if strings.HasPrefix(server, "http://") {
-		server = strings.ReplaceAll(server, "http://", "")
-	}
-	if strings.HasPrefix(server, "https://") {
-		server = strings.ReplaceAll(server, "https://", "")
-	}
-	if username != "" {
-		return fmt.Sprintf("%s@%s", username, server)
-	}
-	return server
 }
 
 func createLoginView(loginView *login.LoginView) error {
@@ -86,6 +90,7 @@ func createLoginView(loginView *login.LoginView) error {
 		}
 	}
 	login.CreateView(loginView)
+
 	return runLogin(*loginView)
 }
 
@@ -104,9 +109,6 @@ func runLogin(opts login.LoginView) error {
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
 	}
-	if opts.Name == "" {
-		opts.Name = generateCredentialName(opts.Server, opts.Username)
-	}
 
 	cred := utils.Credential{
 		Name:          opts.Name,
@@ -114,9 +116,37 @@ func runLogin(opts login.LoginView) error {
 		Password:      opts.Password,
 		ServerAddress: opts.Server,
 	}
+	harborData, err := utils.GetCurrentHarborData()
+	if err != nil {
+		return fmt.Errorf("failed to get current harbor data: %s", err)
+	}
+	configPath := harborData.ConfigPath
+	log.Debugf("Checking if credentials already exist in the config file...")
+	existingCred, err := utils.GetCredentials(opts.Name)
+	if err == nil {
+		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
+			if existingCred.Password == opts.Password {
+				log.Warn("Credentials already exist in the config file. They were not added again.")
+				return nil
+			} else {
+				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
+					log.Fatalf("failed to update the credential: %s", err)
+				}
+				return nil
+			}
+		} else {
+			log.Warn("Credentials already exist in the config file but more than one field was different. Updating the credentials.")
+			if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
+				log.Fatalf("failed to update the credential: %s", err)
+			}
+			return nil
+		}
+	}
 
-	if err = utils.AddCredentialsToConfigFile(cred, utils.DefaultConfigPath); err != nil {
+	if err = utils.AddCredentialsToConfigFile(cred, configPath); err != nil {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
+	log.Debugf("Credentials successfully added to the config file.")
 	return nil
 }
