@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,7 +26,7 @@ func DeleteRegistryCommand() *cobra.Command {
 				err = api.DeleteRegistry(registryId)
 			}
 			if err != nil {
-				log.Errorf("failed to delete registry: %v", err)
+				log.Errorf("failed to delete registry: %v", errors.ErrorDeleteRegistry(err))
 			}
 		},
 	}
