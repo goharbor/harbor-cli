@@ -1,11 +1,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/label"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/create"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateLabel(opts create.CreateView) error {
@@ -19,7 +20,7 @@ func CreateLabel(opts create.CreateView) error {
 		return err
 	}
 
-	log.Infof("Label %s created", opts.Name)
+	fmt.Printf("Label %s created\n", opts.Name)
 	return nil
 }
 
@@ -34,7 +35,7 @@ func DeleteLabel(Labelid int64) error {
 		return err
 	}
 
-	log.Info("label deleted successfully")
+	fmt.Println("label deleted successfully")
 
 	return nil
 }
@@ -87,7 +88,7 @@ func UpdateLabel(updateView *models.Label, Labelid int64) error {
 		return err
 	}
 
-	log.Info("label updated successfully")
+	fmt.Println("label updated successfully")
 
 	return nil
 }

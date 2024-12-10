@@ -66,8 +66,8 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-    HealthCommand(),
-    schedule.Schedule(),
+		HealthCommand(),
+		schedule.Schedule(),
 		labels.Labels(),
 	)
 
