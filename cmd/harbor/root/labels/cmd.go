@@ -7,6 +7,12 @@ func Labels() *cobra.Command {
 		Use:   "label",
 		Short: "Manage labels in Harbor",
 	}
+	cmd.AddCommand(
+		CreateLabelCommand(),
+		DeleteLabelCommand(),
+		ListLabelCommand(),
+		UpdateLableCommand(),
+	)
 
 	return cmd
 }
