@@ -33,6 +33,7 @@ func ListRepositoryCommand() *cobra.Command {
 
 			if err != nil {
 				log.Errorf("failed to list repositories: %v", err)
+				return
 			}
 
 			FormatFlag := viper.GetString("output-format")

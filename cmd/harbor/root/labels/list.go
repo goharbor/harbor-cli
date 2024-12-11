@@ -22,10 +22,13 @@ func ListLabelCommand() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(label)
-				return
+				err = utils.PrintFormat(label, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.ListLabels(label.Payload)
 			}
-			list.ListLabels(label.Payload)
 		},
 	}
 
