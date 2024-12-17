@@ -13,7 +13,7 @@ func ScanArtifactCommand() *cobra.Command {
 		Use:     "scan",
 		Short:   "Scan an artifact",
 		Long:    `Scan an artifact in Harbor Repository`,
-		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
+		Example: `harbor artifact scan start <project>/<repository>@<reference>`,
 	}
 
 	cmd.AddCommand(
@@ -30,7 +30,7 @@ func StartScanArtifactCommand() *cobra.Command {
 		Use:     "start",
 		Short:   "Start a scan of an artifact",
 		Long:    `Start a scan of an artifact in Harbor Repository`,
-		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
+		Example: `harbor artifact scan start <project>/<repository>@<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
@@ -56,7 +56,7 @@ func StopScanArtifactCommand() *cobra.Command {
 		Use:     "stop",
 		Short:   "Stop a scan of an artifact",
 		Long:    `Stop a scan of an artifact in Harbor Repository`,
-		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
+		Example: `harbor artifact scan stop <project>/<repository>@<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
