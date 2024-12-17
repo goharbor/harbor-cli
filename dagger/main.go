@@ -61,7 +61,8 @@ func (m *HarborCli) BuildDev(
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
 				`, GO_VERSION, buildTime, gitCommit)
-	builder = builder.WithExec([]string{"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
+	builder = builder.WithExec([]string{
+		"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
 	return builder.File("bin/harbor-cli")
 }
 
@@ -91,24 +92,23 @@ func (m *HarborCli) build(
 				WithMountedDirectory("/src", m.Source).
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", goos).
-				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"git", "describe", "--tags", "--abbrev=0", ">>", "git-version.txt"}).
-				Terminal().
-				WithExec([]string{
-					"sh",
-					"-c",
-					fmt.Sprintf(`
-						go build -ldflags "-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$(git describe --tags --abbrev=0 2>/dev/null) \
-								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$(go version | awk '{print $3}') \
-								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$(git rev-parse --short HEAD) \
-								  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ") \
-							  -o %s %s
-					`, bin_path+"harbor", "/src/cmd/harbor/main.go"),
-				}).
+				WithEnvVariable("GOARCH", goarch)
+
+			version, _ := builder.WithExec([]string{"git", "describe", "--tags", "--abbrev=0"}).Stdout(ctx)
+			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
+			buildTime := time.Now().UTC().Format(time.RFC3339)
+
+			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
+				`, version, GO_VERSION, buildTime, gitCommit)
+
+			builder = builder.WithExec([]string{
+				"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"}).
 				WithWorkdir(bin_path).
 				WithExec([]string{"ls"}).
 				WithEntrypoint([]string{"./harbor"})
-
 			builds = append(builds, builder)
 		}
 	}
