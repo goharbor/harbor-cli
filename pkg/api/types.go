@@ -1,12 +1,14 @@
 package api
 
 type ListFlags struct {
-	Name     string
-	Page     int64
-	PageSize int64
-	Q        string
-	Sort     string
-	Public   bool
+	ProjectID int64
+	Scope     string
+	Name      string
+	Page      int64
+	PageSize  int64
+	Q         string
+	Sort      string
+	Public    bool
 }
 
 // CreateView for Registry
