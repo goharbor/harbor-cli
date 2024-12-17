@@ -12,7 +12,8 @@ func AddCveAllowlistCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "add cve allowlist",
+		Short: "Add cve allowlist",
+		Long:  "Create allowlists of CVEs to ignore during vulnerability scanning",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			updateView := &update.UpdateView{
@@ -29,9 +30,9 @@ func AddCveAllowlistCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.IsExpire, "isexpire", "i", false, "Systemcve allowlist expire or not")
-	flags.StringVarP(&opts.CveId, "cveid", "n", "", "CVE ids seperate with commas")
-	flags.StringVarP(&opts.ExpireDate, "expiredate", "d", "", "If it expire,give Expiry date in the format MM/DD/YYYY")
+	flags.BoolVarP(&opts.IsExpire, "isexpire", "i", false, "Indicates whether the CVE entries should have an expiration date. Set to true to specify an expiration date")
+	flags.StringVarP(&opts.CveId, "cveid", "n", "", "Comma-separated list of CVE IDs to be added to the allowlist")
+	flags.StringVarP(&opts.ExpireDate, "expiredate", "d", "", "Specifies the expiration date for the CVE entries in the format 'YYYY-MM-DD'")
 
 	return cmd
 }

@@ -8,7 +8,7 @@ func CVEAllowlist() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cve-allowlist",
 		Short:   "Manage system CVE allowlist",
-		Long:    `Manage system level allowlist of CVE`,
+		Long:    `Managing CVE lists that are intentionally excluded from vulnerability scanning`,
 		Example: `harbor cve-allowlist list`,
 	}
 	cmd.AddCommand(
