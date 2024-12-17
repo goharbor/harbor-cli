@@ -5,6 +5,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
+	"github.com/goharbor/harbor-cli/pkg/views/user/reset"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -33,6 +34,26 @@ func CreateUser(opts create.CreateView) error {
 		log.Infof("User `%s` created successfully", opts.Username)
 	}
 
+	return nil
+}
+
+func ResetPassword(userId int64, resetView reset.ResetView) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.User.UpdateUserPassword(ctx, &user.UpdateUserPasswordParams{
+		UserID: userId,
+		Password: &models.PasswordReq{
+			OldPassword: resetView.OldPassword,
+			NewPassword: resetView.NewPassword,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+	log.Infof("User reset password successfully with id %d", userId)
 	return nil
 }
 

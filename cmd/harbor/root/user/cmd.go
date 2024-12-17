@@ -17,6 +17,7 @@ func User() *cobra.Command {
 		UserCreateCmd(),
 		UserDeleteCmd(),
 		ElevateUserCmd(),
+		UserResetCmd(),
 	)
 
 	return cmd
