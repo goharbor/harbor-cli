@@ -47,11 +47,13 @@ func ParseProjectRepo(projectRepo string) (string, string) {
 }
 
 func ParseProjectRepoReference(projectRepoReference string) (string, string, string) {
-	split := strings.Split(projectRepoReference, "/")
-	if len(split) != 3 {
-		log.Fatalf("invalid project/repository/reference format: %s", projectRepoReference)
+	projectname := strings.Split(projectRepoReference, "/")
+	reponame := strings.Split(projectname[1], "@")
+	referencename := strings.Split(projectname[1], "@")
+	if len(projectname) != 2 && len(reponame) != 2 && len(referencename) != 2 {
+		log.Fatalf("invalid project/repository@reference format: %s", projectRepoReference)
 	}
-	return split[0], split[1], split[2]
+	return projectname[0], reponame[0], referencename[1]
 }
 
 func SanitizeServerAddress(server string) string {
