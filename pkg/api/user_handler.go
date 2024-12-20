@@ -127,3 +127,36 @@ func GetUsersIdByName(userName string) (int64, error) {
 
 	return 0, err
 }
+
+func GetUserProfileById(userId int64) *models.UserResp {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil
+	}
+
+	resp, err := client.User.GetUser(ctx, &user.GetUserParams{UserID: userId})
+	if err != nil {
+		return nil
+	}
+
+	return resp.GetPayload()
+}
+
+func UpdateUserProfile(profile *models.UserProfile, userId int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.User.UpdateUserProfile(ctx, &user.UpdateUserProfileParams{
+		UserID:  userId,
+		Profile: profile,
+	})
+	if err != nil {
+		return err
+	}
+
+	log.Info("user's profile updated successfully")
+
+	return nil
+}
