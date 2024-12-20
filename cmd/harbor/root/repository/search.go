@@ -19,14 +19,19 @@ func SearchRepoCmd() *cobra.Command {
 			repo, err := api.SearchRepository(args[0])
 			if err != nil {
 				log.Fatalf("failed to get repositories: %v", err)
-			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(repo)
 				return
 			}
 
-			search.SearchRepositories(repo.Payload.Repository)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(repo, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				search.SearchRepositories(repo.Payload.Repository)
+			}
+
 		},
 	}
 	return cmd
