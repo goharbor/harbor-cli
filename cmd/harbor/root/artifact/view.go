@@ -35,6 +35,7 @@ func ViewArtifactCommmand() *cobra.Command {
 
 			if err != nil {
 				log.Errorf("failed to get info of an artifact: %v", err)
+				return
 			}
 
 			FormatFlag := viper.GetString("output-format")

@@ -17,16 +17,21 @@ func ListScheduleCommand() *cobra.Command {
 		Short: "show all schedule jobs in Harbor",
 		Run: func(cmd *cobra.Command, args []string) {
 			schedule, err := api.ListSchedule(opts)
+
 			if err != nil {
 				log.Fatalf("failed to get schedule list: %v", err)
-			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(schedule)
 				return
 			}
 
-			list.ListSchedule(schedule.Payload)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(schedule, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.ListSchedule(schedule.Payload)
+			}
 		},
 	}
 
