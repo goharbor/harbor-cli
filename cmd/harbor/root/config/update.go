@@ -207,7 +207,6 @@ func setNestedValue(obj interface{}, path []string, newValue string, actualSegme
 			fieldValue.SetInt(intVal)
 
 		// If you need to handle other types (e.g. float, slice), add them here.
-
 		default:
 			return fmt.Errorf(
 				"unsupported field type '%s' for field '%s'",
