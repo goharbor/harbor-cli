@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -21,55 +20,54 @@ func GetConfigItemCommand() *cobra.Command {
 		Example: `  harbor config get credentials.username`,
 		Long:    `Get the value of a specific CLI config item`,
 		Args:    cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// 1. Load config
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				logrus.Errorf("Failed to get config: %v", err)
-				return
+				// Return an error rather than just logging.
+				return fmt.Errorf("failed to get config: %w", err)
 			}
 
 			// 2. Parse the user-supplied item path (e.g. "credentials.username")
 			itemPath := strings.Split(args[0], ".")
 
-			// 3. Get the value from the config (filtering credentials if needed)
-			//    also capture the actual field name segments for pretty output
+			// 3. Get the value from the config (and track actual field segments for output)
 			actualSegments := []string{}
 			result, err := getValueFromConfig(config, itemPath, &actualSegments)
 			if err != nil {
-				logrus.Error(err)
-				return
+				// Return the error so it propagates to the caller/test.
+				return err
 			}
 
-			// 4. Prepare the final output as a map so we can render easily in JSON/YAML
-			//    We join the actual field names with "." for the "canonical" path.
+			// 4. Prepare the final output as a map so we can render easily in JSON/YAML.
 			canonicalPath := strings.Join(actualSegments, ".")
 			output := map[string]interface{}{
 				canonicalPath: result,
 			}
 
-			// 5. Determine output format
+			// 5. Determine the output format (json, yaml, etc.) and print.
 			formatFlag := viper.GetString("output-format")
 			switch formatFlag {
 			case "json":
 				data, err := json.MarshalIndent(output, "", "  ")
 				if err != nil {
-					logrus.Errorf("Failed to marshal output to JSON: %v", err)
-					return
+					return fmt.Errorf("failed to marshal output to JSON: %w", err)
 				}
 				fmt.Println(string(data))
 
 			case "yaml", "":
 				data, err := yaml.Marshal(output)
 				if err != nil {
-					logrus.Errorf("Failed to marshal output to YAML: %v", err)
-					return
+					return fmt.Errorf("failed to marshal output to YAML: %w", err)
 				}
 				fmt.Println(string(data))
 
 			default:
-				logrus.Errorf("Unsupported output format: %s", formatFlag)
+				return fmt.Errorf("unsupported output format: %s", formatFlag)
 			}
+
+			// If everything succeeds, return nil.
+			return nil
 		},
 	}
 
