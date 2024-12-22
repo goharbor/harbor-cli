@@ -21,12 +21,14 @@ func SetConfigItemCommand() *cobra.Command {
 		Long: `Set the value of a specific CLI config item. 
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.`,
 		Args: cobra.ExactArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
+
+		// Switch from Run to RunE so we can propagate errors
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// 1. Load the current config
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				logrus.Errorf("Failed to load Harbor config: %v", err)
-				return
+				// Return the error (with context) instead of just logging
+				return fmt.Errorf("failed to load Harbor config: %w", err)
 			}
 
 			// 2. Parse the user-supplied item path (e.g., "credentials.password")
@@ -36,19 +38,20 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 			// 3. Reflection-based set
 			actualSegments := []string{}
 			if err := setValueInConfig(config, itemPath, newValue, &actualSegments); err != nil {
-				logrus.Error(err)
-				return
+				return fmt.Errorf("failed to set value in config: %w", err)
 			}
 
 			// 4. Persist the updated config to disk
 			if err := utils.UpdateConfigFile(config); err != nil {
-				logrus.Errorf("Failed to save updated config: %v", err)
-				return
+				return fmt.Errorf("failed to save updated config: %w", err)
 			}
 
-			// 5. Confirm to the user
+			// 5. Confirm to the user (logrus.Info is fine here; no error)
 			canonicalPath := strings.Join(actualSegments, ".")
 			logrus.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
+
+			// If everything is fine, return nil
+			return nil
 		},
 	}
 
