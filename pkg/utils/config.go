@@ -340,14 +340,24 @@ func CreateConfigFile(configPath string) error {
 		v := viper.New()
 		v.SetConfigType("yaml")
 
+		key, err := GetEncryptionKey()
+		if err != nil {
+			fmt.Println("Error getting encryption key:", err)
+			return fmt.Errorf("failed to get encryption key: %s", err)
+		}
+		encryptedPassword, err := Encrypt(key, []byte("Harbor12345"))
+		if err != nil {
+			fmt.Println("Error encrypting password:", err)
+			return fmt.Errorf("failed to encrypt password: %s", err)
+		}
 		defaultConfig := HarborConfig{
-			CurrentCredentialName: "harbor-cli@@emo-goharbor-io",
+			CurrentCredentialName: "harbor-cli@demo-goharbor-io",
 			Credentials: []Credential{
 				{
-					Name:          "harbor-cli@http://demo.goharbor.io",
+					Name:          "harbor-cli@demo-goharbor-io",
 					ServerAddress: "https://demo.goharbor.io",
 					Username:      "harbor-cli",
-					Password:      "Harbor12345",
+					Password:      encryptedPassword,
 				},
 			},
 		}
