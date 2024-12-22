@@ -329,11 +329,11 @@ func CreateConfigFile(configPath string) error {
 		v.SetConfigType("yaml")
 
 		defaultConfig := HarborConfig{
-			CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+			CurrentCredentialName: "harbor-cli@@emo-goharbor-io",
 			Credentials: []Credential{
 				{
 					Name:          "harbor-cli@http://demo.goharbor.io",
-					ServerAddress: "http://demo.goharbor.io",
+					ServerAddress: "https://demo.goharbor.io",
 					Username:      "harbor-cli",
 					Password:      "Harbor12345",
 				},

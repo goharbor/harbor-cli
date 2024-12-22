@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
@@ -68,22 +69,59 @@ func LoginCommand() *cobra.Command {
 
 			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
 				err = runLogin(loginView)
-			} else if currentCredentialName != "" {
+				// check whether the user entered a new credential than already in config
+			} else if currentCredentialName != "" && loginView.Name != "" && loginView.Name != currentCredentialName {
 				var resolvedLoginView login.LoginView
 				creds = config.Credentials
 				for _, cred := range creds {
-					resolvedLoginView = login.LoginView{
-						Server:   cred.ServerAddress,
-						Username: cred.Username,
-						Password: cred.Password,
-						Name:     cred.Name,
+					if cred.Name == loginView.Name {
+						resolvedLoginView = login.LoginView{
+							Server:   cred.ServerAddress,
+							Username: cred.Username,
+							Password: cred.Password,
+							Name:     cred.Name,
+						}
 					}
 				}
+				if resolvedLoginView.Server != "" && resolvedLoginView.Username != "" && resolvedLoginView.Password != "" {
+					err = runLogin(resolvedLoginView)
+				} else {
+					err = createLoginView(&loginView)
+				}
+			} else if currentCredentialName != "" {
+				var resolvedLoginView login.LoginView
+				creds := config.Credentials
+				key, err := utils.GetEncryptionKey()
+				if err != nil {
+					return fmt.Errorf("failed to get encryption key: %w", err)
+				}
+				var targetCred *utils.Credential
+				for _, cred := range creds {
+					if strings.EqualFold(cred.Name, currentCredentialName) {
+						targetCred = &cred
+						break
+					}
+				}
+				if targetCred == nil {
+					return fmt.Errorf("no matching credential found for '%s'", currentCredentialName)
+				}
+				decryptedPassword, err := utils.Decrypt(key, string(targetCred.Password))
+				if err != nil {
+					return fmt.Errorf("failed to decrypt password: %w", err)
+				}
+				resolvedLoginView = login.LoginView{
+					Server:   targetCred.ServerAddress,
+					Username: targetCred.Username,
+					Password: decryptedPassword,
+					Name:     targetCred.Name,
+				}
 				err = runLogin(resolvedLoginView)
+				if err != nil {
+					return fmt.Errorf("failed to run login: %w", err)
+				}
 			} else {
 				err = createLoginView(&loginView)
 			}
-
 			if err != nil {
 				return err
 			}
@@ -123,13 +161,11 @@ func runLogin(opts login.LoginView) error {
 		Password: opts.Password,
 	}
 	client := utils.GetClientByConfig(clientConfig)
-
 	ctx := context.Background()
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
 	}
-
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
 	}

@@ -41,6 +41,11 @@ const KeyringService = "harbor-cli"
 const KeyringUser = "harbor-cli-encryption-key"
 
 func GenerateEncryptionKey() error {
+	existingKey, err := keyringProvider.Get(KeyringService, KeyringUser)
+	if err == nil && existingKey != "" {
+		return nil
+	}
+
 	key := make([]byte, 32) // AES-256 key
 	if _, err := rand.Read(key); err != nil {
 		return fmt.Errorf("failed to generate encryption key: %w", err)
@@ -50,8 +55,15 @@ func GenerateEncryptionKey() error {
 
 func GetEncryptionKey() ([]byte, error) {
 	keyBase64, err := keyringProvider.Get(KeyringService, KeyringUser)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve encryption key: %w", err)
+	if err != nil || keyBase64 == "" {
+		// Attempt to generate a new key if not found
+		if genErr := GenerateEncryptionKey(); genErr != nil {
+			return nil, fmt.Errorf("failed to retrieve or generate encryption key: %w", err)
+		}
+		keyBase64, err = keyringProvider.Get(KeyringService, KeyringUser)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve encryption key after generation: %w", err)
+		}
 	}
 	return base64.StdEncoding.DecodeString(keyBase64)
 }
