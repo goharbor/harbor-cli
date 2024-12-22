@@ -14,32 +14,40 @@ import (
 
 // GetConfigItemCommand creates the 'harbor config get' subcommand.
 func GetConfigItemCommand() *cobra.Command {
+	var credentialName string
+
 	cmd := &cobra.Command{
-		Use:     "get <item>",
-		Short:   "Get a specific config item",
-		Example: `  harbor config get credentials.username`,
-		Long:    `Get the value of a specific CLI config item`,
-		Args:    cobra.ExactArgs(1),
+		Use:   "get <item>",
+		Short: "Get a specific config item",
+		Example: `
+  # Get the current credential's username
+  harbor config get credentials.username
+
+  # Get a credential's username by specifying the credential name
+  harbor config get credentials.username --name harbor-cli@http://demo.goharbor.io
+`,
+		Long: `Get the value of a specific CLI config item.
+If you specify --name, that credential (rather than the "current" one) will be used.`,
+		Args: cobra.ExactArgs(1),
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// 1. Load config
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				// Return an error rather than just logging.
 				return fmt.Errorf("failed to get config: %w", err)
 			}
 
-			// 2. Parse the user-supplied item path (e.g. "credentials.username")
+			// 2. Parse the user-supplied item path (e.g., "credentials.username")
 			itemPath := strings.Split(args[0], ".")
 
 			// 3. Get the value from the config (and track actual field segments for output)
 			actualSegments := []string{}
-			result, err := getValueFromConfig(config, itemPath, &actualSegments)
+			result, err := getValueFromConfig(config, itemPath, &actualSegments, credentialName)
 			if err != nil {
-				// Return the error so it propagates to the caller/test.
 				return err
 			}
 
-			// 4. Prepare the final output as a map so we can render easily in JSON/YAML.
+			// 4. Prepare the final output as a map for JSON/YAML rendering.
 			canonicalPath := strings.Join(actualSegments, ".")
 			output := map[string]interface{}{
 				canonicalPath: result,
@@ -66,45 +74,59 @@ func GetConfigItemCommand() *cobra.Command {
 				return fmt.Errorf("unsupported output format: %s", formatFlag)
 			}
 
-			// If everything succeeds, return nil.
 			return nil
 		},
 	}
+
+	// Add a --name / -n flag to allow specifying a credential
+	cmd.Flags().StringVarP(
+		&credentialName,
+		"name",
+		"n",
+		"",
+		"Name of the credential to get fields from (default: the current credential)",
+	)
 
 	return cmd
 }
 
 // getValueFromConfig decides if the user requested something under "credentials"
-// and if so, filters down to the current credential; otherwise, it just
-// searches in the top-level config object.
-//
-// We also accept a pointer to 'actualSegments', so that if the user typed
-// "credentials.Username", we can store the correct name for each field. E.g. "Credentials" -> "Username".
-func getValueFromConfig(config *utils.HarborConfig, path []string, actualSegments *[]string) (interface{}, error) {
+// and if so, filters down to the *requested credential*, otherwise
+// it just searches in the top-level config object.
+func getValueFromConfig(
+	config *utils.HarborConfig,
+	path []string,
+	actualSegments *[]string,
+	credentialName string,
+) (interface{}, error) {
 	if len(path) == 0 {
 		return nil, fmt.Errorf("no config item specified")
 	}
 
-	// If the first segment is "credentials", we pivot to the "current credential"
-	// and append the actual field name "Credentials" to 'actualSegments'.
+	// If the first segment is "credentials", we pivot to a credential.
 	if strings.EqualFold(path[0], "credentials") {
 		*actualSegments = append(*actualSegments, "Credentials")
 
-		// Find the current credential
-		currentCredName := config.CurrentCredentialName
-		var currentCred *utils.Credential
-		for _, cred := range config.Credentials {
-			if strings.EqualFold(cred.Name, currentCredName) {
-				currentCred = &cred
+		// Determine which credential name to use
+		credName := config.CurrentCredentialName
+		if credentialName != "" {
+			credName = credentialName
+		}
+
+		// Find the matching credential
+		var targetCred *utils.Credential
+		for i := range config.Credentials {
+			if strings.EqualFold(config.Credentials[i].Name, credName) {
+				targetCred = &config.Credentials[i]
 				break
 			}
 		}
-		if currentCred == nil {
-			return nil, fmt.Errorf("no matching credential found for '%s'", currentCredName)
+		if targetCred == nil {
+			return nil, fmt.Errorf("no matching credential found for '%s'", credName)
 		}
 
 		// Remove "credentials" from the path, keep the rest
-		return getNestedValue(*currentCred, path[1:], actualSegments)
+		return getNestedValue(*targetCred, path[1:], actualSegments)
 	}
 
 	// Otherwise, search in the overall config struct
@@ -119,6 +141,7 @@ func getNestedValue(obj interface{}, path []string, actualSegments *[]string) (i
 	current := reflect.ValueOf(obj)
 
 	for _, key := range path {
+		// If it's a pointer, dereference
 		if current.Kind() == reflect.Ptr {
 			current = current.Elem()
 		}

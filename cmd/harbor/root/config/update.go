@@ -14,12 +14,21 @@ import (
 // SetConfigItemCommand creates the 'harbor config set' subcommand,
 // allowing you to do: harbor config set <item> <value>.
 func SetConfigItemCommand() *cobra.Command {
+	var credentialName string
+
 	cmd := &cobra.Command{
-		Use:     "set <item> <value>",
-		Short:   "Set a specific config item",
-		Example: "  harbor config set credentials.password myNewSecret",
+		Use:   "set <item> <value>",
+		Short: "Set a specific config item",
+		Example: `
+  # Set the current credential's password
+  harbor config set credentials.password myNewSecret
+
+  # Set a credential's password by specifying the credential name
+  harbor config set credentials.password myNewSecret --name harbor-cli@http://demo.goharbor.io
+`,
 		Long: `Set the value of a specific CLI config item. 
-Case-insensitive field lookup, but uses the canonical (Go) field name internally.`,
+Case-insensitive field lookup, but uses the canonical (Go) field name internally.
+If you specify --name, that credential (rather than the "current" one) will be updated.`,
 		Args: cobra.ExactArgs(2),
 
 		// Switch from Run to RunE so we can propagate errors
@@ -27,7 +36,6 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 			// 1. Load the current config
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				// Return the error (with context) instead of just logging
 				return fmt.Errorf("failed to load Harbor config: %w", err)
 			}
 
@@ -37,7 +45,7 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 
 			// 3. Reflection-based set
 			actualSegments := []string{}
-			if err := setValueInConfig(config, itemPath, newValue, &actualSegments); err != nil {
+			if err := setValueInConfig(config, itemPath, newValue, &actualSegments, credentialName); err != nil {
 				return fmt.Errorf("failed to set value in config: %w", err)
 			}
 
@@ -50,40 +58,63 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 			canonicalPath := strings.Join(actualSegments, ".")
 			logrus.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
 
-			// If everything is fine, return nil
 			return nil
 		},
 	}
+
+	// Add a --name / -n flag to allow specifying a credential
+	cmd.Flags().StringVarP(
+		&credentialName,
+		"name",
+		"n",
+		"",
+		"Name of the credential to set fields on (default: the current credential)",
+	)
 
 	return cmd
 }
 
 // setValueInConfig checks whether the user is updating something
-// under "credentials" (i.e., the current credential) or a top-level field.
-func setValueInConfig(config *utils.HarborConfig, path []string, newValue string, actualSegments *[]string) error {
+// under "credentials" (i.e., a credential) or a top-level field.
+//
+// If path[0] == "credentials", we decide which credential to modify:
+//   - If credentialName is non-empty, use that
+//   - Otherwise, fallback to config.CurrentCredentialName
+func setValueInConfig(
+	config *utils.HarborConfig,
+	path []string,
+	newValue string,
+	actualSegments *[]string,
+	credentialName string,
+) error {
 	if len(path) == 0 {
 		return fmt.Errorf("no config item specified")
 	}
 
-	// If the first segment is "credentials", then we pivot to the current credential.
+	// If the first segment is "credentials", then we pivot to a specific credential.
 	if strings.EqualFold(path[0], "credentials") {
 		*actualSegments = append(*actualSegments, "Credentials")
 
-		// find the current credential
-		currentCredName := config.CurrentCredentialName
-		var currentCred *utils.Credential
+		// Determine which credential name to use
+		credName := config.CurrentCredentialName
+		if credentialName != "" {
+			credName = credentialName
+		}
+
+		// find the matching credential
+		var matchingCred *utils.Credential
 		for i := range config.Credentials {
-			if strings.EqualFold(config.Credentials[i].Name, currentCredName) {
-				currentCred = &config.Credentials[i]
+			if strings.EqualFold(config.Credentials[i].Name, credName) {
+				matchingCred = &config.Credentials[i]
 				break
 			}
 		}
-		if currentCred == nil {
-			return fmt.Errorf("no matching credential found for '%s'", currentCredName)
+		if matchingCred == nil {
+			return fmt.Errorf("no matching credential found for '%s'", credName)
 		}
 
 		// Remove "credentials" from the path, and set the value in that credential
-		return setNestedValue(currentCred, path[1:], newValue, actualSegments)
+		return setNestedValue(matchingCred, path[1:], newValue, actualSegments)
 	}
 
 	// Otherwise, we set a field in the main HarborConfig struct
@@ -176,6 +207,7 @@ func setNestedValue(obj interface{}, path []string, newValue string, actualSegme
 			fieldValue.SetInt(intVal)
 
 		// If you need to handle other types (e.g. float, slice), add them here.
+
 		default:
 			return fmt.Errorf(
 				"unsupported field type '%s' for field '%s'",
