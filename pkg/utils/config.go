@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -20,6 +21,7 @@ type Credential struct {
 }
 
 type HarborConfig struct {
+	PageSize              int          `mapstructure:"page-size" yaml:"page-size"`
 	CurrentCredentialName string       `mapstructure:"current-credential-name" yaml:"current-credential-name"`
 	Credentials           []Credential `mapstructure:"credentials" yaml:"credentials"`
 }
@@ -330,11 +332,13 @@ func CreateConfigFile(configPath string) error {
 
 		defaultConfig := HarborConfig{
 			CurrentCredentialName: "",
+			PageSize:              10,
 			Credentials:           []Credential{},
 		}
 
 		v.Set("current-credential-name", defaultConfig.CurrentCredentialName)
 		v.Set("credentials", defaultConfig.Credentials)
+		v.Set("page-size", defaultConfig.PageSize)
 
 		if err := v.WriteConfigAs(configPath); err != nil {
 			log.Fatalf("failed to write config file: %v", err)
@@ -392,6 +396,7 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 
 	v.Set("current-credential-name", c.CurrentCredentialName)
 	v.Set("credentials", c.Credentials)
+	v.Set("page-size", c.PageSize)
 
 	if err := v.WriteConfig(); err != nil {
 		log.Fatalf("failed to write updated config file: %v", err)
@@ -436,6 +441,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 
 	v.Set("current-credential-name", c.CurrentCredentialName)
 	v.Set("credentials", c.Credentials)
+	v.Set("page-size", c.PageSize)
 
 	if err := v.WriteConfig(); err != nil {
 		log.Fatalf("failed to write updated config file: %v", err)
@@ -443,4 +449,23 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 
 	log.Infof("Updated credential '%s' in config file at %s", updatedCredential.Name, configPath)
 	return nil
+}
+
+// obtaining the defaault page-size from the config/environment
+func ResolvePageSize(x int64) int64 {
+	config, err := GetCurrentHarborConfig()
+	if err != nil {
+		return x
+	}
+	if config != nil && config.PageSize > 0 {
+		return int64(config.PageSize)
+	}
+	envPageSize := os.Getenv("HARBOR_CLI_DEFAULT_PAGE_SIZE")
+	if envPageSize != "" {
+		if val, err := strconv.ParseInt(envPageSize, 10, 64); err == nil && val > 0 {
+			return val
+		}
+	}
+
+	return x
 }
