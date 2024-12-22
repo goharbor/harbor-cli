@@ -1,28 +1,31 @@
 ---
-title: harbor label delete
-weight: 0
+title: harbor config list
+weight: 80
 ---
-## harbor label delete
+## harbor config list
 
 ### Description
 
-##### delete label
+##### List config items
+
+### Synopsis
+
+Get information of all CLI config items
 
 ```sh
-harbor label delete [flags]
+harbor config list [flags]
 ```
 
 ### Examples
 
 ```sh
-harbor label delete [labelname]
+  harbor config list
 ```
 
 ### Options
 
 ```sh
-  -h, --help           help for delete
-  -s, --scope string   default(global).'p' for project labels.Query scope of the label (default "g")
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -35,5 +38,5 @@ harbor label delete [labelname]
 
 ### SEE ALSO
 
-* [harbor label](harbor-label.md)	 - Manage labels in Harbor
+* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
 
