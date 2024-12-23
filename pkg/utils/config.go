@@ -497,6 +497,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	for i, cred := range c.Credentials {
 		if cred.Name == updatedCredential.Name {
 			c.Credentials[i] = updatedCredential
+			c.CurrentCredentialName = updatedCredential.Name
 			updated = true
 			break
 		}
@@ -513,6 +514,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
-	log.Infof("Updated credential '%s' in config file at %s", updatedCredential.Name, configPath)
+	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)
+	log.Infof("Switched to context '%s'", updatedCredential.Name)
 	return nil
 }
