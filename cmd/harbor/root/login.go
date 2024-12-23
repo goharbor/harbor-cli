@@ -88,7 +88,7 @@ func LoginCommand() *cobra.Command {
 				} else {
 					err = createLoginView(&loginView)
 				}
-			} else if currentCredentialName != "" {
+			} else if currentCredentialName != "" && loginView.Name == "" && loginView.Server == "" && loginView.Username == "" && loginView.Password == "" {
 				var resolvedLoginView login.LoginView
 				creds := config.Credentials
 				key, err := utils.GetEncryptionKey()
