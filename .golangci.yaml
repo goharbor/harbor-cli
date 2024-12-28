@@ -12,7 +12,7 @@ linters-settings:
       "ST1019",  # Importing the same package multiple times.
     ]
   goheader:
-    template-path: .copyright.tmpl
+    template-path: copyright.tmpl
 
 linters:
   enable:
