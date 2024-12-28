@@ -2,13 +2,14 @@ package view
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
-	"os"
-	"strconv"
 )
 
 var columns = []table.Column{
