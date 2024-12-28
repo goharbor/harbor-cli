@@ -13,7 +13,6 @@ import (
 
 // GetProjectCommand creates a new `harbor get project` command
 func ViewCommand() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:   "view [NAME|ID]",
 		Short: "get project by name or id",
@@ -46,7 +45,6 @@ func ViewCommand() *cobra.Command {
 			} else {
 				view.ViewProjects(project.Payload)
 			}
-
 		},
 	}
 

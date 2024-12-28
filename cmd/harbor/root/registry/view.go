@@ -48,7 +48,6 @@ func ViewRegistryCommand() *cobra.Command {
 			} else {
 				view.ViewRegistry(registry.Payload)
 			}
-
 		},
 	}
 

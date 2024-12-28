@@ -22,7 +22,6 @@ var columns = []table.Column{
 func ListRepositories(repos []*models.Repository) {
 	var rows []table.Row
 	for _, repo := range repos {
-
 		createdTime, _ := utils.FormatCreatedTime(repo.UpdateTime.String())
 		rows = append(rows, table.Row{
 			repo.Name,

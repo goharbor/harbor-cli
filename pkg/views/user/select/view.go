@@ -32,5 +32,4 @@ func UserList(users []*models.UserResp, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- items[p.Choice]
 	}
-
 }

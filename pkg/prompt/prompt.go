@@ -17,11 +17,9 @@ func GetRegistryNameFromUser() int64 {
 	go func() {
 		response, _ := api.ListRegistries()
 		rview.RegistryList(response.Payload, registryId)
-
 	}()
 
 	return <-registryId
-
 }
 
 func GetProjectNameFromUser() string {
@@ -29,7 +27,6 @@ func GetProjectNameFromUser() string {
 	go func() {
 		response, _ := api.ListAllProjects()
 		pview.ProjectList(response.Payload, projectName)
-
 	}()
 
 	return <-projectName
@@ -39,7 +36,6 @@ func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
 	go func() {
-
 		response, err := api.ListRepository(projectName)
 		if err != nil {
 			log.Fatal(err)
@@ -69,7 +65,6 @@ func GetUserIdFromUser() int64 {
 	}()
 
 	return <-userId
-
 }
 
 func GetTagFromUser(repoName, projectName, reference string) string {

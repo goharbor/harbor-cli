@@ -15,7 +15,6 @@ func SearchProjectCommand() *cobra.Command {
 		Short: "search project based on their names",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			projects, err := api.SearchProject(args[0])
 			if err != nil {
 				log.Fatalf("failed to get projects: %v", err)
@@ -30,7 +29,6 @@ func SearchProjectCommand() *cobra.Command {
 			} else {
 				list.SearchProjects(projects.Payload.Project)
 			}
-
 		},
 	}
 	return cmd

@@ -41,7 +41,6 @@ func LogsProjectCommmand() *cobra.Command {
 			} else {
 				auditLog.LogsProject(resp.Payload)
 			}
-
 		},
 	}
 

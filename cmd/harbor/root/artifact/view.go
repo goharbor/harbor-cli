@@ -12,7 +12,6 @@ import (
 )
 
 func ViewArtifactCommmand() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:     "view",
 		Short:   "Get information of an artifact",
@@ -48,7 +47,6 @@ func ViewArtifactCommmand() *cobra.Command {
 			} else {
 				view.ViewArtifact(artifact.Payload)
 			}
-
 		},
 	}
 

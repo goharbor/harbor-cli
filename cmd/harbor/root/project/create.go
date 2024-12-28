@@ -34,7 +34,6 @@ func CreateProjectCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create project: %v", err)
 			}
-
 		},
 	}
 
@@ -60,5 +59,4 @@ func createProjectView(createView *create.CreateView) error {
 	create.CreateProjectView(createView)
 
 	return api.CreateProject(*createView)
-
 }
