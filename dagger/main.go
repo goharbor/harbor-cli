@@ -98,7 +98,7 @@ func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	return m.lint(ctx).WithExec([]string{
 		"golangci-lint", "run",
 		"--out-format", "sarif:" + report,
-		"--issues-exit-code", "0",
+		"--issues-exit-code", "1",
 	}).File(report)
 }
 
@@ -219,8 +219,8 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
-		WithExec([]string{"go", "run", "doc.go"}).
-		WithExec([]string{"go", "run", "man_doc.go"}).
+		WithExec([]string{"go", "run", "_doc.go"}).
+		WithExec([]string{"go", "run", "_man_doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
 }
 
