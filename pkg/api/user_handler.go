@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -53,7 +55,7 @@ func ResetPassword(userId int64, resetView reset.ResetView) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("User reset password successfully with id %d", userId)
+	log.Infof("User password reset successfully with id %d", userId)
 	return nil
 }
 
@@ -118,14 +120,13 @@ func GetUsersIdByName(userName string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	for _, user := range u.Payload {
 		if user.Username == userName {
 			return user.UserID, nil
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("fail to get user Id by username: %s", userName)
 }
 
 func GetUserProfileById(userId int64) *models.UserResp {
@@ -152,11 +153,12 @@ func UpdateUserProfile(profile *models.UserProfile, userId int64) error {
 		UserID:  userId,
 		Profile: profile,
 	})
+
 	if err != nil {
 		return err
 	}
 
-	log.Info("user's profile updated successfully")
+	log.Infof("User's profile updated successfully with id %d", userId)
 
 	return nil
 }
