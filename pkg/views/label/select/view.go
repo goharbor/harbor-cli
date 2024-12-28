@@ -32,5 +32,4 @@ func LabelList(label []*models.Label, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- items[p.Choice]
 	}
-
 }

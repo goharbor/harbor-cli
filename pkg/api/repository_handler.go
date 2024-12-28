@@ -51,7 +51,6 @@ func ListRepository(projectName string) (repository.ListRepositoriesOK, error) {
 	}
 
 	return *response, nil
-
 }
 
 func SearchRepository(query string) (search.SearchOK, error) {

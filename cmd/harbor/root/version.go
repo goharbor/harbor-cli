@@ -9,7 +9,6 @@ import (
 
 // versionCommand represents the version command
 func versionCommand() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:     "version",
 		Short:   "Version of Harbor CLI",

@@ -26,5 +26,4 @@ func ListSchedule(opts ...ListFlags) (schedule.ListSchedulesOK, error) {
 	}
 
 	return *response, nil
-
 }

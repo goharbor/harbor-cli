@@ -33,7 +33,6 @@ func CreateLabelCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create label: %v", err)
 			}
-
 		},
 	}
 

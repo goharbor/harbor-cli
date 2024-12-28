@@ -8,7 +8,6 @@ import (
 )
 
 func DeleteRegistryCommand() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Short:   "delete registry",

@@ -20,7 +20,6 @@ var columns = []table.Column{
 func ListTags(tags []*models.Tag) {
 	var rows []table.Row
 	for _, tag := range tags {
-
 		pullTime, _ := utils.FormatCreatedTime(tag.PullTime.String())
 		pushTime, _ := utils.FormatCreatedTime(tag.PushTime.String())
 		rows = append(rows, table.Row{

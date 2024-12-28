@@ -92,7 +92,6 @@ func ListTagsCmd() *cobra.Command {
 			} else {
 				list.ListTags(tags.Payload)
 			}
-
 		},
 	}
 

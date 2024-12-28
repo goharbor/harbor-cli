@@ -19,7 +19,6 @@ func ElevateUserCmd() *cobra.Command {
 			var userId int64
 			if len(args) > 0 {
 				userId, _ = api.GetUsersIdByName(args[0])
-
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
@@ -33,7 +32,6 @@ func ElevateUserCmd() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to elevate user: %v", err)
 			}
-
 		},
 	}
 

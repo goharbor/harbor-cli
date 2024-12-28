@@ -29,5 +29,4 @@ func ListTags(tag []*models.Tag, choice chan<- string) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
-
 }

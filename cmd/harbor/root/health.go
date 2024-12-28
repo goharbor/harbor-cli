@@ -26,5 +26,4 @@ func HealthCommand() *cobra.Command {
 	}
 
 	return cmd
-
 }

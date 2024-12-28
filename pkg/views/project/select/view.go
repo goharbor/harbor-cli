@@ -28,5 +28,4 @@ func ProjectList(project []*models.Project, choice chan<- string) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
-
 }

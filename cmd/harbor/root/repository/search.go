@@ -15,7 +15,6 @@ func SearchRepoCmd() *cobra.Command {
 		Short: "search repository based on their names",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			repo, err := api.SearchRepository(args[0])
 			if err != nil {
 				log.Fatalf("failed to get repositories: %v", err)
@@ -31,7 +30,6 @@ func SearchRepoCmd() *cobra.Command {
 			} else {
 				search.SearchRepositories(repo.Payload.Repository)
 			}
-
 		},
 	}
 	return cmd

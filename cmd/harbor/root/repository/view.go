@@ -46,7 +46,6 @@ func RepoViewCmd() *cobra.Command {
 			} else {
 				view.ViewRepository(repo.Payload)
 			}
-
 		},
 	}
 

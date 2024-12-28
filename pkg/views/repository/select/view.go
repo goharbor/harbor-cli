@@ -31,5 +31,4 @@ func RepositoryList(repos []*models.Repository, choice chan<- string) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
-
 }

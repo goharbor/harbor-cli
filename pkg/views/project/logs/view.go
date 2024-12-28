@@ -14,7 +14,7 @@ import (
 var columns = []table.Column{
 	{Title: "Username", Width: 12},
 	{Title: "Resource", Width: 24},
-	{Title: "Resouce Type", Width: 12},
+	{Title: "Resource Type", Width: 12},
 	{Title: "Operation", Width: 12},
 	{Title: "Timestamp", Width: 30},
 }
@@ -22,7 +22,6 @@ var columns = []table.Column{
 func LogsProject(logs []*models.AuditLog) {
 	var rows []table.Row
 	for _, log := range logs {
-
 		createTime, _ := utils.FormatCreatedTime(log.OpTime.String())
 		rows = append(rows, table.Row{
 			log.Username,
@@ -38,5 +37,4 @@ func LogsProject(logs []*models.AuditLog) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-
 }

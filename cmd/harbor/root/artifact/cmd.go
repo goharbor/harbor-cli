@@ -5,7 +5,6 @@ import (
 )
 
 func Artifact() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:     "artifact",
 		Short:   "Manage artifacts",

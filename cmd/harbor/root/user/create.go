@@ -34,7 +34,6 @@ func UserCreateCmd() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create user: %v", err)
 			}
-
 		},
 	}
 
@@ -51,5 +50,4 @@ func UserCreateCmd() *cobra.Command {
 func createUserView(createView *create.CreateView) error {
 	create.CreateUserView(createView)
 	return api.CreateUser(*createView)
-
 }

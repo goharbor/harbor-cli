@@ -29,5 +29,4 @@ func ListArtifacts(artifacts []*models.Artifact, choice chan<- string) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- p.Choice
 	}
-
 }
