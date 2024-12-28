@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package main
 
 import (
@@ -34,11 +47,9 @@ func (m *HarborCli) BuildDev(
 	ctx context.Context,
 	platform string,
 ) *dagger.File {
-
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
 	// Define the path for the binary output
 	os, arch, err := parsePlatform(platform)
-
 	if err != nil {
 		log.Fatalf("Error parsing platform: %v", err)
 	}
@@ -97,9 +108,11 @@ func (m *HarborCli) build(
 // LintReport Executes the Linter and writes the linting results to a file golangci-lint-report.sarif
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint-report.sarif"
-	return m.lint(ctx).WithExec([]string{"golangci-lint", "run",
+	return m.lint(ctx).WithExec([]string{
+		"golangci-lint", "run", "-v",
 		"--out-format", "sarif:" + report,
-		"--issues-exit-code", "0"}).File(report)
+		"--issues-exit-code", "1",
+	}).File(report)
 }
 
 // Lint Run the linter golangci-lint
@@ -125,7 +138,8 @@ func (m *HarborCli) PublishImage(
 	// +optional
 	// +default=["latest"]
 	imageTags []string,
-	registryPassword *dagger.Secret) []string {
+	registryPassword *dagger.Secret,
+) []string {
 	builders := m.build(ctx)
 	releaseImages := []*dagger.Container{}
 
@@ -159,7 +173,6 @@ func (m *HarborCli) PublishImage(
 				fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "harbor-cli", imageTag),
 				dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
 			)
-
 		if err != nil {
 			panic(err)
 		}
@@ -207,7 +220,6 @@ func (m *HarborCli) goreleaserContainer() *dagger.Container {
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
 		WithEnvVariable("TINI_SUBREAPER", "true")
-
 }
 
 // RunDoc Generate CLI Documentation with doc.go and return the directory containing the generated files
@@ -261,7 +273,6 @@ func (m *HarborCli) PublishImageAndSign(
 	// +optional
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
-
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
 	_, err := m.Sign(
 		ctx,
@@ -309,7 +320,8 @@ func (m *HarborCli) Sign(ctx context.Context,
 
 	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
-		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
+		WithExec([]string{
+			"cosign", "sign", "--yes", "--recursive",
 			"--registry-username", registryUsername,
 			"--registry-password", registryPasswordPlain,
 			imageAddr,
