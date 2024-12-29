@@ -12,15 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-type logsProjectOptions struct {
-	page     int64
-	pageSize int64
-	q        string
-	sort     string
-}
-
 func LogsProjectCommmand() *cobra.Command {
-	var opts logsProjectOptions
+	var opts api.ListFlags
 
 	cmd := &cobra.Command{
 		Use:   "logs",
@@ -54,10 +47,10 @@ func LogsProjectCommmand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Int64VarP(&opts.page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.pageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&opts.q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
