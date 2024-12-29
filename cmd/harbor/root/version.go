@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,11 @@ func versionCommand() *cobra.Command {
 		Short:   "Version of Harbor CLI",
 		Long:    `Get Harbor CLI version, git commit, go version, build time, release channel, os/arch, etc.`,
 		Example: `  harbor version`,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVersion()
 		},

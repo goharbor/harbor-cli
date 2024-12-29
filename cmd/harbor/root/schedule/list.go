@@ -15,6 +15,11 @@ func ListScheduleCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "show all schedule jobs in Harbor",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			schedule, err := api.ListSchedule(opts)
 

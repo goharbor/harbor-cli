@@ -14,7 +14,11 @@ func CreateRegistryCommand() *cobra.Command {
 		Use:     "create",
 		Short:   "create registry",
 		Example: "harbor registry create",
-		Args:    cobra.NoArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &api.CreateRegView{

@@ -15,7 +15,11 @@ func CreateLabelCommand() *cobra.Command {
 		Short:   "create label",
 		Long:    "create label in harbor",
 		Example: "harbor label create",
-		Args:    cobra.NoArgs,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{

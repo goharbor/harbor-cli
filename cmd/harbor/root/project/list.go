@@ -19,6 +19,11 @@ func ListProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if private && public {
 				log.Fatal("Cannot specify both --private and --public flags")

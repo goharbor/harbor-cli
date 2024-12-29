@@ -13,9 +13,13 @@ func UserListCmd() *cobra.Command {
 	var opts api.ListFlags
 
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "list users",
-		Args:    cobra.NoArgs,
+		Use:   "list",
+		Short: "list users",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				log.Fatalf("Error: accepts 0 arg(s), received %d: %v", len(args), args)
+			}
+		},
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
 			response, err := api.ListUsers(opts)
