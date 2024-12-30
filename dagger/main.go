@@ -34,11 +34,9 @@ func (m *HarborCli) BuildDev(
 	ctx context.Context,
 	platform string,
 ) *dagger.File {
-
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
 	// Define the path for the binary output
 	os, arch, err := parsePlatform(platform)
-
 	if err != nil {
 		log.Fatalf("Error parsing platform: %v", err)
 	}
@@ -97,9 +95,11 @@ func (m *HarborCli) build(
 // LintReport Executes the Linter and writes the linting results to a file golangci-lint-report.sarif
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint-report.sarif"
-	return m.lint(ctx).WithExec([]string{"golangci-lint", "run",
+	return m.lint(ctx).WithExec([]string{
+		"golangci-lint", "run",
 		"--out-format", "sarif:" + report,
-		"--issues-exit-code", "0"}).File(report)
+		"--issues-exit-code", "1",
+	}).File(report)
 }
 
 // Lint Run the linter golangci-lint
@@ -125,7 +125,8 @@ func (m *HarborCli) PublishImage(
 	// +optional
 	// +default=["latest"]
 	imageTags []string,
-	registryPassword *dagger.Secret) []string {
+	registryPassword *dagger.Secret,
+) []string {
 	builders := m.build(ctx)
 	releaseImages := []*dagger.Container{}
 
@@ -159,7 +160,6 @@ func (m *HarborCli) PublishImage(
 				fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "harbor-cli", imageTag),
 				dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
 			)
-
 		if err != nil {
 			panic(err)
 		}
@@ -207,10 +207,9 @@ func (m *HarborCli) goreleaserContainer() *dagger.Container {
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
 		WithEnvVariable("TINI_SUBREAPER", "true")
-
 }
 
-// RunDoc Generate CLI Documentation with doc.go and return the directory containing the generated files
+// Generate CLI Documentation and return the directory containing the generated files
 func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 	return dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
@@ -220,7 +219,8 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
-		WithExec([]string{"go", "run", "doc.go"}).
+		WithExec([]string{"go", "run", "_doc.go"}).
+		WithExec([]string{"go", "run", "_man_doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
 }
 
@@ -261,7 +261,6 @@ func (m *HarborCli) PublishImageAndSign(
 	// +optional
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
-
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
 	_, err := m.Sign(
 		ctx,
@@ -309,7 +308,8 @@ func (m *HarborCli) Sign(ctx context.Context,
 
 	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
 		WithExec([]string{"cosign", "env"}).
-		WithExec([]string{"cosign", "sign", "--yes", "--recursive",
+		WithExec([]string{
+			"cosign", "sign", "--yes", "--recursive",
 			"--registry-username", registryUsername,
 			"--registry-password", registryPasswordPlain,
 			imageAddr,
