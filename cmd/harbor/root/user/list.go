@@ -42,5 +42,4 @@ func UserListCmd() *cobra.Command {
 	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
-
 }

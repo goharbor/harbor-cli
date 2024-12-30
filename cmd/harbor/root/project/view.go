@@ -11,9 +11,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// GetProjectCommand creates a new `harbor get project` command
 func ViewCommand() *cobra.Command {
-
+	var isID bool
 	cmd := &cobra.Command{
 		Use:   "view [NAME|ID]",
 		Short: "get project by name or id",
@@ -30,7 +29,6 @@ func ViewCommand() *cobra.Command {
 			}
 
 			project, err = api.GetProject(projectName)
-
 			if err != nil {
 				log.Errorf("failed to get project: %v", err)
 				return
@@ -46,9 +44,11 @@ func ViewCommand() *cobra.Command {
 			} else {
 				view.ViewProjects(project.Payload)
 			}
-
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVar(&isID, "id", false, "Get project by id")
 
 	return cmd
 }
