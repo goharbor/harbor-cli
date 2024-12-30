@@ -11,6 +11,10 @@ func HealthCommand() *cobra.Command {
 		Use:   "health",
 		Short: "Get the health status of Harbor components",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			err := api.Ping()
+			if err != nil {
+				return err
+			}
 			status, err := api.GetHealth()
 			if err != nil {
 				return err
