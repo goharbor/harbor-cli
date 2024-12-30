@@ -7,8 +7,8 @@ on:
       - "v*.*.*"
   pull_request:
     paths-ignore:
-      - '*.md'
-      - 'assets/**'
+      - "*.md"
+      - "assets/**"
 
 jobs:
   lint:
@@ -21,6 +21,28 @@ jobs:
 
       - name: Dagger Version
         uses: sagikazarmark/dagger-version-action@v0.0.1
+
+      - name: Generate Document
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: run-doc export --path=doc
+
+      - name: Check for changes
+        run: |
+          # Check if any untracked files exist
+          untracked_files=$(git ls-files --others --exclude-standard)
+
+          # If there are untracked files, fail the workflow
+          if [ -n "$untracked_files" ]; then
+            echo "Untracked files found:"
+            echo "$untracked_files"
+            exit 1  # This will fail the workflow
+          else
+            echo "No untracked files found."
+          fi
+        continue-on-error: false
 
       - name: Run Dagger golangci-lint
         uses: dagger/dagger-for-github@v7
@@ -59,61 +81,67 @@ jobs:
           args: build-dev --platform linux/amd64 export --path=./harbor-dev
 
   push-latest-images:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-    needs:
-      - lint
-      - test-code
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Print GitHub ref for debugging
+      run: echo "GitHub ref: $GITHUB_REF"
 
-      - name: Publish and Sign Snapshot Image
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: latest
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+    - name: Push images
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      needs:
+        - lint
+        - test-code
+      permissions:
+        contents: read
+        id-token: write
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
 
+        - name: Publish and Sign Snapshot Image
+          uses: ./.github/actions/publish-and-sign
+          with:
+            IMAGE_TAGS: latest
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+            REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+            REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
   publish-release:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-    needs:
-      - lint
-      - test-code
-    permissions:
-      contents: write
-      packages: write
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Create Release
-        uses: dagger/dagger-for-github@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          version: "latest"
-          verb: call
-          args: "release --github-token=env:GITHUB_TOKEN"
+    - name: Print GitHub ref for debugging
+      run: echo "GitHub ref: $GITHUB_REF"
 
-      - name: Publish and Sign Tagged Image
-        if: success()
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: "latest, ${{ github.ref_name }}"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+    - name: Push images
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      needs:
+        - lint
+        - test-code
+      permissions:
+        contents: write
+        packages: write
+        id-token: write
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - name: Create Release
+          uses: dagger/dagger-for-github@v7
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            version: "latest"
+            verb: call
+            args: "release --github-token=env:GITHUB_TOKEN"
 
+        - name: Publish and Sign Tagged Image
+          if: success()
+          uses: ./.github/actions/publish-and-sign
+          with:
+            IMAGE_TAGS: "latest, ${{ github.ref_name }}"
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+            REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+            REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}

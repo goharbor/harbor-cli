@@ -1,0 +1,79 @@
+diff --git a/.golangci.yaml b/.golangci.yaml
+index b9a4d4f27..fb281a936 100644
+--- a/.golangci.yaml
++++ b/.golangci.yaml
+@@ -1,12 +1,32 @@
+ run:
+   timeout: 3m
++linters-settings:
++  gofmt:
++    # Simplify code: gofmt with `-s` option.
++    # Default: true
++    simplify: false
++  misspell:
++    locale: US,UK
++  stylecheck:
++    checks: [
++      "ST1019",  # Importing the same package multiple times.
++    ]
++  goheader:
++    template-path: copyright.tmpl
++
+ linters:
+   enable:
+     # Default linters are already enabled, these are the additional ones
++    - gosimple
+     - typecheck
+     - gofmt
++    - goimports
+     - gosec
+     - nilnil
++    - unused
++    - errcheck
++    - staticcheck
++    - dupl
+     # - wrapcheck
+     # - gocritic
+     # - revive #, enable once current issues are resolved
+diff --git a/pkg/views/artifact/list/view.go b/pkg/views/artifact/list/view.go
+index 3b851aeeb..62901de74 100644
+--- a/pkg/views/artifact/list/view.go
++++ b/pkg/views/artifact/list/view.go
+@@ -2,13 +2,14 @@ package list
+ 
+ import (
+ 	"fmt"
++	"os"
++	"strconv"
++
+ 	"github.com/charmbracelet/bubbles/table"
+ 	tea "github.com/charmbracelet/bubbletea"
+ 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+ 	"github.com/goharbor/harbor-cli/pkg/utils"
+ 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+-	"os"
+-	"strconv"
+ )
+ 
+ var columns = []table.Column{
+diff --git a/pkg/views/artifact/view/view.go b/pkg/views/artifact/view/view.go
+index 0ab46ae7f..13288d17b 100644
+--- a/pkg/views/artifact/view/view.go
++++ b/pkg/views/artifact/view/view.go
+@@ -2,13 +2,14 @@ package view
+ 
+ import (
+ 	"fmt"
++	"os"
++	"strconv"
++
+ 	"github.com/charmbracelet/bubbles/table"
+ 	tea "github.com/charmbracelet/bubbletea"
+ 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+ 	"github.com/goharbor/harbor-cli/pkg/utils"
+ 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+-	"os"
+-	"strconv"
+ )
+ 
+ var columns = []table.Column{
