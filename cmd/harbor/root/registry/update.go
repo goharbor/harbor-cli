@@ -94,7 +94,7 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.BoolVarP(&opts.Insecure, "insecure", "i", false, "Whether or not the certificate will be verified when Harbor tries to access the server")
 	flags.StringVarP(&opts.Credential.AccessKey, "credential-access-key", "k", "", "Access key, e.g. user name when credential type is 'basic'")
 	flags.StringVarP(&opts.Credential.AccessSecret, "credential-access-secret", "s", "", "Access secret, e.g. password when credential type is 'basic'")
-	flags.StringVarP(&opts.Credential.Type, "credential-type", "c", "", "Credential type, such as 'basic', 'oauth'")
+	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
 
 	return cmd
 }
