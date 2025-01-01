@@ -39,7 +39,7 @@ func PrintPayloadInYAMLFormat(payload any) {
 }
 
 func ParseProjectRepo(projectRepo string) (string, string) {
-	split := strings.Split(projectRepo, "/")
+	split := strings.SplitN(projectRepo, "/", 2) //splits only at first slash
 	if len(split) != 2 {
 		log.Fatalf("invalid project/repository format: %s", projectRepo)
 	}
