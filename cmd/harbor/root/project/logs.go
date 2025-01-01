@@ -29,6 +29,7 @@ func LogsProjectCommmand() *cobra.Command {
 
 			if err != nil {
 				log.Fatalf("failed to get project logs: %v", err)
+				return
 			}
 
 			FormatFlag := viper.GetString("output-format")

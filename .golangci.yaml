@@ -1,12 +1,32 @@
 run:
   timeout: 3m
+linters-settings:
+  gofmt:
+    # Simplify code: gofmt with `-s` option.
+    # Default: true
+    simplify: false
+  misspell:
+    locale: US,UK
+  stylecheck:
+    checks: [
+      "ST1019",  # Importing the same package multiple times.
+    ]
+  goheader:
+    template-path: copyright.tmpl
+
 linters:
   enable:
     # Default linters are already enabled, these are the additional ones
+    - gosimple
     - typecheck
     - gofmt
+    - goimports
     - gosec
     - nilnil
+    - unused
+    - errcheck
+    - staticcheck
+    - dupl
     # - wrapcheck
     # - gocritic
     # - revive #, enable once current issues are resolved
