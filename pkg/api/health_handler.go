@@ -10,12 +10,17 @@ import (
 func GetHealth() (*health.GetHealthOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize client context: ")
 	}
 
 	response, err := client.Health.GetHealth(ctx, &health.GetHealthParams{})
 	if err != nil {
-		return nil, fmt.Errorf("error getting health status: %w", err)
+		switch err.(type) {
+		case *health.GetHealthInternalServerError:
+			return nil, fmt.Errorf("internal server error occurred while getting health status")
+		default:
+			return nil, fmt.Errorf("unknown error occurred while getting health status: %w", err)
+		}
 	}
 
 	return response, nil
