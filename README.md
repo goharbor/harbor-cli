@@ -166,7 +166,7 @@ dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 If golang is installed in your system, you can also build the project using the following commands:
 
 ```bash
-git clone https://github.com/goharbor/harbor-cli.git
+git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
 go build -o harbor-cli cmd/harbor/main.go
 ```
 
