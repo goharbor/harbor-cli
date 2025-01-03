@@ -1,11 +1,10 @@
 package registry
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 func CreateRegistryCommand() *cobra.Command {

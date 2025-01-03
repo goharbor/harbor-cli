@@ -1,11 +1,10 @@
 package labels
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/label/create"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 func CreateLabelCommand() *cobra.Command {

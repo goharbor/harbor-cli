@@ -2,13 +2,12 @@ package project
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ListProjectCommand() *cobra.Command {

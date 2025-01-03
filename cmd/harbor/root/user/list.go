@@ -1,13 +1,12 @@
 package user
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/user/list"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func UserListCmd() *cobra.Command {
