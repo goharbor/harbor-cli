@@ -1,11 +1,11 @@
 package user
 
 import (
-	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 	"github.com/spf13/cobra"
+
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 )
 
 func UserCreateCmd() *cobra.Command {
@@ -14,7 +14,7 @@ func UserCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create user",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{

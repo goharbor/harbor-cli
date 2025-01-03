@@ -2,12 +2,13 @@ package project
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
-	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
 )
 
 func ListProjectCommand() *cobra.Command {
@@ -19,6 +20,7 @@ func ListProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			if private && public {
 				log.Fatal("Cannot specify both --private and --public flags")

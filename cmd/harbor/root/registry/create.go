@@ -1,10 +1,11 @@
 package registry
 
 import (
-	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 )
 
 func CreateRegistryCommand() *cobra.Command {
@@ -14,7 +15,7 @@ func CreateRegistryCommand() *cobra.Command {
 		Use:     "create",
 		Short:   "create registry",
 		Example: "harbor registry create",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &api.CreateRegView{
