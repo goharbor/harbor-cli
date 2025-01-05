@@ -14,7 +14,7 @@ func CreateProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [project name]",
 		Short: "create project",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
