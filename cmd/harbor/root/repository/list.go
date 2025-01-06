@@ -12,6 +12,8 @@ import (
 )
 
 func ListRepositoryCommand() *cobra.Command {
+	var opts api.ListFlags
+
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "list repositories within a project",
@@ -30,7 +32,6 @@ func ListRepositoryCommand() *cobra.Command {
 			}
 
 			repos, err = api.ListRepository(projectName)
-
 			if err != nil {
 				log.Errorf("failed to list repositories: %v", err)
 				return
@@ -45,8 +46,15 @@ func ListRepositoryCommand() *cobra.Command {
 			} else {
 				list.ListRepositories(repos.Payload)
 			}
+			list.ListRepositories(repos.Payload)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }

@@ -33,7 +33,6 @@ func ViewRegistryCommand() *cobra.Command {
 			}
 
 			registry, err = api.ViewRegistry(registryId)
-
 			if err != nil {
 				log.Errorf("failed to get registry info: %v", err)
 				return
@@ -48,7 +47,6 @@ func ViewRegistryCommand() *cobra.Command {
 			} else {
 				view.ViewRegistry(registry.Payload)
 			}
-
 		},
 	}
 
