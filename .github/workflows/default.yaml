@@ -87,7 +87,8 @@ jobs:
 
   push-latest-images:
     - name: Print GitHub ref for debugging
-      run: echo "GitHub ref: $GITHUB_REF"
+      run:|
+      echo "GitHub ref: $GITHUB_REF"
 
     - name: Push images
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -115,7 +116,8 @@ jobs:
 
   publish-release:
     - name: Print GitHub ref for debugging
-      run: echo "GitHub ref: $GITHUB_REF"
+      run:|
+      echo "GitHub ref: $GITHUB_REF"
 
     - name: Push images
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
