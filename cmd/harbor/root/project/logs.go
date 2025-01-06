@@ -1,7 +1,7 @@
 package project
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	proj "github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -13,13 +13,15 @@ import (
 )
 
 func LogsProjectCommmand() *cobra.Command {
+	var opts api.ListFlags
+
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "get project logs",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var resp *project.GetLogsOK
+			var resp *proj.GetLogsOK
 			if len(args) > 0 {
 				resp, err = api.LogsProject(args[0])
 			} else {
@@ -41,9 +43,14 @@ func LogsProjectCommmand() *cobra.Command {
 			} else {
 				auditLog.LogsProject(resp.Payload)
 			}
-
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
