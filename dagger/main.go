@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 )
 
 const (
@@ -41,7 +42,7 @@ func (m *HarborCli) BuildDev(
 		log.Fatalf("Error parsing platform: %v", err)
 	}
 	builder := dag.Container().
-		From("golang:"+GO_VERSION+"-alpine").
+		From("golang:"+GO_VERSION).
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
@@ -49,8 +50,17 @@ func (m *HarborCli) BuildDev(
 		WithMountedDirectory("/src", m.Source). // Ensure the source directory with go.mod is mounted
 		WithWorkdir("/src").
 		WithEnvVariable("GOOS", os).
-		WithEnvVariable("GOARCH", arch).
-		WithExec([]string{"go", "build", "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
+		WithEnvVariable("GOARCH", arch)
+
+	gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
+	buildTime := time.Now().UTC().Format(time.RFC3339)
+	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
+				`, GO_VERSION, buildTime, gitCommit)
+	builder = builder.WithExec([]string{
+		"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
 	return builder.File("bin/harbor-cli")
 }
 
@@ -72,7 +82,7 @@ func (m *HarborCli) build(
 		for _, goarch := range arches {
 			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
 			builder := dag.Container().
-				From("golang:"+GO_VERSION+"-alpine").
+				From("golang:"+GO_VERSION).
 				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
@@ -80,12 +90,23 @@ func (m *HarborCli) build(
 				WithMountedDirectory("/src", m.Source).
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", goos).
-				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
+				WithEnvVariable("GOARCH", goarch)
+
+			version, _ := builder.WithExec([]string{"git", "describe", "--tags", "--abbrev=0"}).Stdout(ctx)
+			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
+			buildTime := time.Now().UTC().Format(time.RFC3339)
+
+			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
+				`, version, GO_VERSION, buildTime, gitCommit)
+
+			builder = builder.WithExec([]string{
+				"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"}).
 				WithWorkdir(bin_path).
 				WithExec([]string{"ls"}).
 				WithEntrypoint([]string{"./harbor"})
-
 			builds = append(builds, builder)
 		}
 	}
