@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/99designs/gqlgen v0.17.55
 	github.com/Khan/genqlient v0.7.0
+	github.com/ctrf-io/go-ctrf-json-reporter v0.0.8
 	github.com/vektah/gqlparser/v2 v2.5.17
 	go.opentelemetry.io/otel v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.0.0-20240518090000-14441aefdf88

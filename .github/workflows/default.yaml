@@ -53,9 +53,15 @@ jobs:
           args: lint-report export --path=golangci-lint-report.sarif
 
       - name: Upload lint results to Github
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: golangci-lint-report.sarif
+
+      - name: Generate lint summary
+        run: cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
+
+      - name: Adding markdown
+        run: echo '### Hello world! ' >> $GITHUB_STEP_SUMMARY
 
       - uses: reviewdog/action-setup@v1
       - name: Run Reviewdog
@@ -77,7 +83,12 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test
+          args: test-report export --path=TestReport.json
+
+      - name: Summarize Tests
+          uses: robherley/go-test-action@v0.6.0
+          with:
+            fromJSONFile: TestReport.json
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
