@@ -50,7 +50,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint-report export --path=golangci-lint-report.sarif
+          args: lint-report export --path=golangci-lint.report
 
       - name: Generate lint summary
         run: |
