@@ -67,9 +67,9 @@ func (m *HarborCli) BuildDev(
 
 	gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
 	buildTime := time.Now().UTC().Format(time.RFC3339)
-	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
 				`, GO_VERSION, buildTime, gitCommit)
 	builder = builder.WithExec([]string{
@@ -109,9 +109,9 @@ func (m *HarborCli) build(
 			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
 			buildTime := time.Now().UTC().Format(time.RFC3339)
 
-			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
 				`, version, GO_VERSION, buildTime, gitCommit)
 
@@ -253,8 +253,8 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
-		WithExec([]string{"go", "run", "_doc.go"}).
-		WithExec([]string{"go", "run", "_man_doc.go"}).
+		WithExec([]string{"go", "run", "doc.go"}).
+		WithExec([]string{"go", "run", "./man-docs/man_doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
 }
 

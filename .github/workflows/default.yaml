@@ -31,12 +31,13 @@ jobs:
 
       - name: Check for changes
         run: |
-          # Check if any untracked files exist
+          # Check if any newly added docs exist
           untracked_files=$(git ls-files --others --exclude-standard)
 
           # If there are untracked files, fail the workflow
           if [ -n "$untracked_files" ]; then
-            echo "Untracked files found:"
+            echo "New Untracked files found"
+            echo "please check if docs were added for new commands"
             echo "$untracked_files"
             exit 1  # This will fail the workflow
           else
