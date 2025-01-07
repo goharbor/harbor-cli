@@ -55,14 +55,14 @@ jobs:
       - name: Generate lint summary
         run: |
           echo "<h2> 📝 Lint results</h2>" >> $GITHUB_STEP_SUMMARY
-          cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
+          cat golangci-lint.report >> $GITHUB_STEP_SUMMARY
 
-      - uses: reviewdog/action-setup@v1
-      - name: Run Reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
+      # - uses: reviewdog/action-setup@v1
+      # - name: Run Reviewdog
+      #   env:
+      #     REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
 
   test-code:
     runs-on: ubuntu-latest
