@@ -52,11 +52,6 @@ jobs:
           verb: call
           args: lint-report export --path=golangci-lint-report.sarif
 
-      - name: Upload lint results to Github
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: golangci-lint-report.sarif
-
       - name: Generate lint summary
         run: cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
 
