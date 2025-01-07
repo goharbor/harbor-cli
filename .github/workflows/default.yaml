@@ -86,9 +86,9 @@ jobs:
           args: test-report export --path=TestReport.json
 
       - name: Summarize Tests
-          uses: robherley/go-test-action@v0.6.0
-          with:
-            fromJSONFile: TestReport.json
+        uses: robherley/go-test-action@v0.6.0
+        with:
+          fromJSONFile: TestReport.json
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
