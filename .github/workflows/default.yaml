@@ -54,7 +54,7 @@ jobs:
 
       - name: Generate lint summary
         run: |
-          echo "## 📝 Lint results" >> $GITHUB_STEP_SUMMARY
+          echo "<h2> 📝 Lint results</h2>" >> $GITHUB_STEP_SUMMARY
           cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
 
       - uses: reviewdog/action-setup@v1
