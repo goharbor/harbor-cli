@@ -53,10 +53,9 @@ jobs:
           args: lint-report export --path=golangci-lint-report.sarif
 
       - name: Generate lint summary
-        run: cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
-
-      - name: Adding markdown
-        run: echo '### Hello world! ' >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo "## 📝 Lint results" >> $GITHUB_STEP_SUMMARY
+          cat golangci-lint-report.sarif >> $GITHUB_STEP_SUMMARY
 
       - uses: reviewdog/action-setup@v1
       - name: Run Reviewdog

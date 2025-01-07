@@ -133,7 +133,7 @@ func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint-report.sarif"
 	return m.lint(ctx).WithExec([]string{
 		"golangci-lint", "run", "-v",
-		"--out-format", "github-actions:" + report,
+		"--out-format", "html:" + report,
 		"--issues-exit-code", "0",
 	}).File(report)
 }
