@@ -26,3 +26,19 @@ func ListVulnerability(opts ...ListFlags) (*securityhub.ListVulnerabilitiesOK, e
 	}
 	return response, nil
 }
+
+func GetTotalVulnerabilities(withArtifact, WithCVE bool) (*securityhub.GetSecuritySummaryOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return &securityhub.GetSecuritySummaryOK{}, err
+	}
+	response, err := client.Securityhub.GetSecuritySummary(ctx, &securityhub.GetSecuritySummaryParams{
+		WithDangerousArtifact: &withArtifact,
+		WithDangerousCVE:      &WithCVE,
+	})
+	if err != nil {
+		return &securityhub.GetSecuritySummaryOK{}, err
+	}
+
+	return response, nil
+}

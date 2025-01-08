@@ -3,7 +3,6 @@ package list
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,28 +11,28 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "CVE ID", Width: 12},
-	{Title: "Repository Name", Width: 12},
-	{Title: "Digest", Width: 12},
+	{Title: "CVE ID", Width: 15},
+	{Title: "Repository Name", Width: 20},
+	{Title: "Digest", Width: 20},
 	{Title: "Tags", Width: 12},
 	{Title: "CVSS3", Width: 5},
 	{Title: "Severity", Width: 10},
-	{Title: "Package", Width: 10},
+	{Title: "Package", Width: 20},
 	{Title: "Current version", Width: 15},
-	{Title: "Fixed in version", Width: 15},
+	{Title: "Fixed in version", Width: 20},
 }
 
 func ListVulnerability(vulnerability []*models.VulnerabilityItem) {
 	var rows []table.Row
 	for _, vul := range vulnerability {
 		var tags string
-		if len(tags) != 0 {
-			tags = strings.Join(vul.Tags, ",")
+		for tag := range vul.Tags {
+			fmt.Println(tag)
 		}
 		rows = append(rows, table.Row{
 			vul.CVEID,
 			vul.RepositoryName,
-			vul.Digest,
+			vul.Digest[:16],
 			tags,
 			fmt.Sprintf("%.1f", vul.CvssV3Score),
 			vul.Severity,
@@ -50,3 +49,4 @@ func ListVulnerability(vulnerability []*models.VulnerabilityItem) {
 		os.Exit(1)
 	}
 }
+
