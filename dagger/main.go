@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package main
 
 import (
@@ -54,13 +67,14 @@ func (m *HarborCli) BuildDev(
 
 	gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
 	buildTime := time.Now().UTC().Format(time.RFC3339)
-	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=dev
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
 				`, GO_VERSION, buildTime, gitCommit)
 	builder = builder.WithExec([]string{
-		"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"})
+		"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go",
+	})
 	return builder.File("bin/harbor-cli")
 }
 
@@ -96,14 +110,15 @@ func (m *HarborCli) build(
 			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD"}).Stdout(ctx)
 			buildTime := time.Now().UTC().Format(time.RFC3339)
 
-			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s 
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s 
+			ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
+						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s
 						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
 				`, version, GO_VERSION, buildTime, gitCommit)
 
 			builder = builder.WithExec([]string{
-				"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go"}).
+				"go", "build", "-ldflags", ldflagsArgs, "-o", "bin/harbor-cli", "cmd/harbor/main.go",
+			}).
 				WithWorkdir(bin_path).
 				WithExec([]string{"ls"}).
 				WithEntrypoint([]string{"./harbor"})
@@ -113,13 +128,13 @@ func (m *HarborCli) build(
 	return builds
 }
 
-// LintReport Executes the Linter and writes the linting results to a file golangci-lint-report.sarif
+// Executes Linter and writes results to a file golangci-lint.report
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
-	report := "golangci-lint-report.sarif"
+	report := "golangci-lint.report"
 	return m.lint(ctx).WithExec([]string{
-		"golangci-lint", "run",
-		"--out-format", "sarif:" + report,
-		"--issues-exit-code", "1",
+		"golangci-lint", "run", "-v",
+		"--out-format", "github-actions:" + report,
+		"--issues-exit-code", "0",
 	}).File(report)
 }
 
@@ -240,12 +255,12 @@ func (m *HarborCli) RunDoc(ctx context.Context) *dagger.Directory {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
-		WithExec([]string{"go", "run", "_doc.go"}).
-		WithExec([]string{"go", "run", "_man_doc.go"}).
+		WithExec([]string{"go", "run", "doc.go"}).
+		WithExec([]string{"go", "run", "./man-docs/man_doc.go"}).
 		WithWorkdir("/src").Directory("/src/doc")
 }
 
-// Test Executes Go tests and returns the directory containing the test results
+// Executes Go tests
 func (m *HarborCli) Test(ctx context.Context) (string, error) {
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
@@ -257,6 +272,23 @@ func (m *HarborCli) Test(ctx context.Context) (string, error) {
 		WithWorkdir("/src").
 		WithExec([]string{"go", "test", "-v", "./..."})
 	return test.Stdout(ctx)
+}
+
+// Executes Go tests and returns TestReport in json file
+func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
+	reportName := "TestReport.json"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"gotestsum", "--jsonfile", reportName})
+
+	return test.File(reportName)
 }
 
 // Parse the platform string into os and arch
