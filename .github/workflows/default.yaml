@@ -105,19 +105,20 @@ jobs:
       contents: read
       id-token: write
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Print GitHub ref for debugging
         run: |
           echo "GitHub ref: $GITHUB_REF"
 
       - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main'))
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Publish and Sign Snapshot Image
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main'))
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
         uses: ./.github/actions/publish-and-sign
         with:
           IMAGE_TAGS: latest
@@ -135,6 +136,7 @@ jobs:
       packages: write
       id-token: write
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
     steps:
       - name: Print GitHub ref for debugging
         run: |
