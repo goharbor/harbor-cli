@@ -16,6 +16,8 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,6 +52,124 @@ func FormatUrl(url string) string {
 		url = "https://" + url
 	}
 	return url
+}
+
+// ValidateDomain validates subdomain, IP, or top-level domain formats
+func ValidateDomain(domain string) error {
+	url := FormatUrl(domain)
+
+	err := isValidURL(url)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func isValidURL(rawURL string) error {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return errors.New("invaild url scheme")
+	}
+
+	if parsedURL.Host == "" {
+		return errors.New("missing domain")
+	}
+
+	host, port, err := net.SplitHostPort(parsedURL.Host)
+	if err != nil {
+		host = parsedURL.Host
+	}
+
+	if err := isValidHost(host); err != nil {
+		return err
+	}
+
+	if port != "" && !isValidPort(port) {
+		return errors.New("invalid port")
+	}
+
+	return nil
+}
+
+// Validate whether the port is valid
+func isValidPort(port string) bool {
+	portRegex := `^([1-9][0-9]{0,4})$`
+	match, _ := regexp.MatchString(portRegex, port)
+	if !match {
+		return false
+	}
+	portNumber := 0
+	fmt.Sscanf(port, "%d", &portNumber)
+	return portNumber >= 1 && portNumber <= 65535
+}
+
+func extractIP(host string) string {
+	ipv4Regex := `(?:\d{1,3}\.){3}\d{1,3}`
+
+	re := regexp.MustCompile(ipv4Regex)
+	ipv4Matches := re.FindString(host)
+
+	if ipv4Matches != "" {
+		return ipv4Matches
+	}
+
+	return ""
+}
+
+// Validate whether the host is valid
+func isValidHost(host string) error {
+	ip := extractIP(host)
+	if ip != "" {
+		return isValidIPv4(host)
+	}
+
+	parts := strings.Split(host, ".")
+	if len(parts) < 2 {
+		return errors.New("invalid host: must have at least one dot")
+	}
+
+	for _, part := range parts {
+		if !isValidLabel(part) {
+			return fmt.Errorf("invalid host label: %s", part)
+		}
+	}
+
+	if len(parts[len(parts)-1]) < 2 {
+		return errors.New("invalid top-level host: must be at least 2 characters")
+	}
+	return nil
+}
+
+func isValidIPv4(ip string) error {
+	octets := strings.Split(ip, ".")
+	if len(octets) != 4 {
+		return errors.New("IP: consists of more than three octets")
+	}
+
+	for _, octet := range octets {
+		num, err := strconv.Atoi(octet)
+		if err != nil || num < 0 || num > 255 {
+			return errors.New("IP: octet exceeds range")
+		}
+	}
+	return nil
+}
+
+// Helper function to validate individual domain labels
+func isValidLabel(label string) bool {
+	if len(label) == 0 || len(label) > 63 {
+		return false
+	}
+
+	for i, ch := range label {
+		if !(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '-') {
+			return false
+		}
+		if (i == 0 || i == len(label)-1) && ch == '-' {
+			return false
+		}
+	}
+	return true
 }
 
 func FormatSize(size int64) string {

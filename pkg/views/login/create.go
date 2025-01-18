@@ -16,7 +16,6 @@ package login
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -45,10 +44,11 @@ func CreateView(loginView *LoginView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("server cannot be empty or only spaces")
 					}
-					formattedUrl := utils.FormatUrl(str)
-					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("please enter the correct server format")
+					err := utils.ValidateDomain(str)
+					if err != nil {
+						return err
 					}
+
 					return nil
 				}),
 			huh.NewInput().
