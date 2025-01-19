@@ -196,3 +196,43 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 	log.Infof("Tag created successfully: %s/%s@%s:%s", projectName, repoName, reference, tagName)
 	return nil
 }
+
+func AddLabel(projectName, repoName, reference string, labelID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Artifact.AddLabel(ctx, &artifact.AddLabelParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Reference:      reference,
+		Label: &models.Label{
+			ID: labelID,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	log.Infof("Label added successfully: %s/%s@%s", projectName, repoName, reference)
+	return nil
+}
+
+func RemoveLabel(projectName, repoName, reference string, labelID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Artifact.RemoveLabel(ctx, &artifact.RemoveLabelParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Reference:      reference,
+		LabelID:        labelID,
+	})
+	if err != nil {
+		return err
+	}
+	log.Infof("Label removed successfully: %s/%s@%s", projectName, repoName, reference)
+	return nil
+}
