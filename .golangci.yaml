@@ -27,6 +27,13 @@ linters:
     - errcheck
     - staticcheck
     - dupl
+    - goheader
+    - misspell
+    - ineffassign
+    - whitespace
+    - bodyclose
+    - govet
+    - stylecheck
     # - wrapcheck
     # - gocritic
     # - revive #, enable once current issues are resolved

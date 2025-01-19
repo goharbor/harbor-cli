@@ -11,34 +11,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package api
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/ping"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/sirupsen/logrus"
 )
 
-func ProjectList(project []*models.Project, choice chan<- string) {
-	items := make([]list.Item, len(project))
-	for i, p := range project {
-		items[i] = selection.Item(p.Name)
-	}
-
-	m := selection.NewModel(items, "Project")
-
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
+func Ping() error {
+	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		logrus.Errorf("failed to get client: %v", err)
+		return err
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- p.Choice
+	_, err = client.Ping.GetPing(ctx, &ping.GetPingParams{})
+	if err != nil {
+		logrus.Errorf("failed to ping the server: %v", err)
+		return err
 	}
+
+	return nil
 }
