@@ -14,6 +14,8 @@
 package repository
 
 import (
+	"sync"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -30,8 +32,35 @@ func RepoDeleteCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			if len(args) > 0 {
-				projectName, repoName := utils.ParseProjectRepo(args[0])
-				err = api.RepoDelete(projectName, repoName)
+				var wg sync.WaitGroup
+				errChan := make(chan error, len(args))
+				for _, arg := range args {
+					wg.Add(1)
+					go func(arg string) {
+						defer wg.Done()
+						projectName, repoName := utils.ParseProjectRepo(arg)
+						err := api.RepoDelete(projectName, repoName)
+						errChan <- err
+						if err != nil {
+							log.Errorf("failed to delete repository %v: %v", arg, err)
+						}
+					}(arg)
+				}
+				wg.Wait()
+				close(errChan)
+				var countDeleted int
+				var countErr int
+				var finalErr error
+				for err := range errChan {
+					if err != nil {
+						countErr++
+						finalErr = err
+					} else {
+						countDeleted++
+					}
+				}
+				err = finalErr
+				log.Infof("deleted %d repositories, %d failed", countDeleted, countErr)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)

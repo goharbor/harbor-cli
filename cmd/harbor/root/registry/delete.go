@@ -14,6 +14,8 @@
 package registry
 
 import (
+	"sync"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -28,10 +30,36 @@ func DeleteRegistryCommand() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
 			if len(args) > 0 {
-				registryName, _ := api.GetRegistryIdByName(args[0])
-				err = api.DeleteRegistry(registryName)
+				var wg sync.WaitGroup
+				errChan := make(chan error, len(args))
+				for _, arg := range args {
+					wg.Add(1)
+					go func(arg string) {
+						defer wg.Done()
+						registryName, _ := api.GetRegistryIdByName(arg)
+						err := api.DeleteRegistry(registryName)
+						errChan <- err
+						if err != nil {
+							log.Errorf("failed to delete registry %v: %v", arg, err)
+						}
+					}(arg)
+				}
+				wg.Wait()
+				close(errChan)
+				var countdeleted int
+				var counterr int
+				var finalerr error
+				for err := range errChan {
+					if err != nil {
+						counterr++
+						finalerr = err
+					} else {
+						countdeleted++
+					}
+				}
+				err = finalerr
+				log.Infof("deleted %d registries, %d failed", countdeleted, counterr)
 			} else {
 				registryId := prompt.GetRegistryNameFromUser()
 				err = api.DeleteRegistry(registryId)

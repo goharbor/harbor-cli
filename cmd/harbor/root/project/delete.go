@@ -14,6 +14,8 @@
 package project
 
 import (
+	"sync"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -32,7 +34,34 @@ func DeleteProjectCommand() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				err = api.DeleteProject(args[0], forceDelete)
+				var wg sync.WaitGroup
+				errChan := make(chan error, len(args))
+				for _, arg := range args {
+					wg.Add(1)
+					go func(arg string) {
+						defer wg.Done()
+						err := api.DeleteProject(arg, forceDelete)
+						errChan <- err
+						if err != nil {
+							log.Errorf("failed to delete project %v: %v", arg, err)
+						}
+					}(arg)
+				}
+				wg.Wait()
+				close(errChan)
+				var countdeleted int
+				var counterr int
+				var finalerr error
+				for err := range errChan {
+					if err != nil {
+						counterr++
+						finalerr = err
+					} else {
+						countdeleted++
+					}
+				}
+				err = finalerr
+				log.Infof("deleted %d projects, %d failed", countdeleted, counterr)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				err = api.DeleteProject(projectName, forceDelete)
