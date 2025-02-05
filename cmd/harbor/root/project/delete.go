@@ -34,6 +34,9 @@ func DeleteProjectCommand() *cobra.Command {
 			if len(args) > 0 {
 				for _, arg := range args {
 					err = api.DeleteProject(arg, forceDelete)
+					if err != nil {
+						log.Errorf("failed to delete project: %v", err)
+					}
 				}
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
