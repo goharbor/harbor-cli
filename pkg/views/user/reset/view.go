@@ -40,6 +40,9 @@ func ResetUserView(resetView *ResetView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("password cannot be empty or only spaces")
 					}
+					if resetView.OldPassword == resetView.NewPassword {
+						return errors.New("new password is the same as the old one")
+					}
 					if err := utils.ValidatePassword(str); err != nil {
 						return err
 					}

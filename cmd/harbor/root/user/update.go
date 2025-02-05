@@ -10,9 +10,8 @@ import (
 )
 
 func UpdateUserCmd() *cobra.Command {
-
-	opts := &models.UserProfile{}
 	var UserID int64
+	opts := &models.UserProfile{}
 
 	cmd := &cobra.Command{
 		Use:     "update",
@@ -24,14 +23,14 @@ func UpdateUserCmd() *cobra.Command {
 			var err error
 			flags := cmd.Flags()
 
-			if !flags.Changed("userID") {
-				if len(args) > 0 {
-					UserID, err = api.GetUsersIdByName(args[0])
-					if err != nil {
-						logrus.Error(err)
-						return
-					}
-				} else {
+			if len(args) > 0 {
+				UserID, err = api.GetUsersIdByName(args[0])
+				if err != nil {
+					logrus.Errorf("fail to get user id by username: %s", args[0])
+					return
+				}
+			} else {
+				if !flags.Changed("userID") {
 					UserID = prompt.GetUserIdFromUser()
 				}
 			}
@@ -66,10 +65,10 @@ func UpdateUserCmd() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.Int64VarP(&UserID, "userID", "d", 0, "ID of the user")
-	flags.StringVarP(&opts.Comment, "comment", "m", "", "Comment of the user")
-	flags.StringVarP(&opts.Email, "email", "e", "", "Email of the user")
-	flags.StringVarP(&opts.Realname, "realname", "r", "", "Realname of the user")
+	flags.Int64VarP(&UserID, "userID", "", -1, "ID of the user")
+	flags.StringVarP(&opts.Comment, "comment", "", "", "Comment of the user")
+	flags.StringVarP(&opts.Email, "email", "", "", "Email of the user")
+	flags.StringVarP(&opts.Realname, "realname", "", "", "Realname of the user")
 
 	return cmd
 }

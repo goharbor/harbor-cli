@@ -28,7 +28,7 @@ func CreateUserView(createView *CreateView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("user name cannot be empty")
 					}
-					if isVaild := utils.ValidateUserName(str); !isVaild {
+					if isVaild := utils.ValidateName(str); !isVaild {
 						return errors.New("username cannot contain special characters")
 					}
 					return nil
@@ -53,7 +53,7 @@ func CreateUserView(createView *CreateView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("real name cannot be empty")
 					}
-					if isValid := utils.ValidateFL(str); !isValid {
+					if isValid := utils.ValidateName(str); !isValid {
 						return errors.New("please enter correct first and last name format, like `Bob Dylan`")
 					}
 					return nil

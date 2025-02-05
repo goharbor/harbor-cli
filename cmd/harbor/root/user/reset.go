@@ -9,7 +9,7 @@ import (
 )
 
 func UserResetCmd() *cobra.Command {
-
+	var UserID int64
 	cmd := &cobra.Command{
 		Use:   "reset [username]",
 		Short: "reset user's password",
@@ -17,17 +17,21 @@ func UserResetCmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var UserID int64
 			resetView := &reset.ResetView{}
+			flags := cmd.Flags()
 
 			if len(args) > 0 {
-				UserID, err = api.GetUsersIdByName(args[0])
-				if err != nil {
-					logrus.Error(err)
-					return
-				}
+				UserID, _ = api.GetUsersIdByName(args[0])
 			} else {
-				UserID = prompt.GetUserIdFromUser()
+				if !flags.Changed("userID") {
+					UserID = prompt.GetUserIdFromUser()
+				}
+			}
+
+			existingUser := api.GetUserProfileById(UserID)
+			if existingUser == nil {
+				logrus.Errorf("user is not found")
+				return
 			}
 
 			reset.ResetUserView(resetView)
@@ -40,6 +44,9 @@ func UserResetCmd() *cobra.Command {
 
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&UserID, "userID", "", -1, "ID of the user")
 
 	return cmd
 

@@ -33,8 +33,8 @@ func UpdateUserProfileView(updateView *models.UserProfile) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("real name cannot be empty")
 					}
-					if isValid := utils.ValidateFL(str); !isValid {
-						return errors.New("please enter correct first and last name format, like `Bob Dylan`")
+					if isValid := utils.ValidateName(str); !isValid {
+						return errors.New("realname with illegal length or contains illegal characters")
 					}
 					return nil
 				}),
