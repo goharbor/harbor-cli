@@ -57,12 +57,13 @@ func FormatSize(size int64) string {
 	return fmt.Sprintf("%.2fMiB", mbSize)
 }
 
-// ValidateUserName checks if the username is valid by length and allowed characters.
-func ValidateUserName(username string) bool {
-	username = strings.TrimSpace(username)
-	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
+// ValidateUserName checks if the username or realname is valid by length and allowed characters.
+func ValidateName(name string) bool {
+	name = strings.TrimSpace(name)
+	return len(name) >= 1 && len(name) <= 255 && !strings.ContainsAny(name, `,"~#%$`)
 }
 
+// ValidateEmail checks if the email is valid by the format of email
 func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
@@ -73,12 +74,6 @@ func ValidateConfigPath(configPath string) bool {
 	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(configPath)
-}
-
-func ValidateFL(name string) bool {
-	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(name)
 }
 
 // check if the password format is vaild

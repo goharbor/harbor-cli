@@ -58,7 +58,7 @@ func CreateView(loginView *LoginView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("username cannot be empty or only spaces")
 					}
-					if isValid := utils.ValidateUserName(str); !isValid {
+					if isValid := utils.ValidateName(str); !isValid {
 						return errors.New("please enter correct username format")
 					}
 					return nil
