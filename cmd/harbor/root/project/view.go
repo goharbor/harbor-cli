@@ -32,16 +32,16 @@ func ViewCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var projectName string
+			var projectNameOrID string
 			var project *project.GetProjectOK
 
 			if len(args) > 0 {
-				projectName = args[0]
+				projectNameOrID = args[0]
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectNameOrID = prompt.GetProjectNameFromUser()
 			}
 
-			project, err = api.GetProject(projectName)
+			project, err = api.GetProject(projectNameOrID, false)
 			if err != nil {
 				log.Errorf("failed to get project: %v", err)
 				return

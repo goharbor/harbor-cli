@@ -153,3 +153,8 @@ func PrintFormat[T any](resp T, format string) error {
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
+
+func CreateBoolPointer(b bool) *bool {
+    return &b
+}
+
