@@ -14,6 +14,7 @@
 package artifact
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/labels"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,7 @@ func Artifact() *cobra.Command {
 		DeleteArtifactCommand(),
 		ScanArtifactCommand(),
 		ArtifactTagsCmd(),
-		ArtifactLabelsCmd(),
+		labels.ArtifactLabelsCmd(),
 	)
 
 	return cmd
