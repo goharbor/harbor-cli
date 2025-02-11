@@ -1,11 +1,10 @@
 package root
 
 import (
-	"log"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/info/list"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,12 +35,14 @@ func InfoCommand() *cobra.Command {
 			systemInfo := list.CreateSystemInfo(generalInfo.Payload, stats.Payload, sysVolume.Payload)
 
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag == "json" {
-				utils.PrintPayloadInJSONFormat(systemInfo)
-				return
+			if FormatFlag != "" {
+				err = utils.PrintFormat(systemInfo, FormatFlag)
+				if err != nil {
+					log.Error(err)
+				}
+			} else {
+				list.ListInfo(&systemInfo)
 			}
-
-			list.ListInfo(&systemInfo)
 		},
 	}
 
