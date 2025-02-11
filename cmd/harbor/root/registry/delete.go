@@ -27,7 +27,7 @@ func DeleteRegistryCommand() *cobra.Command {
 		Use:     "delete",
 		Short:   "delete registry by name or id",
 		Example: "harbor registry delete [registryname]",
-		Args:    cobra.MaximumNArgs(1),
+		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
 			errChan := make(chan error, len(args))

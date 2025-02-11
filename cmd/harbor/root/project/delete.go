@@ -26,9 +26,9 @@ import (
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
 	cmd := &cobra.Command{
-		Use:     "delete [NAME]",
+		Use:     "delete",
 		Short:   "delete project by name or id",
-		Example: `  harbor project delete [NAME]`,
+		Example: `  harbor project delete [projectname]`,
 		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
