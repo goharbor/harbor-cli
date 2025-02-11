@@ -53,4 +53,3 @@ func GetSystemVolumes() (*systeminfo.GetVolumesOK, error) {
 
 	return response, nil
 }
-

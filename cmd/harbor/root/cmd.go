@@ -74,7 +74,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
-    InfoCommand(),
+		InfoCommand(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
