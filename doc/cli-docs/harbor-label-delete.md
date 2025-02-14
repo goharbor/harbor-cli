@@ -1,6 +1,6 @@
 ---
 title: harbor label delete
-weight: 0
+weight: 60
 ---
 ## harbor label delete
 
