@@ -2,20 +2,20 @@
 .TH "HARBOR" "1" "Feb 2025" "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-label - Manage labels in Harbor
+harbor-config-list - List config items
 
 
 .SH SYNOPSIS
-\fBharbor label [flags]\fP
+\fBharbor config list [flags]\fP
 
 
 .SH DESCRIPTION
-Manage labels in Harbor
+Get information of all CLI config items
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for label
+	help for list
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -31,8 +31,14 @@ Manage labels in Harbor
 	verbose output
 
 
+.SH EXAMPLE
+.EX
+  harbor config list
+.EE
+
+
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-label-create(1)\fP, \fBharbor-label-delete(1)\fP, \fBharbor-label-list(1)\fP, \fBharbor-label-update(1)\fP
+\fBharbor-config(1)\fP
 
 
 .SH HISTORY
