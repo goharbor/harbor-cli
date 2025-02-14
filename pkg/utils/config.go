@@ -340,17 +340,8 @@ func CreateConfigFile(configPath string) error {
 		v := viper.New()
 		v.SetConfigType("yaml")
 
-		defaultConfig := HarborConfig{
-			CurrentCredentialName: "",
-			Credentials: []Credential{
-				{
-					Name:          "",
-					ServerAddress: "",
-					Username:      "",
-					Password:      "",
-				},
-			},
-		}
+		// Create empty default config
+		defaultConfig := HarborConfig{}
 
 		v.Set("current-credential-name", defaultConfig.CurrentCredentialName)
 		v.Set("credentials", defaultConfig.Credentials)

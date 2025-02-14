@@ -65,78 +65,14 @@ func LoginCommand() *cobra.Command {
 				Name:     Name,
 			}
 
-			// autogenerate name
-			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
-				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
-			}
-
-			// Check whether there is already a config with credentials
 			var err error
 			var config *utils.HarborConfig
-			var creds []utils.Credential
 			config, err = utils.GetCurrentHarborConfig()
 			if err != nil {
 				return fmt.Errorf("failed to get current harbor config: %s", err)
 			}
-			currentCredentialName := config.CurrentCredentialName
-
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
-				err = runLogin(loginView)
-				// check whether the user entered a new credential than already in config
-			} else if currentCredentialName != "" && loginView.Name != "" && loginView.Name != currentCredentialName {
-				var resolvedLoginView login.LoginView
-				creds = config.Credentials
-				for _, cred := range creds {
-					if cred.Name == loginView.Name {
-						resolvedLoginView = login.LoginView{
-							Server:   cred.ServerAddress,
-							Username: cred.Username,
-							Password: cred.Password,
-							Name:     cred.Name,
-						}
-					}
-				}
-				if resolvedLoginView.Server != "" && resolvedLoginView.Username != "" && resolvedLoginView.Password != "" {
-					err = runLogin(resolvedLoginView)
-				} else {
-					err = createLoginView(&loginView)
-				}
-			} else if currentCredentialName != "" && loginView.Name == "" && loginView.Server == "" && loginView.Username == "" && loginView.Password == "" {
-				var resolvedLoginView login.LoginView
-				creds := config.Credentials
-				key, err := utils.GetEncryptionKey()
-				if err != nil {
-					return fmt.Errorf("failed to get encryption key: %w", err)
-				}
-				var targetCred *utils.Credential
-				for _, cred := range creds {
-					if strings.EqualFold(cred.Name, currentCredentialName) {
-						targetCred = &cred
-						break
-					}
-				}
-				if targetCred == nil {
-					return fmt.Errorf("no matching credential found for '%s'", currentCredentialName)
-				}
-				decryptedPassword, err := utils.Decrypt(key, string(targetCred.Password))
-				if err != nil {
-					return fmt.Errorf("failed to decrypt password: %w", err)
-				}
-				resolvedLoginView = login.LoginView{
-					Server:   targetCred.ServerAddress,
-					Username: targetCred.Username,
-					Password: decryptedPassword,
-					Name:     targetCred.Name,
-				}
-				err = runLogin(resolvedLoginView)
-				if err != nil {
-					return fmt.Errorf("failed to run login: %w", err)
-				}
-			} else {
-				err = createLoginView(&loginView)
-			}
-			if err != nil {
-				return err
+			if err := processLogin(loginView, config); err != nil {
+				return fmt.Errorf("login failed: %w", err)
 			}
 			return nil
 		},
@@ -151,6 +87,27 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
+func processLogin(loginView login.LoginView, config *utils.HarborConfig) error {
+	// Auto-generate the name if not provided.
+	if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+		loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	}
+	// If complete credentials are provided (overrides), run login using them directly.
+	if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
+		return runLogin(loginView)
+	}
+	// If a name is provided, try to load the matching credential from the config.
+	if loginView.Name != "" {
+		loadedLoginView, err := loadCredentialsIntoLoginView(loginView.Name, config)
+		if err != nil {
+			return fmt.Errorf("failed to load credentials: %w", err)
+		}
+		return runLogin(loadedLoginView)
+	}
+	// If nothing matches, launch the interactive view.
+	return createLoginView(&loginView)
+}
+
 func createLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
@@ -163,6 +120,28 @@ func createLoginView(loginView *login.LoginView) error {
 	login.CreateView(loginView)
 
 	return runLogin(*loginView)
+}
+
+func loadCredentialsIntoLoginView(credentialName string, config *utils.HarborConfig) (login.LoginView, error) {
+	for _, cred := range config.Credentials {
+		if cred.Name == credentialName {
+			key, err := utils.GetEncryptionKey()
+			if err != nil {
+				return login.LoginView{}, fmt.Errorf("failed to get encryption key: %w", err)
+			}
+			decryptedPassword, err := utils.Decrypt(key, string(cred.Password))
+			if err != nil {
+				return login.LoginView{}, fmt.Errorf("failed to decrypt password: %w", err)
+			}
+			return login.LoginView{
+				Server:   cred.ServerAddress,
+				Username: cred.Username,
+				Password: decryptedPassword,
+				Name:     cred.Name,
+			}, nil
+		}
+	}
+	return login.LoginView{}, fmt.Errorf("credential with name %s not found", credentialName)
 }
 
 func runLogin(opts login.LoginView) error {
