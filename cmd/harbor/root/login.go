@@ -71,7 +71,7 @@ func LoginCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to get current harbor config: %s", err)
 			}
-			if err := processLogin(loginView, config); err != nil {
+			if err := ProcessLogin(loginView, config); err != nil {
 				return fmt.Errorf("login failed: %w", err)
 			}
 			return nil
@@ -87,28 +87,31 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
-func processLogin(loginView login.LoginView, config *utils.HarborConfig) error {
+// ProcessLogin applies a simplified decision logic to run login or launch an interactive view.
+func ProcessLogin(loginView login.LoginView, config *utils.HarborConfig) error {
 	// Auto-generate the name if not provided.
 	if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
 		loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
 	}
 	// If complete credentials are provided (overrides), run login using them directly.
 	if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
-		return runLogin(loginView)
+		return RunLogin(loginView)
 	}
 	// If a name is provided, try to load the matching credential from the config.
 	if loginView.Name != "" {
-		loadedLoginView, err := loadCredentialsIntoLoginView(loginView.Name, config)
+		loadedLoginView, err := LoadCredentialsIntoLoginView(loginView.Name, config)
 		if err != nil {
 			return fmt.Errorf("failed to load credentials: %w", err)
 		}
-		return runLogin(loadedLoginView)
+		return RunLogin(loadedLoginView)
 	}
 	// If nothing matches, launch the interactive view.
-	return createLoginView(&loginView)
+	return CreateLoginView(&loginView)
 }
 
-func createLoginView(loginView *login.LoginView) error {
+// CreateLoginView launches the interactive login view.
+// In this implementation, it calls login.CreateView and then tries to run login.
+func CreateLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
 			Server:   "",
@@ -119,10 +122,11 @@ func createLoginView(loginView *login.LoginView) error {
 	}
 	login.CreateView(loginView)
 
-	return runLogin(*loginView)
+	return RunLogin(*loginView)
 }
 
-func loadCredentialsIntoLoginView(credentialName string, config *utils.HarborConfig) (login.LoginView, error) {
+// LoadCredentialsIntoLoginView loads a stored credential from the config by name and returns a LoginView.
+func LoadCredentialsIntoLoginView(credentialName string, config *utils.HarborConfig) (login.LoginView, error) {
 	for _, cred := range config.Credentials {
 		if cred.Name == credentialName {
 			key, err := utils.GetEncryptionKey()
@@ -144,7 +148,8 @@ func loadCredentialsIntoLoginView(credentialName string, config *utils.HarborCon
 	return login.LoginView{}, fmt.Errorf("credential with name %s not found", credentialName)
 }
 
-func runLogin(opts login.LoginView) error {
+// RunLogin attempts to log in using the provided LoginView credentials.
+func RunLogin(opts login.LoginView) error {
 	opts.Server = utils.FormatUrl(opts.Server)
 
 	clientConfig := &harbor.ClientSetConfig{
