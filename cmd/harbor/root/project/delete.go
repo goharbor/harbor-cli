@@ -14,6 +14,8 @@
 package project
 
 import (
+	"sync"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -23,22 +25,53 @@ import (
 // DeleteProjectCommand creates a new `harbor delete project` command
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
-
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "delete project by name or id",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "delete",
+		Short:   "delete project by name or id",
+		Example: `  harbor project delete [projectname]`,
+		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
+			var wg sync.WaitGroup
+			errChan := make(
+				chan error,
+				len(args),
+			) // Channel to collect errors
 
 			if len(args) > 0 {
-				err = api.DeleteProject(args[0], forceDelete)
+				for _, arg := range args {
+					wg.Add(1)
+					go func(projectName string) {
+						defer wg.Done()
+						if err := api.DeleteProject(projectName, forceDelete); err != nil {
+							errChan <- err
+						}
+					}(arg)
+				}
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
-				err = api.DeleteProject(projectName, forceDelete)
+				err := api.DeleteProject(projectName, forceDelete)
+				if err != nil {
+					log.Errorf("failed to delete project: %v", err)
+				}
 			}
-			if err != nil {
-				log.Errorf("failed to delete project: %v", err)
+
+			// Wait for all goroutines to finish
+			go func() {
+				wg.Wait()
+				close(errChan)
+			}()
+
+			// Collect and handle errors
+			var finalErr error
+			for err := range errChan {
+				if finalErr == nil {
+					finalErr = err
+				} else {
+					log.Errorf("Error: %v", err)
+				}
+			}
+			if finalErr != nil {
+				log.Errorf("failed to delete some projects: %v", finalErr)
 			}
 		},
 	}
