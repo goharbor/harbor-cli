@@ -31,6 +31,7 @@ func Project() *cobra.Command {
 		ViewCommand(),
 		LogsProjectCommmand(),
 		SearchProjectCommand(),
+		Robot(),
 	)
 
 	return cmd
