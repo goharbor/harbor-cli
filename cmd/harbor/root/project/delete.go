@@ -23,19 +23,20 @@ import (
 // DeleteProjectCommand creates a new `harbor delete project` command
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
+	var useProjectID bool
 
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "delete project by name or id",
+		Short: "Delete project by name or ID",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
 			if len(args) > 0 {
-				err = api.DeleteProject(args[0], forceDelete)
+				err = api.DeleteProject(args[0], forceDelete, useProjectID)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
-				err = api.DeleteProject(projectName, forceDelete)
+				err = api.DeleteProject(projectName, forceDelete, false)
 			}
 			if err != nil {
 				log.Errorf("failed to delete project: %v", err)
@@ -45,6 +46,7 @@ func DeleteProjectCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVar(&forceDelete, "force", false, "Deletes all repositories and artifacts within the project")
+	flags.BoolVar(&useProjectID, "projectID", false, "If set, treats the provided argument as a project ID instead of a project name")
 
 	return cmd
 }
