@@ -16,15 +16,14 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"os"
+	"regexp"
 	"strings"
 	"syscall"
-	"unicode"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 )
 
 // Returns Harbor v2 client for given clientConfig
