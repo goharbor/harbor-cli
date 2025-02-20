@@ -11,44 +11,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package create
+package update
 
 import (
 	"errors"
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct {
-	Username string
-	Email    string
-	Realname string
-	Comment  string
-	Password string
-}
-
-func CreateUserView(createView *CreateView) {
+func UpdateUserProfileView(updateView *models.UserProfile) {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("User Name").
-				Value(&createView.Username).
-				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("user name cannot be empty")
-					}
-					if isVaild := utils.ValidateName(str); !isVaild {
-						return errors.New("username cannot contain special characters")
-					}
-					return nil
-				}),
-			huh.NewInput().
 				Title("Email").
-				Value(&createView.Email).
+				Value(&updateView.Email).
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("email cannot be empty or only spaces")
@@ -58,35 +39,21 @@ func CreateUserView(createView *CreateView) {
 					}
 					return nil
 				}),
-
 			huh.NewInput().
-				Title("First and Last Name").
-				Value(&createView.Realname).
+				Title("Realname").
+				Value(&updateView.Realname).
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("real name cannot be empty")
 					}
 					if isValid := utils.ValidateName(str); !isValid {
-						return errors.New("please enter correct first and last name format, like `Bob Dylan`")
-					}
-					return nil
-				}),
-			huh.NewInput().
-				Title("Password").
-				EchoMode(huh.EchoModePassword).
-				Value(&createView.Password).
-				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("password cannot be empty or only spaces")
-					}
-					if err := utils.ValidatePassword(str); err != nil {
-						return err
+						return errors.New("realname with illegal length or contains illegal characters")
 					}
 					return nil
 				}),
 			huh.NewInput().
 				Title("Comment").
-				Value(&createView.Comment),
+				Value(&updateView.Comment),
 		),
 	).WithTheme(theme).Run()
 
