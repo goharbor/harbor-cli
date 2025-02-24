@@ -90,14 +90,14 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 		}
 
 		// Read and unmarshal the config file
-		v, err := ReadConfig(harborConfigPath)
+		err = ReadConfig(harborConfigPath)
 		if err != nil {
 			configInitError = err
 			log.Fatalf("%v", err)
 		}
 
 		var harborConfig HarborConfig
-		if err := v.Unmarshal(&harborConfig); err != nil {
+		if err := viper.Unmarshal(&harborConfig); err != nil {
 			configInitError = fmt.Errorf("failed to unmarshal config file: %w", err)
 			log.Fatalf("%v", configInitError)
 		}
@@ -181,14 +181,13 @@ func EnsureConfigFileExists(harborConfigPath string) error {
 }
 
 // Helper function to read the config file using Viper
-func ReadConfig(harborConfigPath string) (*viper.Viper, error) {
-	v := viper.New()
-	v.SetConfigFile(harborConfigPath)
-	v.SetConfigType("yaml")
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
+func ReadConfig(harborConfigPath string) error {
+	viper.SetConfigFile(harborConfigPath)
+	viper.SetConfigType("yaml")
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
 	}
-	return v, nil
+	return nil
 }
 
 func GetCurrentHarborConfig() (*HarborConfig, error) {
