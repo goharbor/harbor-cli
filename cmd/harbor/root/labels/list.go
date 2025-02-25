@@ -29,6 +29,9 @@ func ListLabelCommand() *cobra.Command {
 		Use:   "list",
 		Short: "list labels",
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flags().Changed("page-size") {
+				opts.PageSize = utils.ResolvePageSize(20)
+			}
 			label, err := api.ListLabel(opts)
 			if err != nil {
 				log.Fatalf("failed to get label list: %v", err)

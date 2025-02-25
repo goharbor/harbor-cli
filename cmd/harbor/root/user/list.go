@@ -31,6 +31,9 @@ func UserListCmd() *cobra.Command {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flags().Changed("page-size") {
+				opts.PageSize = utils.ResolvePageSize(10)
+			}
 			response, err := api.ListUsers(opts)
 			if err != nil {
 				log.Errorf("failed to list users: %v", err)
