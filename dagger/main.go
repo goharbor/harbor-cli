@@ -268,7 +268,7 @@ func parsePlatform(platform string) (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-// PublishImageAndSign builds and publishes container images to a registry with a specific tags and then signs them using Cosign.
+// PublishImageAndSign builds and publishes container images to a registry with a specific tags and then signs and attests them with their SBOM using Cosign.
 func (m *HarborCli) PublishImageAndSign(
 	ctx context.Context,
 	registry string,
@@ -283,7 +283,13 @@ func (m *HarborCli) PublishImageAndSign(
 	actionsIdTokenRequestUrl string,
 ) (string, error) {
 	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
-	_, err := m.Sign(
+
+    sbom, err := m.GenerateSBOM(ctx)
+    if err != nil {
+        return "", fmt.Errorf("failed to generate SBOM: %w", err)
+    }
+
+	_, err = m.Sign(
 		ctx,
 		githubToken,
 		actionsIdTokenRequestUrl,
@@ -292,12 +298,36 @@ func (m *HarborCli) PublishImageAndSign(
 		registryPassword,
 		imageAddrs[0],
 	)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to sign image: %w", err)
 	}
 
+	err = m.AttestImage(
+        ctx,
+        registryUsername,
+        registryPassword,
+        imageAddrs[0],
+        sbom,
+    )
+    if err != nil {
+        return "", fmt.Errorf("failed to attest image: %w", err)
+    }
+
+
 	fmt.Printf("Signed image: %s\n", imageAddrs)
 	return imageAddrs[0], nil
+}
+
+// GenerateSBOM generates an SBOM from the go.mod file using Syft
+func (m *HarborCli) GenerateSBOM(ctx context.Context) (string, error) {
+    sbom := dag.Container().
+        From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
+        WithMountedDirectory("/src", m.Source).
+        WithWorkdir("/src").
+        WithExec([]string{"syft", "packages", "go.mod", "-o", "spdx-json"})
+    
+    return sbom.Stdout(ctx)
 }
 
 // Sign signs a container image using Cosign, works also with GitHub Actions
@@ -336,4 +366,31 @@ func (m *HarborCli) Sign(ctx context.Context,
 			imageAddr,
 			"--timeout", "1m",
 		}).Stdout(ctx)
+}
+
+// AttestImage attests the image with the SBOM using Cosign
+func (m *HarborCli) AttestImage(
+    ctx context.Context,
+    registryUsername string,
+    registryPassword *dagger.Secret,
+    imageAddr string,
+    sbom string,
+) error {
+    registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
+
+    cosign_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
+
+    sbomFile := cosign_ctr.WithNewFile("/tmp/sbom.json", sbom)
+
+    _, err := sbomFile.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+        WithExec([]string{
+            "cosign", "attest", "--yes", "--type", "spdx",
+            "--registry-username", registryUsername,
+            "--registry-password", registryPasswordPlain,
+            "--predicate", "/tmp/sbom.json",
+            imageAddr,
+            "--timeout", "1m",
+        }).Stdout(ctx)
+
+    return err
 }
