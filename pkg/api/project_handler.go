@@ -53,7 +53,7 @@ func CreateProject(opts create.CreateView) error {
 	return nil
 }
 
-func GetProject(projectName string) (*project.GetProjectOK, error) {
+func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	var response = &project.GetProjectOK{}
 
@@ -61,7 +61,10 @@ func GetProject(projectName string) (*project.GetProjectOK, error) {
 		return response, err
 	}
 
-	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: utils.CreateBoolPointer(!useProjectID),
+	})
 
 	if err != nil {
 		return response, err
@@ -70,7 +73,7 @@ func GetProject(projectName string) (*project.GetProjectOK, error) {
 	return response, nil
 }
 
-func DeleteProject(projectName string, forceDelete bool) error {
+func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -79,7 +82,7 @@ func DeleteProject(projectName string, forceDelete bool) error {
 	if forceDelete {
 		var resp repository.ListRepositoriesOK
 
-		resp, err = ListRepository(projectName)
+		resp, err = ListRepository(projectNameOrID, useProjectID)
 
 		if err != nil {
 			log.Errorf("failed to list repositories: %v", err)
@@ -88,7 +91,7 @@ func DeleteProject(projectName string, forceDelete bool) error {
 
 		for _, repo := range resp.Payload {
 			_, repoName := utils.ParseProjectRepo(repo.Name)
-			err = RepoDelete(projectName, repoName)
+			err = RepoDelete(projectNameOrID, repoName, useProjectID)
 
 			if err != nil {
 				log.Errorf("failed to delete repository: %v", err)
@@ -97,13 +100,16 @@ func DeleteProject(projectName string, forceDelete bool) error {
 		}
 	}
 
-	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
+	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: utils.CreateBoolPointer(!useProjectID),
+	})
 
 	if err != nil {
 		return err
 	}
 
-	log.Infof("Project %s deleted successfully", projectName)
+	log.Infof("Project %s deleted successfully", projectNameOrID)
 	return nil
 }
 
