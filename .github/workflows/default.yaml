@@ -144,6 +144,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout repo
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Push images
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
         uses: ./.github/actions/publish-and-sign
