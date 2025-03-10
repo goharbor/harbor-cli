@@ -82,6 +82,7 @@ harbor help
 		HealthCommand(),
 		schedule.Schedule(),
 		labels.Labels(),
+		PingCommand(),
 	)
 
 	return root
