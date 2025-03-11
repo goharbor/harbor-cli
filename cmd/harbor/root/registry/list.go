@@ -29,6 +29,7 @@ func ListRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list registry",
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			registry, err := api.ListRegistries(opts)
 
