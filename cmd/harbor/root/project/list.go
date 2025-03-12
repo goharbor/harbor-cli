@@ -33,11 +33,12 @@ func ListProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
-
+      
 			if private && public {
 				return fmt.Errorf("Cannot specify both --private and --public flags")
 			} else if private {
