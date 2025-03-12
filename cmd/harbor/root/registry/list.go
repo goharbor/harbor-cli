@@ -32,7 +32,7 @@ func ListRegistryCommand() *cobra.Command {
 		Use:   "list",
 		Short: "list registry",
 		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error{
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
