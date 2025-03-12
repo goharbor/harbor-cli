@@ -59,7 +59,6 @@ func ListRepositoryCommand() *cobra.Command {
 			} else {
 				list.ListRepositories(repos.Payload)
 			}
-			list.ListRepositories(repos.Payload)
 		},
 	}
 
