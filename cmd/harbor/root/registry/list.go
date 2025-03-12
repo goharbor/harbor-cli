@@ -31,6 +31,9 @@ func ListRegistryCommand() *cobra.Command {
 		Short: "list registry",
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flags().Changed("page-size") {
+				opts.PageSize = utils.ResolvePageSize(10)
+			}
 			registry, err := api.ListRegistries(opts)
 
 			if err != nil {

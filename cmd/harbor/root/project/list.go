@@ -34,6 +34,9 @@ func ListProjectCommand() *cobra.Command {
 		Short: "list project",
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flags().Changed("page-size") {
+				opts.PageSize = utils.ResolvePageSize(10)
+			}
 			if private && public {
 				log.Fatal("Cannot specify both --private and --public flags")
 			} else if private {

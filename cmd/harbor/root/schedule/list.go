@@ -29,6 +29,9 @@ func ListScheduleCommand() *cobra.Command {
 		Use:   "list",
 		Short: "show all schedule jobs in Harbor",
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flags().Changed("page-size") {
+				opts.PageSize = utils.ResolvePageSize(10)
+			}
 			schedule, err := api.ListSchedule(opts)
 
 			if err != nil {
