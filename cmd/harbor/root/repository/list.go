@@ -34,6 +34,10 @@ func ListRepositoryCommand() *cobra.Command {
 		Long:    `Get information of all repositories in a project`,
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if opts.PageSize > 100 {
+				log.Errorf("page size should be less than or equal to 100")
+				return
+			}
 			var err error
 			var repos repository.ListRepositoriesOK
 			var projectName string
