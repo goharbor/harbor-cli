@@ -14,6 +14,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -33,10 +35,9 @@ func ListRepositoryCommand() *cobra.Command {
 		Example: `  harbor repo list <project_name>`,
 		Long:    `Get information of all repositories in a project`,
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
-				log.Errorf("page size should be less than or equal to 100")
-				return
+				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 			var err error
 			var repos repository.ListRepositoriesOK
@@ -50,8 +51,7 @@ func ListRepositoryCommand() *cobra.Command {
 
 			repos, err = api.ListRepository(projectName)
 			if err != nil {
-				log.Errorf("failed to list repositories: %v", err)
-				return
+				return fmt.Errorf("failed to list repositories: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -64,6 +64,7 @@ func ListRepositoryCommand() *cobra.Command {
 				list.ListRepositories(repos.Payload)
 			}
 			list.ListRepositories(repos.Payload)
+			return nil
 		},
 	}
 
