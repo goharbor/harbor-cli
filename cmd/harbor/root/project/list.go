@@ -32,6 +32,7 @@ func ListProjectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list project",
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			if private && public {
 				log.Fatal("Cannot specify both --private and --public flags")

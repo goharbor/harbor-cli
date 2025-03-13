@@ -28,6 +28,7 @@ func ListLabelCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list labels",
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			label, err := api.ListLabel(opts)
 			if err != nil {

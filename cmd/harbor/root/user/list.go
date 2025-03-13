@@ -28,7 +28,7 @@ func UserListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "list users",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		Run: func(cmd *cobra.Command, args []string) {
 			response, err := api.ListUsers(opts)

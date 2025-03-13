@@ -142,6 +142,12 @@ jobs:
         run: |
           echo "GitHub ref: $GITHUB_REF"
 
+      - name: Checkout repo
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Push images
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
         uses: ./.github/actions/publish-and-sign
@@ -151,12 +157,6 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
-
-      - name: Checkout repo
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Create Release
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))

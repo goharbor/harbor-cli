@@ -14,6 +14,8 @@
 package user
 
 import (
+	"sync"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -23,20 +25,50 @@ import (
 func UserDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "delete user",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "delete user by name or id",
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+
+			var wg sync.WaitGroup
+			errChan := make(chan error, len(args)) // Channel to collect error
+
 			if len(args) > 0 {
-				userName, _ := api.GetUsersIdByName(args[0])
-				err = api.DeleteUser(userName)
+				for _, arg := range args {
+					userID, _ := api.GetUsersIdByName(arg)
+					wg.Add(1)
+					go func(userID int64) {
+						defer wg.Done()
+						if err := api.DeleteUser(userID); err != nil {
+							errChan <- err
+						}
+					}(userID)
+				}
 			} else {
 				userId := prompt.GetUserIdFromUser()
 				err = api.DeleteUser(userId)
+				if err != nil {
+					log.Errorf("failed to delete user: %v", err)
+				}
 			}
 
-			if err != nil {
-				log.Errorf("failed to delete user: %v", err)
+			// Wait for all goroutines to finish
+			go func() {
+				wg.Wait()
+				close(errChan)
+			}()
+
+			// Collect and handle errors
+			var finalErr error
+			for err := range errChan {
+				if finalErr == nil {
+					finalErr = err
+				} else {
+					log.Errorf("Error: %v", err)
+				}
+			}
+			if finalErr != nil {
+				log.Errorf("failed to delete user: %v", finalErr)
 			}
 		},
 	}
