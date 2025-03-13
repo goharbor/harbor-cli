@@ -24,7 +24,7 @@ func SetConfigItemCommand() *cobra.Command {
   harbor config set credentials.password myNewSecret
 
   # Set a credential's password by specifying the credential name
-  harbor config set credentials.password myNewSecret --name harbor-cli@http://demo.goharbor.io
+  harbor config set credentials.password myNewSecret --name admin@http://demo.goharbor.io
 `,
 		Long: `Set the value of a specific CLI config item. 
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.

@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var deleteAll bool
+
 // DeleteConfigItemCommand creates the 'harbor config delete' subcommand,
 // allowing you to do: harbor config delete <item>
 func DeleteConfigItemCommand() *cobra.Command {
@@ -23,12 +25,15 @@ func DeleteConfigItemCommand() *cobra.Command {
   harbor config delete credentials.password
 
   # Clear a specific credential's password using --name
-  harbor config delete credentials.password --name harbor-cli@http://demo.goharbor.io
+  harbor config delete credentials.password --name admin@http://demo.goharbor.io
+
+  # Clear all credentials and the current credential
+  harbor config delete --all
 `,
 		Long: `Clear the value of a specific CLI config item by setting it to its zero value.
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.
 If you specify --name, that credential (rather than the "current" one) will be used.`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 
 		// Use RunE so we can propagate errors
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -36,6 +41,45 @@ If you specify --name, that credential (rather than the "current" one) will be u
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
 				return fmt.Errorf("failed to load Harbor config: %w", err)
+			}
+
+			// 1a. If --all is set, remove only the credential matching CurrentCredentialName
+			if deleteAll {
+				if len(args) > 0 {
+					return fmt.Errorf("cannot specify both <item> and --all")
+				}
+
+				currentName := config.CurrentCredentialName
+				found := false
+				if currentName != "" {
+					for i, cred := range config.Credentials {
+						if strings.EqualFold(cred.Name, currentName) {
+							// Remove just this credential
+							config.Credentials = append(config.Credentials[:i], config.Credentials[i+1:]...)
+							found = true
+							break
+						}
+					}
+					config.CurrentCredentialName = ""
+				}
+
+				if err := utils.UpdateConfigFile(config); err != nil {
+					return fmt.Errorf("failed to save updated config: %w", err)
+				}
+
+				if found {
+					logrus.Infof("Removed credential '%s' and cleared CurrentCredentialName", currentName)
+				} else {
+					logrus.Infof("No credential named '%s' found; cleared CurrentCredentialName anyway", currentName)
+				}
+
+				return nil
+			}
+
+			// If --all is NOT set, we'll perform the normal item-based delete.
+			// Check we actually received an item (since now it's optional).
+			if len(args) == 0 {
+				return fmt.Errorf("please specify an <item> or use --all")
 			}
 
 			// 2. Parse the user-supplied item path (e.g., "credentials.password")
@@ -67,6 +111,13 @@ If you specify --name, that credential (rather than the "current" one) will be u
 		"n",
 		"",
 		"Name of the credential to delete fields from (default: the current credential)",
+	)
+
+	cmd.Flags().BoolVar(
+		&deleteAll,
+		"all",
+		false,
+		"Remove all credentials from the config",
 	)
 
 	return cmd

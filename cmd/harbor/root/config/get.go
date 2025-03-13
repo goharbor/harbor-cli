@@ -24,7 +24,7 @@ func GetConfigItemCommand() *cobra.Command {
   harbor config get credentials.username
 
   # Get a credential's username by specifying the credential name
-  harbor config get credentials.username --name harbor-cli@http://demo.goharbor.io
+  harbor config get credentials.username --name admin@http://demo.goharbor.io
 `,
 		Long: `Get the value of a specific CLI config item.
 If you specify --name, that credential (rather than the "current" one) will be used.`,
