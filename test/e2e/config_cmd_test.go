@@ -351,3 +351,53 @@ func Test_ConfigDeleteCmd_CredentialName_Failure(t *testing.T) {
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when deleting a non-existent credential name")
 }
+
+func Test_ConfigDeleteCmd_All_Flag_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+	SetMockKeyring(t)
+	testConfig := &utils.HarborConfig{
+		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		Credentials: []utils.Credential{
+			{
+				Name:          "harbor-cli@http://demo.goharbor.io",
+				ServerAddress: "http://demo.goharbor.io",
+				Username:      "harbor-cli",
+				Password:      "Harbor12345",
+			},
+			{
+				Name:          "admin@http://demo.goharbor.io",
+				ServerAddress: "http://demo.goharbor.io",
+				Username:      "admin",
+				Password:      "Admin12345",
+			},
+		},
+	}
+	err := utils.UpdateConfigFile(testConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootCmd := root.RootCmd()
+	rootCmd.SetArgs([]string{"config", "delete", "--all"})
+	err = rootCmd.Execute()
+	assert.NoError(t, err)
+	config, err := utils.GetCurrentHarborConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Empty(t, config.CurrentCredentialName)
+	assert.NotEmpty(t, config.Credentials)
+	assert.NoError(t, err)
+}
+
+func Test_ConfigDeleteCmd_All_Flag_With_Item_Failure(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+	SetMockKeyring(t)
+	rootCmd := root.RootCmd()
+	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--all"})
+	err := rootCmd.Execute()
+	assert.Error(t, err, "Expected an error when specifying both --all and an item")
+}
