@@ -101,8 +101,5 @@ func roleString(isSysAdmin, isAuthAdmin bool) string {
 	if isSysAdmin {
 		return "Harbor Admin"
 	}
-	if isAuthAdmin {
-		return "Auth Admin"
-	}
 	return "User"
 }
