@@ -24,7 +24,7 @@ func Config() *cobra.Command {
 	cmd.AddCommand(
 		ListConfigCommand(),
 		GetConfigItemCommand(),
-		SetConfigItemCommand(),
+		UpdateConfigItemCommand(),
 		DeleteConfigItemCommand(),
 	)
 

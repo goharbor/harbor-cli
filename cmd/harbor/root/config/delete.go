@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deleteAll bool
+var deleteCurrent bool
 
 // DeleteConfigItemCommand creates the 'harbor config delete' subcommand,
 // allowing you to do: harbor config delete <item>
@@ -40,8 +40,8 @@ func DeleteConfigItemCommand() *cobra.Command {
   # Clear a specific credential's password using --name
   harbor config delete credentials.password --name admin@http://demo.goharbor.io
 
-  # Clear all credentials and the current credential
-  harbor config delete --all
+  # Clear the current credential
+  harbor config delete --current
 `,
 		Long: `Clear the value of a specific CLI config item by setting it to its zero value.
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.
@@ -56,10 +56,10 @@ If you specify --name, that credential (rather than the "current" one) will be u
 				return fmt.Errorf("failed to load Harbor config: %w", err)
 			}
 
-			// 1a. If --all is set, remove only the credential matching CurrentCredentialName
-			if deleteAll {
+			// 1a. If --current is set, remove only the credential matching CurrentCredentialName
+			if deleteCurrent {
 				if len(args) > 0 {
-					return fmt.Errorf("cannot specify both <item> and --all")
+					return fmt.Errorf("cannot specify both <item> and --current")
 				}
 
 				currentName := config.CurrentCredentialName
@@ -92,7 +92,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 			// If --all is NOT set, we'll perform the normal item-based delete.
 			// Check we actually received an item (since now it's optional).
 			if len(args) == 0 {
-				return fmt.Errorf("please specify an <item> or use --all")
+				return fmt.Errorf("please specify an <item> or use --current")
 			}
 
 			// 2. Parse the user-supplied item path (e.g., "credentials.password")
@@ -127,10 +127,10 @@ If you specify --name, that credential (rather than the "current" one) will be u
 	)
 
 	cmd.Flags().BoolVar(
-		&deleteAll,
-		"all",
+		&deleteCurrent,
+		"current",
 		false,
-		"Remove all credentials from the config",
+		"Remove current credentials from the config",
 	)
 
 	return cmd
