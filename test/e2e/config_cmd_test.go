@@ -147,7 +147,7 @@ func Test_ConfigGetCmd_CredentialName_Failure(t *testing.T) {
 	assert.Error(t, err, "Expected an error when getting a non-existent credential name")
 }
 
-func Test_ConfigSetCmd_Success(t *testing.T) {
+func Test_ConfigUpdateCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -168,12 +168,12 @@ func Test_ConfigSetCmd_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "set", "credentials.serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigSetCmd_CredentialName_Success(t *testing.T) {
+func Test_ConfigUpdateCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -194,12 +194,12 @@ func Test_ConfigSetCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "set", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigSetCmd_CredentialName_Failure(t *testing.T) {
+func Test_ConfigUpdateCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -220,12 +220,12 @@ func Test_ConfigSetCmd_CredentialName_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "set", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://goharbor.io"})
+	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent credential name")
 }
 
-func Test_ConfigSetCmd_Failure(t *testing.T) {
+func Test_ConfigUpdateCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -246,7 +246,7 @@ func Test_ConfigSetCmd_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "set", "serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"config", "update", "serveraddress", "http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent config item")
 }
@@ -365,7 +365,7 @@ func Test_ConfigDeleteCmd_CredentialName_Failure(t *testing.T) {
 	assert.Error(t, err, "Expected an error when deleting a non-existent credential name")
 }
 
-func Test_ConfigDeleteCmd_All_Flag_Success(t *testing.T) {
+func Test_ConfigDeleteCmd_Current_Flag_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -392,7 +392,7 @@ func Test_ConfigDeleteCmd_All_Flag_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "--all"})
+	rootCmd.SetArgs([]string{"config", "delete", "--current"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 	config, err := utils.GetCurrentHarborConfig()
@@ -404,13 +404,13 @@ func Test_ConfigDeleteCmd_All_Flag_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_ConfigDeleteCmd_All_Flag_With_Item_Failure(t *testing.T) {
+func Test_ConfigDeleteCmd_Current_Flag_With_Item_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
 	SetMockKeyring(t)
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--all"})
+	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--current"})
 	err := rootCmd.Execute()
-	assert.Error(t, err, "Expected an error when specifying both --all and an item")
+	assert.Error(t, err, "Expected an error when specifying both --current and an item")
 }
