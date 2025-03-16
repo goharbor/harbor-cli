@@ -12,7 +12,6 @@ import (
 )
 
 func StatusCommand() *cobra.Command {
-	var longOutput bool
 
 	cmd := &cobra.Command{
 		Use:   "status",
@@ -47,52 +46,43 @@ func StatusCommand() *cobra.Command {
 				return fmt.Errorf("failed to get current user info: %v", err)
 			}
 
-			if longOutput {
-				// Detailed Output
-				isSysAdmin := userInfo.Payload.SysadminFlag
-				isAuthAdmin := userInfo.Payload.AdminRoleInAuth
+			// Detailed Output
+			isSysAdmin := userInfo.Payload.SysadminFlag
+			isAuthAdmin := userInfo.Payload.AdminRoleInAuth
 
-				sysInfo, err := client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
-				if err != nil {
-					return fmt.Errorf("failed to get system info: %v", err)
-				}
-				apiVersion := sysInfo.Payload.HarborVersion
-
-				fmt.Println("\nHarbor CLI Status:")
-				fmt.Println("==================")
-				fmt.Printf("Logged in as: %s\n", userInfo.Payload.Username)
-				fmt.Printf("Registry: %s\n", registryAddress)
-				fmt.Printf("API Version: %s\n", *apiVersion)
-				fmt.Printf("Connected As: %s (%s)\n", userInfo.Payload.Username, roleString(isSysAdmin, isAuthAdmin))
-
-				// Previously logged-in registries
-				fmt.Println("\nPreviously Logged in to the following registries:")
-				previousRegistriesMap := make(map[string]struct{})
-				for _, cred := range creds {
-					c := cred.(map[string]interface{})
-					if registry, ok := c["serveraddress"].(string); ok {
-						previousRegistriesMap[registry] = struct{}{}
-					}
-				}
-				for registry := range previousRegistriesMap {
-					fmt.Printf("- %s\n", registry)
-				}
-
-				// Add API version and CLI version info
-				fmt.Printf("\nCLI Version: %s\n", version.Version)
-				fmt.Printf("OS: %s\n", version.System)
-			} else {
-				// Short Output
-				fmt.Printf("CLI currently logged in as %s to registry %s\n", userInfo.Payload.Username, registryAddress)
+			sysInfo, err := client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
+			if err != nil {
+				return fmt.Errorf("failed to get system info: %v", err)
 			}
+			apiVersion := sysInfo.Payload.HarborVersion
+
+			fmt.Println("\nHarbor CLI Status:")
+			fmt.Println("==================")
+			fmt.Printf("Logged in as: %s\n", userInfo.Payload.Username)
+			fmt.Printf("Registry: %s\n", registryAddress)
+			fmt.Printf("API Version: %s\n", *apiVersion)
+			fmt.Printf("Connected As: %s (%s)\n", userInfo.Payload.Username, roleString(isSysAdmin, isAuthAdmin))
+
+			// Previously logged-in registries
+			fmt.Println("\nPreviously Logged in to the following registries:")
+			previousRegistriesMap := make(map[string]struct{})
+			for _, cred := range creds {
+				c := cred.(map[string]interface{})
+				if registry, ok := c["serveraddress"].(string); ok {
+					previousRegistriesMap[registry] = struct{}{}
+				}
+			}
+			for registry := range previousRegistriesMap {
+				fmt.Printf("- %s\n", registry)
+			}
+
+			// Add API version and CLI version info
+			fmt.Printf("\nCLI Version: %s\n", version.Version)
+			fmt.Printf("OS: %s\n", version.System)
 
 			return nil
 		},
 	}
-
-	// Add the --long flag
-	cmd.Flags().BoolVarP(&longOutput, "long", "l", false, "Show detailed credential info")
-
 	return cmd
 }
 
