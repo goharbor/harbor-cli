@@ -55,6 +55,19 @@ harbor help
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
+			// Conditionally set the timestamp format only in verbose mode
+			if verbose {
+				logrus.SetFormatter(&logrus.TextFormatter{
+					FullTimestamp:   true,
+					TimestampFormat: time.RFC3339,
+				})
+			} else {
+				// No timestamp format for non-verbose
+				logrus.SetFormatter(&logrus.TextFormatter{
+					DisableTimestamp: true,
+				})
+			}
+
 			return nil
 		},
 	}
@@ -87,11 +100,4 @@ harbor help
 	)
 
 	return root
-}
-
-func init() {
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: time.RFC3339,
-	})
 }
