@@ -24,22 +24,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SetConfigItemCommand creates the 'harbor config set' subcommand,
-// allowing you to do: harbor config set <item> <value>.
-func SetConfigItemCommand() *cobra.Command {
+// UpdateConfigItemCommand creates the 'harbor config update' subcommand,
+// allowing you to do: harbor config update <item> <value>.
+func UpdateConfigItemCommand() *cobra.Command {
 	var credentialName string
 
 	cmd := &cobra.Command{
-		Use:   "set <item> <value>",
-		Short: "Set a specific config item",
+		Use:   "update <item> <value>",
+		Short: "Set/update a specific config item",
 		Example: `
-  # Set the current credential's password
-  harbor config set credentials.password myNewSecret
+  # Set/update the current credential's password
+  harbor config update credentials.password myNewSecret
 
-  # Set a credential's password by specifying the credential name
-  harbor config set credentials.password myNewSecret --name admin@http://demo.goharbor.io
+  # Set/update a credential's password by specifying the credential name
+  harbor config update credentials.password myNewSecret --name admin@http://demo.goharbor.io
 `,
-		Long: `Set the value of a specific CLI config item. 
+		Long: `Set/update the value of a specific CLI config item. 
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.
 If you specify --name, that credential (rather than the "current" one) will be updated.`,
 		Args: cobra.ExactArgs(2),
