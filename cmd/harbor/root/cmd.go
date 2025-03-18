@@ -82,7 +82,7 @@ harbor help
 		HealthCommand(),
 		schedule.Schedule(),
 		labels.Labels(),
-		StatusCommand(),
+		InfoCommand(),
 	)
 
 	return root

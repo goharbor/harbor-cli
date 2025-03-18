@@ -11,11 +11,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func StatusCommand() *cobra.Command {
+func InfoCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show the current credential status",
+		Use:   "info",
+		Short: "Show the current credential information",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			currentCredential := viper.GetString("current-credential-name")
 			if currentCredential == "" {
@@ -46,22 +46,20 @@ func StatusCommand() *cobra.Command {
 				return fmt.Errorf("failed to get current user info: %v", err)
 			}
 
-			// Detailed Output
 			isSysAdmin := userInfo.Payload.SysadminFlag
-			isAuthAdmin := userInfo.Payload.AdminRoleInAuth
 
 			sysInfo, err := client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
 			if err != nil {
 				return fmt.Errorf("failed to get system info: %v", err)
 			}
-			apiVersion := sysInfo.Payload.HarborVersion
+			harborVersion := sysInfo.Payload.HarborVersion
 
-			fmt.Println("\nHarbor CLI Status:")
+			fmt.Println("\nHarbor CLI Info:")
 			fmt.Println("==================")
 			fmt.Printf("Logged in as: %s\n", userInfo.Payload.Username)
 			fmt.Printf("Registry: %s\n", registryAddress)
-			fmt.Printf("API Version: %s\n", *apiVersion)
-			fmt.Printf("Connected As: %s (%s)\n", userInfo.Payload.Username, roleString(isSysAdmin, isAuthAdmin))
+			fmt.Printf("Harbor Version: %s\n", *harborVersion)
+			fmt.Printf("Connected as Admin: %s\n", roleString(isSysAdmin))
 
 			// Previously logged-in registries
 			fmt.Println("\nPreviously Logged in to the following registries:")
@@ -76,7 +74,6 @@ func StatusCommand() *cobra.Command {
 				fmt.Printf("- %s\n", registry)
 			}
 
-			// Add API version and CLI version info
 			fmt.Printf("\nCLI Version: %s\n", version.Version)
 			fmt.Printf("OS: %s\n", version.System)
 
@@ -86,10 +83,9 @@ func StatusCommand() *cobra.Command {
 	return cmd
 }
 
-// roleString returns the role of the user based on admin flags
-func roleString(isSysAdmin, isAuthAdmin bool) string {
+func roleString(isSysAdmin bool) string {
 	if isSysAdmin {
-		return "Harbor Admin"
+		return "Yes"
 	}
-	return "User"
+	return "No"
 }
