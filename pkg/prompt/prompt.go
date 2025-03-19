@@ -14,13 +14,18 @@
 package prompt
 
 import (
+	"strconv"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 )
@@ -43,6 +48,16 @@ func GetProjectNameFromUser() string {
 	}()
 
 	return <-projectName
+}
+
+func GetProjectIDFromUser() int64 {
+	projectID := make(chan int64)
+	go func() {
+		response, _ := api.ListProject()
+		pview.ProjectListID(response.Payload, projectID)
+	}()
+
+	return <-projectID
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -106,4 +121,25 @@ func GetLabelIdFromUser(opts api.ListFlags) int64 {
 	}()
 
 	return <-labelId
+}
+
+func GetRobotPermissionsFromUser() []models.Permission {
+	permissions := make(chan []models.Permission)
+	go func() {
+		response, _ := api.GetPermissions()
+		robotView.ListPermissions(response.Payload, permissions)
+	}()
+	return <-permissions
+}
+
+func GetRobotIDFromUser(projectID int64) int64 {
+	robotID := make(chan int64)
+	var opts api.ListFlags
+	opts.Q = constants.ProjectQString + strconv.FormatInt(projectID, 10)
+
+	go func() {
+		response, _ := api.ListRobot(opts)
+		robotView.ListRobot(response.Payload, robotID)
+	}()
+	return <-robotID
 }
