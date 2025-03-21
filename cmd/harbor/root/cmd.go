@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -74,6 +75,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
+		config.Config(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),
