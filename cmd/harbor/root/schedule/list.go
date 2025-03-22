@@ -14,10 +14,11 @@
 package schedule
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/schedule/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -28,23 +29,27 @@ func ListScheduleCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "show all schedule jobs in Harbor",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			schedule, err := api.ListSchedule(opts)
 
 			if err != nil {
-				log.Fatalf("failed to get schedule list: %v", err)
-				return
+				return fmt.Errorf("failed to get schedule list: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(schedule, FormatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListSchedule(schedule.Payload)
 			}
+			return nil
 		},
 	}
 
