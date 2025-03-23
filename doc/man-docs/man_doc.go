@@ -79,7 +79,7 @@ func removeHistorySection(docDir string) error {
 			cleanedContent := strings.Split(string(content), "\n.SH HISTORY")[0]
 			cleanedContent = strings.TrimRight(cleanedContent, "\n")
 
-			err = os.WriteFile(path, []byte(cleanedContent), 0644)
+			err = os.WriteFile(path, []byte(cleanedContent), 0600)
 			if err != nil {
 				return err
 			}
