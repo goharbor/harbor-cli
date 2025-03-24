@@ -16,9 +16,9 @@ import (
 
 func ListExecutionRetentionCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list retention execution of the project",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "list",
+		Short:   "list retention execution of the project",
+		Args:    cobra.MaximumNArgs(1),
 		Example: `harbor retention list [retentionid]`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -26,15 +26,15 @@ func ListExecutionRetentionCommand() *cobra.Command {
 			var retentionID int
 			var strretenId string
 			if len(args) > 0 {
-				retentionID,_ = strconv.Atoi(args[0])
+				retentionID, _ = strconv.Atoi(args[0])
 				resp, err = api.ListRetention(int32(retentionID))
 			} else {
-				projectId := fmt.Sprintf("%d",prompt.GetProjectIDFromUser())
-				strretenId,err = api.GetRetentionId(projectId)
+				projectId := fmt.Sprintf("%d", prompt.GetProjectIDFromUser())
+				strretenId, err = api.GetRetentionId(projectId)
 				if err != nil {
 					log.Fatal(err)
 				}
-				retentionID,_ := strconv.Atoi(strretenId)
+				retentionID, _ := strconv.Atoi(strretenId)
 				resp, err = api.ListRetention(int32(retentionID))
 			}
 
