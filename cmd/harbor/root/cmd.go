@@ -9,7 +9,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/retention"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -110,7 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-		retention.Retention(),
+		tag.TagCmd(),
 	)
 
 	return root
