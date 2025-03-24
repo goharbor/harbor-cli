@@ -12,34 +12,34 @@ func CreateRetentionCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use: 	"create",
-		Short: 	"create retention tag rule",
-		Long: 	"create retention tag rule to the project in harbor",
+		Use:     "create",
+		Short:   "create retention tag rule",
+		Long:    "create retention tag rule to the project in harbor",
 		Example: "harbor retention create",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
 				ScopeSelectors: create.RetentionSelector{
-					Decoration:	opts.ScopeSelectors.Decoration,
-					Pattern:	opts.ScopeSelectors.Pattern,
+					Decoration: opts.ScopeSelectors.Decoration,
+					Pattern:    opts.ScopeSelectors.Pattern,
 				},
 				TagSelectors: create.RetentionSelector{
-					Decoration:	opts.TagSelectors.Decoration,
-					Pattern:	opts.TagSelectors.Pattern,
-					Extras:		opts.TagSelectors.Extras,
+					Decoration: opts.TagSelectors.Decoration,
+					Pattern:    opts.TagSelectors.Pattern,
+					Extras:     opts.TagSelectors.Extras,
 				},
 				Scope: create.RetentionPolicyScope{
 					Level: opts.Scope.Level,
-					Ref: opts.Scope.Ref,
+					Ref:   opts.Scope.Ref,
 				},
-				Template: opts.Template,
-				Params: opts.Params,
-				Action: opts.Action,
+				Template:  opts.Template,
+				Params:    opts.Params,
+				Action:    opts.Action,
 				Algorithm: opts.Algorithm,
 			}
 
 			projectId := int32(prompt.GetProjectIDFromUser())
-			err = createRetentionView(createView,projectId)
+			err = createRetentionView(createView, projectId)
 
 			if err != nil {
 				log.Errorf("failed to create retention tag rule: %v", err)
@@ -53,18 +53,18 @@ func CreateRetentionCommand() *cobra.Command {
 	flags.StringVarP(&opts.ScopeSelectors.Pattern, "repolist", "", "", "list of repository to which to either apply or exclude from the rule")
 	flags.StringVarP(&opts.TagSelectors.Decoration, "tagdecoration", "", "", "tags which either apply or exclude from the rule")
 	flags.StringVarP(&opts.TagSelectors.Pattern, "taglist", "", "", "list of tags to which to either apply or exclude from the rule")
-	flags.StringVarP(&opts.Scope.Level,"level","","project","scope of retention policy")
-	flags.StringVarP(&opts.Action,"action","","retain","Action of the retention policy")
-	flags.StringVarP(&opts.Algorithm,"algorithm","","or","Algorithm of retention policy")
+	flags.StringVarP(&opts.Scope.Level, "level", "", "project", "scope of retention policy")
+	flags.StringVarP(&opts.Action, "action", "", "retain", "Action of the retention policy")
+	flags.StringVarP(&opts.Algorithm, "algorithm", "", "or", "Algorithm of retention policy")
 
 	return cmd
 }
 
-func createRetentionView(createView *create.CreateView,projectId int32) error {
+func createRetentionView(createView *create.CreateView, projectId int32) error {
 	if createView == nil {
 		createView = &create.CreateView{}
 	}
 
 	create.CreateRetentionView(createView)
-	return api.CreateRetention(*createView,projectId)
+	return api.CreateRetention(*createView, projectId)
 }
