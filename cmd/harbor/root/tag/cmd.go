@@ -5,12 +5,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var TagCmd = &cobra.Command{
-	Use:   "tag",
-	Short: "Manage tags",
-	Long:  `Manage tags in the Harbor project.`,
-}
-
-func init() {
-	TagCmd.AddCommand(retention.Retention())
+func TagCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tag",
+		Short: "Manage tags in Harbor registry",
+		Long:  "Manage tags in the Harbor registry, including creating, listing, and deleting retention policies.",
+	}
+	cmd.AddCommand(retention.Retention())
+	return cmd
 }

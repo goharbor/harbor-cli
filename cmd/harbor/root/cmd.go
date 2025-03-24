@@ -110,7 +110,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
-		tag.TagCmd(),
+		tag.TagCommand(),
 	)
 
 	return root

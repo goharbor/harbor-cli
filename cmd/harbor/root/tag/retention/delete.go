@@ -20,15 +20,15 @@ func DeleteRetentionCommand() *cobra.Command {
 			var retentionId int
 			var strretenId string
 			if len(args) > 0 {
-				retentionId,_ = strconv.Atoi(args[0])
+				retentionId, _ = strconv.Atoi(args[0])
 				err = api.DeleteRetention(int64(retentionId))
 			} else {
-				projectId := fmt.Sprintf("%d",prompt.GetProjectIDFromUser())
-				strretenId,err = api.GetRetentionId(projectId)
+				projectId := fmt.Sprintf("%d", prompt.GetProjectIDFromUser())
+				strretenId, err = api.GetRetentionId(projectId)
 				if err != nil {
 					log.Fatal(err)
 				}
-				retentionId,_ = strconv.Atoi(strretenId)
+				retentionId, _ = strconv.Atoi(strretenId)
 				err = api.DeleteRetention(int64(retentionId))
 			}
 			if err != nil {
@@ -39,4 +39,3 @@ func DeleteRetentionCommand() *cobra.Command {
 
 	return cmd
 }
-
