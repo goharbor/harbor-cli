@@ -16,6 +16,5 @@ func Retention() *cobra.Command {
 		ListExecutionRetentionCommand(),
 		DeleteRetentionCommand(),
 	)
-
 	return cmd
 }
