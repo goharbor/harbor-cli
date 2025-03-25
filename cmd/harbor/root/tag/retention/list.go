@@ -22,17 +22,17 @@ func ListRetentionRulesCommand() *cobra.Command {
 		Args:    cobra.NoArgs,
 		Example: `harbor retention list --project-name myproject`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if projectID != 0 && projectName != "" {
+			if projectID != -1 && projectName != "" {
 				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
 			}
 
-			if projectID == 0 && projectName == "" {
+			if projectID == -1 && projectName == "" {
 				projectName = prompt.GetProjectNameFromUser()
 			}
 
 			projectIDStr := ""
 			isName := true
-			if projectID != 0 {
+			if projectID != -1 {
 				projectIDStr = strconv.Itoa(projectID)
 				isName = false
 			} else {
@@ -41,7 +41,7 @@ func ListRetentionRulesCommand() *cobra.Command {
 
 			retentionID, err := api.GetRetentionId(projectIDStr, isName)
 			if err != nil {
-				return fmt.Errorf("No retention policy exists for this project")
+				return fmt.Errorf("%w", err)
 			}
 			resp, err := api.ListRetention(retentionID)
 			if err != nil {
@@ -59,7 +59,7 @@ func ListRetentionRulesCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&projectName, "project-name", "p", "", "Project name")
-	cmd.Flags().IntVarP(&projectID, "project-id", "i", 0, "Project ID")
+	cmd.Flags().IntVarP(&projectID, "project-id", "i", -1, "Project ID")
 
 	return cmd
 }
