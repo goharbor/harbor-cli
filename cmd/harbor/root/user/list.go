@@ -39,7 +39,11 @@ func UserListCmd() *cobra.Command {
 
 			response, err := api.ListUsers(opts)
 			if err != nil {
-				return fmt.Errorf("failed to list users: %v", err)
+				if isUnauthorizedError(err) {
+					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+				} else {
+					return fmt.Errorf("failed to list users: %v", err)
+				}
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {

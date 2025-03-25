@@ -22,20 +22,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// UserDeleteCmd defines the "delete" command for user deletion.
 func UserDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete user by name or id",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-
-			var wg sync.WaitGroup
-			errChan := make(chan error, len(args)) // Channel to collect error
-
+			// If there are command line arguments, process them concurrently.
 			if len(args) > 0 {
+				var wg sync.WaitGroup
+				errChan := make(chan error, len(args)) // Channel to collect errors
+
 				for _, arg := range args {
-					userID, _ := api.GetUsersIdByName(arg)
+					// Retrieve user ID by name.
+					userID, err := api.GetUsersIdByName(arg)
+					if err != nil {
+						log.Errorf("failed to get user id for '%s': %v", arg, err)
+						continue
+					}
 					wg.Add(1)
 					go func(userID int64) {
 						defer wg.Done()
@@ -44,31 +49,31 @@ func UserDeleteCmd() *cobra.Command {
 						}
 					}(userID)
 				}
+
+				// Wait for all goroutines to finish and then close the error channel.
+				go func() {
+					wg.Wait()
+					close(errChan)
+				}()
+
+				// Process errors from the goroutines.
+				for err := range errChan {
+					if isUnauthorizedError(err) {
+						log.Error("Permission denied: Admin privileges are required to execute this command.")
+					} else {
+						log.Errorf("failed to delete user: %v", err)
+					}
+				}
 			} else {
-				userId := prompt.GetUserIdFromUser()
-				err = api.DeleteUser(userId)
-				if err != nil {
-					log.Errorf("failed to delete user: %v", err)
+				// Interactive mode: get the user ID from the prompt.
+				userID := prompt.GetUserIdFromUser()
+				if err := api.DeleteUser(userID); err != nil {
+					if isUnauthorizedError(err) {
+						log.Error("Permission denied: Admin privileges are required to execute this command.")
+					} else {
+						log.Errorf("failed to delete user: %v", err)
+					}
 				}
-			}
-
-			// Wait for all goroutines to finish
-			go func() {
-				wg.Wait()
-				close(errChan)
-			}()
-
-			// Collect and handle errors
-			var finalErr error
-			for err := range errChan {
-				if finalErr == nil {
-					finalErr = err
-				} else {
-					log.Errorf("Error: %v", err)
-				}
-			}
-			if finalErr != nil {
-				log.Errorf("failed to delete user: %v", finalErr)
 			}
 		},
 	}
