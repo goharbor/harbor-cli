@@ -4,53 +4,62 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/retention"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/retention/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func ListExecutionRetentionCommand() *cobra.Command {
+func ListRetentionRulesCommand() *cobra.Command {
+	var projectName string
+	var projectID int
+
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "list retention execution of the project",
-		Args:    cobra.MaximumNArgs(1),
-		Example: `harbor retention list [retentionid]`,
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var resp retention.ListRetentionExecutionsOK
-			var retentionID int
-			var strretenId string
-			if len(args) > 0 {
-				retentionID, _ = strconv.Atoi(args[0])
-				resp, err = api.ListRetention(int32(retentionID))
+		Short:   "List retention execution of the project",
+		Args:    cobra.NoArgs,
+		Example: `harbor retention list --project-name myproject`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if projectID != 0 && projectName != "" {
+				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
+			}
+
+			if projectID == 0 && projectName == "" {
+				projectName = prompt.GetProjectNameFromUser()
+			}
+
+			projectIDStr := ""
+			isName := true
+			if projectID != 0 {
+				projectIDStr = strconv.Itoa(projectID)
+				isName = false
 			} else {
-				projectId := fmt.Sprintf("%d", prompt.GetProjectIDFromUser())
-				strretenId, err = api.GetRetentionId(projectId)
-				if err != nil {
-					log.Fatal(err)
-				}
-				retentionID, _ := strconv.Atoi(strretenId)
-				resp, err = api.ListRetention(int32(retentionID))
+				projectIDStr = projectName
 			}
 
+			retentionID, err := api.GetRetentionId(projectIDStr, isName)
 			if err != nil {
-				log.Errorf("failed to list retention execution: %v", err)
+				return fmt.Errorf("No retention policy exists for this project")
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
+			resp, err := api.ListRetention(retentionID)
+			if err != nil {
+				return fmt.Errorf("failed to list retention rules: %w", err)
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
 				utils.PrintPayloadInJSONFormat(resp)
-				return
+				return nil
 			}
 
-			list.ListRetentionRules(resp.Payload)
-
+			list.ListRetentionRules(resp.Payload.Rules)
+			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&projectName, "project-name", "p", "", "Project name")
+	cmd.Flags().IntVarP(&projectID, "project-id", "i", 0, "Project ID")
 
 	return cmd
 }
