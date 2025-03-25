@@ -36,7 +36,6 @@ func ElevateUserCmd() *cobra.Command {
 					log.Errorf("failed to get user id for '%s': %v", args[0], err)
 					return
 				}
-
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
