@@ -10,32 +10,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func DeleteRetentionCommand() *cobra.Command {
+func DeleteRetentionPolicyCommand() *cobra.Command {
+	var projectName string
+	var projectID int
+
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "delete retention rule",
+		Short: "Delete retention policy for a project",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var retentionId int
-			var strretenId string
-			if len(args) > 0 {
-				retentionId, _ = strconv.Atoi(args[0])
-				err = api.DeleteRetention(int64(retentionId))
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if projectID != 0 && projectName != "" {
+				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
+			}
+
+			if projectID == 0 && projectName == "" {
+				projectName = prompt.GetProjectNameFromUser()
+			}
+
+			projectIDStr := ""
+			isName := true
+			if projectID != 0 {
+				projectIDStr = strconv.Itoa(projectID)
+				isName = false
 			} else {
-				projectId := fmt.Sprintf("%d", prompt.GetProjectIDFromUser())
-				strretenId, err = api.GetRetentionId(projectId)
-				if err != nil {
-					log.Fatal(err)
-				}
-				retentionId, _ = strconv.Atoi(strretenId)
-				err = api.DeleteRetention(int64(retentionId))
+				projectIDStr = projectName
 			}
+
+			retentionID, err := api.GetRetentionId(projectIDStr, isName)
 			if err != nil {
-				log.Errorf("failed to delete retention rule: %v", err)
+				return fmt.Errorf("No retention policy exists for this project: %w", err)
 			}
+			if err := api.DeleteRetention((retentionID)); err != nil {
+				return fmt.Errorf("failed to delete retention rule: %w", err)
+			}
+
+			log.Info("Retention Policy deleted successfully")
+			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&projectName, "project-name", "p", "", "Project name")
+	cmd.Flags().IntVarP(&projectID, "project-id", "i", 0, "Project ID")
 
 	return cmd
 }

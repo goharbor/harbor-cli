@@ -13,8 +13,8 @@ func Retention() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateRetentionCommand(),
-		ListExecutionRetentionCommand(),
-		DeleteRetentionCommand(),
+		ListRetentionRulesCommand(),
+		DeleteRetentionPolicyCommand(),
 	)
 	return cmd
 }
