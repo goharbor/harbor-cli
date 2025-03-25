@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -72,6 +73,9 @@ func ListRetention(retentionID string) (retention.GetRetentionOK, error) {
 	}
 	retentionIDint, err := strconv.Atoi(retentionID)
 	response, err := client.Retention.GetRetention(ctx, &retention.GetRetentionParams{ID: int64(retentionIDint)})
+	if err != nil {
+		return retention.GetRetentionOK{}, err	
+	}
 	return *response, nil
 }
 
@@ -86,12 +90,11 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 		ProjectNameOrID: projectNameorID,
 	})
 	if err != nil {
-		log.Errorf("failed to get project: %v", err)
-		return "", err
+		return "", fmt.Errorf("failed to get project: %w", err)
 	}
 
 	if response.Payload.Metadata == nil || response.Payload.Metadata.RetentionID == nil {
-		return "", errors.New("no retention pretentionIDolicy present for the project")
+		return "", errors.New("No retention policy exists for this project")
 	}
 	retentionid := *response.Payload.Metadata.RetentionID
 
