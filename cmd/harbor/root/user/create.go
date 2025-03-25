@@ -55,7 +55,6 @@ func UserCreateCmd() *cobra.Command {
 					log.Errorf("failed to create user: %v", err)
 				}
 			}
-
 		},
 	}
 
