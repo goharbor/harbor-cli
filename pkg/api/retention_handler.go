@@ -19,20 +19,20 @@ func CreateRetention(opts create.CreateView, projectId int32) error {
 	}
 
 	tagSelector := &models.RetentionSelector{
-        Decoration:  	opts.TagSelectors.Decoration,
-        Pattern: 		opts.TagSelectors.Pattern,
-		Extras: 		opts.TagSelectors.Extras,
-    }
+		Decoration: opts.TagSelectors.Decoration,
+		Pattern:    opts.TagSelectors.Pattern,
+		Extras:     opts.TagSelectors.Extras,
+	}
 	scope := models.RetentionSelector{
-        Decoration: 	opts.ScopeSelectors.Decoration,
-        Pattern: 		opts.ScopeSelectors.Pattern,
-    }
+		Decoration: opts.ScopeSelectors.Decoration,
+		Pattern:    opts.ScopeSelectors.Pattern,
+	}
 	scopeSelector := map[string][]models.RetentionSelector{
-        "repository": {
+		"repository": {
 			scope,
 		},
-    }
-	param := make(map[string] interface{})
+	}
+	param := make(map[string]interface{})
 	if opts.Template == "always" {
 		param = nil
 	} else {
@@ -45,18 +45,18 @@ func CreateRetention(opts create.CreateView, projectId int32) error {
 
 	var rule []*models.RetentionRule
 	rule = append(rule, &models.RetentionRule{
-		Action: 		opts.Action,
+		Action:         opts.Action,
 		ScopeSelectors: scopeSelector,
-    	TagSelectors: 	[]*models.RetentionSelector{tagSelector},
-    	Template: 		opts.Template,
-    	Params:   		param,
+		TagSelectors:   []*models.RetentionSelector{tagSelector},
+		Template:       opts.Template,
+		Params:         param,
 	})
 
 	triggerSettings := map[string]string{
 		"cron": "",
 	}
 
-	_, err = client.Retention.CreateRetention(ctx, &retention.CreateRetentionParams{Policy: &models.RetentionPolicy{Scope: &models.RetentionPolicyScope{Level: opts.Scope.Level,Ref: int64(projectId)},Trigger: &models.RetentionRuleTrigger{Kind: models.ScheduleObjTypeSchedule,Settings: triggerSettings},Algorithm: opts.Algorithm,Rules: rule}})
+	_, err = client.Retention.CreateRetention(ctx, &retention.CreateRetentionParams{Policy: &models.RetentionPolicy{Scope: &models.RetentionPolicyScope{Level: opts.Scope.Level, Ref: int64(projectId)}, Trigger: &models.RetentionRuleTrigger{Kind: models.ScheduleObjTypeSchedule, Settings: triggerSettings}, Algorithm: opts.Algorithm, Rules: rule}})
 	if err != nil {
 		return err
 	}
@@ -65,45 +65,46 @@ func CreateRetention(opts create.CreateView, projectId int32) error {
 	return nil
 }
 
-func ListRetention(projectID int32)(retention.ListRetentionExecutionsOK,error){
+func ListRetention(retentionID string) (retention.GetRetentionOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return retention.ListRetentionExecutionsOK{}, err
+		return retention.GetRetentionOK{}, err
 	}
-	response,err := client.Retention.ListRetentionExecutions(ctx,&retention.ListRetentionExecutionsParams{ID: int64(projectID)})
-	if err != nil {
-		return retention.ListRetentionExecutionsOK{}, err
-	}
-
+	retentionIDint, err := strconv.Atoi(retentionID)
+	response, err := client.Retention.GetRetention(ctx, &retention.GetRetentionParams{ID: int64(retentionIDint)})
 	return *response, nil
 }
 
-func GetRetentionId(projectId string) (string,error) {
+func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectId})
+	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{
+		XIsResourceName: &isName,
+		ProjectNameOrID: projectNameorID,
+	})
 	if err != nil {
-        log.Errorf("failed to get project: %v", err)
-        return "", err
-    }
+		log.Errorf("failed to get project: %v", err)
+		return "", err
+	}
 
 	if response.Payload.Metadata == nil || response.Payload.Metadata.RetentionID == nil {
-        return "", errors.New("no retention policy present for the project")
-    }
+		return "", errors.New("no retention pretentionIDolicy present for the project")
+	}
 	retentionid := *response.Payload.Metadata.RetentionID
 
-	return retentionid,nil
+	return retentionid, nil
 }
 
-func DeleteRetention(RetentionID int64) error{
+func DeleteRetention(retentionID string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.Retention.DeleteRetention(ctx,&retention.DeleteRetentionParams{ID: RetentionID})
+	retentionIDint, err := strconv.Atoi(retentionID)
+	_, err = client.Retention.DeleteRetention(ctx, &retention.DeleteRetentionParams{ID: int64(retentionIDint)})
 	if err != nil {
 		return err
 	}
