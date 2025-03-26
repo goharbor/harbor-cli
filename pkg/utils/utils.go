@@ -60,11 +60,32 @@ func ParseProjectRepo(projectRepo string) (string, string) {
 }
 
 func ParseProjectRepoReference(projectRepoReference string) (string, string, string) {
-	split := strings.Split(projectRepoReference, "/")
-	if len(split) != 3 {
-		log.Fatalf("invalid project/repository/reference format: %s", projectRepoReference)
+	log.Infof("Parsing input: %s", projectRepoReference) // Debug log
+
+	// Split project and repo
+	parts := strings.SplitN(projectRepoReference, "/", 2)
+	if len(parts) != 2 {
+		log.Fatalf("Invalid format, expected <project>/<repository>:<tag> or <project>/<repository>@<digest>, got: %s", projectRepoReference)
 	}
-	return split[0], split[1], split[2]
+
+	project := parts[0]
+	repoWithRef := parts[1]
+
+	var repo, ref string
+	if strings.Contains(repoWithRef, ":") {
+		subParts := strings.SplitN(repoWithRef, ":", 2)
+		repo = subParts[0]
+		ref = subParts[1]
+	} else if strings.Contains(repoWithRef, "@") {
+		subParts := strings.SplitN(repoWithRef, "@", 2)
+		repo = subParts[0]
+		ref = subParts[1]
+	} else {
+		log.Fatalf("Invalid reference format: %s", repoWithRef)
+	}
+
+	log.Infof("Extracted -> Project: %s, Repo: %s, Reference: %s", project, repo, ref)
+	return project, repo, ref
 }
 
 func SanitizeServerAddress(server string) string {
