@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package retention
 
 import (
@@ -17,10 +30,10 @@ func DeleteRetentionPolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete a tag retention policy for a project",
-		Long: `Delete an existing tag retention policy from a project in Harbor.
+		Long: `Delete an existing tag retention policy from a project.
 
 Usage:
-  - You can specify the project **either by name or by ID**, but not both.
+  - You can specify the project either by name or by ID, but not both.
   - If neither is provided, you will be prompted to select a project.
   - The command retrieves the retention policy ID and deletes it.
 

@@ -117,9 +117,7 @@ func GetProjectIDFromUser() int32 {
 	go func() {
 		response, _ := api.ListProject()
 		pview.ProjectIdList(response.Payload, projectId)
-
 	}()
-
 	return <-projectId
 }
 
