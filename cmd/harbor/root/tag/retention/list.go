@@ -17,10 +17,29 @@ func ListRetentionRulesCommand() *cobra.Command {
 	var projectID int
 
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "List retention execution of the project",
-		Args:    cobra.NoArgs,
-		Example: `harbor retention list --project-name myproject`,
+		Use:   "list",
+		Short: "List tag retention rules of a project",
+		Long: `Retrieve and display the tag retention rules for a specific project in Harbor.
+
+Tag retention rules define policies for automatically keeping or deleting image tags 
+within a project. Using this command, you can view the currently configured 
+retention rules.
+
+Usage:
+  - Specify the project **either by name or by ID**, but not both.
+  - If neither is provided, you will be prompted to select a project.
+  - The rules will be displayed in a formatted output.
+
+Examples:
+  # List retention rules using project name
+  harbor tag retention list --project-name my-project
+
+  # List retention rules using project ID
+  harbor tag retention list --project-id 42
+
+  # List retention rules in JSON format
+  harbor tag retention list --project-name my-project --output-format json`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if projectID != -1 && projectName != "" {
 				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
