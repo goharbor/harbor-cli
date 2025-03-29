@@ -19,7 +19,7 @@ func CreateRetentionCommand() *cobra.Command {
 Tag retention rules help users automatically retain or delete specific tags based on 
 defined criteria, reducing storage usage and improving repository maintenance.
 
-⚠️ A user can create **up to 15 tag retention rules per project**.`,
+A user can create **up to 15 tag retention rules per project**.`,
 		Example: `  # Retain tags matching 'release-*' at the project level
   harbor tag retention create --level project --action retain --taglist release-*
 
