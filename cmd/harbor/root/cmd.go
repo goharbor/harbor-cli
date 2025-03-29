@@ -84,6 +84,7 @@ harbor help
 		HealthCommand(),
 		schedule.Schedule(),
 		labels.Labels(),
+		InfoCommand(),
 	)
 
 	return root

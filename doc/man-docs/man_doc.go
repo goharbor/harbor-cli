@@ -16,6 +16,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	cmd "github.com/goharbor/harbor-cli/cmd/harbor/root"
@@ -54,8 +56,37 @@ func ManDoc() error {
 		os.Exit(1)
 	}
 
+	err = removeHistorySection(docDir)
+	if err != nil {
+		log.Fatalf("Error cleaning up documentation: %v", err)
+	}
+
 	fmt.Println("Documentation generated successfully in", docDir)
 	return nil
+}
+
+func removeHistorySection(docDir string) error {
+	err := filepath.Walk(docDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".1") {
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			cleanedContent := strings.Split(string(content), "\n.SH HISTORY")[0]
+			cleanedContent = strings.TrimRight(cleanedContent, "\n")
+
+			err = os.WriteFile(path, []byte(cleanedContent), 0600)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return err
 }
 
 func main() {

@@ -164,9 +164,6 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 
 	basename := strings.ReplaceAll(cmd.CommandPath(), " ", "-") + markdownExtension
 	filename := filepath.Join(dir, basename)
-	if _, err := os.Stat(filename); err == nil {
-		return nil
-	}
 
 	f, err := os.Create(filename)
 	if err != nil {
