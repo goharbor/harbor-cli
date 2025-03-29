@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package create
 
 import (
@@ -8,30 +21,30 @@ import (
 )
 
 type CreateView struct {
-	Action 			string
-	ScopeSelectors 	RetentionSelector 
-	TagSelectors 	RetentionSelector 
-	Template 		string 
-	Algorithm		string
-	Params 			ParamsValue 
-	Scope 			RetentionPolicyScope 
+	Action         string
+	ScopeSelectors RetentionSelector
+	TagSelectors   RetentionSelector
+	Template       string
+	Algorithm      string
+	Params         ParamsValue
+	Scope          RetentionPolicyScope
 }
 
 type RetentionSelector struct {
-	Decoration 	string 
-	Pattern 	string 
-	Extras 		string 
-	Kind 		string 
+	Decoration string
+	Pattern    string
+	Extras     string
+	Kind       string
 }
 
 type ParamsValue struct {
-	Name 	string 
-	Value 	string 
+	Name  string
+	Value string
 }
 
 type RetentionPolicyScope struct {
-	Level 	string 
-	Ref 	int64 
+	Level string
+	Ref   int64
 }
 
 func CreateRetentionView(createView *CreateView) {
@@ -110,32 +123,32 @@ func CreateRetentionView(createView *CreateView) {
 					}
 					return nil
 				}),
-			),
+		),
 		huh.NewGroup(
 			huh.NewInput().
-			Title("Count").
-			Value(&createView.Params.Value).
-			Description("Enter the number of artifact count").
-			Validate(func(str string) error {
-				if str == "" {
-					return errors.New("count cannot be empty")
-				}
-				return nil
-			}),
+				Title("Count").
+				Value(&createView.Params.Value).
+				Description("Enter the number of artifact count").
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("count cannot be empty")
+					}
+					return nil
+				}),
 		).WithHideFunc(func() bool {
 			return createView.Template == "always" || createView.Template == "nDaysSinceLastPush" || createView.Template == "nDaysSinceLastPull"
 		}),
 		huh.NewGroup(
 			huh.NewInput().
-			Title("Days").
-			Value(&createView.Params.Value).
-			Description("Enter the number of days").
-			Validate(func(str string) error {
-				if str == "" {
-					return errors.New("days cannot be empty")
-				}
-				return nil
-			}),
+				Title("Days").
+				Value(&createView.Params.Value).
+				Description("Enter the number of days").
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("days cannot be empty")
+					}
+					return nil
+				}),
 		).WithHideFunc(func() bool {
 			return createView.Template == "always" || createView.Template == "latestPulledN" || createView.Template == "latestPushedK"
 		}),
