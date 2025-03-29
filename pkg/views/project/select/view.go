@@ -63,5 +63,4 @@ func ProjectIdList(project []*models.Project, choice chan<- int32) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- items[p.Choice]
 	}
-
 }
