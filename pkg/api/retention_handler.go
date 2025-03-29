@@ -85,6 +85,9 @@ func ListRetention(retentionID string) (retention.GetRetentionOK, error) {
 		return retention.GetRetentionOK{}, err
 	}
 	retentionIDint, err := strconv.Atoi(retentionID)
+	if err != nil {
+		return retention.GetRetentionOK{}, err
+	}
 	response, err := client.Retention.GetRetention(ctx, &retention.GetRetentionParams{ID: int64(retentionIDint)})
 	if err != nil {
 		return retention.GetRetentionOK{}, err
@@ -120,6 +123,9 @@ func DeleteRetention(retentionID string) error {
 		return err
 	}
 	retentionIDint, err := strconv.Atoi(retentionID)
+	if err != nil {
+		return err
+	}
 	_, err = client.Retention.DeleteRetention(ctx, &retention.DeleteRetentionParams{ID: int64(retentionIDint)})
 	if err != nil {
 		return err
