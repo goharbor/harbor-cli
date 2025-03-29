@@ -12,10 +12,19 @@ func CreateRetentionCommand() *cobra.Command {
 	var opts create.CreateView
 
 	cmd := &cobra.Command{
-		Use:     "create",
-		Short:   "create retention tag rule",
-		Long:    "create retention tag rule to the project in harbor",
-		Example: "harbor retention create",
+		Use:   "create",
+		Short: "Create a tag retention rule in a project",
+		Long: `Create a tag retention rule for a project in Harbor to manage the lifecycle of image tags.
+
+Tag retention rules help users automatically retain or delete specific tags based on 
+defined criteria, reducing storage usage and improving repository maintenance.
+
+⚠️ A user can create **up to 15 tag retention rules per project**.`,
+		Example: `  # Retain tags matching 'release-*' at the project level
+  harbor tag retention create --level project --action retain --taglist release-*
+
+  # Delete untagged images at the repository level
+  harbor retention create --level repository --action delete --tagdecoration untagged`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
@@ -41,19 +50,19 @@ func CreateRetentionCommand() *cobra.Command {
 			projectId, err := prompt.GetProjectIDFromUser()
 			err = createRetentionView(createView, int32(projectId))
 			if err != nil {
-				log.Errorf("failed to create retention tag rule: %v", err)
+				log.Errorf("Failed to create retention tag rule: %v", err)
 			}
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.ScopeSelectors.Decoration, "repodecoration", "", "", "repository which either apply or exclude from the rule")
-	flags.StringVarP(&opts.ScopeSelectors.Pattern, "repolist", "", "", "list of repository to which to either apply or exclude from the rule")
-	flags.StringVarP(&opts.TagSelectors.Decoration, "tagdecoration", "", "", "tags which either apply or exclude from the rule")
-	flags.StringVarP(&opts.TagSelectors.Pattern, "taglist", "", "", "list of tags to which to either apply or exclude from the rule")
-	flags.StringVarP(&opts.Scope.Level, "level", "", "project", "scope of retention policy")
-	flags.StringVarP(&opts.Action, "action", "", "retain", "Action of the retention policy")
-	flags.StringVarP(&opts.Algorithm, "algorithm", "", "or", "Algorithm of retention policy")
+	flags.StringVarP(&opts.ScopeSelectors.Decoration, "repodecoration", "", "", "Apply or exclude repositories from the rule")
+	flags.StringVarP(&opts.ScopeSelectors.Pattern, "repolist", "", "", "Comma-separated list of repositories to apply/exclude")
+	flags.StringVarP(&opts.TagSelectors.Decoration, "tagdecoration", "", "", "Apply or exclude specific tags from the rule")
+	flags.StringVarP(&opts.TagSelectors.Pattern, "taglist", "", "", "Comma-separated list of tags to apply/exclude")
+	flags.StringVarP(&opts.Scope.Level, "level", "", "project", "Scope of the retention policy: 'project' or 'repository'")
+	flags.StringVarP(&opts.Action, "action", "", "retain", "Action to perform: 'retain' or 'delete'")
+	flags.StringVarP(&opts.Algorithm, "algorithm", "", "or", "Rule combination method: 'or' or 'and'")
 
 	return cmd
 }
