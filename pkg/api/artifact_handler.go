@@ -196,3 +196,49 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 	log.Infof("Tag created successfully: %s/%s@%s:%s", projectName, repoName, reference, tagName)
 	return nil
 }
+
+// AddLabelArtifact put label on a specific artifact.
+func AddLabelArtifact(projectName, repoName, reference string, label *models.Label) (*artifact.AddLabelOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	var response = &artifact.AddLabelOK{}
+	if err != nil {
+		return response, err
+	}
+
+	response, err = client.Artifact.AddLabel(ctx, &artifact.AddLabelParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Reference:      reference,
+		Label:          label,
+	})
+
+	if err != nil {
+		log.Errorf("Failed to set label on artifact: %v", err)
+		return response, err
+	}
+
+	return response, nil
+}
+
+// LabelArtifact delete a label from a specific artifact.
+func RemoveLabelArtifact(projectName, repoName, reference string, label *models.Label) (*artifact.RemoveLabelOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	var response = &artifact.RemoveLabelOK{}
+	if err != nil {
+		return response, err
+	}
+
+	response, err = client.Artifact.RemoveLabel(ctx, &artifact.RemoveLabelParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Reference:      reference,
+		LabelID:        label.ID,
+	})
+
+	if err != nil {
+		log.Errorf("Failed to remove label on artifact: %v", err)
+		return response, err
+	}
+
+	return response, nil
+}
