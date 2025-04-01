@@ -80,7 +80,7 @@ func cleanManPages(docDir string) error {
 					re := regexp.MustCompile(`"[^"]*"`)
 					matches := re.FindAllString(line, -1)
 					if len(matches) >= 5 {
-						matches[2] = `` 
+						matches[2] = ``
 						lines[i] = ".TH " + strings.Join(matches, " ")
 					}
 				}
