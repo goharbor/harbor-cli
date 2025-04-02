@@ -39,9 +39,10 @@ func ViewCommand() *cobra.Command {
 				projectNameOrID = args[0]
 			} else {
 				projectNameOrID = prompt.GetProjectNameFromUser()
+				isID = false
 			}
 
-			project, err = api.GetProject(projectNameOrID, false)
+			project, err = api.GetProject(projectNameOrID, isID)
 			if err != nil {
 				log.Errorf("failed to get project: %v", err)
 				return
