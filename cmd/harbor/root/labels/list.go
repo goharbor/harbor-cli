@@ -14,6 +14,8 @@
 package labels
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/list"
@@ -28,7 +30,12 @@ func ListLabelCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list labels",
-		Run: func(cmd *cobra.Command, args []string) {
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			label, err := api.ListLabel(opts)
 			if err != nil {
 				log.Fatalf("failed to get label list: %v", err)
@@ -42,6 +49,7 @@ func ListLabelCommand() *cobra.Command {
 			} else {
 				list.ListLabels(label.Payload)
 			}
+			return nil
 		},
 	}
 

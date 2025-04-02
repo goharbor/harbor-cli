@@ -14,6 +14,8 @@
 package registry
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/list"
@@ -29,12 +31,15 @@ func ListRegistryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list registry",
-		Run: func(cmd *cobra.Command, args []string) {
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
 			registry, err := api.ListRegistries(opts)
 
 			if err != nil {
-				log.Fatalf("failed to get projects list: %v", err)
-				return
+				return fmt.Errorf("failed to get projects list: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
@@ -45,6 +50,7 @@ func ListRegistryCommand() *cobra.Command {
 			} else {
 				list.ListRegistry(registry.Payload)
 			}
+			return nil
 		},
 	}
 

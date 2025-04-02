@@ -14,6 +14,8 @@
 package user
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/user/list"
@@ -28,13 +30,20 @@ func UserListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "list users",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			response, err := api.ListUsers(opts)
 			if err != nil {
-				log.Errorf("failed to list users: %v", err)
-				return
+				if isUnauthorizedError(err) {
+					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+				} else {
+					return fmt.Errorf("failed to list users: %v", err)
+				}
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
@@ -45,6 +54,7 @@ func UserListCmd() *cobra.Command {
 			} else {
 				list.ListUsers(response.Payload)
 			}
+			return nil
 		},
 	}
 
