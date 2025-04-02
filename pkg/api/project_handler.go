@@ -63,7 +63,7 @@ func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectO
 
 	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{
 		ProjectNameOrID: projectNameOrID,
-		XIsResourceName: utils.CreateBoolPointer(!useProjectID),
+		XIsResourceName: &useProjectID,
 	})
 
 	if err != nil {
@@ -102,7 +102,7 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 
 	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{
 		ProjectNameOrID: projectNameOrID,
-		XIsResourceName: utils.CreateBoolPointer(!useProjectID),
+		XIsResourceName: &useProjectID,
 	})
 
 	if err != nil {
