@@ -14,6 +14,8 @@
 package immutable
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/immutable"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -26,9 +28,19 @@ import (
 
 func ListImmutableCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list all immutable tag rule of project",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "list [PROJECT_NAME]",
+		Short: "Display all immutable tag rules for a project",
+		Long: `Retrieve and display a list of immutable tag rules configured for a specified project in Harbor. 
+Immutable tag rules prevent specific tags from being deleted or overwritten, ensuring better security and compliance.
+You can specify the project name as an argument or, if omitted, you will be prompted to select one interactively.`,
+		Example: `  
+  # List immutable tag rules for a specific project  
+  harbor tag immutable list my-project  
+
+  # List immutable tag rules interactively (if no project name is provided)  
+  harbor tag immutable list  
+  `,
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var resp immutable.ListImmuRulesOK
@@ -49,7 +61,10 @@ func ListImmutableCommand() *cobra.Command {
 				utils.PrintPayloadInJSONFormat(resp)
 				return
 			}
-
+			if len(resp.Payload) == 0 {
+				fmt.Println("No immutable tag rules found.")
+				return
+			}
 			list.ListImmuRules(resp.Payload)
 		},
 	}

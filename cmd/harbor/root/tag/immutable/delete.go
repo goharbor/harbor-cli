@@ -27,20 +27,20 @@ func DeleteImmutableCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName string
 			var immutableId int64
 			if len(args) > 0 {
+				projectName = args[0]
 				immutableId = prompt.GetImmutableTagRule(args[0])
-				err = api.DeleteImmutable(args[0], immutableId)
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
+				projectName = prompt.GetProjectNameFromUser()
 				immutableId = prompt.GetImmutableTagRule(projectName)
-				err = api.DeleteImmutable(projectName, immutableId)
 			}
+			err = api.DeleteImmutable(projectName, immutableId)
 			if err != nil {
-				log.Errorf("failed to delete immutable rule: %v", err)
+				log.Errorf("failed to delete immutable tag rules: %v", err)
 			}
 		},
 	}
-
 	return cmd
 }

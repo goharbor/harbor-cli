@@ -25,9 +25,9 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Repository", Width: 26},
-	{Title: "Tag", Width: 24},
+	{Title: "ID", Width: 12},
+	{Title: "Repository", Width: 30},
+	{Title: "Tag", Width: 30},
 }
 
 func ListImmuRules(immutable []*models.ImmutableRule) {
