@@ -49,7 +49,7 @@ func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
 	go func() {
-		response, err := api.ListRepository(projectName)
+		response, err := api.ListRepository(projectName, false)
 		if err != nil {
 			log.Fatal(err)
 		}
