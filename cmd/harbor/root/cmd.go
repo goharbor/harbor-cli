@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/cveallowlist"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -95,6 +96,7 @@ harbor help
 		user.User(),
 		artifact.Artifact(),
 		HealthCommand(),
+		cveallowlist.CVEAllowlist(),
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),
