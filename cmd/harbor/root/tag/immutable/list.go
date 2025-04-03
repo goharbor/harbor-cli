@@ -51,9 +51,7 @@ func ListImmutableCommand() *cobra.Command {
 			}
 
 			list.ListImmuRules(resp.Payload)
-
 		},
 	}
-
 	return cmd
 }

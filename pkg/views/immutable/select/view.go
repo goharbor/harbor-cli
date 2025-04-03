@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package immutable
 
 import (
@@ -19,11 +32,11 @@ func ImmutableList(immutablerule []*models.ImmutableRule, choice chan<- int64) {
 		tagSelectors := make([]string, len(r.TagSelectors))
 		for _, scope := range r.ScopeSelectors {
 			for i, repo := range scope {
-				scopeSelectors[i] = fmt.Sprintf("%s %s",repo.Decoration, repo.Pattern)
+				scopeSelectors[i] = fmt.Sprintf("%s %s", repo.Decoration, repo.Pattern)
 			}
 		}
 		for i, tag := range r.TagSelectors {
-			tagSelectors[i] = fmt.Sprintf("%s %s",tag.Decoration, tag.Pattern)
+			tagSelectors[i] = fmt.Sprintf("%s %s", tag.Decoration, tag.Pattern)
 		}
 		for _, scope := range scopeSelectors {
 			for _, tag := range tagSelectors {
@@ -46,5 +59,4 @@ func ImmutableList(immutablerule []*models.ImmutableRule, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- items[p.Choice]
 	}
-
 }
