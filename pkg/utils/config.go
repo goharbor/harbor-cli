@@ -341,7 +341,10 @@ func CreateConfigFile(configPath string) error {
 		v.SetConfigType("yaml")
 
 		// Create empty default config
-		defaultConfig := HarborConfig{}
+		defaultConfig := HarborConfig{
+			CurrentCredentialName: "",
+			Credentials:           []Credential{},
+		}
 
 		v.Set("current-credential-name", defaultConfig.CurrentCredentialName)
 		v.Set("credentials", defaultConfig.Credentials)
