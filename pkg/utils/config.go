@@ -340,6 +340,7 @@ func CreateConfigFile(configPath string) error {
 		v := viper.New()
 		v.SetConfigType("yaml")
 
+		// Create empty default config
 		defaultConfig := HarborConfig{
 			CurrentCredentialName: "",
 			Credentials:           []Credential{},
@@ -357,6 +358,49 @@ func CreateConfigFile(configPath string) error {
 		log.Fatalf("error checking config file: %v", err)
 	}
 
+	return nil
+}
+
+// UpdateConfigFile updates the YAML config file on disk with the
+// values in the given HarborConfig, and also updates the in-memory CurrentHarborConfig.
+func UpdateConfigFile(config *HarborConfig) error {
+	configMutex.Lock()
+	defer configMutex.Unlock()
+
+	// Ensure we know where to write the config
+	if CurrentHarborData == nil {
+		return errors.New("harbor data is nil – check that your config initialization completed")
+	}
+	configPath := CurrentHarborData.ConfigPath
+
+	// Ensure the file actually exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return fmt.Errorf("config file does not exist at %s", configPath)
+	} else if err != nil {
+		return fmt.Errorf("error checking config file: %v", err)
+	}
+
+	// Read the existing config file via viper
+	v := viper.New()
+	v.SetConfigFile(configPath)
+	v.SetConfigType("yaml")
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	// Overwrite the specific fields we care about
+	v.Set("current-credential-name", config.CurrentCredentialName)
+	v.Set("credentials", config.Credentials)
+
+	// Write back to disk
+	if err := v.WriteConfig(); err != nil {
+		return fmt.Errorf("failed to write updated config file: %w", err)
+	}
+
+	// Also update our global in-memory config
+	CurrentHarborConfig = config
+
+	log.Infof("Updated config file at %s", configPath)
 	return nil
 }
 
@@ -437,6 +481,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	for i, cred := range c.Credentials {
 		if cred.Name == updatedCredential.Name {
 			c.Credentials[i] = updatedCredential
+			c.CurrentCredentialName = updatedCredential.Name
 			updated = true
 			break
 		}
@@ -453,6 +498,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
-	log.Infof("Updated credential '%s' in config file at %s", updatedCredential.Name, configPath)
+	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)
+	log.Infof("Switched to context '%s'", updatedCredential.Name)
 	return nil
 }

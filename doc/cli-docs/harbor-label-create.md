@@ -1,6 +1,6 @@
 ---
 title: harbor label create
-weight: 20
+weight: 80
 ---
 ## harbor label create
 
