@@ -238,3 +238,6 @@ This project is maintained by the Harbor community. We thank all our contributor
 
 For any questions or issues, please open an issue on our [GitHub Issues](https://github.com/goharbor/harbor-cli/issues) page.<br>
 Give a ⭐ if this project helped you, Thank YOU!
+
+
+[![codecov](https://codecov.io/gh/qcserestipy/harbor-cli/graph/badge.svg?token=B5NH6M6ZMP)](https://codecov.io/gh/qcserestipy/harbor-cli)
