@@ -301,6 +301,36 @@ func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 	return test.File(reportName)
 }
 
+func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
+	coverage := "coverage.out"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."})
+	return test.File(coverage)
+}
+
+func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
+	coverage := "coverage.out"
+	report := "coverage-report.out"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."}).
+		WithExec([]string{"go", "tool", "cover", "-func=" + coverage, "-o", report})
+	return test.File(report)
+}
+
 // Parse the platform string into os and arch
 func parsePlatform(platform string) (string, string, error) {
 	parts := strings.Split(platform, "/")
