@@ -11,12 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package e2e
+package root_test
 
 import (
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
+	helpers "github.com/goharbor/harbor-cli/test/helper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,8 +51,8 @@ import (
 
 func Test_Login_Failure_WrongServer(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
 
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"wrongserver"})
@@ -66,8 +67,8 @@ func Test_Login_Failure_WrongServer(t *testing.T) {
 
 func Test_Login_Failure_WrongUsername(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
 
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"http://demo.goharbor.io"})
@@ -82,8 +83,8 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 
 func Test_Login_Failure_WrongPassword(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
 
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"http://demo.goharbor.io"})
