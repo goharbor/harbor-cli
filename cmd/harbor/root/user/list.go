@@ -14,7 +14,7 @@ import (
 
 func UserListCmd() *cobra.Command {
 	var opts api.ListFlags
-	var allUsers []*models.UserResp // assuming api.User is the response type
+	var allUsers []*models.UserResp
 
 	cmd := &cobra.Command{
 		Use:     "list",

@@ -61,6 +61,10 @@ func ListRepositoryCommand() *cobra.Command {
 					log.Error(err)
 				}
 			} else {
+				if len(repos.Payload) == 0 {
+					log.Info("No repositories found")
+					return nil
+				}
 				list.ListRepositories(repos.Payload)
 			}
 			return nil

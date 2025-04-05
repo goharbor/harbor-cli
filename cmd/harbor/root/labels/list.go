@@ -47,6 +47,10 @@ func ListLabelCommand() *cobra.Command {
 					log.Error(err)
 				}
 			} else {
+				if len(label.Payload) == 0 {
+					log.Info("No labels found")
+					return nil
+				}
 				list.ListLabels(label.Payload)
 			}
 			return nil
