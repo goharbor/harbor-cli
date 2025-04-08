@@ -15,8 +15,10 @@ package root
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -25,6 +27,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,6 +57,19 @@ harbor help
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
+			// Conditionally set the timestamp format only in verbose mode
+			if verbose {
+				logrus.SetFormatter(&logrus.TextFormatter{
+					FullTimestamp:   true,
+					TimestampFormat: time.RFC3339,
+				})
+			} else {
+				// No timestamp format for non-verbose
+				logrus.SetFormatter(&logrus.TextFormatter{
+					DisableTimestamp: true,
+				})
+			}
+
 			return nil
 		},
 	}
@@ -75,6 +91,7 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
+		config.Config(),
 		project.Project(),
 		registry.Registry(),
 		repositry.Repository(),

@@ -1,6 +1,6 @@
 ---
 title: harbor artifact view
-weight: 45
+weight: 75
 ---
 ## harbor artifact view
 
