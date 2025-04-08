@@ -102,7 +102,7 @@ Use "harbor [command] --help" for more information about a command.
 
 #### Config Management
 
-##### Hierachy
+##### Hierarchy
   Use the `--config` flag to specify a custom configuration file path (highest priority).
   ```bash
   harbor --config /path/to/custom/config.yaml artifact list
