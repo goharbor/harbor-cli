@@ -49,11 +49,9 @@ func FormatUrl(url string) string {
 		// If not, prepend "https://"
 		url = "https://" + url
 	}
-	// Check if URL ends with trailing "/". If so remove it
-	suffix := "/"
-	if strings.HasSuffix(url, suffix) {
-		url = url[:len(url)-len(suffix)]
-	}
+
+	// Remove all trailing slashes from the URL
+	url = strings.TrimRight(url, "/")
 	return url
 }
 
