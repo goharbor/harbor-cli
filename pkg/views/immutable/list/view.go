@@ -33,10 +33,10 @@ var columns = []table.Column{
 func ListImmuRules(immutable []*models.ImmutableRule) {
 	var rows []table.Row
 	for _, regis := range immutable {
-		scopeSelectors := make([]string, len(regis.ScopeSelectors))
+		var scopeSelectors []string
 		for _, scope := range regis.ScopeSelectors {
-			for i, repo := range scope {
-				scopeSelectors[i] = fmt.Sprintf("%s %s", repo.Decoration, repo.Pattern)
+			for _, repo := range scope {
+				scopeSelectors = append(scopeSelectors, fmt.Sprintf("%s %s", repo.Decoration, repo.Pattern))
 			}
 		}
 
