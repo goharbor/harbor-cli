@@ -69,10 +69,13 @@ func UserListCmd() *cobra.Command {
 				}
 				allUsers = response.Payload
 			}
-
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err := utils.PrintFormat(allUsers, FormatFlag)
+			if len(allUsers) == 0 {
+				log.Info("No users found")
+				return nil
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err := utils.PrintFormat(allUsers, formatFlag)
 				if err != nil {
 					log.Error(err)
 				}

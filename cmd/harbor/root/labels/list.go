@@ -40,17 +40,17 @@ func ListLabelCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("failed to get label list: %v", err)
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(label, FormatFlag)
+			if len(label.Payload) == 0 {
+				log.Info("No labels found")
+				return nil
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(label, formatFlag)
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				if len(label.Payload) == 0 {
-					log.Info("No labels found")
-					return nil
-				}
 				list.ListLabels(label.Payload)
 			}
 			return nil

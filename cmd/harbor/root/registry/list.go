@@ -41,9 +41,13 @@ func ListRegistryCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", err)
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(registry, FormatFlag)
+			if len(registry.Payload) == 0 {
+				log.Info("No registries found")
+				return nil
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(registry, formatFlag)
 				if err != nil {
 					log.Error(err)
 				}
