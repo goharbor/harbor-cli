@@ -53,7 +53,10 @@ func ListRepositoryCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to list repositories: %v", err)
 			}
-
+			if len(repos.Payload) == 0 {
+				log.Info("No repositories found")
+				return nil
+			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(repos, FormatFlag)
