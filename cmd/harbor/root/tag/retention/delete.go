@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func DeleteRetentionPolicyCommand() *cobra.Command {
+func DeleteRetentionRuleCommand() *cobra.Command {
 	var projectName string
 	var projectID int
 
@@ -63,14 +63,13 @@ Examples:
 			}
 
 			retentionID, err := api.GetRetentionId(projectIDStr, isName)
+			retentionIndex := prompt.GetRetentionTagRule(retentionID)
+			err = api.DeleteRetention(projectName, int(retentionIndex))
+
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
-			if err := api.DeleteRetention(retentionID); err != nil {
-				return fmt.Errorf("failed to delete retention rule: %w", err)
-			}
-
-			log.Info("Retention Policy deleted successfully")
+			log.Info("Retention Rule deleted successfully")
 			return nil
 		},
 	}
