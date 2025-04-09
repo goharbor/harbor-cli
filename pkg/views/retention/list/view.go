@@ -56,7 +56,6 @@ func getAdjustedColumns() []table.Column {
 	totalWidth := getTerminalWidth()
 
 	columnWidths := []int{
-		totalWidth / 15, // ID
 		totalWidth / 15, // Action
 		totalWidth / 15, // Disabled
 		totalWidth / 8,  // Params
@@ -67,14 +66,13 @@ func getAdjustedColumns() []table.Column {
 	}
 
 	return []table.Column{
-		{Title: "ID", Width: columnWidths[0]},
-		{Title: "Action", Width: columnWidths[1]},
-		{Title: "Disabled", Width: columnWidths[2]},
-		{Title: "Params", Width: columnWidths[3]},
-		{Title: "Priority", Width: columnWidths[4]},
-		{Title: "Scope Selectors", Width: columnWidths[5]},
-		{Title: "Tag Selectors", Width: columnWidths[6]},
-		{Title: "Template", Width: columnWidths[7]},
+		{Title: "Action", Width: columnWidths[0]},
+		{Title: "Disabled", Width: columnWidths[1]},
+		{Title: "Params", Width: columnWidths[2]},
+		{Title: "Priority", Width: columnWidths[3]},
+		{Title: "Scope Selectors", Width: columnWidths[4]},
+		{Title: "Tag Selectors", Width: columnWidths[5]},
+		{Title: "Template", Width: columnWidths[6]},
 	}
 }
 
@@ -96,14 +94,13 @@ func ListRetentionRules(rules []*models.RetentionRule) {
 		}
 
 		rows = append(rows, table.Row{
-			truncateString(fmt.Sprintf("%d", rule.ID), columns[0].Width),
-			truncateString(rule.Action, columns[1].Width),
-			truncateString(fmt.Sprintf("%v", rule.Disabled), columns[2].Width),
-			truncateString(params, columns[3].Width),
-			truncateString(fmt.Sprintf("%d", rule.Priority), columns[4].Width),
-			truncateString(scopeSelectors, columns[5].Width),
-			truncateString(strings.Join(tagSelectors, ", "), columns[6].Width),
-			truncateString(rule.Template, columns[7].Width),
+			truncateString(rule.Action, columns[0].Width),
+			truncateString(fmt.Sprintf("%v", rule.Disabled), columns[1].Width),
+			truncateString(params, columns[2].Width),
+			truncateString(fmt.Sprintf("%d", rule.Priority), columns[3].Width),
+			truncateString(scopeSelectors, columns[4].Width),
+			truncateString(strings.Join(tagSelectors, ", "), columns[5].Width),
+			truncateString(rule.Template, columns[6].Width),
 		})
 	}
 
