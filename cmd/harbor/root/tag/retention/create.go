@@ -14,6 +14,9 @@
 package retention
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/retention/create"
@@ -23,7 +26,8 @@ import (
 
 func CreateRetentionCommand() *cobra.Command {
 	var opts create.CreateView
-
+	var projectName string
+	var projectID int
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a tag retention rule in a project",
@@ -38,8 +42,25 @@ A user can create up to 15 tag retention rules per project.`,
 
   # Delete untagged images at the repository level
   harbor retention create --level repository --action delete --tagdecoration untagged`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			if projectID != -1 && projectName != "" {
+				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
+			}
+
+			if projectID == -1 && projectName == "" {
+				projectName = prompt.GetProjectNameFromUser()
+			}
+
+			projectIDorName := ""
+			isName := true
+			if projectID != -1 {
+				projectIDorName = strconv.Itoa(projectID)
+				isName = false
+			} else {
+				projectIDorName = projectName
+			}
+
 			createView := &create.CreateView{
 				ScopeSelectors: create.RetentionSelector{
 					Decoration: opts.ScopeSelectors.Decoration,
@@ -60,12 +81,12 @@ A user can create up to 15 tag retention rules per project.`,
 				Algorithm: opts.Algorithm,
 			}
 
-			projectId := int32(prompt.GetProjectIDFromUser())
-			err = createRetentionView(createView, projectId)
+			err = createRetentionView(createView, projectIDorName, isName)
 
 			if err != nil {
-				log.Errorf("Failed to create retention tag rule: %v", err)
+				log.Errorf("Failed to create tag retention rule: %v", err)
 			}
+			return nil
 		},
 	}
 
@@ -77,15 +98,17 @@ A user can create up to 15 tag retention rules per project.`,
 	flags.StringVarP(&opts.Scope.Level, "level", "", "project", "Scope of the retention policy: 'project' or 'repository'")
 	flags.StringVarP(&opts.Action, "action", "", "retain", "Action to perform: 'retain' or 'delete'")
 	flags.StringVarP(&opts.Algorithm, "algorithm", "", "or", "Rule combination method: 'or' or 'and'")
+	flags.StringVarP(&projectName, "project-name", "p", "", "Project name")
+	flags.IntVarP(&projectID, "project-id", "i", -1, "Project ID")
 
 	return cmd
 }
 
-func createRetentionView(createView *create.CreateView, projectId int32) error {
+func createRetentionView(createView *create.CreateView, projectIDorName string, isName bool) error {
 	if createView == nil {
 		createView = &create.CreateView{}
 	}
 
 	create.CreateRetentionView(createView)
-	return api.CreateRetention(*createView, projectId)
+	return api.CreateRetention(*createView, projectIDorName, isName)
 }

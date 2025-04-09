@@ -21,6 +21,7 @@ import (
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 )
@@ -115,4 +116,13 @@ func GetLabelIdFromUser(opts api.ListFlags) int64 {
 	}()
 
 	return <-labelId
+}
+
+func GetRetentionTagRule(retentionID string) int64 {
+	retentionIndex := make(chan int64)
+	go func() {
+		response, _ := api.ListRetention(retentionID)
+		retview.RetentionList(response.Payload.Rules, retentionIndex)
+	}()
+	return <-retentionIndex
 }

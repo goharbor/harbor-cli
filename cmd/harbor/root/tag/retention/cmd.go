@@ -36,7 +36,7 @@ A user can only create up to 15 tag retention rules per project.`,
 	cmd.AddCommand(
 		CreateRetentionCommand(),
 		ListRetentionRulesCommand(),
-		DeleteRetentionPolicyCommand(),
+		DeleteRetentionRuleCommand(),
 	)
 	return cmd
 }
