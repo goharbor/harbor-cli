@@ -38,6 +38,7 @@ import (
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -110,15 +111,6 @@ func GetProjectIDFromUser() int64 {
 	}()
 
 	return <-projectID
-}
-
-func GetProjectIDFromUser() int32 {
-	projectId := make(chan int32)
-	go func() {
-		response, _ := api.ListProject()
-		pview.ProjectIdList(response.Payload, projectId)
-	}()
-	return <-projectId
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -382,4 +374,13 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func GetRetentionTagRule(retentionID string) int64 {
+	retentionIndex := make(chan int64)
+	go func() {
+		response, _ := api.ListRetention(retentionID)
+		retview.RetentionList(response.Payload.Rules, retentionIndex)
+	}()
+	return <-retentionIndex
 }
