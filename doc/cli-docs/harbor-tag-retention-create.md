@@ -1,6 +1,6 @@
 ---
 title: harbor tag retention create
-weight: 50
+weight: 95
 ---
 ## harbor tag retention create
 
@@ -15,7 +15,7 @@ Create a tag retention rule for a project in Harbor to manage the lifecycle of i
 Tag retention rules help users automatically retain or delete specific tags based on 
 defined criteria, reducing storage usage and improving repository maintenance.
 
-⚠️ A user can create **up to 15 tag retention rules per project**.
+A user can create up to 15 tag retention rules per project.
 
 ```sh
 harbor tag retention create [flags]
@@ -38,6 +38,8 @@ harbor tag retention create [flags]
       --algorithm string        Rule combination method: 'or' or 'and' (default "or")
   -h, --help                    help for create
       --level string            Scope of the retention policy: 'project' or 'repository' (default "project")
+  -i, --project-id int          Project ID (default -1)
+  -p, --project-name string     Project name
       --repodecoration string   Apply or exclude repositories from the rule
       --repolist string         Comma-separated list of repositories to apply/exclude
       --tagdecoration string    Apply or exclude specific tags from the rule
@@ -54,5 +56,5 @@ harbor tag retention create [flags]
 
 ### SEE ALSO
 
-* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention policies in the project
+* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention rules in the project
 

@@ -61,7 +61,6 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 		if err != nil {
 			return fmt.Errorf("failed to convert project ID to int: %w", err)
 		}
-
 	}
 	_, err = client.Retention.CreateRetention(ctx, &retention.CreateRetentionParams{
 		Policy: &models.RetentionPolicy{

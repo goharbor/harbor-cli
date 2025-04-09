@@ -29,8 +29,8 @@ func DeleteRetentionRuleCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete a tag retention policy for a project",
-		Long: `Delete an existing tag retention policy from a project.
+		Short: "Delete a tag retention rule for a project",
+		Long: `Delete an existing tag retention rule from a project.
 
 Usage:
   - You can specify the project either by name or by ID, but not both.
@@ -38,10 +38,10 @@ Usage:
   - The command retrieves the retention policy ID and deletes it.
 
 Examples:
-  # Delete retention policy using project name
+  # Delete retention rule using project name
   harbor tag retention delete --project-name my-project
 
-  # Delete retention policy using project ID
+  # Delete retention rule using project ID
   harbor tag retention delete --project-id 42`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -70,7 +70,6 @@ Examples:
 				} else {
 					return fmt.Errorf("Error retrieving retention policy ID: %w", err)
 				}
-
 			}
 			retentionIndex := prompt.GetRetentionTagRule(retentionID)
 			err = api.DeleteRetention(projectName, int(retentionIndex))
