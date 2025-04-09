@@ -60,10 +60,11 @@ func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectO
 	if err != nil {
 		return response, err
 	}
+	useResourceName := !useProjectID
 
 	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{
 		ProjectNameOrID: projectNameOrID,
-		XIsResourceName: &useProjectID,
+		XIsResourceName: &useResourceName,
 	})
 
 	if err != nil {
