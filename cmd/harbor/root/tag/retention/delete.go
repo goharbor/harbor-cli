@@ -63,6 +63,15 @@ Examples:
 			}
 
 			retentionID, err := api.GetRetentionId(projectIDStr, isName)
+			if err != nil {
+				if err.Error() == "No retention policy exists for this project" {
+					log.Info("No retention policy exists for this project")
+					return nil
+				} else {
+					return fmt.Errorf("Error retrieving retention policy ID: %w", err)
+				}
+
+			}
 			retentionIndex := prompt.GetRetentionTagRule(retentionID)
 			err = api.DeleteRetention(projectName, int(retentionIndex))
 
