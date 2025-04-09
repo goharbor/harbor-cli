@@ -43,20 +43,25 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 	}
 
 	if retentionIDStr != "" {
-		fmt.Println("Updating existing retention policy")
 		return UpdateRetention(retentionIDStr, newRule)
 	}
 
 	triggerSettings := map[string]string{
 		"cron": "",
 	}
-	projectID, err := strconv.Atoi(projectIDorName)
+	var projectID int
 	if isName {
 		project, _ := client.Project.GetProject(ctx, &project.GetProjectParams{
 			XIsResourceName: &isName,
 			ProjectNameOrID: projectIDorName,
 		})
 		projectID = int(project.Payload.ProjectID)
+	} else {
+		projectID, err = strconv.Atoi(projectIDorName)
+		if err != nil {
+			return fmt.Errorf("failed to convert project ID to int: %w", err)
+		}
+
 	}
 	_, err = client.Retention.CreateRetention(ctx, &retention.CreateRetentionParams{
 		Policy: &models.RetentionPolicy{
