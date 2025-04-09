@@ -38,6 +38,7 @@ import (
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -415,4 +416,13 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func GetRetentionTagRule(retentionID string) int64 {
+	retentionIndex := make(chan int64)
+	go func() {
+		response, _ := api.ListRetention(retentionID)
+		retview.RetentionList(response.Payload.Rules, retentionIndex)
+	}()
+	return <-retentionIndex
 }
