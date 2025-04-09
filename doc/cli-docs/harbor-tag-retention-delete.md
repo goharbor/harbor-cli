@@ -1,27 +1,27 @@
 ---
 title: harbor tag retention delete
-weight: 40
+weight: 15
 ---
 ## harbor tag retention delete
 
 ### Description
 
-##### Delete a tag retention policy for a project
+##### Delete a tag retention rule for a project
 
 ### Synopsis
 
-Delete an existing tag retention policy from a project in Harbor.
+Delete an existing tag retention rule from a project.
 
 Usage:
-  - You can specify the project **either by name or by ID**, but not both.
+  - You can specify the project either by name or by ID, but not both.
   - If neither is provided, you will be prompted to select a project.
   - The command retrieves the retention policy ID and deletes it.
 
 Examples:
-  # Delete retention policy using project name
+  # Delete retention rule using project name
   harbor tag retention delete --project-name my-project
 
-  # Delete retention policy using project ID
+  # Delete retention rule using project ID
   harbor tag retention delete --project-id 42
 
 ```sh
@@ -46,5 +46,5 @@ harbor tag retention delete [flags]
 
 ### SEE ALSO
 
-* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention policies in the project
+* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention rules in the project
 

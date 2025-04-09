@@ -1,6 +1,6 @@
 ---
 title: harbor tag retention list
-weight: 0
+weight: 45
 ---
 ## harbor tag retention list
 
@@ -10,14 +10,14 @@ weight: 0
 
 ### Synopsis
 
-Retrieve and display the tag retention rules for a specific project in Harbor.
+Retrieve and display the tag retention rules for a specific project .
 
 Tag retention rules define policies for automatically keeping or deleting image tags 
 within a project. Using this command, you can view the currently configured 
 retention rules.
 
 Usage:
-  - Specify the project **either by name or by ID**, but not both.
+  - Specify the project either by name or by ID, but not both.
   - If neither is provided, you will be prompted to select a project.
   - The rules will be displayed in a formatted output.
 
@@ -53,5 +53,5 @@ harbor tag retention list [flags]
 
 ### SEE ALSO
 
-* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention policies in the project
+* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention rules in the project
 
