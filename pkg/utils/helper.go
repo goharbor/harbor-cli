@@ -49,6 +49,9 @@ func FormatUrl(url string) string {
 		// If not, prepend "https://"
 		url = "https://" + url
 	}
+
+	// Remove all trailing slashes from the URL
+	url = strings.TrimRight(url, "/")
 	return url
 }
 
