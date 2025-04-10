@@ -1,7 +1,21 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package create
 
 import (
 	"errors"
+
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -23,7 +37,6 @@ func WebhookCreateView(createView *CreateView) {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
-
 			huh.NewInput().
 				Title("Name").
 				Value(&createView.Name).
@@ -44,7 +57,8 @@ func WebhookCreateView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error("Error in first form: ", err)
+		return
 	}
 
 	if createView.NotifyType == "http" {
@@ -61,18 +75,21 @@ func WebhookCreateView(createView *CreateView) {
 		).WithTheme(theme).Run()
 
 		if err != nil {
-			log.Fatal(err)
+			log.Error("Error in Payload Format form: ", err)
+			return
 		}
 	}
 
 	err = huh.NewForm(
 		huh.NewGroup(
-
-			huh.NewInput().Title("Endpoint URL").
+			huh.NewInput().
+				Title("Endpoint URL").
 				Value(&createView.EndpointURL).
 				Validate(utils.EmptyStringValidator("Endpoint URL")),
 
-			huh.NewInput().Title("Auth Header").Value(&createView.AuthHeader),
+			huh.NewInput().
+				Title("Auth Header").
+				Value(&createView.AuthHeader),
 
 			huh.NewMultiSelect[string]().
 				Title("Select Event Types").
@@ -91,14 +108,15 @@ func WebhookCreateView(createView *CreateView) {
 				Value(&createView.EventType).
 				Validate(func(args []string) error {
 					if len(args) == 0 {
-						return errors.New("please select least one of event type(s)")
+						return errors.New("please select at least one event type")
 					}
 					return nil
 				}),
 
-			huh.NewConfirm().Title("Verify Remote Certificate").
-				Description("Determine whether the webhook should verify the certificate of a remote url "+
-					"Uncheck this box when the remote url uses a self-signed or untrusted certificate.").
+			huh.NewConfirm().
+				Title("Verify Remote Certificate").
+				Description("Determine whether the webhook should verify the certificate of a remote URL.\n"+
+					"Uncheck this box when the remote URL uses a self-signed or untrusted certificate.").
 				Affirmative("Yes").
 				Negative("No").
 				Value(&createView.VerifyRemoteCertificate),
@@ -106,6 +124,7 @@ func WebhookCreateView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error("Error in second form: ", err)
+		return
 	}
 }
