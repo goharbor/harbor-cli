@@ -50,3 +50,37 @@ func Test_EncryptionWithMockKeyring(t *testing.T) {
 		t.Fatalf("expected %s but got %s", plaintext, decrypted)
 	}
 }
+
+func Test_EncryptionWithFileKeyring(t *testing.T) {
+	// Use file keyring for tests
+	fileKeyring := utils.FileKeyring{
+		BaseDir: t.TempDir(),
+	}
+	utils.SetKeyringProvider(&fileKeyring)
+
+	// Run tests
+	err := utils.GenerateEncryptionKey()
+	if err != nil {
+		t.Fatalf("failed to generate encryption key: %v", err)
+	}
+
+	key, err := utils.GetEncryptionKey()
+	if err != nil {
+		t.Fatalf("failed to get encryption key: %v", err)
+	}
+
+	plaintext := "my-secret"
+	encrypted, err := utils.Encrypt(key, []byte(plaintext))
+	if err != nil {
+		t.Fatalf("failed to encrypt: %v", err)
+	}
+
+	decrypted, err := utils.Decrypt(key, encrypted)
+	if err != nil {
+		t.Fatalf("failed to decrypt: %v", err)
+	}
+
+	if decrypted != plaintext {
+		t.Fatalf("expected %s but got %s", plaintext, decrypted)
+	}
+}

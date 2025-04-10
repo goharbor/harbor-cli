@@ -20,7 +20,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/zalando/go-keyring"
 )
 
@@ -44,7 +48,76 @@ func (s *SystemKeyring) Delete(service, user string) error {
 	return keyring.Delete(service, user)
 }
 
-var keyringProvider KeyringProvider = &SystemKeyring{}
+// FileKeyring implements KeyringProvider using files in a directory
+type FileKeyring struct {
+	BaseDir string
+}
+
+func (f *FileKeyring) Set(service, user, password string) error {
+	if err := os.MkdirAll(f.BaseDir, 0700); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	return os.WriteFile(filename, []byte(password), 0600)
+}
+
+func (f *FileKeyring) Get(service, user string) (string, error) {
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func (f *FileKeyring) Delete(service, user string) error {
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	return os.Remove(filename)
+}
+
+// Replace unsafe filename characters
+func sanitizeFilename(name string) string {
+	return strings.Map(func(r rune) rune {
+		if strings.ContainsRune(`<>:"/\|?*`, r) {
+			return '_'
+		}
+		return r
+	}, name)
+}
+
+// GetKeyringProvider selects the appropriate keyring provider
+func GetKeyringProvider() KeyringProvider {
+	// Try system keyring first
+	if err := keyring.Set("harbor-cli-test", "test-user", "test"); err == nil {
+		// Clean up the test entry
+		err = keyring.Delete("harbor-cli-test", "test-user")
+		if err != nil {
+			logrus.Warnf("Failed to delete test entry from system keyring: %v", err)
+		}
+		logrus.Debug("System keyring available")
+		return &SystemKeyring{}
+	}
+
+	// Fall back to file-based keyring
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
+	fileKeyring := &FileKeyring{
+		BaseDir: filepath.Join(homeDir, ".harbor", "keyring"),
+	}
+
+	logrus.Debug("System keyring not available, using file-based keyring")
+	return fileKeyring
+}
+
+var keyringProvider KeyringProvider
+
+func init() {
+	// Initialize with the appropriate provider
+	keyringProvider = GetKeyringProvider()
+}
 
 func SetKeyringProvider(provider KeyringProvider) {
 	keyringProvider = provider
