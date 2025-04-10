@@ -1,15 +1,27 @@
 ---
 title: harbor instance delete
-weight: 50
+weight: 80
 ---
 ## harbor instance delete
 
 ### Description
 
-##### delete instance by id
+##### Delete a preheat provider instance by its name or ID
+
+### Synopsis
+
+Delete a preheat provider instance from Harbor. You can specify the instance name or ID directly as an argument.
+If no argument is provided, you will be prompted to select an instance from a list of available instances.
 
 ```sh
 harbor instance delete [flags]
+```
+
+### Examples
+
+```sh
+  harbor-cli instance delete my-instance
+  harbor-cli instance delete 12345
 ```
 
 ### Options
@@ -28,5 +40,5 @@ harbor instance delete [flags]
 
 ### SEE ALSO
 
-* [harbor instance](harbor-instance.md)	 - Manage instance in Harbor
+* [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
 

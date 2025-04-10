@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-instance-list - list instance
+harbor-instance-list - List all preheat provider instances in Harbor
 
 
 .SH SYNOPSIS
@@ -10,7 +10,9 @@ harbor-instance-list - list instance
 
 
 .SH DESCRIPTION
-list instance
+List all preheat provider instances registered in Harbor. You can paginate the results,
+filter them using a query string, and sort them in ascending or descending order.
+This command provides an easy way to view all instances along with their details.
 
 
 .SH OPTIONS
@@ -45,6 +47,13 @@ list instance
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli instance list --page 1 --page-size 10
+  harbor-cli instance list --query "name=my-instance" --sort "asc"
+.EE
 
 
 .SH SEE ALSO

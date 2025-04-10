@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-instance-delete - delete instance by id
+harbor-instance-delete - Delete a preheat provider instance by its name or ID
 
 
 .SH SYNOPSIS
@@ -10,7 +10,8 @@ harbor-instance-delete - delete instance by id
 
 
 .SH DESCRIPTION
-delete instance by id
+Delete a preheat provider instance from Harbor. You can specify the instance name or ID directly as an argument.
+If no argument is provided, you will be prompted to select an instance from a list of available instances.
 
 
 .SH OPTIONS
@@ -29,6 +30,13 @@ delete instance by id
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli instance delete my-instance
+  harbor-cli instance delete 12345
+.EE
 
 
 .SH SEE ALSO

@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-instance-create - create instance
+harbor-instance-create - Create a new preheat provider instance in Harbor
 
 
 .SH SYNOPSIS
@@ -10,7 +10,9 @@ harbor-instance-create - create instance
 
 
 .SH DESCRIPTION
-create instance
+Create a new preheat provider instance within Harbor for distributing container images.
+The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
+You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.
 
 
 .SH OPTIONS
@@ -57,6 +59,12 @@ create instance
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true
+.EE
 
 
 .SH SEE ALSO

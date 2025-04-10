@@ -1,15 +1,28 @@
 ---
 title: harbor instance list
-weight: 25
+weight: 20
 ---
 ## harbor instance list
 
 ### Description
 
-##### list instance
+##### List all preheat provider instances in Harbor
+
+### Synopsis
+
+List all preheat provider instances registered in Harbor. You can paginate the results, 
+filter them using a query string, and sort them in ascending or descending order. 
+This command provides an easy way to view all instances along with their details.
 
 ```sh
 harbor instance list [flags]
+```
+
+### Examples
+
+```sh
+  harbor-cli instance list --page 1 --page-size 10
+  harbor-cli instance list --query "name=my-instance" --sort "asc"
 ```
 
 ### Options
@@ -32,5 +45,5 @@ harbor instance list [flags]
 
 ### SEE ALSO
 
-* [harbor instance](harbor-instance.md)	 - Manage instance in Harbor
+* [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
 

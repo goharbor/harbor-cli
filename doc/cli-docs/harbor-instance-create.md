@@ -1,15 +1,27 @@
 ---
 title: harbor instance create
-weight: 50
+weight: 5
 ---
 ## harbor instance create
 
 ### Description
 
-##### create instance
+##### Create a new preheat provider instance in Harbor
+
+### Synopsis
+
+Create a new preheat provider instance within Harbor for distributing container images. 
+The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
+You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.
 
 ```sh
 harbor instance create [flags]
+```
+
+### Examples
+
+```sh
+  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true
 ```
 
 ### Options
@@ -35,5 +47,5 @@ harbor instance create [flags]
 
 ### SEE ALSO
 
-* [harbor instance](harbor-instance.md)	 - Manage instance in Harbor
+* [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
 
