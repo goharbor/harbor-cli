@@ -21,7 +21,6 @@ import (
 )
 
 func DeleteInstanceCommand() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete instance by id",

@@ -1,32 +1,45 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package create
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct{
-	Vendor	string
-	Name	string
-	Description	string
-	Endpoint	string
-	AuthMode string
-	AuthInfo map[string]string
-	Enabled bool
-	Insecure bool
+type CreateView struct {
+	Vendor      string
+	Name        string
+	Description string
+	Endpoint    string
+	AuthMode    string
+	AuthInfo    map[string]string
+	Enabled     bool
+	Insecure    bool
 }
-
 
 func CreateInstanceView(createView *CreateView) {
 	cv := CreateView{
-        AuthInfo: map[string]string{
-            "username": "",
-            "password": "",
-			"token":	"",
-        },
-    }
+		AuthInfo: map[string]string{
+			"username": "",
+			"password": "",
+			"token":    "",
+		},
+	}
 	username := cv.AuthInfo["username"]
 	password := cv.AuthInfo["password"]
 	token := cv.AuthInfo["token"]
@@ -56,7 +69,8 @@ func CreateInstanceView(createView *CreateView) {
 				Title("Endpoint").
 				Value(&createView.Endpoint).
 				Validate(func(str string) error {
-					if str == "" {
+					trimmed := strings.TrimSpace(str)
+					if trimmed == "" {
 						return errors.New("endpoint cannot be empty")
 					}
 					return nil
@@ -79,7 +93,7 @@ func CreateInstanceView(createView *CreateView) {
 					huh.NewOption("OAuth", "OAUTH"),
 				).
 				Value(&createView.AuthMode),
-			),
+		),
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Username").
@@ -92,17 +106,17 @@ func CreateInstanceView(createView *CreateView) {
 				}),
 			huh.NewInput().
 				Title("Password").
+				EchoMode(huh.EchoModePassword).
 				Value(&password).
-				Password(true).
 				Validate(func(str string) error {
 					if str == "" {
 						return errors.New("password cannot be empty")
 					}
 					return nil
 				}),
-				).WithHideFunc(func() bool {
-					return createView.AuthMode == "NONE" || createView.AuthMode == "OAUTH"
-				}),
+		).WithHideFunc(func() bool {
+			return createView.AuthMode == "NONE" || createView.AuthMode == "OAUTH"
+		}),
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Token").
@@ -113,11 +127,11 @@ func CreateInstanceView(createView *CreateView) {
 					}
 					return nil
 				}),
-				).WithHideFunc(func() bool {
-					return createView.AuthMode == "NONE" || createView.AuthMode == "BASIC"
-				}),
-		).WithTheme(theme).Run()
-		
+		).WithHideFunc(func() bool {
+			return createView.AuthMode == "NONE" || createView.AuthMode == "BASIC"
+		}),
+	).WithTheme(theme).Run()
+
 	if err != nil {
 		log.Fatal(err)
 	}

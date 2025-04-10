@@ -49,7 +49,6 @@ func CreateInstanceCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create instance: %v", err)
 			}
-
 		},
 	}
 

@@ -118,5 +118,4 @@ func GetInstanceFromUser() string {
 	}()
 
 	return <-instanceName
-
 }
