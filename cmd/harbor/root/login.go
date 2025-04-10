@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package root
 
 import (
@@ -51,21 +64,14 @@ func LoginCommand() *cobra.Command {
 				Name:     Name,
 			}
 
-			// autogenerate name
-			if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
-				loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
-			}
-
 			var err error
-
-			if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
-				err = runLogin(loginView)
-			} else {
-				err = createLoginView(&loginView)
-			}
-
+			var config *utils.HarborConfig
+			config, err = utils.GetCurrentHarborConfig()
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to get current harbor config: %s", err)
+			}
+			if err := ProcessLogin(loginView, config); err != nil {
+				return fmt.Errorf("login failed: %w", err)
 			}
 			return nil
 		},
@@ -80,7 +86,31 @@ func LoginCommand() *cobra.Command {
 	return cmd
 }
 
-func createLoginView(loginView *login.LoginView) error {
+// ProcessLogin applies a simplified decision logic to run login or launch an interactive view.
+func ProcessLogin(loginView login.LoginView, config *utils.HarborConfig) error {
+	// Auto-generate the name if not provided.
+	if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+		loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	}
+	// If complete credentials are provided (overrides), run login using them directly.
+	if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
+		return RunLogin(loginView)
+	}
+	// If a name is provided, try to load the matching credential from the config.
+	if loginView.Name != "" {
+		loadedLoginView, err := LoadCredentialsIntoLoginView(loginView.Name, config)
+		if err != nil {
+			return fmt.Errorf("failed to load credentials: %w", err)
+		}
+		return RunLogin(loadedLoginView)
+	}
+	// If nothing matches, launch the interactive view.
+	return CreateLoginView(&loginView)
+}
+
+// CreateLoginView launches the interactive login view.
+// In this implementation, it calls login.CreateView and then tries to run login.
+func CreateLoginView(loginView *login.LoginView) error {
 	if loginView == nil {
 		loginView = &login.LoginView{
 			Server:   "",
@@ -91,10 +121,34 @@ func createLoginView(loginView *login.LoginView) error {
 	}
 	login.CreateView(loginView)
 
-	return runLogin(*loginView)
+	return RunLogin(*loginView)
 }
 
-func runLogin(opts login.LoginView) error {
+// LoadCredentialsIntoLoginView loads a stored credential from the config by name and returns a LoginView.
+func LoadCredentialsIntoLoginView(credentialName string, config *utils.HarborConfig) (login.LoginView, error) {
+	for _, cred := range config.Credentials {
+		if cred.Name == credentialName {
+			key, err := utils.GetEncryptionKey()
+			if err != nil {
+				return login.LoginView{}, fmt.Errorf("failed to get encryption key: %w", err)
+			}
+			decryptedPassword, err := utils.Decrypt(key, string(cred.Password))
+			if err != nil {
+				return login.LoginView{}, fmt.Errorf("failed to decrypt password: %w", err)
+			}
+			return login.LoginView{
+				Server:   cred.ServerAddress,
+				Username: cred.Username,
+				Password: decryptedPassword,
+				Name:     cred.Name,
+			}, nil
+		}
+	}
+	return login.LoginView{}, fmt.Errorf("credential with name %s not found", credentialName)
+}
+
+// RunLogin attempts to log in using the provided LoginView credentials.
+func RunLogin(opts login.LoginView) error {
 	opts.Server = utils.FormatUrl(opts.Server)
 
 	clientConfig := &harbor.ClientSetConfig{
@@ -103,17 +157,31 @@ func runLogin(opts login.LoginView) error {
 		Password: opts.Password,
 	}
 	client := utils.GetClientByConfig(clientConfig)
-
 	ctx := context.Background()
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		return fmt.Errorf("login failed, please check your credentials: %s", err)
 	}
+	if err := utils.GenerateEncryptionKey(); err != nil {
+		fmt.Println("Encryption key already exists or could not be created:", err)
+	}
+
+	key, err := utils.GetEncryptionKey()
+	if err != nil {
+		fmt.Println("Error getting encryption key:", err)
+		return fmt.Errorf("failed to get encryption key: %s", err)
+	}
+
+	encryptedPassword, err := utils.Encrypt(key, []byte(opts.Password))
+	if err != nil {
+		fmt.Println("Error encrypting password:", err)
+		return fmt.Errorf("failed to encrypt password: %s", err)
+	}
 
 	cred := utils.Credential{
 		Name:          opts.Name,
 		Username:      opts.Username,
-		Password:      opts.Password,
+		Password:      encryptedPassword,
 		ServerAddress: opts.Server,
 	}
 	harborData, err := utils.GetCurrentHarborData()
@@ -125,7 +193,7 @@ func runLogin(opts login.LoginView) error {
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
-			if existingCred.Password == opts.Password {
+			if existingCred.Password == encryptedPassword {
 				log.Warn("Credentials already exist in the config file. They were not added again.")
 				return nil
 			} else {
