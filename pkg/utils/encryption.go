@@ -34,6 +34,13 @@ type KeyringProvider interface {
 	Delete(service, user string) error
 }
 
+var keyringProvider KeyringProvider
+
+func init() {
+	// Initialize with the appropriate provider
+	keyringProvider = GetKeyringProvider()
+}
+
 type SystemKeyring struct{}
 
 func (s *SystemKeyring) Set(service, user, password string) error {
@@ -86,20 +93,55 @@ func sanitizeFilename(name string) string {
 	}, name)
 }
 
+// EnvironmentKeyring implements KeyringProvider using environment variables
+type EnvironmentKeyring struct {
+	EnvVarName string
+}
+
+func (e *EnvironmentKeyring) Set(service, user, password string) error {
+	// Set environment variable for the current process
+	if err := os.Setenv(e.EnvVarName, password); err != nil {
+		return fmt.Errorf("failed to set environment variable: %w", err)
+	}
+	return nil
+}
+
+func (e *EnvironmentKeyring) Get(service, user string) (string, error) {
+	value := os.Getenv(e.EnvVarName)
+	if value == "" {
+		return "", fmt.Errorf("environment variable %s not found or empty", e.EnvVarName)
+	}
+	return value, nil
+}
+
+func (e *EnvironmentKeyring) Delete(service, user string) error {
+	// Can't delete environment variables at runtime
+	return fmt.Errorf("deleting environment variables at runtime is not supported")
+}
+
 // GetKeyringProvider selects the appropriate keyring provider
 func GetKeyringProvider() KeyringProvider {
-	// Try system keyring first
+	// Priority 1: Check for environment variable configuration
+	envKeyName := "HARBOR_ENCRYPTION_KEY"
+	if envKey := os.Getenv(envKeyName); envKey != "" {
+		logrus.Debug("Using environment-based encryption key")
+		return &EnvironmentKeyring{
+			EnvVarName: envKeyName,
+		}
+	}
+
+	// Priority 2: Try system keyring
 	if err := keyring.Set("harbor-cli-test", "test-user", "test"); err == nil {
 		// Clean up the test entry
 		err = keyring.Delete("harbor-cli-test", "test-user")
 		if err != nil {
 			logrus.Warnf("Failed to delete test entry from system keyring: %v", err)
 		}
-		logrus.Debug("System keyring available")
+		logrus.Debug("Using system keyring")
 		return &SystemKeyring{}
 	}
 
-	// Fall back to file-based keyring
+	// Priority 3: Fall back to file-based keyring
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		homeDir = "."
@@ -108,15 +150,8 @@ func GetKeyringProvider() KeyringProvider {
 		BaseDir: filepath.Join(homeDir, ".harbor", "keyring"),
 	}
 
-	logrus.Debug("System keyring not available, using file-based keyring")
+	logrus.Info("System keyring not available, using file-based keyring")
 	return fileKeyring
-}
-
-var keyringProvider KeyringProvider
-
-func init() {
-	// Initialize with the appropriate provider
-	keyringProvider = GetKeyringProvider()
 }
 
 func SetKeyringProvider(provider KeyringProvider) {
@@ -151,7 +186,19 @@ func GetEncryptionKey() ([]byte, error) {
 			return nil, fmt.Errorf("failed to retrieve encryption key after generation: %w", err)
 		}
 	}
-	return base64.StdEncoding.DecodeString(keyBase64)
+
+	key, err := base64.StdEncoding.DecodeString(keyBase64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode encryption key: %w", err)
+	}
+
+	// Validate the key size for AES
+	keySize := len(key)
+	if keySize != 16 && keySize != 24 && keySize != 32 {
+		return nil, fmt.Errorf("invalid encryption key size: %d bytes. Must be 16, 24, or 32 bytes (after base64 decoding)", keySize)
+	}
+
+	return key, nil
 }
 
 func Encrypt(key, plaintext []byte) (string, error) {
