@@ -19,6 +19,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -29,7 +30,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/genproto/googleapis/spanner/admin/instance/v1"
 )
 
 var (
