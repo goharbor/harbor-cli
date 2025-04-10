@@ -16,7 +16,7 @@ package cveallowlist
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/systemcve/list"
+	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
