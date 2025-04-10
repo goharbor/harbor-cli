@@ -17,12 +17,12 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
+	iview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
-	iview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	log "github.com/sirupsen/logrus"
 )
 

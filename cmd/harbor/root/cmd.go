@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
@@ -27,6 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/genproto/googleapis/spanner/admin/instance/v1"
 )
 
 var (
@@ -95,6 +98,10 @@ harbor help
 		user.User(),
 		artifact.Artifact(),
 		HealthCommand(),
+		schedule.Schedule(),
+		labels.Labels(),
+		InfoCommand(),
+		instance.Instance(),
 	)
 
 	return root
