@@ -1,9 +1,9 @@
-
 ![harbor-3](https://github.com/goharbor/harbor-cli/assets/70086051/835ab686-1cce-4ac7-bc57-05a35c2b73cc)
 
 **Welcome to the Harbor CLI project! This powerful command-line tool facilitates seamless interaction with the Harbor container registry. It simplifies various tasks such as creating, updating, and managing projects, registries, and other resources in Harbor.**
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/harbor-cli)](https://artifacthub.io/packages/search?repo=harbor-cli)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_shield)
 
 # Project Scope 🧪
 
@@ -90,7 +90,7 @@ Available Commands:
   version     Version of Harbor CLI
 
 Flags:
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/Users/vadim/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -h, --help                   help for harbor
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
@@ -100,8 +100,32 @@ Use "harbor [command] --help" for more information about a command.
 
 ```
 
+#### Config Management
 
+##### Hierarchy
+  Use the `--config` flag to specify a custom configuration file path (highest priority).
+  ```bash
+  harbor --config /path/to/custom/config.yaml artifact list
+  ```
+  If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
+  ```bash
+  export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
+  harbor artifact list
+  ```
+  If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
+  ```bash
+  harbor artifact list
+  ```  
 
+##### Data Path
+  - Data paths are determined by the `XDG_DATA_HOME` environment variable.
+  - If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
+  - The data file always contains the path of the latest config used.
+
+##### Config TL;DR
+  - `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
+  - Environment variables override default settings, and the `--config` flag takes precedence over both environment variables and defaults.
+  - The data file always contains the path of the latest config used.
 
 
 #### Log in to Harbor Registry
@@ -166,7 +190,7 @@ dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 If golang is installed in your system, you can also build the project using the following commands:
 
 ```bash
-git clone https://github.com/goharbor/harbor-cli.git
+git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
 go build -o harbor-cli cmd/harbor/main.go
 ```
 
@@ -190,6 +214,9 @@ Harbor <2.0.0 is not supported.
 # License
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](https://github.com/goharbor/harbor-cli/blob/main/LICENSE) file for details.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_large)
 
 # Acknowledgements
 

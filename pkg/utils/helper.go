@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package utils
 
 import (
@@ -44,16 +57,22 @@ func FormatSize(size int64) string {
 	return fmt.Sprintf("%.2fMiB", mbSize)
 }
 
+// ValidateUserName checks if the username is valid by length and allowed characters.
 func ValidateUserName(username string) bool {
-	pattern := `^[a-zA-Z0-9]{1,255}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(username)
+	username = strings.TrimSpace(username)
+	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
 }
 
 func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(email)
+}
+
+func ValidateConfigPath(configPath string) bool {
+	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(configPath)
 }
 
 func ValidateFL(name string) bool {
@@ -121,4 +140,16 @@ func ValidateRegistryName(rn string) bool {
 	re := regexp.MustCompile(pattern)
 
 	return re.MatchString(rn)
+}
+
+func PrintFormat[T any](resp T, format string) error {
+	if format == "json" {
+		PrintPayloadInJSONFormat(resp)
+		return nil
+	}
+	if format == "yaml" {
+		PrintPayloadInYAMLFormat(resp)
+		return nil
+	}
+	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }

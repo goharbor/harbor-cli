@@ -1,7 +1,21 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package login
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -15,14 +29,17 @@ type LoginView struct {
 	Username string
 	Password string
 	Name     string
+	Config   string
 }
 
 func CreateView(loginView *LoginView) {
 	theme := huh.ThemeCharm()
+
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Server").
+				Description("Server address eg. demo.goharbor.io").
 				Value(&loginView.Server).
 				Validate(func(str string) error {
 					if strings.TrimSpace(str) == "" {
@@ -62,17 +79,26 @@ func CreateView(loginView *LoginView) {
 			huh.NewInput().
 				Title("Name of Credential").
 				Value(&loginView.Name).
+				Description("Name of credential to be stored in the harbor config file.").
+				PlaceholderFunc(func() string {
+					return fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+				}, &loginView).
+				SuggestionsFunc(func() []string {
+					return []string{
+						fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server)),
+					}
+				}, &loginView).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("credential name cannot be empty")
+						loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+						return nil
 					}
 					return nil
 				}),
 		),
-	).WithTheme(theme).Run()
-
+	).WithTheme(theme).
+		Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
