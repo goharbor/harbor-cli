@@ -27,7 +27,12 @@ func ListInstanceCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "list instance",
+		Short: "List all preheat provider instances in Harbor",
+		Long: `List all preheat provider instances registered in Harbor. You can paginate the results, 
+filter them using a query string, and sort them in ascending or descending order. 
+This command provides an easy way to view all instances along with their details.`,
+		Example: `  harbor-cli instance list --page 1 --page-size 10
+  harbor-cli instance list --query "name=my-instance" --sort "asc"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			instance, err := api.ListInstance(opts)
 

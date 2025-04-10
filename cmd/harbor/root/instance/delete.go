@@ -23,8 +23,12 @@ import (
 func DeleteInstanceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "delete instance by id",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Delete a preheat provider instance by its name or ID",
+		Long: `Delete a preheat provider instance from Harbor. You can specify the instance name or ID directly as an argument.
+If no argument is provided, you will be prompted to select an instance from a list of available instances.`,
+		Example: `  harbor-cli instance delete my-instance
+  harbor-cli instance delete 12345`,
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
