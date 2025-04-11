@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-webhook-create - webhook create
+harbor-webhook-create - Create a new webhook for a Harbor project
 
 
 .SH SYNOPSIS
@@ -10,7 +10,11 @@ harbor-webhook-create - webhook create
 
 
 .SH DESCRIPTION
-webhook create
+This command creates a new webhook policy for a specified Harbor project.
+
+.PP
+You can either provide all required flags (project name, name, notify type, endpoint, etc.) directly to create the webhook non-interactively,
+or leave them out and be guided through an interactive prompt to input each field.
 
 
 .SH OPTIONS
@@ -65,6 +69,24 @@ webhook create
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # Create a webhook using flags
+  harbor-cli webhook create \\
+    --project my-project \\
+    --name my-webhook \\
+    --notify-type http \\
+    --event-type PUSH_ARTIFACT,DELETE_ARTIFACT \\
+    --endpoint-url https://example.com/webhook \\
+    --description "Webhook for artifact events" \\
+    --payload-format Default \\
+    --auth-header "Bearer mytoken"
+
+  # Create a webhook using the interactive prompt
+  harbor-cli webhook create
+.EE
 
 
 .SH SEE ALSO

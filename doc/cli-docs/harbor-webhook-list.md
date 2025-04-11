@@ -1,15 +1,35 @@
 ---
 title: harbor webhook list
-weight: 25
+weight: 75
 ---
 ## harbor webhook list
 
 ### Description
 
-##### list webhook
+##### List all webhook policies for a Harbor project
+
+### Synopsis
+
+This command retrieves and displays all webhook policies associated with a Harbor project.
+
+You can either specify the project name directly as an argument or use the interactive prompt to select a project.
+Use the '--output-format' flag for raw JSON output.
 
 ```sh
-harbor webhook list [flags]
+harbor webhook list [PROJECT_NAME] [flags]
+```
+
+### Examples
+
+```sh
+  # List webhooks for a specific project
+  harbor-cli webhook list my-project
+
+  # List webhooks interactively by selecting the project
+  harbor-cli webhook list
+
+  # Output in JSON format
+  harbor-cli webhook list my-project --output-format=json
 ```
 
 ### Options
@@ -28,5 +48,5 @@ harbor webhook list [flags]
 
 ### SEE ALSO
 
-* [harbor webhook](harbor-webhook.md)	 - Manage webhooks
+* [harbor webhook](harbor-webhook.md)	 - Manage webhook policies in Harbor
 

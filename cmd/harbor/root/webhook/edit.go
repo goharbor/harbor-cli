@@ -30,8 +30,27 @@ func EditWebhookCmd() *cobra.Command {
 	var webhookIdInt int64
 	cmd := &cobra.Command{
 		Use:   "edit",
-		Short: "webhook edit",
-		Args:  cobra.NoArgs,
+		Short: "Edit an existing webhook for a Harbor project",
+		Long: `This command allows you to update an existing webhook policy in a Harbor project.
+
+You can either pass all the necessary flags (webhook ID, project name, etc.) to perform a non-interactive update,
+or leave them out and use the interactive prompt to select and update a webhook.`,
+		Example: `  # Edit a webhook by providing all fields directly
+  harbor-cli webhook edit \
+    --project my-project \
+    --webhook-id 5 \
+    --name updated-webhook \
+    --notify-type http \
+    --event-type PUSH_ARTIFACT \
+    --endpoint-url https://new-url.com \
+    --description "Updated webhook for artifact push" \
+    --payload-format Default \
+    --auth-header "Bearer newtoken" \
+    --enabled=true
+
+  # Edit a webhook using the interactive prompt
+  harbor-cli webhook edit`,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			editView := &edit.EditView{

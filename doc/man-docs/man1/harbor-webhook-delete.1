@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-webhook-delete - webhook delete
+harbor-webhook-delete - Delete a webhook from a Harbor project
 
 
 .SH SYNOPSIS
@@ -10,7 +10,9 @@ harbor-webhook-delete - webhook delete
 
 
 .SH DESCRIPTION
-webhook delete
+This command deletes a webhook from the specified Harbor project.
+You can either specify the project name and webhook ID directly using flags,
+or interactively select a project and webhook if not provided.
 
 
 .SH OPTIONS
@@ -23,7 +25,7 @@ webhook delete
 
 .PP
 \fB--webhook\fP=""
-	Webhook Id
+	Webhook ID
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -37,6 +39,16 @@ webhook delete
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # Delete a webhook by specifying the project and webhook ID
+  harbor-cli webhook delete --project my-project --webhook 5
+
+  # Delete a webhook by selecting the project and webhook interactively
+  harbor-cli webhook delete
+.EE
 
 
 .SH SEE ALSO

@@ -26,23 +26,36 @@ import (
 
 func ListWebhookCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list webhook",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "list [PROJECT_NAME]",
+		Short: "List all webhook policies for a Harbor project",
+		Long: `This command retrieves and displays all webhook policies associated with a Harbor project.
+
+You can either specify the project name directly as an argument or use the interactive prompt to select a project.
+Use the '--output-format' flag for raw JSON output.`,
+		Example: `  # List webhooks for a specific project
+  harbor-cli webhook list my-project
+
+  # List webhooks interactively by selecting the project
+  harbor-cli webhook list
+
+  # Output in JSON format
+  harbor-cli webhook list my-project --output-format=json`,
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var resp webhook.ListWebhookPoliciesOfProjectOK
 			var projectName string
+
 			if len(args) > 0 {
 				projectName = args[0]
-				resp, err = api.ListWebhooks(projectName)
 			} else {
 				projectName = prompt.GetProjectNameFromUser()
-				resp, err = api.ListWebhooks(projectName)
 			}
 
+			resp, err = api.ListWebhooks(projectName)
 			if err != nil {
 				log.Errorf("failed to list webhooks: %v", err)
+				return
 			}
 
 			FormatFlag := viper.GetString("output-format")

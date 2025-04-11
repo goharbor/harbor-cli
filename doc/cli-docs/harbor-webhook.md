@@ -1,21 +1,34 @@
 ---
 title: harbor webhook
-weight: 85
+weight: 55
 ---
 ## harbor webhook
 
 ### Description
 
-##### Manage webhooks
+##### Manage webhook policies in Harbor
 
 ### Synopsis
 
-Manage webhooks in Harbor Repository
+Use this command to manage webhook policies in your Harbor projects.
+
+Webhooks enable external systems to be notified of events in Harbor (e.g., pushing an image, deleting an artifact). 
+This command supports listing, creating, editing, and deleting webhook configurations.
 
 ### Examples
 
 ```sh
-  harbor webhook list
+  # List webhook policies in a project
+  harbor-cli webhook list my-project
+
+  # Create a new webhook policy
+  harbor-cli webhook create --project my-project --name my-webhook
+
+  # Edit an existing webhook policy
+  harbor-cli webhook edit --project my-project --webhook-id 5
+
+  # Delete a webhook policy
+  harbor-cli webhook delete --project my-project --webhook-id 5
 ```
 
 ### Options
@@ -35,8 +48,8 @@ Manage webhooks in Harbor Repository
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
-* [harbor webhook create](harbor-webhook-create.md)	 - webhook create
-* [harbor webhook delete](harbor-webhook-delete.md)	 - webhook delete
-* [harbor webhook edit](harbor-webhook-edit.md)	 - webhook edit
-* [harbor webhook list](harbor-webhook-list.md)	 - list webhook
+* [harbor webhook create](harbor-webhook-create.md)	 - Create a new webhook for a Harbor project
+* [harbor webhook delete](harbor-webhook-delete.md)	 - Delete a webhook from a Harbor project
+* [harbor webhook edit](harbor-webhook-edit.md)	 - Edit an existing webhook for a Harbor project
+* [harbor webhook list](harbor-webhook-list.md)	 - List all webhook policies for a Harbor project
 

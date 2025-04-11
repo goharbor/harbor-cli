@@ -31,8 +31,16 @@ func DeleteWebhookCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "delete",
-		Short: "webhook delete",
-		Args:  cobra.NoArgs,
+		Short: "Delete a webhook from a Harbor project",
+		Long: `This command deletes a webhook from the specified Harbor project.
+You can either specify the project name and webhook ID directly using flags,
+or interactively select a project and webhook if not provided.`,
+		Example: `  # Delete a webhook by specifying the project and webhook ID
+  harbor-cli webhook delete --project my-project --webhook 5
+
+  # Delete a webhook by selecting the project and webhook interactively
+  harbor-cli webhook delete`,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
@@ -56,7 +64,7 @@ func DeleteWebhookCmd() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&projectName, "project", "", "", "Project Name")
-	flags.StringVarP(&webhookId, "webhook", "", "", "Webhook Id")
+	flags.StringVarP(&webhookId, "webhook", "", "", "Webhook ID")
 
 	return cmd
 }

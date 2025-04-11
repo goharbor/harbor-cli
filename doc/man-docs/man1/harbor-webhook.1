@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-webhook - Manage webhooks
+harbor-webhook - Manage webhook policies in Harbor
 
 
 .SH SYNOPSIS
@@ -10,7 +10,11 @@ harbor-webhook - Manage webhooks
 
 
 .SH DESCRIPTION
-Manage webhooks in Harbor Repository
+Use this command to manage webhook policies in your Harbor projects.
+
+.PP
+Webhooks enable external systems to be notified of events in Harbor (e.g., pushing an image, deleting an artifact).
+This command supports listing, creating, editing, and deleting webhook configurations.
 
 
 .SH OPTIONS
@@ -33,7 +37,17 @@ Manage webhooks in Harbor Repository
 
 .SH EXAMPLE
 .EX
-  harbor webhook list
+  # List webhook policies in a project
+  harbor-cli webhook list my-project
+
+  # Create a new webhook policy
+  harbor-cli webhook create --project my-project --name my-webhook
+
+  # Edit an existing webhook policy
+  harbor-cli webhook edit --project my-project --webhook-id 5
+
+  # Delete a webhook policy
+  harbor-cli webhook delete --project my-project --webhook-id 5
 .EE
 
 

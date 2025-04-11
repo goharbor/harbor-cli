@@ -1,15 +1,42 @@
 ---
 title: harbor webhook edit
-weight: 25
+weight: 35
 ---
 ## harbor webhook edit
 
 ### Description
 
-##### webhook edit
+##### Edit an existing webhook for a Harbor project
+
+### Synopsis
+
+This command allows you to update an existing webhook policy in a Harbor project.
+
+You can either pass all the necessary flags (webhook ID, project name, etc.) to perform a non-interactive update,
+or leave them out and use the interactive prompt to select and update a webhook.
 
 ```sh
 harbor webhook edit [flags]
+```
+
+### Examples
+
+```sh
+  # Edit a webhook by providing all fields directly
+  harbor-cli webhook edit \
+    --project my-project \
+    --webhook-id 5 \
+    --name updated-webhook \
+    --notify-type http \
+    --event-type PUSH_ARTIFACT \
+    --endpoint-url https://new-url.com \
+    --description "Updated webhook for artifact push" \
+    --payload-format Default \
+    --auth-header "Bearer newtoken" \
+    --enabled=true
+
+  # Edit a webhook using the interactive prompt
+  harbor-cli webhook edit
 ```
 
 ### Options
@@ -39,5 +66,5 @@ harbor webhook edit [flags]
 
 ### SEE ALSO
 
-* [harbor webhook](harbor-webhook.md)	 - Manage webhooks
+* [harbor webhook](harbor-webhook.md)	 - Manage webhook policies in Harbor
 

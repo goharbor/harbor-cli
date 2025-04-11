@@ -2,15 +2,19 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-webhook-list - list webhook
+harbor-webhook-list - List all webhook policies for a Harbor project
 
 
 .SH SYNOPSIS
-\fBharbor webhook list [flags]\fP
+\fBharbor webhook list [PROJECT_NAME] [flags]\fP
 
 
 .SH DESCRIPTION
-list webhook
+This command retrieves and displays all webhook policies associated with a Harbor project.
+
+.PP
+You can either specify the project name directly as an argument or use the interactive prompt to select a project.
+Use the '--output-format' flag for raw JSON output.
 
 
 .SH OPTIONS
@@ -29,6 +33,19 @@ list webhook
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # List webhooks for a specific project
+  harbor-cli webhook list my-project
+
+  # List webhooks interactively by selecting the project
+  harbor-cli webhook list
+
+  # Output in JSON format
+  harbor-cli webhook list my-project --output-format=json
+.EE
 
 
 .SH SEE ALSO

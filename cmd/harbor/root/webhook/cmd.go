@@ -17,10 +17,23 @@ import "github.com/spf13/cobra"
 
 func Webhook() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "webhook",
-		Short:   "Manage webhooks",
-		Long:    `Manage webhooks in Harbor Repository`,
-		Example: `  harbor webhook list`,
+		Use:   "webhook",
+		Short: "Manage webhook policies in Harbor",
+		Long: `Use this command to manage webhook policies in your Harbor projects.
+
+Webhooks enable external systems to be notified of events in Harbor (e.g., pushing an image, deleting an artifact). 
+This command supports listing, creating, editing, and deleting webhook configurations.`,
+		Example: `  # List webhook policies in a project
+  harbor-cli webhook list my-project
+
+  # Create a new webhook policy
+  harbor-cli webhook create --project my-project --name my-webhook
+
+  # Edit an existing webhook policy
+  harbor-cli webhook edit --project my-project --webhook-id 5
+
+  # Delete a webhook policy
+  harbor-cli webhook delete --project my-project --webhook-id 5`,
 	}
 	cmd.AddCommand(
 		CreateWebhookCmd(),

@@ -26,8 +26,25 @@ func CreateWebhookCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "webhook create",
-		Args:  cobra.NoArgs,
+		Short: "Create a new webhook for a Harbor project",
+		Long: `This command creates a new webhook policy for a specified Harbor project.
+
+You can either provide all required flags (project name, name, notify type, endpoint, etc.) directly to create the webhook non-interactively,
+or leave them out and be guided through an interactive prompt to input each field.`,
+		Example: `  # Create a webhook using flags
+  harbor-cli webhook create \
+    --project my-project \
+    --name my-webhook \
+    --notify-type http \
+    --event-type PUSH_ARTIFACT,DELETE_ARTIFACT \
+    --endpoint-url https://example.com/webhook \
+    --description "Webhook for artifact events" \
+    --payload-format Default \
+    --auth-header "Bearer mytoken"
+
+  # Create a webhook using the interactive prompt
+  harbor-cli webhook create`,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
