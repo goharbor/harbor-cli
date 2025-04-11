@@ -25,6 +25,7 @@ import (
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -100,6 +101,7 @@ harbor help
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),
+		webhook.Webhook(),
 	)
 
 	return root
