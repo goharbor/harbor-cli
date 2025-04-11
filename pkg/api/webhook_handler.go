@@ -129,5 +129,4 @@ func UpdateWebhook(opts *edit.EditView) error {
 		log.Infof("Webhook Id:`%d` Updated successfully", opts.WebhookId)
 	}
 	return nil
-
 }

@@ -157,7 +157,7 @@ func PrintFormat[T any](resp T, format string) error {
 func EmptyStringValidator(variable string) func(string) error {
 	return func(str string) error {
 		if str == "" {
-			return errors.New(fmt.Sprintf("%s cannot be empty", variable))
+			return fmt.Errorf("%s cannot be empty", variable)
 		}
 		return nil
 	}

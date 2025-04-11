@@ -14,13 +14,14 @@
 package webhook
 
 import (
+	"strconv"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 func EditWebhookCmd() *cobra.Command {
@@ -52,6 +53,10 @@ func EditWebhookCmd() *cobra.Command {
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
 				webhookIdInt, err = strconv.ParseInt(webhookId, 10, 64)
+				if err != nil {
+					log.Errorf("failed to parse webhook id: %v", err)
+					return
+				}
 				opts.WebhookId = webhookIdInt
 				err = api.UpdateWebhook(&opts)
 			} else {

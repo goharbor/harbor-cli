@@ -73,7 +73,6 @@ func CreateWebhookCmd() *cobra.Command {
 }
 
 func createWebhookView(view *create.CreateView) error {
-
 	view.ProjectName = prompt.GetProjectNameFromUser()
 	create.WebhookCreateView(view)
 	return api.CreateWebhook(view)

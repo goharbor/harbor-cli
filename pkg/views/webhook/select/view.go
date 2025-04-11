@@ -15,11 +15,12 @@ package project
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
-	"os"
 )
 
 func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- models.WebhookPolicy) {
@@ -46,5 +47,4 @@ func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- models.WebhookP
 			}
 		}
 	}
-
 }

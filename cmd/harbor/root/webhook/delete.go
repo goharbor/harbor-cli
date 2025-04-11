@@ -14,16 +14,16 @@
 package webhook
 
 import (
+	"strconv"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 func DeleteWebhookCmd() *cobra.Command {
-
 	var projectName string
 	var webhookId string
 	var webhookIdInt int64
@@ -38,17 +38,19 @@ func DeleteWebhookCmd() *cobra.Command {
 
 			if projectName != "" && webhookId != "" {
 				webhookIdInt, err = strconv.ParseInt(webhookId, 10, 64)
-				err = api.DeleteWebhook(projectName, webhookIdInt)
+				if err != nil {
+					log.Errorf("failed to parse webhook id: %v", err)
+					return
+				}
 			} else {
 				projectName = prompt.GetProjectNameFromUser()
 				selectedWebhook = prompt.GetWebhookFromUser(projectName)
-				err = api.DeleteWebhook(projectName, selectedWebhook.ID)
-
+				webhookIdInt = selectedWebhook.ID
 			}
+			err = api.DeleteWebhook(projectName, webhookIdInt)
 			if err != nil {
 				log.Errorf("failed to delete webhook: %v", err)
 			}
-
 		},
 	}
 
