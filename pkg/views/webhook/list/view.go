@@ -27,9 +27,9 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: 6},
-	{Title: "Webhook Name", Width: 15},
-	{Title: "Enabled", Width: 12},
-	{Title: "Endpoint URL", Width: 40},
+	{Title: "Webhook Name", Width: 20},
+	{Title: "Enabled", Width: 10},
+	{Title: "Endpoint URL", Width: 30},
 	{Title: "Notify Type", Width: 12},
 	{Title: "Payload Format", Width: 15},
 	{Title: "Creation Time", Width: 20},

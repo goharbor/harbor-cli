@@ -32,11 +32,12 @@ func ListWebhookCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var resp webhook.ListWebhookPoliciesOfProjectOK
+			var projectName string
 			if len(args) > 0 {
-				projectName := args[0]
+				projectName = args[0]
 				resp, err = api.ListWebhooks(projectName)
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
+				projectName = prompt.GetProjectNameFromUser()
 				resp, err = api.ListWebhooks(projectName)
 			}
 
@@ -49,7 +50,10 @@ func ListWebhookCommand() *cobra.Command {
 				utils.PrintPayloadInJSONFormat(resp)
 				return
 			}
-
+			if len(resp.Payload) == 0 {
+				log.Infof("No webhooks found in project %s", projectName)
+				return
+			}
 			webhookViews.ListWebhooks(resp.Payload)
 		},
 	}
