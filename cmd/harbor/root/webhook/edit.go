@@ -66,7 +66,6 @@ func EditWebhookCmd() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to create webhook: %v", err)
 			}
-
 		},
 	}
 	flags := cmd.Flags()

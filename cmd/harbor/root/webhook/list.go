@@ -51,7 +51,6 @@ func ListWebhookCommand() *cobra.Command {
 			}
 
 			webhookViews.ListWebhooks(resp.Payload)
-
 		},
 	}
 	return cmd
