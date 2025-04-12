@@ -48,7 +48,6 @@ func CreateScanner(opts create.CreateView) error {
 	}
 
 	_, err = client.Scanner.CreateScanner(ctx, &scanner.CreateScannerParams{Registration: &scannerRegReq})
-
 	if err != nil {
 		return err
 	} else {
@@ -162,7 +161,6 @@ func UpdateScanner(registrationID string, opts create.CreateView) error {
 	}
 
 	return nil
-
 }
 
 func PingScanner(opts create.CreateView) error {

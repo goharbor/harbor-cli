@@ -39,9 +39,7 @@ func MetadataCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to get scanner metadata: %v", err)
 			}
-
 		},
 	}
-
 	return cmd
 }

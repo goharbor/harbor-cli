@@ -41,9 +41,7 @@ func DeleteCommand() *cobra.Command {
 			} else {
 				log.Infof("scanner deleted successfully")
 			}
-
 		},
 	}
-
 	return cmd
 }
