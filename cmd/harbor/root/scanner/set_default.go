@@ -40,9 +40,7 @@ func SetDefaultCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to set default scanner: %v", err)
 			}
-
 		},
 	}
-
 	return cmd
 }

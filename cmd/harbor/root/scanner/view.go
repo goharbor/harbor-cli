@@ -39,9 +39,7 @@ func ViewCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to get scanner: %v", err)
 			}
-
 		},
 	}
-
 	return cmd
 }

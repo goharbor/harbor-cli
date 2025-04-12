@@ -30,7 +30,6 @@ func ListScannerCommand() *cobra.Command {
 				cmd.PrintErrf("failed to list scanners: %v", err)
 				return
 			}
-
 			utils.PrintPayloadInJSONFormat(scanners.Payload)
 		},
 	}

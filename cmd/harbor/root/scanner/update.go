@@ -49,7 +49,6 @@ func UpdateCommand() *cobra.Command {
 			} else {
 				log.Infof("scanner updated successfully")
 			}
-
 		},
 	}
 
