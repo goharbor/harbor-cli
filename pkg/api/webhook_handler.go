@@ -14,6 +14,8 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -53,7 +55,7 @@ func CreateWebhook(opts *create.CreateView) error {
 			Name:        opts.Name,
 			Targets: []*models.WebhookTargetObject{
 				{
-					Address:        opts.EndpointURL,
+					Address:        strings.TrimSpace(opts.EndpointURL),
 					AuthHeader:     opts.AuthHeader,
 					PayloadFormat:  models.PayloadFormatType(opts.PayloadFormat),
 					SkipCertVerify: !opts.VerifyRemoteCertificate,
