@@ -16,7 +16,6 @@ package view
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -68,11 +67,4 @@ func boolToStr(b bool) string {
 		return "true"
 	}
 	return "false"
-}
-
-func formatTime(t *time.Time) string {
-	if t == nil {
-		return "-"
-	}
-	return t.Format("2006-01-02 15:04:05")
 }
