@@ -72,36 +72,34 @@ func ListScanners() (scanner.ListScannersOK, error) {
 	return *response, nil
 }
 
-func GetScanner(registrationID string) error {
+func GetScanner(registrationID string) (scanner.GetScannerOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return scanner.GetScannerOK{}, err
 	}
 
 	response, err := client.Scanner.GetScanner(ctx, &scanner.GetScannerParams{RegistrationID: registrationID})
 
 	if err != nil {
-		return err
+		return scanner.GetScannerOK{}, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	return *response, nil
 }
 
-func GetScannerMetadata(registrationID string) error {
+func GetScannerMetadata(registrationID string) (scanner.GetScannerMetadataOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return err
+		return scanner.GetScannerMetadataOK{}, err
 	}
 
 	response, err := client.Scanner.GetScannerMetadata(ctx, &scanner.GetScannerMetadataParams{RegistrationID: registrationID})
 
 	if err != nil {
-		return err
+		return scanner.GetScannerMetadataOK{}, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	return *response, nil
 }
 
 func SetDefaultScanner(registrationID string) error {

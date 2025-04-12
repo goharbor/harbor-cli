@@ -14,32 +14,47 @@
 package scanner
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/scanner/metadata"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func MetadataCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "metadata",
-		Short: "get scanner metadata by id",
+		Use:   "metadata [scanner-id]",
+		Short: "Get scanner metadata by ID",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var registrationID string
 			if len(args) > 0 {
-				registrationID := args[0]
-				err = api.GetScannerMetadata(registrationID)
+				registrationID = args[0]
 			} else {
-				registrationID := prompt.GetScannerIdFromUser()
-				err = api.GetScannerMetadata(registrationID)
+				registrationID = prompt.GetScannerIdFromUser()
 			}
 
+			meta, err := api.GetScannerMetadata(registrationID)
 			if err != nil {
-				log.Errorf("failed to get scanner metadata: %v", err)
+				return fmt.Errorf("failed to get scanner metadata: %v", err)
 			}
+
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(meta, formatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				metadata.DisplayScannerMetadata(meta.Payload)
+			}
+
+			return nil
 		},
 	}
+
 	return cmd
 }

@@ -27,15 +27,13 @@ func DeleteCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
+			var registrationID string
 			if len(args) > 0 {
-				registrationID := args[0]
-				err = api.DeleteScanner(registrationID)
+				registrationID = args[0]
 			} else {
-				registrationID := prompt.GetScannerIdFromUser()
-				err = api.DeleteScanner(registrationID)
+				registrationID = prompt.GetScannerIdFromUser()
 			}
-
+			err = api.DeleteScanner(registrationID)
 			if err != nil {
 				log.Errorf("failed to delete scanner: %v", err)
 			} else {

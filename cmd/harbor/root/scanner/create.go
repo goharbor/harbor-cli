@@ -41,7 +41,7 @@ func CreateScannerCommand() *cobra.Command {
 			} else {
 				err := api.CreateScanner(opts)
 				if err != nil {
-					log.Errorf("failed to create scanner: %v", err)
+					log.Errorf("failed to create scanner: %v", err.Error())
 				}
 			}
 		},

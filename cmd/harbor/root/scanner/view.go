@@ -16,6 +16,7 @@ package scanner
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/views/scanner/view"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -27,18 +28,17 @@ func ViewCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
+			var registrationID string
 			if len(args) > 0 {
-				registrationID := args[0]
-				err = api.GetScanner(registrationID)
+				registrationID = args[0]
 			} else {
-				registrationID := prompt.GetScannerIdFromUser()
-				err = api.GetScanner(registrationID)
+				registrationID = prompt.GetScannerIdFromUser()
 			}
-
+			response, err := api.GetScanner(registrationID)
 			if err != nil {
 				log.Errorf("failed to get scanner: %v", err)
 			}
+			view.ViewScanner(response.Payload)
 		},
 	}
 	return cmd

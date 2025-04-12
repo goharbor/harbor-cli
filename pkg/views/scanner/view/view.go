@@ -11,11 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package list
+package view
 
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,33 +26,34 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 10},
-	{Title: "Description", Width: 30},
-	{Title: "Default", Width: 8},
+	{Title: "Name", Width: 12},
+	{Title: "UUID", Width: 38},
 	{Title: "URL", Width: 30},
+	{Title: "Default", Width: 8},
+	{Title: "Disabled", Width: 9},
+	{Title: "Skip Cert Verify", Width: 17},
 	{Title: "Internal Addr", Width: 14},
-	{Title: "Created", Width: 20},
-	{Title: "Disabled", Width: 20},
+	{Title: "Created At", Width: 18},
+	{Title: "Updated At", Width: 18},
 }
 
-func ListScanners(scanners []*models.ScannerRegistration) {
+func ViewScanner(scanner *models.ScannerRegistration) {
 	var rows []table.Row
-	for _, s := range scanners {
-		createdAt, err := utils.FormatCreatedTime(s.CreateTime.String())
-		if err != nil {
-			fmt.Println("Error formatting created time:", err)
-			os.Exit(1)
-		}
-		rows = append(rows, table.Row{
-			s.Name,
-			s.Description,
-			fmt.Sprintf("%v", *s.IsDefault),
-			fmt.Sprintf("%v", s.URL),
-			fmt.Sprintf("%v", *s.UseInternalAddr),
-			fmt.Sprintf("%v", createdAt),
-			fmt.Sprintf("%v", *s.Disabled),
-		})
-	}
+
+	createdAt, _ := utils.FormatCreatedTime(scanner.CreateTime.String())
+	updatedAt, _ := utils.FormatCreatedTime(scanner.UpdateTime.String())
+
+	rows = append(rows, table.Row{
+		scanner.Name,
+		scanner.UUID,
+		utils.FormatUrl(scanner.URL.String()),
+		boolToStr(*scanner.IsDefault),
+		boolToStr(*scanner.Disabled),
+		boolToStr(*scanner.SkipCertVerify),
+		boolToStr(*scanner.UseInternalAddr),
+		createdAt,
+		updatedAt,
+	})
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 
@@ -59,4 +61,18 @@ func ListScanners(scanners []*models.ScannerRegistration) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func boolToStr(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+func formatTime(t *time.Time) string {
+	if t == nil {
+		return "-"
+	}
+	return t.Format("2006-01-02 15:04:05")
 }
