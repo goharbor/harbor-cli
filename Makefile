@@ -1,6 +1,7 @@
+BINARY_NAME := harbor-cli
 
 build::
-	go build -o harbor-cli cmd/harbor/main.go
+	go build -o ${BINARY_NAME} cmd/harbor/main.go
 
 lint::
 	gofmt -s -w .
