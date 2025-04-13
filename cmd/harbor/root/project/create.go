@@ -40,7 +40,7 @@ func CreateProjectCommand() *cobra.Command {
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
 
-				if(opts.ProxyCache && opts.RegistryID == "") {
+				if opts.ProxyCache && opts.RegistryID == "" {
 					log.Errorf("Use the --registry-id flag with a registry ID")
 				} else {
 					err = api.CreateProject(opts)
