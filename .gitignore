@@ -25,3 +25,4 @@ go.work
 dist/
 /dagger.gen.go
 /internal/*
+harbor-cli
