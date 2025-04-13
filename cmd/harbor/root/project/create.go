@@ -45,8 +45,6 @@ func CreateProjectCommand() *cobra.Command {
 				} else {
 					err = api.CreateProject(opts)
 				}
-
-				//err = api.CreateProject(opts)
 			} else {
 				err = createProjectView(createView)
 			}
