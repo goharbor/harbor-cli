@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
-
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
