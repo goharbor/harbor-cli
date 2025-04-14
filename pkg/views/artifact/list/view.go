@@ -26,12 +26,12 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Artifact Digest", Width: 20},
-	{Title: "Type", Width: 12},
-	{Title: "Size", Width: 12},
-	{Title: "Vulnerabilities", Width: 15},
-	{Title: "Push Time", Width: 12},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Artifact Digest", Width: tablelist.WidthL},
+	{Title: "Type", Width: tablelist.WidthS},
+	{Title: "Size", Width: tablelist.WidthS},
+	{Title: "Vulnerabilities", Width: tablelist.WidthM},
+	{Title: "Push Time", Width: tablelist.WidthM},
 }
 
 func ListArtifacts(artifacts []*models.Artifact) {
