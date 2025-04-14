@@ -45,11 +45,11 @@ func ListScanners(scanners []*models.ScannerRegistration) {
 		rows = append(rows, table.Row{
 			s.Name,
 			s.Description,
-			fmt.Sprintf("%v", *s.IsDefault),
+			fmt.Sprintf("%v", *s.Disabled),
 			fmt.Sprintf("%v", s.URL),
+			fmt.Sprintf("%v", *s.IsDefault),
 			fmt.Sprintf("%v", *s.UseInternalAddr),
 			fmt.Sprintf("%v", createdAt),
-			fmt.Sprintf("%v", *s.Disabled),
 		})
 	}
 

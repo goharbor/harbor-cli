@@ -15,7 +15,6 @@ package metadata
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -60,10 +59,7 @@ func DisplayScannerMetadata(md *models.ScannerAdapterMetadata) {
 		propTable: tablelist.NewModel(propCols, propRows, len(propRows)),
 	}
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Println(m.View())
 }
 
 type metadataModel struct {

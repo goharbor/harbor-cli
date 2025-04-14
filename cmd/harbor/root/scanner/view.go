@@ -16,9 +16,11 @@ package scanner
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/view"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ViewCommand() *cobra.Command {
@@ -26,7 +28,7 @@ func ViewCommand() *cobra.Command {
 		Use:   "view",
 		Short: "get scanner by id",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var registrationID string
 			if len(args) > 0 {
@@ -38,7 +40,16 @@ func ViewCommand() *cobra.Command {
 			if err != nil {
 				log.Errorf("failed to get scanner: %v", err)
 			}
-			view.ViewScanner(response.Payload)
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(response, formatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				view.ViewScanner(response.Payload)
+			}
+			return nil
 		},
 	}
 	return cmd

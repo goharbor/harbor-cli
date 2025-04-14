@@ -46,10 +46,10 @@ func ViewScanner(scanner *models.ScannerRegistration) {
 		scanner.Name,
 		scanner.UUID,
 		utils.FormatUrl(scanner.URL.String()),
-		boolToStr(*scanner.IsDefault),
-		boolToStr(*scanner.Disabled),
-		boolToStr(*scanner.SkipCertVerify),
-		boolToStr(*scanner.UseInternalAddr),
+		fmt.Sprintf("%v", *scanner.IsDefault),
+		fmt.Sprintf("%v", *scanner.Disabled),
+		fmt.Sprintf("%v", *scanner.SkipCertVerify),
+		fmt.Sprintf("%v", *scanner.UseInternalAddr),
 		createdAt,
 		updatedAt,
 	})
@@ -60,11 +60,4 @@ func ViewScanner(scanner *models.ScannerRegistration) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-}
-
-func boolToStr(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
 }
