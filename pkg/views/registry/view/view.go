@@ -25,13 +25,13 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 5},
-	{Title: "Name", Width: 10},
-	{Title: "Status", Width: 10},
-	{Title: "Endpoint URL", Width: 20},
-	{Title: "Provider", Width: 15},
-	{Title: "Creation Time", Width: 15},
-	{Title: "Description", Width: 20},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Name", Width: tablelist.WidthM},
+	{Title: "Status", Width: tablelist.WidthM},
+	{Title: "Endpoint URL", Width: tablelist.WidthL},
+	{Title: "Provider", Width: tablelist.WidthL},
+	{Title: "Creation Time", Width: tablelist.WidthL},
+	{Title: "Description", Width: tablelist.WidthXL},
 }
 
 func ViewRegistry(registry *models.Registry) {

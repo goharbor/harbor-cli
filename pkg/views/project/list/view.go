@@ -27,9 +27,9 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: tablelist.WidthXS},
-	{Title: "Project Name", Width: tablelist.WidthXL},
-	{Title: "Access Level", Width: tablelist.WidthM},
-	{Title: "Type", Width: tablelist.WidthM},
+	{Title: "Project Name", Width: tablelist.WidthXXL},
+	{Title: "Access Level", Width: tablelist.WidthL},
+	{Title: "Type", Width: tablelist.WidthL},
 	{Title: "Repo Count", Width: tablelist.WidthS},
 	{Title: "Creation Time", Width: tablelist.WidthL},
 }

@@ -27,11 +27,11 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: tablelist.WidthXS},
-	{Title: "Artifact Digest", Width: tablelist.WidthL},
+	{Title: "Artifact Digest", Width: tablelist.WidthXL},
 	{Title: "Type", Width: tablelist.WidthS},
 	{Title: "Size", Width: tablelist.WidthS},
-	{Title: "Vulnerabilities", Width: tablelist.WidthM},
-	{Title: "Push Time", Width: tablelist.WidthM},
+	{Title: "Vulnerabilities", Width: tablelist.WidthL},
+	{Title: "Push Time", Width: tablelist.WidthL},
 }
 
 func ListArtifacts(artifacts []*models.Artifact) {

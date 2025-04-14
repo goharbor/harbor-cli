@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	WidthXS = 5
-	WidthS  = 10
-	WidthM  = 15
-	WidthL  = 20
-	WidthXL = 25
+	WidthXS  = 4
+	WidthS   = 8
+	WidthM   = 12
+	WidthL   = 16
+	WidthXL  = 20
+	WidthXXL = 24
 )
 
 type Model struct {

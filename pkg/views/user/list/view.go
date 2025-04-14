@@ -28,8 +28,8 @@ import (
 var columns = []table.Column{
 	{Title: "ID", Width: tablelist.WidthXS},
 	{Title: "Name", Width: tablelist.WidthL},
-	{Title: "Administrator", Width: tablelist.WidthM},
-	{Title: "Email", Width: tablelist.WidthXL},
+	{Title: "Administrator", Width: tablelist.WidthL},
+	{Title: "Email", Width: tablelist.WidthXXL},
 	{Title: "Registration Time", Width: tablelist.WidthL},
 }
 

@@ -26,7 +26,7 @@ import (
 
 var columns = []table.Column{
 	{Title: "Component", Width: tablelist.WidthL},
-	{Title: "Status", Width: tablelist.WidthXL},
+	{Title: "Status", Width: tablelist.WidthXXL},
 }
 
 func PrintHealthStatus(status *health.GetHealthOK) {
