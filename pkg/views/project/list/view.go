@@ -26,12 +26,12 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Project Name", Width: 20},
-	{Title: "Access Level", Width: 12},
-	{Title: "Type", Width: 12},
-	{Title: "Repo Count", Width: 12},
-	{Title: "Creation Time", Width: 18},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Project Name", Width: tablelist.WidthXL},
+	{Title: "Access Level", Width: tablelist.WidthM},
+	{Title: "Type", Width: tablelist.WidthM},
+	{Title: "Repo Count", Width: tablelist.WidthS},
+	{Title: "Creation Time", Width: tablelist.WidthL},
 }
 
 func ListProjects(projects []*models.Project) {
