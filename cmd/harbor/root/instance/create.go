@@ -62,7 +62,7 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 	flags.StringVarP(&opts.Endpoint, "url", "u", "", "URL for the instance")
 	flags.StringVarP(&opts.Description, "description", "", "", "Description of the instance")
 	flags.BoolVarP(&opts.Insecure, "insecure", "i", true, "Whether or not the certificate will be verified when Harbor tries to access the server")
-	flags.BoolVarP(&opts.Enabled, "enable", "", true, "Whether it is enable or not")
+	flags.BoolVarP(&opts.Enabled, "enable", "", true, "Whether it is enabled or not")
 	flags.StringVarP(&opts.AuthMode, "authmode", "a", "NONE", "Choosing different types of authentication method")
 
 	return cmd
