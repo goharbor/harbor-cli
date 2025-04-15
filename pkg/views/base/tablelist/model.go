@@ -20,6 +20,15 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
+const (
+	WidthXS  = 4
+	WidthS   = 8
+	WidthM   = 12
+	WidthL   = 16
+	WidthXL  = 20
+	WidthXXL = 24
+)
+
 type Model struct {
 	Table table.Model
 }

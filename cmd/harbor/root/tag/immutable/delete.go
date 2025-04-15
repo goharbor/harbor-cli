@@ -11,58 +11,36 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package immutable
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/project/view"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-func ViewCommand() *cobra.Command {
-	var isID bool
+func DeleteImmutableCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view [NAME|ID]",
-		Short: "get project by name or id",
+		Use:   "delete",
+		Short: "delete immutable rule",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			var projectNameOrID string
-			var project *project.GetProjectOK
-
+			var projectName string
+			var immutableId int64
 			if len(args) > 0 {
-				projectNameOrID = args[0]
+				projectName = args[0]
+				immutableId = prompt.GetImmutableTagRule(args[0])
 			} else {
-				projectNameOrID = prompt.GetProjectNameFromUser()
-				isID = false
+				projectName = prompt.GetProjectNameFromUser()
+				immutableId = prompt.GetImmutableTagRule(projectName)
 			}
-
-			project, err = api.GetProject(projectNameOrID, isID)
+			err = api.DeleteImmutable(projectName, immutableId)
 			if err != nil {
-				log.Errorf("failed to get project: %v", err)
-				return
-			}
-
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(project, FormatFlag)
-				if err != nil {
-					log.Error(err)
-					return
-				}
-			} else {
-				view.ViewProjects(project.Payload)
+				log.Errorf("failed to delete immutable tag rules: %v", err)
 			}
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get project by id")
-
 	return cmd
 }
