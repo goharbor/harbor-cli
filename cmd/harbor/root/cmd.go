@@ -19,11 +19,11 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/cveallowlist"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
-	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
@@ -95,12 +95,12 @@ harbor help
 		config.Config(),
 		project.Project(),
 		registry.Registry(),
-		repositry.Repository(),
+		repository.Repository(),
 		user.User(),
 		artifact.Artifact(),
 		tag.TagCommand(),
 		HealthCommand(),
-		cveallowlist.CVEAllowlist(),
+		cve.CVEAllowlist(),
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),

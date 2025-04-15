@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package cveallowlist
+package cve
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -26,6 +26,7 @@ func ListCveCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list system level allowlist of cve",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			cve, err := api.ListSystemCve()
 			if err != nil {
@@ -33,11 +34,14 @@ func ListCveCommand() *cobra.Command {
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(cve)
-				return
+				err = utils.PrintFormat(cve, FormatFlag)
+				if err != nil {
+					log.Fatalf("failed to print cve list: %v", err)
+					return
+				}
+			} else {
+				list.ListSystemCve(cve.Payload)
 			}
-
-			list.ListSystemCve(cve.Payload)
 		},
 	}
 
