@@ -1,7 +1,9 @@
 {
   "name": "harbor-cli",
   "engineVersion": "v0.18.3",
-  "sdk": "go",
+  "sdk": {
+    "source": "go"
+  },
   "dependencies": [
     {
       "name": "cosign",
