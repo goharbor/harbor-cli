@@ -25,9 +25,9 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 12},
-	{Title: "Pull Time", Width: 30},
-	{Title: "Push Time", Width: 30},
+	{Title: "Name", Width: tablelist.WidthL},
+	{Title: "Pull Time", Width: tablelist.WidthL},
+	{Title: "Push Time", Width: tablelist.WidthL},
 }
 
 func ListTags(tags []*models.Tag) {
