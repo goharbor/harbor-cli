@@ -35,11 +35,11 @@ harbor help
 
 ### SEE ALSO
 
-* [harbor artifact](harbor-artifact.md)	 - Manage artifacts
-* [harbor login](harbor-login.md)	 - Log in to Harbor registry
-* [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
-* [harbor registry](harbor-registry.md)	 - Manage registries
-* [harbor repo](harbor-repo.md)	 - Manage repositories
-* [harbor user](harbor-user.md)	 - Manage users
-* [harbor version](harbor-version.md)	 - Version of Harbor CLI
-
+- [harbor artifact](harbor-artifact.md) - Manage artifacts
+- [harbor login](harbor-login.md) - Log in to Harbor registry
+- [harbor project](harbor-project.md) - Manage projects and assign resources to them
+- [harbor registry](harbor-registry.md) - Manage registries
+- [harbor repo](harbor-repo.md) - Manage repositories
+- [harbor user](harbor-user.md) - Manage users
+- [harbor version](harbor-version.md) - Version of Harbor CLI
+- [harbor info](harbor-info.md) - Display current credential and registry information

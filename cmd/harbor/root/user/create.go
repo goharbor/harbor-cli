@@ -14,6 +14,8 @@
 package user
 
 import (
+	"strings"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
 
@@ -27,7 +29,7 @@ func UserCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create user",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			createView := &create.CreateView{
@@ -44,8 +46,14 @@ func UserCreateCmd() *cobra.Command {
 				err = createUserView(createView)
 			}
 
+			// Check if the error is due to unauthorized access.
+
 			if err != nil {
-				log.Errorf("failed to create user: %v", err)
+				if isUnauthorizedError(err) {
+					log.Error("Permission denied: Admin privileges are required to execute this command.")
+				} else {
+					log.Errorf("failed to create user: %v", err)
+				}
 			}
 		},
 	}
@@ -63,4 +71,8 @@ func UserCreateCmd() *cobra.Command {
 func createUserView(createView *create.CreateView) error {
 	create.CreateUserView(createView)
 	return api.CreateUser(*createView)
+}
+
+func isUnauthorizedError(err error) bool {
+	return strings.Contains(err.Error(), "403")
 }
