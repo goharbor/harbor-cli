@@ -18,7 +18,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -33,7 +32,7 @@ type CreateView struct {
 	VerifyRemoteCertificate bool
 }
 
-func WebhookCreateView(createView *CreateView) {
+func WebhookCreateView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -57,8 +56,7 @@ func WebhookCreateView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Error("Error in first form: ", err)
-		return
+		return err
 	}
 
 	if createView.NotifyType == "http" {
@@ -75,8 +73,7 @@ func WebhookCreateView(createView *CreateView) {
 		).WithTheme(theme).Run()
 
 		if err != nil {
-			log.Error("Error in Payload Format form: ", err)
-			return
+			return err
 		}
 	}
 
@@ -85,12 +82,12 @@ func WebhookCreateView(createView *CreateView) {
 			huh.NewInput().
 				Title("Endpoint URL").
 				Value(&createView.EndpointURL).
-				Validate(utils.EmptyStringValidator("Endpoint URL")),
-
+				Validate(func(str string) error {
+					return utils.ValidateURL(str)
+				}),
 			huh.NewInput().
 				Title("Auth Header").
 				Value(&createView.AuthHeader),
-
 			huh.NewMultiSelect[string]().
 				Title("Select Event Types").
 				Options(
@@ -123,8 +120,5 @@ func WebhookCreateView(createView *CreateView) {
 		),
 	).WithTheme(theme).Run()
 
-	if err != nil {
-		log.Error("Error in second form: ", err)
-		return
-	}
+	return err
 }

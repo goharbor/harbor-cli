@@ -68,7 +68,6 @@ or leave them out and be guided through an interactive prompt to input each fiel
 			} else {
 				err = createWebhookView(createView)
 			}
-
 			if err != nil {
 				log.Errorf("failed to create webhook: %v", err)
 			}
@@ -91,6 +90,9 @@ or leave them out and be guided through an interactive prompt to input each fiel
 
 func createWebhookView(view *create.CreateView) error {
 	view.ProjectName = prompt.GetProjectNameFromUser()
-	create.WebhookCreateView(view)
+	err := create.WebhookCreateView(view)
+	if err != nil {
+		return err
+	}
 	return api.CreateWebhook(view)
 }

@@ -16,6 +16,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -140,6 +141,19 @@ func ValidateRegistryName(rn string) bool {
 	re := regexp.MustCompile(pattern)
 
 	return re.MatchString(rn)
+}
+func ValidateURL(rawURL string) error {
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL format")
+	}
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return fmt.Errorf("URL must use http or https scheme")
+	}
+	if parsedURL.Host == "" {
+		return fmt.Errorf("URL must contain a valid host")
+	}
+	return nil
 }
 
 func PrintFormat[T any](resp T, format string) error {

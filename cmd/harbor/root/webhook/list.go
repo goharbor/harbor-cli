@@ -57,14 +57,16 @@ Use the '--output-format' flag for raw JSON output.`,
 				log.Errorf("failed to list webhooks: %v", err)
 				return
 			}
-
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(resp)
-				return
-			}
 			if len(resp.Payload) == 0 {
 				log.Infof("No webhooks found in project %s", projectName)
+				return
+			}
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(resp, FormatFlag)
+				if err != nil {
+					log.Fatalf("failed to print in %s format: %v", FormatFlag, err)
+				}
 				return
 			}
 			webhookViews.ListWebhooks(resp.Payload)
