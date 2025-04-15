@@ -40,7 +40,7 @@ func DeleteRegistryCommand() *cobra.Command {
 					go func(registryID int64) {
 						defer wg.Done()
 						if err := api.DeleteRegistry(registryID); err != nil {
-							errChan <- fmt.Errorf(utils.ParseHarborError(err))
+							errChan <- fmt.Errorf("%s", utils.ParseHarborError(err))
 						}
 					}(registryID)
 				}

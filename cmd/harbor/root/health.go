@@ -29,11 +29,11 @@ func HealthCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := api.Ping()
 			if err != nil {
-				return fmt.Errorf(utils.ParseHarborError(err))
+				return fmt.Errorf("%s", utils.ParseHarborError(err))
 			}
 			status, err := api.GetHealth()
 			if err != nil {
-				return fmt.Errorf(utils.ParseHarborError(err))
+				return fmt.Errorf("%s", utils.ParseHarborError(err))
 			}
 			health.PrintHealthStatus(status)
 			return nil

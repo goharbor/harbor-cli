@@ -49,7 +49,6 @@ func UpdateRegistryCommand() *cobra.Command {
 			existingRegistry, err := api.GetRegistryResponse(registryId)
 			if err != nil {
 				return fmt.Errorf("failed to get registry: %v", utils.ParseHarborError(err))
-
 			}
 			updateView := &models.Registry{
 				Name:        existingRegistry.Name,

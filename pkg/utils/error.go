@@ -43,7 +43,7 @@ func ParseHarborError(err error) string {
 			var harborErr HarborErrorPayload
 			if unmarshalErr := json.Unmarshal(jsonBytes, &harborErr); unmarshalErr == nil {
 				if len(harborErr.Errors) > 0 {
-					return fmt.Sprintf("%s field", harborErr.Errors[0].Message)
+					return harborErr.Errors[0].Message
 				}
 			}
 		}

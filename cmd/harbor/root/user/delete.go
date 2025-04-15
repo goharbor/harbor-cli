@@ -14,6 +14,7 @@
 package user
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -46,7 +47,7 @@ func UserDeleteCmd() *cobra.Command {
 					go func(userID int64) {
 						defer wg.Done()
 						if err := api.DeleteUser(userID); err != nil {
-							errChan <- err
+							errChan <- fmt.Errorf("%s", utils.ParseHarborError(err))
 						}
 					}(userID)
 				}
@@ -62,7 +63,7 @@ func UserDeleteCmd() *cobra.Command {
 					if isUnauthorizedError(err) {
 						log.Error("Permission denied: Admin privileges are required to execute this command.")
 					} else {
-						log.Errorf("failed to delete user: %v", utils.ParseHarborError(err))
+						log.Errorf("failed to delete some users: %v", err)
 					}
 				}
 			} else {

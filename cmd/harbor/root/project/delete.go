@@ -45,7 +45,7 @@ func DeleteProjectCommand() *cobra.Command {
 					go func(projectName string) {
 						defer wg.Done()
 						if err := api.DeleteProject(projectName, forceDelete); err != nil {
-							errChan <- err
+							errChan <- fmt.Errorf("%s", utils.ParseHarborError(err))
 						}
 					}(arg)
 				}
