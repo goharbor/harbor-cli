@@ -181,6 +181,9 @@ func (m *HarborCli) PublishImage(
 	}
 	fmt.Printf("provided tags: %s\n", imageTags)
 
+	// Get current time for image creation timestamp
+	creationTime := time.Now().UTC().Format(time.RFC3339)
+
 	for _, builder := range builders {
 		os, _ := builder.EnvVariable(ctx, "GOOS")
 		arch, _ := builder.EnvVariable(ctx, "GOARCH")
@@ -195,6 +198,12 @@ func (m *HarborCli) PublishImage(
 			WithFile("/harbor", builder.File("./harbor")).
 			WithExec([]string{"ls", "-al"}).
 			WithExec([]string{"./harbor", "version"}).
+			// Add required metadata labels for ArtifactHub
+			WithLabel("org.opencontainers.image.created", creationTime).
+			WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
+			WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
+			WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
+			WithLabel("org.opencontainers.image.version", version).
 			WithEntrypoint([]string{"/harbor"})
 		releaseImages = append(releaseImages, ctr)
 	}
