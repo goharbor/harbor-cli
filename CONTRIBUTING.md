@@ -79,8 +79,16 @@ Ensure your changes work as expected.
 
 ```bash
 gofmt -s -w .
+dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli  #Recommended
+./harbor-dev --help
+```
+
+If dagger is not installed in your system, you can also build the project using the following commands:
+
+```bash
+gofmt -s -w .
 go build -o ./bin/harbor-cli cmd/harbor/main.go
-./bin/harbor-cli ...    #OPTIONAL
+./bin/harbor-cli --help
 ```
 
 ### 5. Commit with a clear message
