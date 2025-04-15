@@ -30,7 +30,7 @@ func SearchRepoCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			repo, err := api.SearchRepository(args[0])
 			if err != nil {
-				log.Fatalf("failed to get repositories: %v", err)
+				log.Fatalf("failed to get repositories: %v", utils.ParseHarborError(err))
 				return
 			}
 

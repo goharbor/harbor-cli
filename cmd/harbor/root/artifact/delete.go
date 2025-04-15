@@ -14,10 +14,11 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -26,22 +27,22 @@ func DeleteArtifactCommand() *cobra.Command {
 		Use:   "delete",
 		Short: "delete an artifact",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-
+			var projectName, repoName, reference string
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.DeleteArtifact(projectName, repoName, reference)
+				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.DeleteArtifact(projectName, repoName, reference)
+				projectName = prompt.GetProjectNameFromUser()
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
+			err = api.DeleteArtifact(projectName, repoName, reference)
 			if err != nil {
-				log.Errorf("failed to delete an artifact: %v", err)
+				return fmt.Errorf("failed to delete an artifact: %v", utils.ParseHarborError(err))
 			}
+			return nil
 		},
 	}
 

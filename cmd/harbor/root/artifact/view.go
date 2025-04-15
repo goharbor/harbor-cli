@@ -14,12 +14,13 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/artifact/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,7 +31,7 @@ func ViewArtifactCommmand() *cobra.Command {
 		Short:   "Get information of an artifact",
 		Long:    `Get information of an artifact`,
 		Example: `harbor artifact view <project>/<repository>/<reference>`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, repoName, reference string
 			var artifact *artifact.GetArtifactOK
@@ -44,22 +45,20 @@ func ViewArtifactCommmand() *cobra.Command {
 			}
 
 			artifact, err = api.ViewArtifact(projectName, repoName, reference)
-
 			if err != nil {
-				log.Errorf("failed to get info of an artifact: %v", err)
-				return
+				return fmt.Errorf("failed to get info of an artifact: %v", utils.ParseHarborError(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(artifact, FormatFlag)
 				if err != nil {
-					log.Error(err)
-					return
+					return err
 				}
 			} else {
 				view.ViewArtifact(artifact.Payload)
 			}
+			return nil
 		},
 	}
 

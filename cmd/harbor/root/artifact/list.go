@@ -46,11 +46,9 @@ func ListArtifactCommand() *cobra.Command {
 				projectName = prompt.GetProjectNameFromUser()
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
-
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
-
 			if err != nil {
-				return fmt.Errorf("failed to list artifacts: %v", err)
+				return fmt.Errorf("failed to list artifacts: %v", utils.ParseHarborError(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")

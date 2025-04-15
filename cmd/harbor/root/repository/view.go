@@ -45,7 +45,7 @@ func RepoViewCmd() *cobra.Command {
 			repo, err = api.RepoView(projectName, repoName)
 
 			if err != nil {
-				log.Errorf("failed to get repository information: %v", err)
+				log.Errorf("failed to get repository information: %v", utils.ParseHarborError(err))
 				return
 			}
 

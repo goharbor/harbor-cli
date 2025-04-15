@@ -14,10 +14,12 @@
 package project
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +32,7 @@ func DeleteProjectCommand() *cobra.Command {
 		Short:   "delete project by name or id",
 		Example: `  harbor project delete [projectname]`,
 		Args:    cobra.MinimumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
 			errChan := make(
 				chan error,
@@ -51,7 +53,7 @@ func DeleteProjectCommand() *cobra.Command {
 				projectName := prompt.GetProjectNameFromUser()
 				err := api.DeleteProject(projectName, forceDelete)
 				if err != nil {
-					log.Errorf("failed to delete project: %v", err)
+					log.Errorf("failed to delete project: %v", utils.ParseHarborError(err))
 				}
 			}
 
@@ -71,8 +73,9 @@ func DeleteProjectCommand() *cobra.Command {
 				}
 			}
 			if finalErr != nil {
-				log.Errorf("failed to delete some projects: %v", finalErr)
+				return fmt.Errorf("failed to delete some projects: %v", finalErr)
 			}
+			return nil
 		},
 	}
 

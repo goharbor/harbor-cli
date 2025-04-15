@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -61,7 +62,7 @@ func UserDeleteCmd() *cobra.Command {
 					if isUnauthorizedError(err) {
 						log.Error("Permission denied: Admin privileges are required to execute this command.")
 					} else {
-						log.Errorf("failed to delete user: %v", err)
+						log.Errorf("failed to delete user: %v", utils.ParseHarborError(err))
 					}
 				}
 			} else {
@@ -71,7 +72,7 @@ func UserDeleteCmd() *cobra.Command {
 					if isUnauthorizedError(err) {
 						log.Error("Permission denied: Admin privileges are required to execute this command.")
 					} else {
-						log.Errorf("failed to delete user: %v", err)
+						log.Errorf("failed to delete user: %v", utils.ParseHarborError(err))
 					}
 				}
 			}

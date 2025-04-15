@@ -160,7 +160,7 @@ func RunLogin(opts login.LoginView) error {
 	ctx := context.Background()
 	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
-		return fmt.Errorf("login failed, please check your credentials: %s", err)
+		return fmt.Errorf("login failed, please check your credentials and server address, one of them is incorrect")
 	}
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
@@ -168,7 +168,6 @@ func RunLogin(opts login.LoginView) error {
 
 	key, err := utils.GetEncryptionKey()
 	if err != nil {
-		fmt.Println("Error getting encryption key:", err)
 		return fmt.Errorf("failed to get encryption key: %s", err)
 	}
 

@@ -14,11 +14,13 @@
 package registry
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -31,26 +33,24 @@ func UpdateRegistryCommand() *cobra.Command {
 		Use:   "update [registry_name]",
 		Short: "update registry",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var registryId int64
 
 			if len(args) > 0 {
 				registryId, err = api.GetRegistryIdByName(args[0])
 				if err != nil {
-					log.Errorf("failed to get registry id: %v", err)
-					return
+					return fmt.Errorf("failed to get registry id: %v", utils.ParseHarborError(err))
 				}
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
 			}
 
-			existingRegistry := api.GetRegistryResponse(registryId)
-			if existingRegistry == nil {
-				log.Errorf("registry is not found")
-				return
-			}
+			existingRegistry, err := api.GetRegistryResponse(registryId)
+			if err != nil {
+				return fmt.Errorf("failed to get registry: %v", utils.ParseHarborError(err))
 
+			}
 			updateView := &models.Registry{
 				Name:        existingRegistry.Name,
 				Type:        existingRegistry.Type,
@@ -93,9 +93,9 @@ func UpdateRegistryCommand() *cobra.Command {
 			update.UpdateRegistryView(updateView)
 			err = api.UpdateRegistry(updateView, registryId)
 			if err != nil {
-				log.Errorf("failed to update registry: %v", err)
-				return
+				return fmt.Errorf("failed to update registry: %v", utils.ParseHarborError(err))
 			}
+			return nil
 		},
 	}
 

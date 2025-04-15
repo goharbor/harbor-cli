@@ -38,7 +38,7 @@ func ListLabelCommand() *cobra.Command {
 
 			label, err := api.ListLabel(opts)
 			if err != nil {
-				log.Fatalf("failed to get label list: %v", err)
+				return fmt.Errorf("failed to get label list: %v", utils.ParseHarborError(err))
 			}
 			if len(label.Payload) == 0 {
 				log.Info("No labels found")
@@ -48,7 +48,7 @@ func ListLabelCommand() *cobra.Command {
 			if formatFlag != "" {
 				err = utils.PrintFormat(label, formatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListLabels(label.Payload)

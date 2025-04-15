@@ -37,9 +37,8 @@ func ListRegistryCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 			registry, err := api.ListRegistries(opts)
-
 			if err != nil {
-				return fmt.Errorf("failed to get projects list: %v", err)
+				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborError(err))
 			}
 			if len(registry.Payload) == 0 {
 				log.Info("No registries found")

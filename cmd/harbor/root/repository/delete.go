@@ -14,10 +14,11 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,19 +28,20 @@ func RepoDeleteCmd() *cobra.Command {
 		Short:   "Delete a repository",
 		Example: `  harbor repository delete [project_name]/[repository_name]`,
 		Long:    `Delete a repository within a project in Harbor`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			var projectName, repoName string
 			if len(args) > 0 {
-				projectName, repoName := utils.ParseProjectRepo(args[0])
-				err = api.RepoDelete(projectName, repoName)
+				projectName, repoName = utils.ParseProjectRepo(args[0])
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				err = api.RepoDelete(projectName, repoName)
+				projectName = prompt.GetProjectNameFromUser()
+				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
+			err = api.RepoDelete(projectName, repoName)
 			if err != nil {
-				log.Errorf("failed to delete repository: %v", err)
+				return fmt.Errorf("failed to delete repository: %v", utils.ParseHarborError(err))
 			}
+			return nil
 		},
 	}
 	return cmd

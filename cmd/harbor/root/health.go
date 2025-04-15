@@ -14,7 +14,10 @@
 package root
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/health"
 	"github.com/spf13/cobra"
 )
@@ -26,11 +29,11 @@ func HealthCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := api.Ping()
 			if err != nil {
-				return err
+				return fmt.Errorf(utils.ParseHarborError(err))
 			}
 			status, err := api.GetHealth()
 			if err != nil {
-				return err
+				return fmt.Errorf(utils.ParseHarborError(err))
 			}
 			health.PrintHealthStatus(status)
 			return nil

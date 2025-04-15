@@ -55,14 +55,14 @@ func InfoCommand() *cobra.Command {
 
 			userInfo, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 			if err != nil {
-				return fmt.Errorf("failed to get current user info: %v", err)
+				return fmt.Errorf("failed to get current user info: %v", utils.ParseHarborError(err))
 			}
 
 			isSysAdmin := userInfo.Payload.SysadminFlag
 
 			sysInfo, err := client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
 			if err != nil {
-				return fmt.Errorf("failed to get system info: %v", err)
+				return fmt.Errorf("failed to get system info: %v", utils.ParseHarborError(err))
 			}
 			harborVersion := sysInfo.Payload.HarborVersion
 

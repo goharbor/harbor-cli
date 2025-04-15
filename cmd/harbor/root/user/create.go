@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
@@ -52,7 +53,7 @@ func UserCreateCmd() *cobra.Command {
 				if isUnauthorizedError(err) {
 					log.Error("Permission denied: Admin privileges are required to execute this command.")
 				} else {
-					log.Errorf("failed to create user: %v", err)
+					log.Errorf("failed to create user: %v", utils.ParseHarborError(err))
 				}
 			}
 		},

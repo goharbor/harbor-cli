@@ -51,7 +51,7 @@ func ListRepositoryCommand() *cobra.Command {
 
 			repos, err = api.ListRepository(projectName)
 			if err != nil {
-				return fmt.Errorf("failed to list repositories: %v", err)
+				return fmt.Errorf("failed to list repositories: %v", utils.ParseHarborError(err))
 			}
 			if len(repos.Payload) == 0 {
 				log.Info("No repositories found")

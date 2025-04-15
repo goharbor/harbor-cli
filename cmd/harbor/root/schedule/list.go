@@ -37,7 +37,7 @@ func ListScheduleCommand() *cobra.Command {
 			schedule, err := api.ListSchedule(opts)
 
 			if err != nil {
-				return fmt.Errorf("failed to get schedule list: %v", err)
+				return fmt.Errorf("failed to get schedule list: %v", utils.ParseHarborError(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")

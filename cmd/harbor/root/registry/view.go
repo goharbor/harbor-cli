@@ -14,6 +14,8 @@
 package registry
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -30,7 +32,7 @@ func ViewRegistryCommand() *cobra.Command {
 		Short:   "get registry information",
 		Example: "harbor registry view [registryName]",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var registryId int64
 			var registry *registry.GetRegistryOK
@@ -38,8 +40,7 @@ func ViewRegistryCommand() *cobra.Command {
 			if len(args) > 0 {
 				registryId, err = api.GetRegistryIdByName(args[0])
 				if err != nil {
-					log.Errorf("failed to get registry name by id: %v", err)
-					return
+					return fmt.Errorf("failed to get registry id: %v", utils.ParseHarborError(err))
 				}
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
@@ -47,8 +48,7 @@ func ViewRegistryCommand() *cobra.Command {
 
 			registry, err = api.ViewRegistry(registryId)
 			if err != nil {
-				log.Errorf("failed to get registry info: %v", err)
-				return
+				return fmt.Errorf("failed to get registry info: %v", utils.ParseHarborError(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -60,6 +60,7 @@ func ViewRegistryCommand() *cobra.Command {
 			} else {
 				view.ViewRegistry(registry.Payload)
 			}
+			return nil
 		},
 	}
 

@@ -14,6 +14,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -116,5 +118,5 @@ func GetUsersIdByName(userName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return -1, fmt.Errorf("User %s not found", userName)
 }

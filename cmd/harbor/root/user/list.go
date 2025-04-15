@@ -49,7 +49,7 @@ func UserListCmd() *cobra.Command {
 						if isUnauthorizedError(err) {
 							return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 						}
-						return fmt.Errorf("failed to list users: %v", err)
+						return fmt.Errorf("failed to list users: %v", utils.ParseHarborError(err))
 					}
 
 					allUsers = append(allUsers, response.Payload...)
@@ -65,7 +65,7 @@ func UserListCmd() *cobra.Command {
 					if isUnauthorizedError(err) {
 						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 					}
-					return fmt.Errorf("failed to list users: %v", err)
+					return fmt.Errorf("failed to list users: %v", utils.ParseHarborError(err))
 				}
 				allUsers = response.Payload
 			}

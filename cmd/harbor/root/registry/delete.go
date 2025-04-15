@@ -14,10 +14,12 @@
 package registry
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +30,7 @@ func DeleteRegistryCommand() *cobra.Command {
 		Short:   "delete registry by name or id",
 		Example: "harbor registry delete [registryname]",
 		Args:    cobra.MinimumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
 			errChan := make(chan error, len(args))
 			if len(args) > 0 {
@@ -38,7 +40,7 @@ func DeleteRegistryCommand() *cobra.Command {
 					go func(registryID int64) {
 						defer wg.Done()
 						if err := api.DeleteRegistry(registryID); err != nil {
-							errChan <- err
+							errChan <- fmt.Errorf(utils.ParseHarborError(err))
 						}
 					}(registryID)
 				}
@@ -46,7 +48,7 @@ func DeleteRegistryCommand() *cobra.Command {
 				registryId := prompt.GetRegistryNameFromUser()
 				err := api.DeleteRegistry(registryId)
 				if err != nil {
-					log.Errorf("failed to delete registry: %v", err)
+					return fmt.Errorf("failed to delete registry: %v", utils.ParseHarborError(err))
 				}
 			}
 
@@ -67,8 +69,9 @@ func DeleteRegistryCommand() *cobra.Command {
 			}
 
 			if finalErr != nil {
-				log.Errorf("failed to delete registry: %v", finalErr)
+				return fmt.Errorf("failed to delete registry: %v", finalErr)
 			}
+			return nil
 		},
 	}
 

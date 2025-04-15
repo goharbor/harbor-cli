@@ -14,11 +14,13 @@
 package labels
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +32,7 @@ func UpdateLableCommand() *cobra.Command {
 		Short:   "update label",
 		Example: "harbor label update [labelname]",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var labelId int64
 			updateflags := api.ListFlags{
@@ -43,13 +45,12 @@ func UpdateLableCommand() *cobra.Command {
 				labelId = prompt.GetLabelIdFromUser(updateflags)
 			}
 			if err != nil {
-				log.Errorf("failed to parse label id: %v", err)
+				return fmt.Errorf("failed to parse label id: %v", err)
 			}
 
 			existingLabel := api.GetLabel(labelId)
 			if existingLabel == nil {
-				log.Errorf("label is not found")
-				return
+				return fmt.Errorf("error in getting label %s", utils.ParseHarborError(err))
 			}
 			updateView := &models.Label{
 				Name:        existingLabel.Name,
@@ -75,8 +76,9 @@ func UpdateLableCommand() *cobra.Command {
 			update.UpdateLabelView(updateView)
 			err = api.UpdateLabel(updateView, labelId)
 			if err != nil {
-				log.Errorf("failed to update label: %v", err)
+				return fmt.Errorf("failed to update label: %v", utils.ParseHarborError(err))
 			}
+			return nil
 		},
 	}
 	flags := cmd.Flags()
