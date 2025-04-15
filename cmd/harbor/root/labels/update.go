@@ -48,8 +48,8 @@ func UpdateLableCommand() *cobra.Command {
 				return fmt.Errorf("failed to parse label id: %v", err)
 			}
 
-			existingLabel := api.GetLabel(labelId)
-			if existingLabel == nil {
+			existingLabel, err := api.GetLabel(labelId)
+			if err != nil {
 				return fmt.Errorf("error in getting label %s", utils.ParseHarborError(err))
 			}
 			updateView := &models.Label{

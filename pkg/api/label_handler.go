@@ -106,17 +106,17 @@ func UpdateLabel(updateView *models.Label, Labelid int64) error {
 	return nil
 }
 
-func GetLabel(labelid int64) *models.Label {
+func GetLabel(labelid int64) (*models.Label, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	response, err := client.Label.GetLabelByID(ctx, &label.GetLabelByIDParams{LabelID: labelid})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return response.GetPayload()
+	return response.GetPayload(), nil
 }
 
 func GetLabelIdByName(labelName string) (int64, error) {
