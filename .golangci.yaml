@@ -13,7 +13,7 @@ linters:
     goheader:
       template-path: copyright.tmpl
     misspell:
-      locale: US
+      locale: US,UK
     staticcheck:
       checks:
         - ST1019
