@@ -204,7 +204,6 @@ func (m *HarborCli) PublishImage(
 			WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
 			WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
 			WithLabel("org.opencontainers.image.version", version).
-			WithLabel("org.opencontainers.image.version", version).
 			WithLabel("io.artifacthub.package.license", "Apache-2.0").
 			WithEntrypoint([]string{"/harbor"})
 		releaseImages = append(releaseImages, ctr)
