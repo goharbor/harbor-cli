@@ -159,6 +159,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+        continue-on-error: true
 
       - name: Create Release
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
@@ -169,6 +170,7 @@ jobs:
           version: "latest"
           verb: call
           args: "release --github-token=env:GITHUB_TOKEN"
+        continue-on-error: true
 
       - name: Publish and Sign Tagged Image
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
@@ -179,3 +181,4 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+        continue-on-error: true
