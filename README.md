@@ -102,6 +102,8 @@ Use "harbor [command] --help" for more information about a command.
 
 #### Config Management
 
+After you successfully login with your credentials using the `harbor login` command, the details are stored as a config file. 
+
 ##### Hierarchy
   Use the `--config` flag to specify a custom configuration file path (highest priority).
   ```bash
@@ -121,6 +123,7 @@ Use "harbor [command] --help" for more information about a command.
   - Data paths are determined by the `XDG_DATA_HOME` environment variable.
   - If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
   - The data file always contains the path of the latest config used.
+
 
 ##### Config TL;DR
   - `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
@@ -144,7 +147,11 @@ harbor project create
 
 ```bash
 harbor project list
+```
 
+It should list the projects like this:
+
+```bash
 # output
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
 │  Project Name  Access Level  Type          Repo Count    Creation Time                   │
@@ -153,11 +160,15 @@ harbor project list
 └──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+
 #### List all Repository in a Project
 
 ```bash
 harbor repo list
+```
+It should list out something the repos like this:
 
+```bash
 # output
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │  Name                      Artifacts     Pulls         Last Modified Time              │
@@ -165,6 +176,7 @@ harbor repo list
 │  library/harbor-cli        1             0             0 minute ago                    │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
 
 # Supported Platforms
 
