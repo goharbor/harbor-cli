@@ -60,13 +60,13 @@ release:
   replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: goharbor           # Your GitHub repository owner
+    owner: bupd           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 # https://goreleaser.com/customization/homebrew/
 brews:
   - repository:
-      owner: goharbor
+      owner: bupd
       name: homebrew-tap
     name: harbor-cli
     commit_author:
