@@ -63,6 +63,21 @@ release:
     owner: goharbor           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
+# https://goreleaser.com/customization/homebrew/
+brews:
+  - repository:
+      owner: goharbor
+      name: homebrew-tap
+    name: harbor-cli
+    commit_author:
+      name: harbor-bot
+      email: noreply@goharbor.io
+    url_template: "https://{{ .Env.ARTEFACTS_FQDN }}/harbor-cli/releases/{{ .Version }}/{{ .ArtifactName }}"
+    homepage: "https://goharbor.io"
+    description: "harbor is an integrated platform to orchestrate the delivery of applications"
+    test: |
+      system "#{bin}/harbor-cli version"
+
 changelog:
   use: github
   filters:
