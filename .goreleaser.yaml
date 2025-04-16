@@ -69,20 +69,6 @@ brews:
       owner: bupd                           # GitHub user/org who owns the tap repo
       name: homebrew-tap                    # Tap repo name (i.e., bupd/homebrew-tap)
       branch: main
-            # This might require a personal access token.
-      pull_request:
-        # Whether to enable it or not.
-        enabled: true
-
-        # Whether to open the PR as a draft or not.
-        draft: false
-        # Base can also be another repository, in which case the owner and name
-        # above will be used as HEAD, allowing cross-repository pull requests.
-        base:
-          owner: bupd
-          name: homebrew-tap
-          branch: main
-
     name: harbor-cli                        # Name of the CLI, becomes harbor-cli.rb
     commit_author:                          # Who commits to the tap repo
       name: goreleaserbot
