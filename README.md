@@ -30,7 +30,7 @@ docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor
   registry.goharbor.io/harbor-cli/harbor-cli \
   --help
 ```
-Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securly stores your harbor login password.
+Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
 # Add the following command to create an alias and append the alias to your .zshrc or .bashrc file
 ```shell
