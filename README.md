@@ -134,7 +134,7 @@ After you successfully login with your credentials using the `harbor login` comm
 #### Log in to Harbor Registry
 
 ```bash
-harbor login demo.goharbor.io -u harbor-cli -p Harbor12345     # make sure these credentials exist in the config file
+harbor login demo.goharbor.io -u harbor-cli -p Harbor12345
 ```
 
 #### Create a New Project
