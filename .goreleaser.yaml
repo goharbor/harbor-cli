@@ -66,17 +66,16 @@ release:
 # https://goreleaser.com/customization/homebrew/
 brews:
   - repository:
-      owner: bupd
-      name: homebrew-tap
-    name: harbor-cli
-    commit_author:
-      name: harbor-bot
+      owner: bupd                           # GitHub user/org who owns the tap repo
+      name: homebrew-tap                    # Tap repo name (i.e., bupd/homebrew-tap)
+    name: harbor-cli                        # Name of the CLI, becomes harbor-cli.rb
+    commit_author:                          # Who commits to the tap repo
+      name: bupd-bot
       email: noreply@goharbor.io
-    url_template: "https://{{ .Env.ARTEFACTS_FQDN }}/harbor-cli/releases/{{ .Version }}/{{ .ArtifactName }}"
     homepage: "https://goharbor.io"
-    description: "harbor is an integrated platform to orchestrate the delivery of applications"
+    description: "Harbor CLI for interacting with Harbor registry"  # Formula description
     test: |
-      system "#{bin}/harbor-cli version"
+      system "#{bin}/harbor-cli", "version"            # Formula test (after install)
 
 changelog:
   use: github
