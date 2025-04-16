@@ -1,5 +1,5 @@
 version: 2
-project_name: harbor
+project_name: harbor-cli
 
 before:
   hooks:
