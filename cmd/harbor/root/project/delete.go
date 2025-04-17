@@ -34,47 +34,61 @@ func DeleteProjectCommand() *cobra.Command {
 		Args:    cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
-			errChan := make(
-				chan error,
-				len(args),
-			) // Channel to collect errors
+			var mu sync.Mutex
+
+			successfulDeletes := []string{}
+			failedDeletes := map[string]string{}
 
 			if len(args) > 0 {
-				for _, arg := range args {
+				log.Debugf("Deleting %d projects from args...", len(args))
+				for _, projectName := range args {
+					pn := projectName
+					log.Debugf("Initiating delete for project: %s", pn)
 					wg.Add(1)
 					go func(projectName string) {
 						defer wg.Done()
+						log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
 						if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
-							errChan <- fmt.Errorf("%s", utils.ParseHarborError(err))
+							mu.Lock()
+							failedDeletes[projectName] = utils.ParseHarborError(err)
+							mu.Unlock()
+						} else {
+							mu.Lock()
+							successfulDeletes = append(successfulDeletes, projectName)
+							mu.Unlock()
 						}
-					}(arg)
+					}(pn)
 				}
 			} else {
+				log.Debug("No arguments provided. Prompting user for project name.")
 				projectName := prompt.GetProjectNameFromUser()
-				err := api.DeleteProject(projectName, forceDelete, false)
-				if err != nil {
-					log.Errorf("failed to delete project: %v", utils.ParseHarborError(err))
+				log.Debugf("User input project: %s", projectName)
+				log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
+				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
+					return fmt.Errorf("failed to delete project: %v", utils.ParseHarborError(err))
+				}
+				fmt.Printf("Project '%s' deleted successfully\n", projectName)
+				return nil
+			}
+
+			wg.Wait()
+
+			if len(successfulDeletes) > 0 {
+				fmt.Println("Successfully deleted projects:")
+				for _, name := range successfulDeletes {
+					fmt.Printf("  - %s\n", name)
 				}
 			}
 
-			// Wait for all goroutines to finish
-			go func() {
-				wg.Wait()
-				close(errChan)
-			}()
-
-			// Collect and handle errors
-			var finalErr error
-			for err := range errChan {
-				if finalErr == nil {
-					finalErr = err
-				} else {
-					log.Errorf("Error: %v", err)
+			if len(failedDeletes) > 0 {
+				fmt.Println("Failed to delete projects:")
+				for name, reason := range failedDeletes {
+					fmt.Printf("  - %s: %s\n", name, reason)
 				}
+				return fmt.Errorf("failed to delete %d project(s)", len(failedDeletes))
 			}
-			if finalErr != nil {
-				return fmt.Errorf("failed to delete some projects: %v", finalErr)
-			}
+
+			log.Debug("All requested projects deleted successfully.")
 			return nil
 		},
 	}

@@ -17,8 +17,8 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -32,26 +32,40 @@ func CreateProjectCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			createView := &create.CreateView{
-				ProjectName:  opts.ProjectName,
-				Public:       opts.Public,
-				RegistryID:   opts.RegistryID,
-				StorageLimit: opts.StorageLimit,
-				ProxyCache:   false,
-			}
+			var ProjectName string
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
+			}
+
+			if opts.ProxyCache && opts.RegistryID == "" {
+				return fmt.Errorf("Error: Proxy cache selected but no registry ID provided. Use --registry-id.")
+			}
+
+			if opts.ProjectName != "" {
+				log.Debug("Attempting to create project using flags...")
 				err = api.CreateProject(opts)
+				ProjectName = opts.ProjectName
 			} else {
+				log.Debug("No project name provided. Switching to interactive view...")
+				createView := &create.CreateView{
+					ProjectName:  opts.ProjectName,
+					Public:       opts.Public,
+					RegistryID:   opts.RegistryID,
+					StorageLimit: opts.StorageLimit,
+					ProxyCache:   opts.ProxyCache,
+				}
+
 				err = createProjectView(createView)
+				ProjectName = createView.ProjectName
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to create project: %v", utils.ParseHarborError(err))
+				return fmt.Errorf("Error: Failed to create project: %v\n", err)
 			}
+
+			fmt.Printf("Project '%s' created successfully\n", ProjectName)
 			return nil
-		},
-	}
+		}}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
