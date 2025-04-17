@@ -14,9 +14,11 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +30,7 @@ func CreateProjectCommand() *cobra.Command {
 		Use:   "create [project name]",
 		Short: "create project",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			createView := &create.CreateView{
 				ProjectName:  opts.ProjectName,
@@ -39,19 +41,15 @@ func CreateProjectCommand() *cobra.Command {
 			}
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
-
-				if opts.ProxyCache && opts.RegistryID == "" {
-					log.Errorf("Use the --registry-id flag with a registry ID")
-				} else {
-					err = api.CreateProject(opts)
-				}
+				err = api.CreateProject(opts)
 			} else {
 				err = createProjectView(createView)
 			}
 
 			if err != nil {
-				log.Errorf("failed to create project: %v", err)
+				return fmt.Errorf("failed to create project: %v", utils.ParseHarborError(err))
 			}
+			return nil
 		},
 	}
 

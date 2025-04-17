@@ -14,59 +14,56 @@
 package project
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// DeleteProjectCommand creates a new `harbor project delete` command
+// DeleteProjectCommand creates a new `harbor delete project` command
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
-	var projectID string
-
 	cmd := &cobra.Command{
 		Use:     "delete",
-		Short:   "Delete project by name or ID",
-		Example: "harbor project delete [projectname] or harbor project delete --project-id [projectid]",
-		Long:    "Delete project by name or ID. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID directly. The --force flag will delete all repositories and artifacts within the project.",
-		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		Short:   "delete project by name or id",
+		Example: `  harbor project delete [projectname]`,
+		Args:    cobra.MinimumNArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
-			errChan := make(chan error, len(args))
+			errChan := make(
+				chan error,
+				len(args),
+			) // Channel to collect errors
 
-			if projectID != "" {
-				wg.Add(1)
-				go func(id string) {
-					defer wg.Done()
-					if err := api.DeleteProject(id, forceDelete, true); err != nil {
-						errChan <- err
-					}
-				}(projectID)
-			} else if len(args) > 0 {
-				for _, projectName := range args {
+			if len(args) > 0 {
+				for _, arg := range args {
 					wg.Add(1)
-					go func(name string) {
+					go func(projectName string) {
 						defer wg.Done()
-						if err := api.DeleteProject(name, forceDelete, false); err != nil {
-							errChan <- err
+						if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
+							errChan <- fmt.Errorf("%s", utils.ParseHarborError(err))
 						}
-					}(projectName)
+					}(arg)
 				}
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
-				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
-					log.Errorf("failed to delete project: %v", err)
+				err := api.DeleteProject(projectName, forceDelete, false)
+				if err != nil {
+					log.Errorf("failed to delete project: %v", utils.ParseHarborError(err))
 				}
 			}
 
+			// Wait for all goroutines to finish
 			go func() {
 				wg.Wait()
 				close(errChan)
 			}()
 
+			// Collect and handle errors
 			var finalErr error
 			for err := range errChan {
 				if finalErr == nil {
@@ -76,14 +73,14 @@ func DeleteProjectCommand() *cobra.Command {
 				}
 			}
 			if finalErr != nil {
-				log.Errorf("failed to delete some projects: %v", finalErr)
+				return fmt.Errorf("failed to delete some projects: %v", finalErr)
 			}
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVar(&forceDelete, "force", false, "Deletes all repositories and artifacts within the project")
-	flags.StringVar(&projectID, "project-id", "", "Specify project ID instead of project name")
 
 	return cmd
 }

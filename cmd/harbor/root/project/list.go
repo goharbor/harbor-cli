@@ -57,7 +57,7 @@ func ListProjectCommand() *cobra.Command {
 
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
-				return fmt.Errorf("failed to get projects list: %v", err)
+				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborError(err))
 			}
 			if len(allProjects) == 0 {
 				log.Info("No projects found")
@@ -72,7 +72,6 @@ func ListProjectCommand() *cobra.Command {
 			} else {
 				list.ListProjects(allProjects)
 			}
-
 			return nil
 		},
 	}
