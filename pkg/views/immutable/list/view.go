@@ -16,37 +16,39 @@ package list
 import (
 	"fmt"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthXS},
-	{Title: "Name", Width: tablelist.WidthL},
-	{Title: "Administrator", Width: tablelist.WidthL},
-	{Title: "Email", Width: tablelist.WidthXXL},
-	{Title: "Registration Time", Width: tablelist.WidthL},
+	{Title: "ID", Width: 12},
+	{Title: "Repository", Width: 30},
+	{Title: "Tag", Width: 30},
 }
 
-func ListUsers(users []*models.UserResp) {
+func ListImmuRules(immutable []*models.ImmutableRule) {
 	var rows []table.Row
-	for _, user := range users {
-		isAdmin := "No"
-		if user.SysadminFlag {
-			isAdmin = "Yes"
+	for _, regis := range immutable {
+		var scopeSelectors []string
+		for _, scope := range regis.ScopeSelectors {
+			for _, repo := range scope {
+				scopeSelectors = append(scopeSelectors, fmt.Sprintf("%s %s", repo.Decoration, repo.Pattern))
+			}
 		}
-		createdTime, _ := utils.FormatCreatedTime(user.CreationTime.String())
+
+		tagSelectors := make([]string, len(regis.TagSelectors))
+		for i, tag := range regis.TagSelectors {
+			tagSelectors[i] = fmt.Sprintf("%s %s", tag.Decoration, tag.Pattern)
+		}
+
 		rows = append(rows, table.Row{
-			strconv.FormatInt(int64(user.UserID), 10), // UserID
-			user.Username,
-			isAdmin,
-			user.Email,
-			createdTime,
+			fmt.Sprintf("%d", regis.ID),
+			strings.Join(scopeSelectors, " "),
+			strings.Join(tagSelectors, " "),
 		})
 	}
 
