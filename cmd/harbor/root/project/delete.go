@@ -29,9 +29,10 @@ func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
 	cmd := &cobra.Command{
 		Use:     "delete",
-		Short:   "delete project by name or id",
-		Example: `  harbor project delete [projectname]`,
-		Args:    cobra.MinimumNArgs(0),
+		Short:   "Delete project by name or ID",
+		Example: "harbor project delete [projectname] or harbor project delete --project-id [projectid]",
+		Long:    "Delete project by name or ID. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID directly. The --force flag will delete all repositories and artifacts within the project.",
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
 			var mu sync.Mutex

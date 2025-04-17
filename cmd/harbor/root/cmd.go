@@ -64,11 +64,9 @@ harbor help
 				formatter.FullTimestamp = true
 				formatter.TimestampFormat = time.RFC3339
 				logrus.SetLevel(logrus.DebugLevel)
-
 			} else {
 				formatter.DisableTimestamp = true
 			}
-
 			logrus.SetFormatter(formatter)
 
 			return nil
