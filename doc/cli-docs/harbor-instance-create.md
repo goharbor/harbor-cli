@@ -1,6 +1,6 @@
 ---
 title: harbor instance create
-weight: 5
+weight: 0
 ---
 ## harbor instance create
 
@@ -29,7 +29,7 @@ harbor instance create [flags]
 ```sh
   -a, --authmode string      Choosing different types of authentication method (default "NONE")
       --description string   Description of the instance
-      --enable               Whether it is enable or not (default true)
+      --enable               Whether it is enabled or not (default true)
   -h, --help                 help for create
   -i, --insecure             Whether or not the certificate will be verified when Harbor tries to access the server (default true)
   -n, --name string          Name of the instance

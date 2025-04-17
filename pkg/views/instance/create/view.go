@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,6 +45,7 @@ func CreateInstanceView(createView *CreateView) {
 	password := cv.AuthInfo["password"]
 	token := cv.AuthInfo["token"]
 	theme := huh.ThemeCharm()
+
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -58,22 +60,22 @@ func CreateInstanceView(createView *CreateView) {
 				Value(&createView.Name).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("instance name cannot be empty")
+						return errors.New("name cannot be empty")
 					}
 					return nil
 				}),
 			huh.NewInput().
 				Title("Description").
 				Value(&createView.Description),
+		),
+
+		huh.NewGroup(
 			huh.NewInput().
 				Title("Endpoint").
 				Value(&createView.Endpoint).
 				Validate(func(str string) error {
-					trimmed := strings.TrimSpace(str)
-					if trimmed == "" {
-						return errors.New("endpoint cannot be empty")
-					}
-					return nil
+					err := utils.ValidateURL(str)
+					return err
 				}),
 			huh.NewConfirm().
 				Title("Enable").
@@ -85,6 +87,9 @@ func CreateInstanceView(createView *CreateView) {
 				Value(&createView.Insecure).
 				Affirmative("yes").
 				Negative("no"),
+		),
+
+		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Auth Mode").
 				Options(
@@ -99,8 +104,11 @@ func CreateInstanceView(createView *CreateView) {
 				Title("Username").
 				Value(&username).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("username cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("username cannot be empty or only spaces")
+					}
+					if isValid := utils.ValidateUserName(str); !isValid {
+						return errors.New("please enter correct username format")
 					}
 					return nil
 				}),
@@ -109,8 +117,11 @@ func CreateInstanceView(createView *CreateView) {
 				EchoMode(huh.EchoModePassword).
 				Value(&password).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("password cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("password cannot be empty or only spaces")
+					}
+					if err := utils.ValidatePassword(str); err != nil {
+						return err
 					}
 					return nil
 				}),
