@@ -100,10 +100,10 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 			}
 		}
 	}
-
+	useProjectName := !useProjectID
 	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{
 		ProjectNameOrID: projectNameOrID,
-		XIsResourceName: &useProjectID,
+		XIsResourceName: &useProjectName,
 	})
 
 	if err != nil {

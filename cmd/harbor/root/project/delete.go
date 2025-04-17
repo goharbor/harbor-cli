@@ -27,12 +27,14 @@ import (
 // DeleteProjectCommand creates a new `harbor delete project` command
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
+	var projectID string
+
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Short:   "Delete project by name or ID",
-		Example: "harbor project delete [projectname] or harbor project delete --project-id [projectid]",
-		Long:    "Delete project by name or ID. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID directly. The --force flag will delete all repositories and artifacts within the project.",
-		Args:    cobra.MaximumNArgs(1),
+		Example: "harbor project delete [projectname1] [projectname2] or harbor project delete --project-id [projectid]",
+		Long:    "Delete project by name or ID. Multiple projects can be deleted by providing their names as arguments. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID for single project directly. The --force flag will delete all repositories and artifacts within the project.",
+		Args:    cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
 			var mu sync.Mutex
@@ -40,7 +42,23 @@ func DeleteProjectCommand() *cobra.Command {
 			successfulDeletes := []string{}
 			failedDeletes := map[string]string{}
 
-			if len(args) > 0 {
+			if projectID != "" {
+				log.Debugf("Deleting project with ID: %s", projectID)
+				wg.Add(1)
+				go func(id string) {
+					defer wg.Done()
+					if err := api.DeleteProject(id, forceDelete, true); err != nil {
+						mu.Lock()
+						failedDeletes[id] = utils.ParseHarborError(err)
+						mu.Unlock()
+					} else {
+						mu.Lock()
+						successfulDeletes = append(successfulDeletes, id)
+						mu.Unlock()
+					}
+				}(projectID)
+			} else if len(args) > 0 {
+				// Delete by project name from args
 				log.Debugf("Deleting %d projects from args...", len(args))
 				for _, projectName := range args {
 					pn := projectName
@@ -61,6 +79,7 @@ func DeleteProjectCommand() *cobra.Command {
 					}(pn)
 				}
 			} else {
+				// If no arguments provided, prompt user for project name
 				log.Debug("No arguments provided. Prompting user for project name.")
 				projectName := prompt.GetProjectNameFromUser()
 				log.Debugf("User input project: %s", projectName)
@@ -96,6 +115,7 @@ func DeleteProjectCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVar(&forceDelete, "force", false, "Deletes all repositories and artifacts within the project")
+	flags.StringVar(&projectID, "project-id", "", "Specify project ID instead of project name")
 
 	return cmd
 }
