@@ -24,7 +24,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
-) 
+)
 
 var columns = []table.Column{
 	{Title: "ID", Width: 6},
