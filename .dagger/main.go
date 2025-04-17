@@ -324,12 +324,14 @@ func (m *HarborCli) vulnerabilityCheck(ctx context.Context) *dagger.Container {
 		WithWorkdir("/src")
 }
 
+// Runs a vulnerability check using govulncheck
 func (m *HarborCli) VulnerabilityCheck(ctx context.Context) (string, error) {
 	return m.vulnerabilityCheck(ctx).
 		WithExec([]string{"govulncheck", "-show", "verbose", "./..."}).
 		Stderr(ctx)
 }
 
+// Runs a vulnerability check using govulncheck and writes results to vulnerability-check.report
 func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context) *dagger.File {
 	report := "vulnerability-check.report"
 	return m.vulnerabilityCheck(ctx).
