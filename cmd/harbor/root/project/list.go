@@ -37,6 +37,8 @@ func ListProjectCommand() *cobra.Command {
 		Short: "List projects",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Starting project list command")
+
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
@@ -44,32 +46,41 @@ func ListProjectCommand() *cobra.Command {
 			if private && public {
 				return fmt.Errorf("Cannot specify both --private and --public flags")
 			}
+
 			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
 			if private {
+				log.Debug("Using private project list function")
 				opts.Public = false
 				listFunc = api.ListProject
 			} else if public {
+				log.Debug("Using public project list function")
 				opts.Public = true
 				listFunc = api.ListProject
 			} else {
+				log.Debug("Using list all projects function")
 				listFunc = api.ListAllProjects
 			}
 
+			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborError(err))
 			}
+
+			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
 			if len(allProjects) == 0 {
 				log.Info("No projects found")
 				return nil
 			}
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
+				log.WithField("output_format", formatFlag).Debug("Output format selected")
 				err = utils.PrintFormat(allProjects, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
+				log.Debug("Listing projects using default view")
 				list.ListProjects(allProjects)
 			}
 			return nil
@@ -91,26 +102,41 @@ func ListProjectCommand() *cobra.Command {
 func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, error), opts api.ListFlags) ([]*models.Project, error) {
 	var allProjects []*models.Project
 	if opts.PageSize == 0 {
+		log.Debug("Page size is 0, will fetch all pages")
 		opts.PageSize = 100
 		opts.Page = 1
 
 		for {
+			log.WithFields(log.Fields{
+				"page":      opts.Page,
+				"page_size": opts.PageSize,
+			}).Debug("Fetching next page of projects")
+
 			projects, err := listFunc(opts)
 			if err != nil {
+				log.WithError(err).Error("Error fetching project page")
 				return nil, err
 			}
 
+			log.WithField("fetched_count", len(projects.Payload)).Debug("Fetched projects from current page")
 			allProjects = append(allProjects, projects.Payload...)
 
 			if len(projects.Payload) < int(opts.PageSize) {
+				log.Debug("Last page reached, stopping pagination")
 				break
 			}
 
 			opts.Page++
 		}
 	} else {
+		log.WithFields(log.Fields{
+			"page":      opts.Page,
+			"page_size": opts.PageSize,
+		}).Debug("Fetching projects with user-defined pagination")
+
 		projects, err := listFunc(opts)
 		if err != nil {
+			log.WithError(err).Error("Error fetching paginated projects")
 			return nil, err
 		}
 		allProjects = projects.Payload
