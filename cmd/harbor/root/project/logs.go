@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	auditLog "github.com/goharbor/harbor-cli/pkg/views/project/logs"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,34 +35,44 @@ func LogsProjectCommmand() *cobra.Command {
 		Short: "get project logs",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Starting execution of 'logs' command")
 			var err error
 			var resp *proj.GetLogsOK
 			var projectName string
+
 			if len(args) > 0 {
 				projectName = args[0]
+				log.Debugf("Project name provided as argument: %s", projectName)
 			} else {
+				log.Debug("No project name argument provided, prompting user...")
 				projectName = prompt.GetProjectNameFromUser()
+				log.Debugf("Project name received from prompt: %s", projectName)
 			}
 
+			log.Debugf("Checking if project '%s' exists...", projectName)
 			projectExists, err := api.CheckProject(projectName)
+			if err != nil {
+				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborError(err))
+			}
 			if !projectExists {
 				return fmt.Errorf("Project %s does not exist", projectName)
-			} else if err != nil {
-				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborError(err))
-			} else {
-				resp, err = api.LogsProject(projectName)
-				if err != nil {
-					return fmt.Errorf("failed to get project logs: %v", err)
-				}
 			}
 
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(resp, FormatFlag)
+			log.Debugf("Fetching logs for project: %s", projectName)
+			resp, err = api.LogsProject(projectName)
+			if err != nil {
+				return fmt.Errorf("failed to get project logs: %v", err)
+			}
+
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				err = utils.PrintFormat(resp, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
+				log.Debug("Listing project logs using default view")
 				auditLog.LogsProject(resp.Payload)
 			}
 			return nil
