@@ -172,7 +172,7 @@ func EnsureConfigFileExists(harborConfigPath string) error {
 	}
 
 	if fileInfo, err := os.Stat(harborConfigPath); err == nil && fileInfo.IsDir() {
-		return fmt.Errorf("a directory exists with the same name as the config file: %s", harborConfigPath)
+		return fmt.Errorf("expected a file but found a directory at path: %s", harborConfigPath)
 	}
 
 	// Create config file if it doesn't exist
