@@ -26,7 +26,7 @@ func AddCveAllowlistCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add cve allowlist",
-		Long:  "Create allowlists of CVEs to ignore during vulnerability scanning",
+		Long:  "Create allowlist of CVEs to ignore during vulnerability scanning",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			updateView := &update.UpdateView{

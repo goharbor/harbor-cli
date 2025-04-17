@@ -25,7 +25,7 @@ import (
 func ListCveCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "list system level allowlist of cve",
+		Short: "List system level allowlist of cve",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			cve, err := api.ListSystemCve()
