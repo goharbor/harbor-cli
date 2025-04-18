@@ -25,10 +25,10 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Cron", Width: 18},
-	{Title: "Vendor Type", Width: 28},
-	{Title: "Update Time", Width: 20},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Cron", Width: tablelist.WidthL},
+	{Title: "Vendor Type", Width: tablelist.WidthXL},
+	{Title: "Update Time", Width: tablelist.WidthXL},
 }
 
 func ListSchedule(schedule []*models.ScheduleTask) {

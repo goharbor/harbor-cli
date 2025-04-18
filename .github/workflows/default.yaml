@@ -138,9 +138,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
     steps:
-      - name: Print GitHub ref for debugging
-        run: |
-          echo "GitHub ref: $GITHUB_REF"
+      - name: Checkout repo
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Checkout repo
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))

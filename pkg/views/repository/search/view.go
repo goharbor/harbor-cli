@@ -25,12 +25,12 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Repository Name", Width: 30},
-	{Title: "Project Id", Width: 11},
-	{Title: "Project Name", Width: 16},
-	{Title: "Access Level", Width: 12},
-	{Title: "Artifact Count", Width: 14},
-	{Title: "Pull Count", Width: 12},
+	{Title: "Repository Name", Width: tablelist.WidthL * 2},
+	{Title: "Project Id", Width: tablelist.WidthM},
+	{Title: "Project Name", Width: tablelist.WidthL},
+	{Title: "Access Level", Width: tablelist.WidthM},
+	{Title: "Artifact Count", Width: tablelist.WidthL},
+	{Title: "Pull Count", Width: tablelist.WidthM},
 }
 
 func SearchRepositories(repos []*models.SearchRepository) {
