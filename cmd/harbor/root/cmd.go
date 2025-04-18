@@ -23,6 +23,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
@@ -97,6 +98,7 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		scanner.Scanner(),
 		tag.TagCommand(),
 		HealthCommand(),
 		schedule.Schedule(),

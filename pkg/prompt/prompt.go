@@ -22,6 +22,7 @@ import (
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 )
@@ -106,6 +107,17 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetScannerIdFromUser() string {
+	scannerId := make(chan string)
+
+	go func() {
+		response, _ := api.ListScanners()
+		sview.ScannerList(response.Payload, scannerId)
+	}()
+
+	return <-scannerId
 }
 
 func GetLabelIdFromUser(opts api.ListFlags) int64 {
