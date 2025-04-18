@@ -14,12 +14,13 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,34 +31,39 @@ func ViewCommand() *cobra.Command {
 		Use:   "view [NAME|ID]",
 		Short: "get project by name or id",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			var projectNameOrID string
+			var projectName string
 			var project *project.GetProjectOK
 
 			if len(args) > 0 {
-				projectNameOrID = args[0]
+				projectName = args[0]
 			} else {
-				projectNameOrID = prompt.GetProjectNameFromUser()
-				isID = false
+				projectName = prompt.GetProjectNameFromUser()
 			}
 
-			project, err = api.GetProject(projectNameOrID, isID)
-			if err != nil {
-				log.Errorf("failed to get project: %v", err)
-				return
+			projectExists, err := api.CheckProject(projectName)
+			if !projectExists {
+				return fmt.Errorf("Project %s does not exist", projectName)
+			} else if err != nil {
+				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborError(err))
+			} else {
+				project, err = api.GetProject(projectName, false)
+				if err != nil {
+					return fmt.Errorf("failed to get project: %v", utils.ParseHarborError(err))
+				}
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(project, FormatFlag)
 				if err != nil {
-					log.Error(err)
-					return
+					return err
 				}
 			} else {
 				view.ViewProjects(project.Payload)
 			}
+			return nil
 		},
 	}
 
