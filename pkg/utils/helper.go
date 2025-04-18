@@ -16,6 +16,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -144,6 +145,19 @@ func ValidateRegistryName(rn string) bool {
 
 	return re.MatchString(rn)
 }
+func ValidateURL(rawURL string) error {
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL format")
+	}
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return fmt.Errorf("URL must use http or https scheme")
+	}
+	if parsedURL.Host == "" {
+		return fmt.Errorf("URL must contain a valid host")
+	}
+	return nil
+}
 
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
@@ -155,4 +169,13 @@ func PrintFormat[T any](resp T, format string) error {
 		return nil
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
+}
+
+func EmptyStringValidator(variable string) func(string) error {
+	return func(str string) error {
+		if str == "" {
+			return fmt.Errorf("%s cannot be empty", variable)
+		}
+		return nil
+	}
 }

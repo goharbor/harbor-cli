@@ -14,6 +14,7 @@
 package prompt
 
 import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
@@ -23,6 +24,7 @@ import (
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
+	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -106,6 +108,18 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetWebhookFromUser(projectName string) models.WebhookPolicy {
+	selectedWebhook := make(chan models.WebhookPolicy)
+	go func() {
+		res, err := api.ListWebhooks(projectName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		wview.WebhookList(res.Payload, selectedWebhook)
+	}()
+	return <-selectedWebhook
 }
 
 func GetLabelIdFromUser(opts api.ListFlags) int64 {
