@@ -19,6 +19,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
@@ -102,6 +103,7 @@ harbor help
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),
+		instance.Instance(),
 	)
 
 	return root
