@@ -18,8 +18,9 @@ import "github.com/spf13/cobra"
 func Config() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
-		Short: "Manage the config of the Harbor Cli",
-		Long:  `Manage repositories in Harbor config`,
+		Short: "Manage the config of the Harbor CLI",
+		Long: `The config command allows you to manage configurations of the Harbor CLI.
+				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli`,
 	}
 	cmd.AddCommand(
 		ListConfigCommand(),
