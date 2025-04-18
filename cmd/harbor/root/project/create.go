@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -60,7 +61,7 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				return fmt.Errorf("Error: Failed to create project: %v", err)
+				return fmt.Errorf("Error: Failed to create project: %v", utils.ParseHarborError(err))
 			}
 
 			fmt.Printf("Project '%s' created successfully\n", ProjectName)
@@ -86,7 +87,9 @@ func createProjectView(createView *create.CreateView) error {
 		}
 	}
 
-	create.CreateProjectView(createView)
-
+	err := create.CreateProjectView(createView)
+	if err != nil {
+		return err
+	}
 	return api.CreateProject(*createView)
 }
