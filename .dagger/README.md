@@ -1,12 +1,13 @@
 # 🛠️ Harbor CLI Dagger Pipeline
 
-This repository uses [Dagger](https://dagger.io) to define a portable, CI/CD pipeline for building, linting, and publishing the [Harbor CLI](https://github.com/goharbor/harbor-cli). This README will help beginners understand how to use Dagger in local and CI workflows.
+We use [Dagger](https://dagger.io) to define a CI/CD pipeline for building, linting, and publishing the [Harbor CLI](https://github.com/goharbor/harbor-cli). 
+This README will help beginners understand how to use Dagger in local development and CI workflows.
 
 ## Prerequisites
 
 Before you start, ensure you have the following:
 
-1. Dagger: Install the latest version of Dagger. You can check the official documentation for installation steps: [Dagger Installation Guide](https://docs.dagger.io/quickstart/cli).
+1. Dagger: Install the latest version of Dagger. You can check the official documentation for installation steps: [Dagger Installation Guide](https://docs.dagger.io/install).
 
 ## Dagger Setup and Development Mode
 
@@ -81,6 +82,6 @@ const (
 
 ## 📚 References
 
-- [Dagger Go SDK Docs](https://docs.dagger.io/sdk/go)
+- [Dagger Go SDK Docs](https://pkg.go.dev/dagger.io/dagger)
 - [golangci-lint](https://golangci-lint.run/)
 - [Goreleaser](https://goreleaser.com/)
