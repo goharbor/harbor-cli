@@ -91,6 +91,10 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		projectName := project.Payload.Name
 
 		immutables, err := ListImmutable(projectName)
+		if err != nil {
+			log.Errorf("failed to list immutables for project: %v", err)
+			return err
+		}
 		for _, rule := range immutables.Payload {
 			err = DeleteImmutable(projectName, rule.ID)
 			if err != nil {
