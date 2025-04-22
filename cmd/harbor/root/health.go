@@ -41,7 +41,6 @@ func HealthCommand() *cobra.Command {
 					return err
 				}
 			} else {
-
 				health.PrintHealthStatus(status)
 			}
 			return nil
