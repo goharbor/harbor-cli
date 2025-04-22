@@ -15,6 +15,7 @@ package root
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
@@ -65,7 +66,7 @@ harbor help
 				formatter.TimestampFormat = time.RFC3339
 				logrus.SetLevel(logrus.DebugLevel)
 			} else {
-				formatter.DisableTimestamp = true
+				logrus.SetOutput(io.Discard)
 			}
 			logrus.SetFormatter(formatter)
 
