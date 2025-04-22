@@ -114,7 +114,6 @@ func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, erro
 
 			projects, err := listFunc(opts)
 			if err != nil {
-				log.WithError(err).Error("Error fetching project page")
 				return nil, err
 			}
 
@@ -136,7 +135,6 @@ func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, erro
 
 		projects, err := listFunc(opts)
 		if err != nil {
-			log.WithError(err).Error("Error fetching paginated projects")
 			return nil, err
 		}
 		allProjects = projects.Payload
