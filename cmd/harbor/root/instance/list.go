@@ -41,7 +41,7 @@ This command provides an easy way to view all instances along with their details
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(instance)
+				utils.PrintFormat(instance, FormatFlag)
 				return
 			}
 			list.ListInstance(instance.Payload)

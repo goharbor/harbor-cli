@@ -14,6 +14,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/preheat"
@@ -78,4 +79,19 @@ func ListInstance(opts ...ListFlags) (*preheat.ListInstancesOK, error) {
 	}
 
 	return response, nil
+}
+
+func GetInstanceNameByID(id int64) (string, error) {
+	instances, err := ListInstance()
+	if err != nil {
+		return "", err
+	}
+
+	for _, inst := range instances.Payload {
+		if inst.ID == id {
+			return inst.Name, nil
+		}
+	}
+
+	return "", fmt.Errorf("no instance found with ID: %v", id)
 }

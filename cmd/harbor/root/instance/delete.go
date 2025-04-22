@@ -21,6 +21,7 @@ import (
 )
 
 func DeleteInstanceCommand() *cobra.Command {
+	var instanceID int64
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete a preheat provider instance by its name or ID",
@@ -31,19 +32,25 @@ If no argument is provided, you will be prompted to select an instance from a li
 		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
-			if len(args) > 0 {
-				instanceName := args[0]
-				err = api.DeleteInstance(instanceName)
+			var instanceName string
+			
+			if instanceID != -1 {
+				instanceName, err = api.GetInstanceNameByID(instanceID)
+				if err != nil {
+					log.Errorf("%v", err)
+					return
+				}
+			} else if len(args) > 0 {
+				instanceName = args[0]
 			} else {
-				instanceName := prompt.GetInstanceFromUser()
-				err = api.DeleteInstance(instanceName)
+				instanceName = prompt.GetInstanceFromUser()
 			}
+			err = api.DeleteInstance(instanceName)
 			if err != nil {
 				log.Errorf("failed to delete instance: %v", err)
 			}
 		},
 	}
-
+	cmd.Flags().Int64VarP(&instanceID, "id", "i", -1, "ID of the instance to delete")
 	return cmd
 }
