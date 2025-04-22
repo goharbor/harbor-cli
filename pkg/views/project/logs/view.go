@@ -25,11 +25,11 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Username", Width: 12},
-	{Title: "Resource", Width: 24},
-	{Title: "Resource Type", Width: 12},
-	{Title: "Operation", Width: 12},
-	{Title: "Timestamp", Width: 30},
+	{Title: "Username", Width: tablelist.WidthM},
+	{Title: "Resource", Width: tablelist.WidthXXL},
+	{Title: "Resource Type", Width: tablelist.WidthM},
+	{Title: "Operation", Width: tablelist.WidthM},
+	{Title: "Timestamp", Width: tablelist.WidthL * 2},
 }
 
 func LogsProject(logs []*models.AuditLog) {

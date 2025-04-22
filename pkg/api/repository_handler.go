@@ -20,10 +20,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func RepoDelete(projectName, repoName string) error {
+func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
+	}
+
+	projectName := projectNameOrID
+	if useProjectID {
+		project, err := GetProject(projectNameOrID, useProjectID)
+		if err != nil {
+			return err
+		}
+		projectName = project.Payload.Name
 	}
 	_, err = client.Repository.DeleteRepository(ctx, &repository.DeleteRepositoryParams{ProjectName: projectName, RepositoryName: repoName})
 
@@ -51,10 +60,19 @@ func RepoView(projectName, repoName string) (*repository.GetRepositoryOK, error)
 	return response, nil
 }
 
-func ListRepository(projectName string) (repository.ListRepositoriesOK, error) {
+func ListRepository(projectNameOrID string, useProjectID bool) (repository.ListRepositoriesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return repository.ListRepositoriesOK{}, err
+	}
+	projectName := projectNameOrID
+
+	if useProjectID {
+		project, err := GetProject(projectNameOrID, useProjectID)
+		if err != nil {
+			return repository.ListRepositoriesOK{}, err
+		}
+		projectName = project.Payload.Name
 	}
 
 	response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{ProjectName: projectName})

@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	GOLANGCILINT_VERSION = "v1.61.0"
-	GO_VERSION           = "1.22.5"
+	GOLANGCILINT_VERSION = "v2.1.2"
+	GO_VERSION           = "1.24.2"
 	SYFT_VERSION         = "v1.9.0"
 	GORELEASER_VERSION   = "v2.3.2"
 )
@@ -139,7 +139,7 @@ func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint.report"
 	return m.lint(ctx).WithExec([]string{
 		"golangci-lint", "run", "-v",
-		"--out-format", "github-actions:" + report,
+		"--output.tab.path=" + report,
 		"--issues-exit-code", "0",
 	}).File(report)
 }
@@ -181,6 +181,9 @@ func (m *HarborCli) PublishImage(
 	}
 	fmt.Printf("provided tags: %s\n", imageTags)
 
+	// Get current time for image creation timestamp
+	creationTime := time.Now().UTC().Format(time.RFC3339)
+
 	for _, builder := range builders {
 		os, _ := builder.EnvVariable(ctx, "GOOS")
 		arch, _ := builder.EnvVariable(ctx, "GOARCH")
@@ -195,6 +198,13 @@ func (m *HarborCli) PublishImage(
 			WithFile("/harbor", builder.File("./harbor")).
 			WithExec([]string{"ls", "-al"}).
 			WithExec([]string{"./harbor", "version"}).
+			// Add required metadata labels for ArtifactHub
+			WithLabel("org.opencontainers.image.created", creationTime).
+			WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
+			WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
+			WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
+			WithLabel("org.opencontainers.image.version", version).
+			WithLabel("io.artifacthub.package.license", "Apache-2.0").
 			WithEntrypoint([]string{"/harbor"})
 		releaseImages = append(releaseImages, ctr)
 	}

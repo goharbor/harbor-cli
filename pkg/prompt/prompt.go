@@ -18,6 +18,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
+	iview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
@@ -51,7 +52,7 @@ func GetRepoNameFromUser(projectName string) string {
 	repositoryName := make(chan string)
 
 	go func() {
-		response, err := api.ListRepository(projectName)
+		response, err := api.ListRepository(projectName, false)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,6 +81,15 @@ func GetUserIdFromUser() int64 {
 	}()
 
 	return <-userId
+}
+
+func GetImmutableTagRule(projectName string) int64 {
+	immutableid := make(chan int64)
+	go func() {
+		response, _ := api.ListImmutable(projectName)
+		iview.ImmutableList(response.Payload, immutableid)
+	}()
+	return <-immutableid
 }
 
 func GetTagFromUser(repoName, projectName, reference string) string {

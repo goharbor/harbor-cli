@@ -31,11 +31,11 @@ func RepoDeleteCmd() *cobra.Command {
 			var err error
 			if len(args) > 0 {
 				projectName, repoName := utils.ParseProjectRepo(args[0])
-				err = api.RepoDelete(projectName, repoName)
+				err = api.RepoDelete(projectName, repoName, false)
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
 				repoName := prompt.GetRepoNameFromUser(projectName)
-				err = api.RepoDelete(projectName, repoName)
+				err = api.RepoDelete(projectName, repoName, false)
 			}
 			if err != nil {
 				log.Errorf("failed to delete repository: %v", err)
