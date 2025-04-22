@@ -61,7 +61,7 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				return fmt.Errorf("Error: Failed to create project: %v", utils.ParseHarborError(err))
+				return fmt.Errorf("Failed to create project: %v", utils.ParseHarborError(err))
 			}
 
 			fmt.Printf("Project '%s' created successfully\n", ProjectName)
