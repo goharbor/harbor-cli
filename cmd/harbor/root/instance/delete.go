@@ -33,7 +33,7 @@ If no argument is provided, you will be prompted to select an instance from a li
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var instanceName string
-			
+
 			if instanceID != -1 {
 				instanceName, err = api.GetInstanceNameByID(instanceID)
 				if err != nil {
