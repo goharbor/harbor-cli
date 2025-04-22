@@ -11,23 +11,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+package instance
 
 import "github.com/spf13/cobra"
 
-func Config() *cobra.Command {
+func Instance() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Manage the config of the Harbor CLI",
-		Long: `The config command allows you to manage configurations of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli`,
+		Use:   "instance",
+		Short: "Manage preheat provider instances in Harbor",
+		Long: `Manage preheat provider instances used by Harbor for pre-distributing container images.
+These instances represent external services such as Dragonfly or Kraken that help preheat images across nodes.`,
 	}
 	cmd.AddCommand(
-		ListConfigCommand(),
-		GetConfigItemCommand(),
-		UpdateConfigItemCommand(),
-		DeleteConfigItemCommand(),
+		CreateInstanceCommand(),
+		DeleteInstanceCommand(),
+		ListInstanceCommand(),
 	)
-
 	return cmd
 }
