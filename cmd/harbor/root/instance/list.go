@@ -17,7 +17,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/list"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,7 +43,7 @@ This command provides an easy way to view all instances along with their details
 			if FormatFlag != "" {
 				err = utils.PrintFormat(instance, FormatFlag)
 				if err != nil {
-					logrus.Errorf("Failed to print config: %v", err)
+					log.Errorf("Failed to print config: %v", err)
 				}
 			} else {
 				list.ListInstance(instance.Payload)
