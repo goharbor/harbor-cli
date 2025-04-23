@@ -26,11 +26,11 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Name", Width: 16},
-	{Title: "Administrator", Width: 16},
-	{Title: "Email", Width: 20},
-	{Title: "Registration Time", Width: 24},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Name", Width: tablelist.WidthL},
+	{Title: "Administrator", Width: tablelist.WidthL},
+	{Title: "Email", Width: tablelist.WidthXXL},
+	{Title: "Registration Time", Width: tablelist.WidthL},
 }
 
 func ListUsers(users []*models.UserResp) {

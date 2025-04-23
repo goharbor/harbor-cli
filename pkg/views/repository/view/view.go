@@ -26,14 +26,14 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 20},
-	{Title: "ID", Width: 10},
-	{Title: "Project ID", Width: 10},
-	{Title: "Artifacts", Width: 10},
-	{Title: "Pulls", Width: 5},
-	{Title: "Creation Time", Width: 20},
-	{Title: "Last Modified Time", Width: 20},
-	{Title: "Description", Width: 20},
+	{Title: "Name", Width: tablelist.WidthXL},
+	{Title: "ID", Width: tablelist.WidthM},
+	{Title: "Project ID", Width: tablelist.WidthM},
+	{Title: "Artifacts", Width: tablelist.WidthM},
+	{Title: "Pulls", Width: tablelist.WidthXS},
+	{Title: "Creation Time", Width: tablelist.WidthXL},
+	{Title: "Last Modified Time", Width: tablelist.WidthXL},
+	{Title: "Description", Width: tablelist.WidthXL},
 }
 
 func ViewRepository(repo *models.Repository) {

@@ -20,7 +20,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/zalando/go-keyring"
 )
 
@@ -28,6 +32,13 @@ type KeyringProvider interface {
 	Set(service, user, password string) error
 	Get(service, user string) (string, error)
 	Delete(service, user string) error
+}
+
+var keyringProvider KeyringProvider
+
+func init() {
+	// Initialize with the appropriate provider
+	keyringProvider = GetKeyringProvider()
 }
 
 type SystemKeyring struct{}
@@ -44,7 +55,104 @@ func (s *SystemKeyring) Delete(service, user string) error {
 	return keyring.Delete(service, user)
 }
 
-var keyringProvider KeyringProvider = &SystemKeyring{}
+// FileKeyring implements KeyringProvider using files in a directory
+type FileKeyring struct {
+	BaseDir string
+}
+
+func (f *FileKeyring) Set(service, user, password string) error {
+	if err := os.MkdirAll(f.BaseDir, 0700); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	return os.WriteFile(filename, []byte(password), 0600)
+}
+
+func (f *FileKeyring) Get(service, user string) (string, error) {
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func (f *FileKeyring) Delete(service, user string) error {
+	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
+	return os.Remove(filename)
+}
+
+// Replace unsafe filename characters
+func sanitizeFilename(name string) string {
+	return strings.Map(func(r rune) rune {
+		if strings.ContainsRune(`<>:"/\|?*`, r) {
+			return '_'
+		}
+		return r
+	}, name)
+}
+
+// EnvironmentKeyring implements KeyringProvider using environment variables
+type EnvironmentKeyring struct {
+	EnvVarName string
+}
+
+func (e *EnvironmentKeyring) Set(service, user, password string) error {
+	// Set environment variable for the current process
+	if err := os.Setenv(e.EnvVarName, password); err != nil {
+		return fmt.Errorf("failed to set environment variable: %w", err)
+	}
+	return nil
+}
+
+func (e *EnvironmentKeyring) Get(service, user string) (string, error) {
+	value := os.Getenv(e.EnvVarName)
+	if value == "" {
+		return "", fmt.Errorf("environment variable %s not found or empty", e.EnvVarName)
+	}
+	return value, nil
+}
+
+func (e *EnvironmentKeyring) Delete(service, user string) error {
+	// Can't delete environment variables at runtime
+	return fmt.Errorf("deleting environment variables at runtime is not supported")
+}
+
+// GetKeyringProvider selects the appropriate keyring provider
+func GetKeyringProvider() KeyringProvider {
+	// Priority 1: Check for environment variable configuration
+	envKeyName := "HARBOR_ENCRYPTION_KEY"
+	if envKey := os.Getenv(envKeyName); envKey != "" {
+		logrus.Debug("Using environment-based encryption key")
+		return &EnvironmentKeyring{
+			EnvVarName: envKeyName,
+		}
+	}
+
+	// Priority 2: Try system keyring
+	if err := keyring.Set("harbor-cli-test", "test-user", "test"); err == nil {
+		// Clean up the test entry
+		err = keyring.Delete("harbor-cli-test", "test-user")
+		if err != nil {
+			logrus.Warnf("Failed to delete test entry from system keyring: %v", err)
+		}
+		logrus.Debug("Using system keyring")
+		return &SystemKeyring{}
+	}
+
+	// Priority 3: Fall back to file-based keyring
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
+	fileKeyring := &FileKeyring{
+		BaseDir: filepath.Join(homeDir, ".harbor", "keyring"),
+	}
+
+	logrus.Info("System keyring not available, using file-based keyring")
+	return fileKeyring
+}
 
 func SetKeyringProvider(provider KeyringProvider) {
 	keyringProvider = provider
@@ -78,7 +186,19 @@ func GetEncryptionKey() ([]byte, error) {
 			return nil, fmt.Errorf("failed to retrieve encryption key after generation: %w", err)
 		}
 	}
-	return base64.StdEncoding.DecodeString(keyBase64)
+
+	key, err := base64.StdEncoding.DecodeString(keyBase64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode encryption key: %w", err)
+	}
+
+	// Validate the key size for AES
+	keySize := len(key)
+	if keySize != 16 && keySize != 24 && keySize != 32 {
+		return nil, fmt.Errorf("invalid encryption key size: %d bytes. Must be 16, 24, or 32 bytes (after base64 decoding)", keySize)
+	}
+
+	return key, nil
 }
 
 func Encrypt(key, plaintext []byte) (string, error) {
