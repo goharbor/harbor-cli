@@ -14,8 +14,8 @@
 package project
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,28 +23,34 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func WebhookList(webhooks []*models.WebhookPolicy, choice chan<- models.WebhookPolicy) {
-	itemsList := make([]list.Item, len(webhooks))
+var ErrUserAborted = errors.New("user aborted selection")
 
+func WebhookList(webhooks []*models.WebhookPolicy) (models.WebhookPolicy, error) {
+	items := make([]list.Item, len(webhooks))
 	for i, item := range webhooks {
-		itemsList[i] = selection.Item(item.Name)
+		items[i] = selection.Item(item.Name)
 	}
 
-	m := selection.NewModel(itemsList, "Webhook")
+	m := selection.NewModel(items, "Webhook")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return models.WebhookPolicy{}, fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
+	if model, ok := p.(selection.Model); ok {
+		if model.Aborted {
+			return models.WebhookPolicy{}, errors.New("user aborted selection")
+		}
+		if model.Choice == "" {
+			return models.WebhookPolicy{}, errors.New("no webhook selected")
+		}
 		for _, webhook := range webhooks {
-			if webhook.Name == p.Choice {
-				choice <- *webhook
-				break
+			if webhook.Name == model.Choice {
+				return *webhook, nil
 			}
 		}
 	}
+
+	return models.WebhookPolicy{}, errors.New("unexpected program result")
 }

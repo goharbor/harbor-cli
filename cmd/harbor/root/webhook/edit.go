@@ -106,9 +106,12 @@ or leave them out and use the interactive prompt to select and update a webhook.
 
 func editWebhookView(view *edit.EditView) error {
 	var selectedWebhook models.WebhookPolicy
+	var err error
 	view.ProjectName = prompt.GetProjectNameFromUser()
-	selectedWebhook = prompt.GetWebhookFromUser(view.ProjectName)
-
+	selectedWebhook, err = prompt.GetWebhookFromUser(view.ProjectName)
+	if err != nil {
+		return err
+	}
 	view.WebhookId = selectedWebhook.ID
 	view.Description = selectedWebhook.Description
 	view.Enabled = selectedWebhook.Enabled

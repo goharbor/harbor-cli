@@ -52,7 +52,10 @@ or interactively select a project and webhook if not provided.`,
 				}
 			} else {
 				projectName = prompt.GetProjectNameFromUser()
-				selectedWebhook = prompt.GetWebhookFromUser(projectName)
+				selectedWebhook, err = prompt.GetWebhookFromUser(projectName)
+				if err != nil {
+					return
+				}
 				webhookIdInt = selectedWebhook.ID
 			}
 			err = api.DeleteWebhook(projectName, webhookIdInt)
