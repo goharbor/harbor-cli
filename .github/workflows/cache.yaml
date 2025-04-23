@@ -34,7 +34,6 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-            /var/lib/docker
             /var/lib/docker/volumes
           key: ${{ runner.os }}-go-simplekeybupd
           restore-keys: |
