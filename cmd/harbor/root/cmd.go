@@ -19,11 +19,13 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -97,11 +99,13 @@ harbor help
 		repositry.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		tag.TagCommand(),
 		HealthCommand(),
 		schedule.Schedule(),
 		labels.Labels(),
 		InfoCommand(),
 		webhook.Webhook(),
+		instance.Instance(),
 	)
 
 	return root

@@ -22,46 +22,51 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// DeleteProjectCommand creates a new `harbor delete project` command
+// DeleteProjectCommand creates a new `harbor project delete` command
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
+	var projectID string
+
 	cmd := &cobra.Command{
 		Use:     "delete",
-		Short:   "delete project by name or id",
-		Example: `  harbor project delete [projectname]`,
-		Args:    cobra.MinimumNArgs(0),
+		Short:   "Delete project by name or ID",
+		Example: "harbor project delete [projectname] or harbor project delete --project-id [projectid]",
+		Long:    "Delete project by name or ID. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID directly. The --force flag will delete all repositories and artifacts within the project.",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
-			errChan := make(
-				chan error,
-				len(args),
-			) // Channel to collect errors
+			errChan := make(chan error, len(args))
 
-			if len(args) > 0 {
-				for _, arg := range args {
+			if projectID != "" {
+				wg.Add(1)
+				go func(id string) {
+					defer wg.Done()
+					if err := api.DeleteProject(id, forceDelete, true); err != nil {
+						errChan <- err
+					}
+				}(projectID)
+			} else if len(args) > 0 {
+				for _, projectName := range args {
 					wg.Add(1)
-					go func(projectName string) {
+					go func(name string) {
 						defer wg.Done()
-						if err := api.DeleteProject(projectName, forceDelete); err != nil {
+						if err := api.DeleteProject(name, forceDelete, false); err != nil {
 							errChan <- err
 						}
-					}(arg)
+					}(projectName)
 				}
 			} else {
 				projectName := prompt.GetProjectNameFromUser()
-				err := api.DeleteProject(projectName, forceDelete)
-				if err != nil {
+				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
 					log.Errorf("failed to delete project: %v", err)
 				}
 			}
 
-			// Wait for all goroutines to finish
 			go func() {
 				wg.Wait()
 				close(errChan)
 			}()
 
-			// Collect and handle errors
 			var finalErr error
 			for err := range errChan {
 				if finalErr == nil {
@@ -77,7 +82,8 @@ func DeleteProjectCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&forceDelete, "force", false, "Deletes all repositories and artifacts within the project")
+	flags.BoolVar(&forceDelete, "force", false, "Forcefully delete all repositories, artifacts, and policies in the project. Use with extreme caution—this action is irreversible.")
+	flags.StringVar(&projectID, "project-id", "", "Specify project ID instead of project name")
 
 	return cmd
 }

@@ -11,6 +11,7 @@ builds:
     - CGO_ENABLED=0
   ldflags:
     - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
+    - -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version={{.Tag}}
   goos:
     - linux
     - windows

@@ -20,7 +20,6 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -43,10 +42,6 @@ func GetClient() (*v2client.HarborAPI, error) {
 		}
 
 		clientInstance, clientErr = GetClientByCredentialName(credentialName)
-		if clientErr != nil {
-			log.Errorf("failed to initialize client: %v", clientErr)
-			return
-		}
 	})
 
 	return clientInstance, clientErr
