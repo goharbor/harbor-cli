@@ -38,7 +38,7 @@ func RepoViewCmd() *cobra.Command {
 			if len(args) > 0 {
 				projectName, repoName = utils.ParseProjectRepo(args[0])
 			} else {
-				projectName, err := prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
@@ -46,7 +46,6 @@ func RepoViewCmd() *cobra.Command {
 			}
 
 			repo, err = api.RepoView(projectName, repoName)
-
 			if err != nil {
 				log.Errorf("failed to get repository information: %v", err)
 				return

@@ -46,20 +46,19 @@ func StartScanArtifactCommand() *cobra.Command {
 		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.StartScanArtifact(projectName, repoName, reference)
+				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.StartScanArtifact(projectName, repoName, reference)
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+			err = api.StartScanArtifact(projectName, repoName, reference)
 			if err != nil {
 				log.Errorf("failed to start scan of artifact: %v", err)
 			}
@@ -76,20 +75,21 @@ func StopScanArtifactCommand() *cobra.Command {
 		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.StopScanArtifact(projectName, repoName, reference)
+				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
 				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.StopScanArtifact(projectName, repoName, reference)
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+
+			err = api.StopScanArtifact(projectName, repoName, reference)
 			if err != nil {
 				log.Errorf("failed to stop scan of artifact: %v", err)
 			}

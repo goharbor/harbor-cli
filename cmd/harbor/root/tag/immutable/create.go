@@ -33,6 +33,7 @@ func CreateImmutableCommand() *cobra.Command {
 		Example: "harbor tag immutable create",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName string
 			createView := &create.CreateView{
 				ScopeSelectors: create.ImmutableSelector{
 					Decoration: opts.ScopeSelectors.Decoration,
@@ -44,15 +45,15 @@ func CreateImmutableCommand() *cobra.Command {
 				},
 			}
 			if len(args) > 0 {
-				err = createImmutableView(createView, args[0])
+				projectName = args[0]
 			} else {
-				projectName, err := prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
-				err = createImmutableView(createView, projectName)
 			}
 
+			err = createImmutableView(createView, projectName)
 			if err != nil {
 				log.Errorf("failed to create immutable tag rule: %v", err)
 			}

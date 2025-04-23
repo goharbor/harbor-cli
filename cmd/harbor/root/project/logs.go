@@ -45,7 +45,7 @@ func LogsProjectCommmand() *cobra.Command {
 				log.Debugf("Project name provided as argument: %s", projectName)
 			} else {
 				log.Debug("No project name argument provided, prompting user...")
-				projectName, err := prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}

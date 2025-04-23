@@ -28,20 +28,18 @@ func DeleteArtifactCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-
+			var projectName, repoName, reference string
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.DeleteArtifact(projectName, repoName, reference)
+				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.DeleteArtifact(projectName, repoName, reference)
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+			err = api.DeleteArtifact(projectName, repoName, reference)
 			if err != nil {
 				log.Errorf("failed to delete an artifact: %v", err)
 			}
