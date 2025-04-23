@@ -38,7 +38,7 @@ func ViewArtifactCommmand() *cobra.Command {
 			if len(args) > 0 {
 				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				projectName, err := prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
 				}
