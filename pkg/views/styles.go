@@ -30,3 +30,9 @@ var (
 
 var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
+
+const (
+	GreenANSI = "\033[32m"
+	RedANSI   = "\033[31m"
+	ResetANSI = "\033[0m"
+)
