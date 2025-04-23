@@ -46,7 +46,10 @@ func ListRepositoryCommand() *cobra.Command {
 			if len(args) > 0 {
 				projectName = args[0]
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+				}
 			}
 
 			repos, err = api.ListRepository(projectName, false)

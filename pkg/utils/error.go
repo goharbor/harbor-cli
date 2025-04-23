@@ -48,5 +48,5 @@ func ParseHarborError(err error) string {
 			}
 		}
 	}
-	return fmt.Sprintf("Error: %s", err.Error())
+	return fmt.Sprintf("%v", err.Error())
 }

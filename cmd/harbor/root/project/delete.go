@@ -15,6 +15,7 @@ package project
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -41,6 +42,15 @@ func DeleteProjectCommand() *cobra.Command {
 
 			successfulDeletes := []string{}
 			failedDeletes := map[string]string{}
+
+			if projectID != "" {
+				if len(args) > 0 {
+					return fmt.Errorf("--project-id cannot be used with additional arguments")
+				}
+				if _, err := strconv.Atoi(projectID); err != nil {
+					return fmt.Errorf("--project-id must be a numeric value")
+				}
+			}
 
 			if projectID != "" {
 				log.Debugf("Deleting project with ID: %s", projectID)
@@ -81,7 +91,10 @@ func DeleteProjectCommand() *cobra.Command {
 			} else {
 				// If no arguments provided, prompt user for project name
 				log.Debug("No arguments provided. Prompting user for project name.")
-				projectName := prompt.GetProjectNameFromUser()
+				projectName, err := prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+				}
 				log.Debugf("User input project: %s", projectName)
 				log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
 				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {

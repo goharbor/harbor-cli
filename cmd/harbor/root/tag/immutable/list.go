@@ -49,7 +49,10 @@ You can specify the project name as an argument or, if omitted, you will be prom
 				projectName := args[0]
 				resp, err = api.ListImmutable(projectName)
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
+				projectName, err := prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+				}
 				resp, err = api.ListImmutable(projectName)
 			}
 

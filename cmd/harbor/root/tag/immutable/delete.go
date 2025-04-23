@@ -16,6 +16,7 @@ package immutable
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,10 @@ func DeleteImmutableCommand() *cobra.Command {
 				projectName = args[0]
 				immutableId = prompt.GetImmutableTagRule(args[0])
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+				}
 				immutableId = prompt.GetImmutableTagRule(projectName)
 			}
 			err = api.DeleteImmutable(projectName, immutableId)
