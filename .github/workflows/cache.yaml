@@ -1,0 +1,50 @@
+name: Cache PR Test Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - "assets/**"
+
+
+jobs:
+  ci:
+    name: Running CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
+      # - name: Get node version
+      #   id: node
+      #   run: |
+      #     echo "::set-output name=version::$(node -v)"
+
+      - name: Get dagger cache
+        uses: actions/cache@v4
+        id: dagger_cache
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            /var/lib/docker
+            /var/lib/docker/volumes
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Test Release
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: snapshot-release
+
+      ### - run: yarn test
