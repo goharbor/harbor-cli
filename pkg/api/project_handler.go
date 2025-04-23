@@ -83,6 +83,26 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 	if forceDelete {
 		var resp repository.ListRepositoriesOK
 
+		project, err := GetProject(projectNameOrID, useProjectID)
+		if err != nil {
+			log.Errorf("failed to get project name: %v", err)
+			return err
+		}
+		projectName := project.Payload.Name
+
+		immutables, err := ListImmutable(projectName)
+		if err != nil {
+			log.Errorf("failed to list immutables for project: %v", err)
+			return err
+		}
+		for _, rule := range immutables.Payload {
+			err = DeleteImmutable(projectName, rule.ID)
+			if err != nil {
+				log.Errorf("failed to delete tag immutable rule: %v", err)
+				return err
+			}
+		}
+
 		resp, err = ListRepository(projectNameOrID, useProjectID)
 
 		if err != nil {

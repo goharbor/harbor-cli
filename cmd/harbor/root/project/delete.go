@@ -127,7 +127,7 @@ func DeleteProjectCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&forceDelete, "force", false, "Deletes all repositories and artifacts within the project")
+	flags.BoolVar(&forceDelete, "force", false, "Forcefully delete all repositories, artifacts, and policies in the project. Use with extreme caution—this action is irreversible.")
 	flags.StringVar(&projectID, "project-id", "", "Specify project ID instead of project name")
 
 	return cmd
