@@ -52,6 +52,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
 				projectName, err := prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					return
 				}
 				resp, err = api.ListImmutable(projectName)
 			}
