@@ -28,6 +28,7 @@ func TagCommand() *cobra.Command {
 
 	cmd.AddCommand(immutable.Immutable())
 	cmd.AddCommand(retention.Retention())
+	cmd.AddCommand(immutable.Immutable())
 
 	return cmd
 }
