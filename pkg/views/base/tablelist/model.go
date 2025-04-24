@@ -20,6 +20,15 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
+const (
+	WidthXS  = 4
+	WidthS   = 8
+	WidthM   = 12
+	WidthL   = 16
+	WidthXL  = 20
+	WidthXXL = 24
+)
+
 type Model struct {
 	Table table.Model
 }
@@ -29,7 +38,7 @@ func NewModel(columns []table.Column, rows []table.Row, height int) Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(height),
+		table.WithHeight(height+1),
 	)
 
 	// Set the styles for the table

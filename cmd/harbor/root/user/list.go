@@ -14,6 +14,9 @@
 package user
 
 import (
+	"fmt"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/user/list"
@@ -24,33 +27,68 @@ import (
 
 func UserListCmd() *cobra.Command {
 	var opts api.ListFlags
+	var allUsers []*models.UserResp
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "list users",
-		Args:    cobra.NoArgs,
+		Short:   "List users",
+		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
-		Run: func(cmd *cobra.Command, args []string) {
-			response, err := api.ListUsers(opts)
-			if err != nil {
-				log.Errorf("failed to list users: %v", err)
-				return
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(response, FormatFlag)
+
+			if opts.PageSize == 0 {
+				opts.PageSize = 100
+				opts.Page = 1
+
+				for {
+					response, err := api.ListUsers(opts)
+					if err != nil {
+						if isUnauthorizedError(err) {
+							return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+						}
+						return fmt.Errorf("failed to list users: %v", err)
+					}
+
+					allUsers = append(allUsers, response.Payload...)
+
+					if len(response.Payload) < int(opts.PageSize) {
+						break
+					}
+					opts.Page++
+				}
+			} else {
+				response, err := api.ListUsers(opts)
+				if err != nil {
+					if isUnauthorizedError(err) {
+						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+					}
+					return fmt.Errorf("failed to list users: %v", err)
+				}
+				allUsers = response.Payload
+			}
+			if len(allUsers) == 0 {
+				log.Info("No users found")
+				return nil
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err := utils.PrintFormat(allUsers, formatFlag)
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				list.ListUsers(response.Payload)
+				list.ListUsers(allUsers)
 			}
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
+	flags.Int64VarP(&opts.PageSize, "page-size", "n", 0, "Size of per page (0 to fetch all)")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
 
