@@ -184,11 +184,8 @@ func ValidateURL(rawURL string) error {
 	if parts := strings.Split(host, "."); len(parts) > 1 && len(parts[len(parts)-1]) < 2 {
 		return fmt.Errorf("TLD too short")
 	}
-	if net.ParseIP(host) != nil {
-		ip := net.ParseIP(host)
-		if ip == nil {
-			return fmt.Errorf("invalid IP address")
-		}
+	if net.ParseIP(host) == nil {
+		return fmt.Errorf("invalid IP address")
 	}
 
 	return nil
