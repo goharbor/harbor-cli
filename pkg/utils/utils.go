@@ -16,7 +16,6 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -68,11 +67,25 @@ func ParseProjectRepoReference(projectRepoReference string) (string, string, str
 }
 
 func SanitizeServerAddress(server string) string {
-	re := regexp.MustCompile(`^https?://`)
-	server = re.ReplaceAllString(server, "")
-	re = regexp.MustCompile(`[^a-zA-Z0-9]`)
-	server = re.ReplaceAllString(server, "-")
-	return server
+	server = strings.TrimPrefix(server, "https://")
+	server = strings.TrimPrefix(server, "http://")
+
+	var sb strings.Builder
+	prevDash := false
+	for _, r := range server {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+			sb.WriteRune(r)
+			prevDash = false
+		} else if !prevDash {
+			sb.WriteRune('-')
+			prevDash = true
+		}
+	}
+
+	sanitized := sb.String()
+	sanitized = strings.Trim(sanitized, "-")
+
+	return sanitized
 }
 
 func DefaultCredentialName(username, server string) string {
