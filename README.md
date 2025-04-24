@@ -25,13 +25,18 @@ The Harbor CLI is designed to enhance your interaction with the Harbor container
 It is straightforward to use the Harbor CLI as a container. You can run the following command to use the Harbor CLI as a container:
 
 ```shell
-docker run -ti --rm -v $HOME/.harbor/config.yaml:/root/.harbor/config.yaml registry.goharbor.io/harbor-cli/harbor-cli --help
-
+docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor-cli/config.yaml \
+  -e HARBOR_ENCRYPTION_KEY=$(echo "ThisIsAVeryLongPassword" | base64) \
+  registry.goharbor.io/harbor-cli/harbor-cli \
+  --help
 ```
+Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
 # Add the following command to create an alias and append the alias to your .zshrc or .bashrc file
 ```shell
-echo "alias harbor='docker run -ti --rm -v \$HOME/.harbor/config.yaml:/root/.harbor/config.yaml registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc
+echo "export HARBOR_CLI_CONFIG=\$HOME/.config/harbor-cli/config.yaml" >> ~/.zshrc
+echo "export HARBOR_ENCRYPTION_KEY=\$(cat <path_to_32bit_private_key_file> | base64)" >> ~/.zshrc
+echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/harbor-cli/config.yaml -e HARBOR_ENCRYPTION_KEY=\$HARBOR_ENCRYPTION_KEY registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc 
 source ~/.zshrc # or restart your terminal
 ```
 
@@ -90,7 +95,7 @@ Available Commands:
   version     Version of Harbor CLI
 
 Flags:
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/Users/vadim/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -h, --help                   help for harbor
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
@@ -100,8 +105,32 @@ Use "harbor [command] --help" for more information about a command.
 
 ```
 
+#### Config Management
 
+##### Hierarchy
+  Use the `--config` flag to specify a custom configuration file path (highest priority).
+  ```bash
+  harbor --config /path/to/custom/config.yaml artifact list
+  ```
+  If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
+  ```bash
+  export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
+  harbor artifact list
+  ```
+  If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
+  ```bash
+  harbor artifact list
+  ```  
 
+##### Data Path
+  - Data paths are determined by the `XDG_DATA_HOME` environment variable.
+  - If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
+  - The data file always contains the path of the latest config used.
+
+##### Config TL;DR
+  - `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
+  - Environment variables override default settings, and the `--config` flag takes precedence over both environment variables and defaults.
+  - The data file always contains the path of the latest config used.
 
 
 #### Log in to Harbor Registry

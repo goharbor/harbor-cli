@@ -14,12 +14,13 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,7 +32,10 @@ func ListArtifactCommand() *cobra.Command {
 		Use:   "list",
 		Short: "list artifacts within a repository",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
 			var err error
 			var artifacts artifact.ListArtifactsOK
 			var projectName, repoName string
@@ -46,19 +50,19 @@ func ListArtifactCommand() *cobra.Command {
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
 
 			if err != nil {
-				log.Errorf("failed to list artifacts: %v", err)
-				return
+				return fmt.Errorf("failed to list artifacts: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(artifacts, FormatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				artifactViews.ListArtifacts(artifacts.Payload)
 			}
+			return nil
 		},
 	}
 

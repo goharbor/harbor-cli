@@ -14,6 +14,8 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -34,10 +36,13 @@ func ListProjectCommand() *cobra.Command {
 		Use:   "list",
 		Short: "List projects",
 		Args:  cobra.ExactArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			if private && public {
-				log.Fatal("Cannot specify both --private and --public flags")
-				return
+				return fmt.Errorf("Cannot specify both --private and --public flags")
 			}
 			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
 			if private {
@@ -52,18 +57,23 @@ func ListProjectCommand() *cobra.Command {
 
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
-				log.Fatalf("failed to get projects list: %v", err)
-				return
+				return fmt.Errorf("failed to get projects list: %v", err)
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(allProjects, FormatFlag)
+			if len(allProjects) == 0 {
+				log.Info("No projects found")
+				return nil
+			}
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(allProjects, formatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListProjects(allProjects)
 			}
+
+			return nil
 		},
 	}
 

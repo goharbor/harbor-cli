@@ -25,13 +25,13 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Component", Width: 18},
-	{Title: "Status", Width: 26},
+	{Title: "Component", Width: tablelist.WidthL},
+	{Title: "Status", Width: tablelist.WidthXXL},
 }
 
 func PrintHealthStatus(status *health.GetHealthOK) {
 	var rows []table.Row
-	fmt.Printf("Harbor Health Status:: %s\n", styleStatus(status.Payload.Status))
+	fmt.Printf("Harbor Health Status: %s\n", styleStatus(status.Payload.Status))
 	for _, component := range status.Payload.Components {
 		rows = append(rows, table.Row{
 			component.Name,
@@ -48,8 +48,12 @@ func PrintHealthStatus(status *health.GetHealthOK) {
 }
 
 func styleStatus(status string) string {
+	var colored string
+
 	if status == "healthy" {
-		return views.GreenStyle.Render(status)
+		colored = views.GreenANSI + status + views.ResetANSI
+	} else {
+		colored = views.RedANSI + status + views.ResetANSI
 	}
-	return views.RedStyle.Render(status)
+	return colored
 }
