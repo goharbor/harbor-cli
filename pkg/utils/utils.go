@@ -74,3 +74,8 @@ func SanitizeServerAddress(server string) string {
 	server = re.ReplaceAllString(server, "-")
 	return server
 }
+
+func DefaultCredentialName(username, server string) string {
+	sanitized := SanitizeServerAddress(server)
+	return fmt.Sprintf("%s@%s", username, sanitized)
+}

@@ -16,6 +16,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -145,20 +146,53 @@ func ValidateRegistryName(rn string) bool {
 
 	return re.MatchString(rn)
 }
+func FormatURL(rawURL string) *string {
+	rawURL = strings.TrimSpace(rawURL)
+	rawURL = strings.TrimLeft(rawURL, "/")
+	rawURL = strings.TrimRight(rawURL, "/")
+	return &rawURL
+}
+
 func ValidateURL(rawURL string) error {
+	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
+		rawURL = "https://" + rawURL
+	}
+
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
-		return fmt.Errorf("invalid URL format")
+		return fmt.Errorf("invalid URL format: %v", err)
 	}
+
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		return fmt.Errorf("URL must use http or https scheme")
 	}
-	if parsedURL.Host == "" {
+
+	host := parsedURL.Hostname()
+
+	if host == "" {
 		return fmt.Errorf("URL must contain a valid host")
 	}
+	if strings.Contains(host, "_") {
+		return fmt.Errorf("domain contains invalid character '_'")
+	}
+	if strings.HasPrefix(host, "-") || strings.HasPrefix(host, ".") {
+		return fmt.Errorf("domain cannot start with a '-' or '.'")
+	}
+	if strings.Contains(host, "..") {
+		return fmt.Errorf("domain contains double periods")
+	}
+	if parts := strings.Split(host, "."); len(parts) > 1 && len(parts[len(parts)-1]) < 2 {
+		return fmt.Errorf("TLD too short")
+	}
+	if net.ParseIP(host) != nil {
+		ip := net.ParseIP(host)
+		if ip == nil {
+			return fmt.Errorf("invalid IP address")
+		}
+	}
+
 	return nil
 }
-
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)
