@@ -44,8 +44,11 @@ func ViewArtifactCommmand() *cobra.Command {
 			}
 
 			if reference == "" {
-				log.Errorf("Invalid artifact reference format: %s", args[0])
-				return
+				if len(args) > 0 {
+					log.Errorf("Invalid artifact reference format: %s", args[0])
+				} else {
+					log.Error("Invalid artifact reference format: no arguments provided")
+				}
 			}
 
 			artifact, err = api.ViewArtifact(projectName, repoName, reference)
