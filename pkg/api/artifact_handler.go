@@ -57,7 +57,6 @@ func ViewArtifact(projectName, repoName, reference string) (*artifact.GetArtifac
 	})
 
 	if err != nil {
-		log.Errorf("Failed to get artifact info: %v", err)
 		return response, err
 	}
 

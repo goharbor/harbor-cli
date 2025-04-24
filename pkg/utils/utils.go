@@ -60,31 +60,31 @@ func ParseProjectRepo(projectRepo string) (string, string) {
 }
 
 func ParseProjectRepoReference(projectRepoReference string) (string, string, string) {
-	log.Infof("Parsing input: %s", projectRepoReference) // Debug log
+	log.Infof("Parsing input: %s", projectRepoReference)
 
-	// Split project and repo
-	parts := strings.SplitN(projectRepoReference, "/", 2)
-	if len(parts) != 2 {
+	var ref string
+	var repoPath string
+
+	if strings.Contains(projectRepoReference, "@") {
+		parts := strings.SplitN(projectRepoReference, "@", 2)
+		repoPath = parts[0]
+		ref = parts[1]
+	} else if strings.Contains(projectRepoReference, ":") {
+		lastColon := strings.LastIndex(projectRepoReference, ":")
+		repoPath = projectRepoReference[:lastColon]
+		ref = projectRepoReference[lastColon+1:]
+	} else {
+		log.Fatalf("Invalid reference format: %s", projectRepoReference)
+	}
+
+	projectRepoParts := strings.SplitN(repoPath, "/", 2)
+	if len(projectRepoParts) != 2 {
 		log.Fatalf("Invalid format, expected <project>/<repository>:<tag> or <project>/<repository>@<digest>, got: %s", projectRepoReference)
 	}
 
-	project := parts[0]
-	repoWithRef := parts[1]
+	project := projectRepoParts[0]
+	repo := projectRepoParts[1]
 
-	var repo, ref string
-	if strings.Contains(repoWithRef, ":") {
-		subParts := strings.SplitN(repoWithRef, ":", 2)
-		repo = subParts[0]
-		ref = subParts[1]
-	} else if strings.Contains(repoWithRef, "@") {
-		subParts := strings.SplitN(repoWithRef, "@", 2)
-		repo = subParts[0]
-		ref = subParts[1]
-	} else {
-		log.Fatalf("Invalid reference format: %s", repoWithRef)
-	}
-
-	log.Infof("Extracted -> Project: %s, Repo: %s, Reference: %s", project, repo, ref)
 	return project, repo, ref
 }
 
