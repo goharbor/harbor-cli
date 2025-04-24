@@ -153,6 +153,12 @@ func FormatURL(rawURL string) *string {
 	return &rawURL
 }
 
+func isValidDomainName(domain string) bool {
+	pattern := `^(?i)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(domain)
+}
+
 func ValidateURL(rawURL string) error {
 	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
 		rawURL = "https://" + rawURL
@@ -184,8 +190,8 @@ func ValidateURL(rawURL string) error {
 	if parts := strings.Split(host, "."); len(parts) > 1 && len(parts[len(parts)-1]) < 2 {
 		return fmt.Errorf("TLD too short")
 	}
-	if net.ParseIP(host) == nil {
-		return fmt.Errorf("invalid IP address")
+	if net.ParseIP(host) == nil && !isValidDomainName(host) {
+		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
 
 	return nil
