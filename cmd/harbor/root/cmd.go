@@ -15,6 +15,7 @@ package root
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"io"
 	"time"
 
@@ -132,6 +133,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = context.Context()
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 
