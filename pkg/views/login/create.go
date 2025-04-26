@@ -32,8 +32,6 @@ type LoginView struct {
 
 func CreateView(loginView *LoginView) {
 	theme := huh.ThemeCharm()
-	sanitizedServer := utils.FormatURL(loginView.Server)
-	loginView.Server = *sanitizedServer
 
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -42,7 +40,14 @@ func CreateView(loginView *LoginView) {
 				Description("Server address eg. demo.goharbor.io").
 				Value(&loginView.Server).
 				Validate(func(str string) error {
-					return utils.ValidateURL(str)
+					if strings.TrimSpace(str) == "" {
+						return errors.New("server cannot be empty or only spaces")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
+					}
+					return nil
 				}), huh.NewInput().
 				Title("User Name").
 				Value(&loginView.Username).

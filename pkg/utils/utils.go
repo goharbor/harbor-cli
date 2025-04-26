@@ -67,9 +67,6 @@ func ParseProjectRepoReference(projectRepoReference string) (string, string, str
 }
 
 func SanitizeServerAddress(server string) string {
-	server = strings.TrimPrefix(server, "https://")
-	server = strings.TrimPrefix(server, "http://")
-
 	var sb strings.Builder
 	prevDash := false
 	for _, r := range server {

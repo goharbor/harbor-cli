@@ -54,6 +54,8 @@ func FormatUrl(url string) string {
 
 	// Remove all trailing slashes from the URL
 	url = strings.TrimRight(url, "/")
+	url = strings.TrimLeft(url, "/")
+
 	return url
 }
 
@@ -146,56 +148,32 @@ func ValidateRegistryName(rn string) bool {
 
 	return re.MatchString(rn)
 }
-func FormatURL(rawURL string) *string {
-	rawURL = strings.TrimSpace(rawURL)
-	rawURL = strings.TrimLeft(rawURL, "/")
-	rawURL = strings.TrimRight(rawURL, "/")
-	return &rawURL
-}
-
-func isValidDomainName(domain string) bool {
-	pattern := `^(?i)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(domain)
-}
 
 func ValidateURL(rawURL string) error {
-	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
-		rawURL = "https://" + rawURL
-	}
+
+	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
 
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %v", err)
 	}
 
-	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return fmt.Errorf("URL must use http or https scheme")
-	}
-
 	host := parsedURL.Hostname()
-
 	if host == "" {
 		return fmt.Errorf("URL must contain a valid host")
 	}
-	if strings.Contains(host, "_") {
-		return fmt.Errorf("domain contains invalid character '_'")
+
+	if net.ParseIP(host) != nil {
+		return nil
 	}
-	if strings.HasPrefix(host, "-") || strings.HasPrefix(host, ".") {
-		return fmt.Errorf("domain cannot start with a '-' or '.'")
-	}
-	if strings.Contains(host, "..") {
-		return fmt.Errorf("domain contains double periods")
-	}
-	if parts := strings.Split(host, "."); len(parts) > 1 && len(parts[len(parts)-1]) < 2 {
-		return fmt.Errorf("TLD too short")
-	}
-	if net.ParseIP(host) == nil && !isValidDomainName(host) {
+
+	if !domainNameRegex.MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
 
 	return nil
 }
+
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)
