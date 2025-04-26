@@ -14,6 +14,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
@@ -131,4 +132,47 @@ func UpdateWebhook(opts *edit.EditView) error {
 		log.Infof("Webhook Id:`%d` Updated successfully", opts.WebhookId)
 	}
 	return nil
+}
+
+func GetWebhookID(projectName string, WebhookName string) (int64, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		log.Errorf("%s", err)
+		return 0, err
+	}
+	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
+		ProjectNameOrID: projectName,
+	})
+
+	if err != nil {
+		log.Errorf("%s", err)
+		return 0, err
+	}
+
+	for _, webhook := range response.Payload {
+		if webhook.Name == WebhookName {
+			return webhook.ID, nil
+		}
+	}
+
+	return -1, fmt.Errorf("webhook with name `%s` not found", WebhookName)
+}
+
+func GetWebhook(projectName string, webhookId int64) (models.WebhookPolicy, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		log.Errorf("%s", err)
+		return models.WebhookPolicy{}, err
+	}
+	IsResourceName := true
+	response, err := client.Webhook.GetWebhookPolicyOfProject(ctx, &webhook.GetWebhookPolicyOfProjectParams{
+		WebhookPolicyID: webhookId,
+		ProjectNameOrID: projectName,
+		XIsResourceName: &IsResourceName,
+	})
+	if err != nil {
+		log.Errorf("%s", err)
+		return models.WebhookPolicy{}, err
+	}
+	return *response.Payload, nil
 }

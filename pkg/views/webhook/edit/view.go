@@ -46,9 +46,10 @@ func isSelected(selected []string, option string) bool {
 
 func WebhookEditView(editView *EditView) {
 	theme := huh.ThemeCharm()
+	var verifyCert string
+	var enable string
 	err := huh.NewForm(
 		huh.NewGroup(
-
 			huh.NewInput().
 				Title("Name").
 				Value(&editView.Name).
@@ -66,12 +67,13 @@ func WebhookEditView(editView *EditView) {
 				).
 				Value(&editView.NotifyType),
 
-			huh.NewConfirm().Title("Webhook Enabled").
+			huh.NewSelect[string]().Title("Webhook Enabled").
 				Description("Determine whether the webhook should verify the certificate of a remote url "+
 					"Uncheck this box when the remote url uses a self-signed or untrusted certificate.").
-				Affirmative("True").
-				Negative("False").
-				Value(&editView.Enabled),
+				Options(
+					huh.NewOption("True", "yes"),
+					huh.NewOption("False", "no"),
+				).Value(&enable),
 		),
 	).WithTheme(theme).Run()
 
@@ -140,15 +142,20 @@ func WebhookEditView(editView *EditView) {
 					return nil
 				}),
 
-			huh.NewConfirm().Title("Verify Remote Certificate").
-				Description("Determine whether the webhook should verify the certificate of a remote url "+
-					"Uncheck this box when the remote url uses a self-signed or untrusted certificate.").
-				Affirmative("Yes").
-				Negative("No").
-				Value(&editView.VerifyRemoteCertificate),
+			huh.NewSelect[string]().
+				Title("Verify Remote Certificate").
+				Description("Determine whether the webhook should verify the certificate of a remote URL.\n"+
+					"Uncheck this box when the remote URL uses a self-signed or untrusted certificate.").
+				Options(
+					huh.NewOption("Yes", "yes"),
+					huh.NewOption("No", "no"),
+				).
+				Value(&verifyCert),
 		),
 	).WithTheme(theme).Run()
 
+	editView.VerifyRemoteCertificate = (verifyCert == "yes")
+	editView.Enabled = (enable == "yes")
 	if editView.NotifyType == "slack" {
 		editView.PayloadFormat = ""
 	}

@@ -34,6 +34,7 @@ type CreateView struct {
 
 func WebhookCreateView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
+	var verifyCert string
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -109,16 +110,18 @@ func WebhookCreateView(createView *CreateView) error {
 					}
 					return nil
 				}),
-
-			huh.NewConfirm().
+			huh.NewSelect[string]().
 				Title("Verify Remote Certificate").
 				Description("Determine whether the webhook should verify the certificate of a remote URL.\n"+
 					"Uncheck this box when the remote URL uses a self-signed or untrusted certificate.").
-				Affirmative("Yes").
-				Negative("No").
-				Value(&createView.VerifyRemoteCertificate),
+				Options(
+					huh.NewOption("Yes", "yes"),
+					huh.NewOption("No", "no"),
+				).
+				Value(&verifyCert),
 		),
 	).WithTheme(theme).Run()
 
+	createView.VerifyRemoteCertificate = (verifyCert == "yes")
 	return err
 }

@@ -14,60 +14,82 @@
 package webhook
 
 import (
-	"strconv"
+	"fmt"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func DeleteWebhookCmd() *cobra.Command {
-	var projectName string
-	var webhookId string
-	var webhookIdInt int64
-	var selectedWebhook models.WebhookPolicy
+	var (
+		projectName string
+		webhookId   int64 = -1
+	)
 
 	cmd := &cobra.Command{
-		Use:   "delete",
+		Use:   "delete [webhook-name]",
 		Short: "Delete a webhook from a Harbor project",
-		Long: `This command deletes a webhook from the specified Harbor project.
-You can either specify the project name and webhook ID directly using flags,
+		Long: `Delete a webhook from a specified Harbor project.
+You can either specify the project name and webhook ID using flags,
+pass the webhook name as an argument,
 or interactively select a project and webhook if not provided.`,
-		Example: `  # Delete a webhook by specifying the project and webhook ID
+		Example: `  # Delete by project and webhook ID
   harbor-cli webhook delete --project my-project --webhook 5
 
-  # Delete a webhook by selecting the project and webhook interactively
-  harbor-cli webhook delete`,
-		Args: cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
+  # Delete by project and webhook name
+  harbor-cli webhook delete my-webhook --project my-project
 
-			if projectName != "" && webhookId != "" {
-				webhookIdInt, err = strconv.ParseInt(webhookId, 10, 64)
-				if err != nil {
-					log.Errorf("failed to parse webhook id: %v", err)
-					return
-				}
-			} else {
+  # Fully interactive deletion
+  harbor-cli webhook delete`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			var webhookName string
+
+			if len(args) > 0 {
+				webhookName = args[0]
+			}
+
+			if webhookId != -1 && webhookName != "" {
+				return fmt.Errorf("webhook ID and name cannot be provided together")
+			}
+
+			if (webhookId != -1 || webhookName != "") && projectName == "" {
+				return fmt.Errorf("project name must be provided when specifying webhook ID or webhook name")
+			}
+
+			if projectName == "" {
 				projectName = prompt.GetProjectNameFromUser()
-				selectedWebhook, err = prompt.GetWebhookFromUser(projectName)
+			}
+
+			if webhookName != "" {
+				webhookId, err = api.GetWebhookID(projectName, webhookName)
 				if err != nil {
-					return
+					return fmt.Errorf("failed to get webhook ID for '%s': %w", webhookName, err)
 				}
-				webhookIdInt = selectedWebhook.ID
 			}
-			err = api.DeleteWebhook(projectName, webhookIdInt)
-			if err != nil {
-				log.Errorf("failed to delete webhook: %v", err)
+
+			if webhookId == -1 {
+				selectedWebhook, err := prompt.GetWebhookFromUser(projectName)
+				if err != nil {
+					return fmt.Errorf("failed to select webhook: %w", err)
+				}
+				webhookId = selectedWebhook.ID
 			}
+
+			if err := api.DeleteWebhook(projectName, webhookId); err != nil {
+				return fmt.Errorf("failed to delete webhook: %w", err)
+			}
+
+			fmt.Printf("✅ Webhook deleted successfully from project '%s'\n", projectName)
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&projectName, "project", "", "", "Project Name")
-	flags.StringVarP(&webhookId, "webhook", "", "", "Webhook ID")
+	flags.StringVarP(&projectName, "project", "", "", "Project name (required when providing webhook ID or name)")
+	flags.Int64VarP(&webhookId, "webhook", "", -1, "Webhook ID (alternative to providing webhook name as argument)")
 
 	return cmd
 }

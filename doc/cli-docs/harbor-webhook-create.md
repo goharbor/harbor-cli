@@ -1,6 +1,6 @@
 ---
 title: harbor webhook create
-weight: 85
+weight: 95
 ---
 ## harbor webhook create
 
@@ -12,20 +12,19 @@ weight: 85
 
 This command creates a new webhook policy for a specified Harbor project.
 
-You can either provide all required flags (project name, name, notify type, endpoint, etc.) directly to create the webhook non-interactively,
-or leave them out and be guided through an interactive prompt to input each field.
+You can either provide all required flags (project name, notify type, endpoint, etc.) directly to create the webhook non-interactively,
+or leave them out and be guided through an interactive prompt to input each field. The webhook name is required as an argument.
 
 ```sh
-harbor webhook create [flags]
+harbor webhook create [name] [flags]
 ```
 
 ### Examples
 
 ```sh
   # Create a webhook using flags
-  harbor-cli webhook create \
+  harbor-cli webhook create my-webhook \
     --project my-project \
-    --name my-webhook \
     --notify-type http \
     --event-type PUSH_ARTIFACT,DELETE_ARTIFACT \
     --endpoint-url https://example.com/webhook \
@@ -34,7 +33,7 @@ harbor webhook create [flags]
     --auth-header "Bearer mytoken"
 
   # Create a webhook using the interactive prompt
-  harbor-cli webhook create
+  harbor-cli webhook create my-webhook
 ```
 
 ### Options
@@ -45,7 +44,6 @@ harbor webhook create [flags]
       --endpoint-url string         Webhook Endpoint URL
       --event-type stringArray      Event Types (comma separated)
   -h, --help                        help for create
-      --name string                 Webhook Name
       --notify-type string          Notify Type (http, slack)
       --payload-format string       Payload Format (Default, CloudEvents)
       --project string              Project Name

@@ -1,6 +1,6 @@
 ---
 title: harbor webhook edit
-weight: 35
+weight: 5
 ---
 ## harbor webhook edit
 
@@ -16,17 +16,15 @@ You can either pass all the necessary flags (webhook ID, project name, etc.) to 
 or leave them out and use the interactive prompt to select and update a webhook.
 
 ```sh
-harbor webhook edit [flags]
+harbor webhook edit [WEBHOOK_NAME] [flags]
 ```
 
 ### Examples
 
 ```sh
   # Edit a webhook by providing all fields directly
-  harbor-cli webhook edit \
+  harbor-cli webhook edit my-webhook \
     --project my-project \
-    --webhook-id 5 \
-    --name updated-webhook \
     --notify-type http \
     --event-type PUSH_ARTIFACT \
     --endpoint-url https://new-url.com \
@@ -48,12 +46,11 @@ harbor webhook edit [flags]
       --endpoint-url string         Webhook Endpoint URL
       --event-type stringArray      Event Types (comma separated)
   -h, --help                        help for edit
-      --name string                 Webhook Name
       --notify-type string          Notify Type (http, slack)
       --payload-format string       Payload Format (Default, CloudEvents)
       --project string              Project Name
       --verify-remote-certificate   Verify Remote Certificate (default true)
-      --webhook-id string           Webhook ID
+      --webhook-id int              Webhook ID (default -1)
 ```
 
 ### Options inherited from parent commands

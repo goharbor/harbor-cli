@@ -6,7 +6,7 @@ harbor-webhook-edit - Edit an existing webhook for a Harbor project
 
 
 .SH SYNOPSIS
-\fBharbor webhook edit [flags]\fP
+\fBharbor webhook edit [WEBHOOK_NAME] [flags]\fP
 
 
 .SH DESCRIPTION
@@ -42,10 +42,6 @@ or leave them out and use the interactive prompt to select and update a webhook.
 	help for edit
 
 .PP
-\fB--name\fP=""
-	Webhook Name
-
-.PP
 \fB--notify-type\fP=""
 	Notify Type (http, slack)
 
@@ -62,7 +58,7 @@ or leave them out and use the interactive prompt to select and update a webhook.
 	Verify Remote Certificate
 
 .PP
-\fB--webhook-id\fP=""
+\fB--webhook-id\fP=-1
 	Webhook ID
 
 
@@ -82,10 +78,8 @@ or leave them out and use the interactive prompt to select and update a webhook.
 .SH EXAMPLE
 .EX
   # Edit a webhook by providing all fields directly
-  harbor-cli webhook edit \\
+  harbor-cli webhook edit my-webhook \\
     --project my-project \\
-    --webhook-id 5 \\
-    --name updated-webhook \\
     --notify-type http \\
     --event-type PUSH_ARTIFACT \\
     --endpoint-url https://new-url.com \\

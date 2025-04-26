@@ -14,6 +14,8 @@
 package webhook
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -41,7 +43,7 @@ Use the '--output-format' flag for raw JSON output.`,
   # Output in JSON format
   harbor-cli webhook list my-project --output-format=json`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var resp webhook.ListWebhookPoliciesOfProjectOK
 			var projectName string
@@ -54,22 +56,21 @@ Use the '--output-format' flag for raw JSON output.`,
 
 			resp, err = api.ListWebhooks(projectName)
 			if err != nil {
-				log.Errorf("failed to list webhooks: %v", err)
-				return
+				return fmt.Errorf("failed to list webhooks: %v", err)
 			}
 			if len(resp.Payload) == 0 {
 				log.Infof("No webhooks found in project %s", projectName)
-				return
+				return nil
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(resp, FormatFlag)
 				if err != nil {
-					log.Fatalf("failed to print in %s format: %v", FormatFlag, err)
+					return fmt.Errorf("failed to print in %s format: %v", FormatFlag, err)
 				}
-				return
 			}
 			webhookViews.ListWebhooks(resp.Payload)
+			return nil
 		},
 	}
 	return cmd
