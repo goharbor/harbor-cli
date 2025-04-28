@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 type HarborErrorPayload struct {
@@ -26,7 +27,7 @@ type HarborErrorPayload struct {
 	} `json:"errors"`
 }
 
-func ParseHarborError(err error) string {
+func ParseHarborErrorMsg(err error) string {
 	if err == nil {
 		return ""
 	}
@@ -49,4 +50,16 @@ func ParseHarborError(err error) string {
 		}
 	}
 	return fmt.Sprintf("%v", err.Error())
+}
+
+func ParseHarborErrorCode(err error) string {
+	parts := strings.Split(err.Error(), "]")
+	if len(parts) >= 2 {
+		codePart := strings.TrimSpace(parts[1])
+		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
+			code := codePart[1:4]
+			return code
+		}
+	}
+	return ""
 }

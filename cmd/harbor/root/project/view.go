@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/view"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,24 +38,27 @@ func ViewCommand() *cobra.Command {
 			var project *project.GetProjectOK
 
 			if len(args) > 0 {
+				log.Debugf("Project name provided: %s", args[0])
 				projectName = args[0]
 			} else {
+				log.Debug("No project name provided, prompting user")
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
+			log.Debugf("Checking existance of project: %s", projectName)
 			projectExists, err := api.CheckProject(projectName)
-			if !projectExists {
-				return fmt.Errorf("Project %s does not exist", projectName)
-			} else if err != nil {
-				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborError(err))
-			} else {
-				project, err = api.GetProject(projectName, false)
-				if err != nil {
-					return fmt.Errorf("failed to get project: %v", utils.ParseHarborError(err))
-				}
+			if err != nil {
+				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborErrorMsg(err))
+			} else if !projectExists {
+				return fmt.Errorf("project %s does not exist", projectName)
+			}
+			log.Debugf("Project %s exists", projectName)
+			project, err = api.GetProject(projectName, false)
+			if err != nil {
+				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")

@@ -59,7 +59,7 @@ func DeleteProjectCommand() *cobra.Command {
 					defer wg.Done()
 					if err := api.DeleteProject(id, forceDelete, true); err != nil {
 						mu.Lock()
-						failedDeletes[id] = utils.ParseHarborError(err)
+						failedDeletes[id] = utils.ParseHarborErrorMsg(err)
 						mu.Unlock()
 					} else {
 						mu.Lock()
@@ -79,7 +79,7 @@ func DeleteProjectCommand() *cobra.Command {
 						log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
 						if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
 							mu.Lock()
-							failedDeletes[projectName] = utils.ParseHarborError(err)
+							failedDeletes[projectName] = utils.ParseHarborErrorMsg(err)
 							mu.Unlock()
 						} else {
 							mu.Lock()
@@ -93,12 +93,12 @@ func DeleteProjectCommand() *cobra.Command {
 				log.Debug("No arguments provided. Prompting user for project name.")
 				projectName, err := prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				log.Debugf("User input project: %s", projectName)
 				log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
 				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
-					return fmt.Errorf("failed to delete project: %v", utils.ParseHarborError(err))
+					return fmt.Errorf("failed to delete project: %v", utils.ParseHarborErrorMsg(err))
 				}
 				fmt.Printf("Project '%s' deleted successfully\n", projectName)
 				return nil

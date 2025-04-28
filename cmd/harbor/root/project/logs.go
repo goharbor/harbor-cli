@@ -47,7 +47,7 @@ func LogsProjectCommmand() *cobra.Command {
 				log.Debug("No project name argument provided, prompting user...")
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				log.Debugf("Project name received from prompt: %s", projectName)
 			}
@@ -55,16 +55,14 @@ func LogsProjectCommmand() *cobra.Command {
 			log.Debugf("Checking if project '%s' exists...", projectName)
 			projectExists, err := api.CheckProject(projectName)
 			if err != nil {
-				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborError(err))
+				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborErrorMsg(err))
+			} else if !projectExists {
+				return fmt.Errorf("project %s does not exist", projectName)
 			}
-			if !projectExists {
-				return fmt.Errorf("Project %s does not exist", projectName)
-			}
-
 			log.Debugf("Fetching logs for project: %s", projectName)
 			resp, err = api.LogsProject(projectName)
 			if err != nil {
-				return fmt.Errorf("failed to get project logs: %v", err)
+				return fmt.Errorf("failed to get project logs: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			formatFlag := viper.GetString("output-format")

@@ -64,7 +64,7 @@ func ListProjectCommand() *cobra.Command {
 			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
-				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborError(err))
+				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")

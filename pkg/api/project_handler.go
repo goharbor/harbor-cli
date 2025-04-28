@@ -209,6 +209,9 @@ func CheckProject(projectName string) (bool, error) {
 	})
 
 	if err != nil {
+		if utils.ParseHarborErrorCode(err) == "404" {
+			return false, nil
+		}
 		return false, err
 	}
 

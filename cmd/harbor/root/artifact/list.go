@@ -45,7 +45,7 @@ func ListArtifactCommand() *cobra.Command {
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}

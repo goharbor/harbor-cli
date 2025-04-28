@@ -36,7 +36,7 @@ func RepoDeleteCmd() *cobra.Command {
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborError(err))
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
