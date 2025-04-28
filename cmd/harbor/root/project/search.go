@@ -34,9 +34,8 @@ func SearchProjectCommand() *cobra.Command {
 			projects, err := api.SearchProject(args[0])
 			if err != nil {
 				return fmt.Errorf("failed to get projects: %v", utils.ParseHarborErrorMsg(err))
-			} else {
-				log.Debugf("Found %d projects", len(projects.Payload.Project))
 			}
+			log.Debugf("Found %d projects", len(projects.Payload.Project))
 			if len(projects.Payload.Project) == 0 {
 				return fmt.Errorf("No projects found with name similar to : %s", args[0])
 			}
