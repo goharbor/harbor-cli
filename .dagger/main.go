@@ -24,7 +24,7 @@ import (
 
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
-	GO_VERSION           = "1.24.1"
+	GO_VERSION           = "1.24.2"
 	SYFT_VERSION         = "v1.9.0"
 	GORELEASER_VERSION   = "v2.8.2"
 )
@@ -228,7 +228,7 @@ func (m *HarborCli) PublishImage(
 // SnapshotRelease Create snapshot non OCI artifacts with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
 	return m.goreleaserContainer().
-		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean", "--skip", "validate"}).
+		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean"}).
 		Directory("/src/dist")
 }
 
