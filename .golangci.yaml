@@ -1,0 +1,47 @@
+version: "2"
+linters:
+  enable:
+    - bodyclose
+    - dupl
+    - goheader
+    - gosec
+    - misspell
+    - nilnil
+    - staticcheck
+    - whitespace
+  settings:
+    goheader:
+      template-path: copyright.tmpl
+    misspell:
+      locale: US,UK
+    staticcheck:
+      checks:
+        - ST1019
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - ^.*\\.gen\\.go$
+      - dagger/internal
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: false
+  exclusions:
+    generated: lax
+    paths:
+      - ^.*\\.gen\\.go$
+      - dagger/internal
+      - third_party$
+      - builtin$
+      - examples$
