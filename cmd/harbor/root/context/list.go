@@ -32,6 +32,7 @@ func ListContextCommand() *cobra.Command {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
 				logrus.Errorf("Error occurred: %v", err)
+				return
 			}
 			var cxlist []api.ContextListView
 			for _, cred := range config.Credentials {
