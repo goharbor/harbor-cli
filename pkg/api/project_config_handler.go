@@ -50,7 +50,7 @@ func DeleteConfig(isID bool, projectNameOrID string, metaName []string) error {
 			return err
 		}
 		if response != nil {
-			log.Info("Metadata %w deleted successfully", meta)
+			log.Infof("Metadata %v deleted successfully", meta)
 		}
 	}
 

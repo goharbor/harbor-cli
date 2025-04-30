@@ -15,6 +15,8 @@ package config
 
 import "github.com/spf13/cobra"
 
+var isID bool
+
 func ProjectConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
@@ -22,7 +24,6 @@ func ProjectConfigCommand() *cobra.Command {
 	}
 	cmd.AddCommand(
 		AddConfigCommand(),
-		DeleteConfigCommand(),
 		ViewConfigCommand(),
 		UpdateConfigCommand(),
 		ListConfigCommand(),
