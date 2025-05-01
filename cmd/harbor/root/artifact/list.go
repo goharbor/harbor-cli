@@ -30,8 +30,18 @@ func ListArtifactCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "list artifacts within a repository",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "List container artifacts (images, charts, etc.) in a Harbor repository with metadata",
+		Long: `List all artifacts (e.g., container images, charts) within a given Harbor repository. 
+Supports optional project/repository input in the form <project>/<repository>. 
+Displays key artifact metadata including tags, digest, type, size, vulnerability count, and push time.
+
+Examples:
+  harbor-cli artifact list                # Interactive prompt for project and repository
+  harbor-cli artifact list library/nginx # Directly list artifacts in the nginx repo under 'library' project
+
+Supports pagination, search queries, and sorting using flags.`,
+
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
