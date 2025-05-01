@@ -23,7 +23,7 @@ import (
 )
 
 func ListConfigCommand() *cobra.Command {
-	var projectName string
+	var projectNameorID string
 	var isID bool
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -31,11 +31,15 @@ func ListConfigCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				projectName = prompt.GetProjectNameFromUser()
+				projectNameorID = prompt.GetProjectNameFromUser()
+				isID = false
 			} else {
-				projectName = args[0]
+				projectNameorID = args[0]
 			}
-			response, err := api.ListConfig(isID, projectName)
+			response, err := api.ListConfig(isID, projectNameorID)
+			if err != nil {
+				return err
+			}
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				err = utils.PrintFormat(response.Payload, formatFlag)
@@ -48,5 +52,7 @@ func ListConfigCommand() *cobra.Command {
 			return nil
 		},
 	}
+	flags := cmd.Flags()
+	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 	return cmd
 }
