@@ -37,26 +37,6 @@ func AddConfig(isID bool, projectNameOrID string, metadata map[string]string) er
 	return nil
 }
 
-func DeleteConfig(isID bool, projectNameOrID string, metaName []string) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	isName := !isID
-	for _, meta := range metaName {
-		response, err := client.ProjectMetadata.DeleteProjectMetadata(ctx, &project_metadata.DeleteProjectMetadataParams{MetaName: meta, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
-		if err != nil {
-			return err
-		}
-		if response != nil {
-			log.Infof("Metadata %v deleted successfully", meta)
-		}
-	}
-
-	return nil
-}
-
 func ViewConfig(isID bool, projectNameOrID string, metaName string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
