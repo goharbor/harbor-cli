@@ -18,7 +18,6 @@ import (
 func CreateRobotCommand() *cobra.Command {
 	var (
 		opts        create.CreateView
-		projectName string
 		all         bool
 	)
 
@@ -69,7 +68,7 @@ func CreateRobotCommand() *cobra.Command {
 				}
 				// convert []models.permission to []*model.Access
 				perm := &create.RobotPermission{
-					Namespace: projectName,
+					Namespace: opts.ProjectName,
 					Access:    accesses,
 				}
 				opts.Permissions = []*create.RobotPermission{perm}
