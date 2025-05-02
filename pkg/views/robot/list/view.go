@@ -28,13 +28,12 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 4},
-	{Title: "Name", Width: 30},
-	{Title: "Status", Width: 18},
-	{Title: "Permissions", Width: 12},
-	{Title: "Creation Time", Width: 16},
-	{Title: "Expires in", Width: 14},
-	{Title: "Description", Width: 12},
+	{Title: "Name", Width: tablelist.WidthL},
+	{Title: "Status", Width: tablelist.WidthL},
+	{Title: "Permissions", Width: tablelist.WidthM},
+	{Title: "Creation Time", Width: tablelist.WidthXL},
+	{Title: "Expires in", Width: tablelist.WidthM},
+	{Title: "Description", Width: tablelist.WidthXL},
 }
 
 func ListRobots(robots []*models.Robot) {
@@ -45,9 +44,9 @@ func ListRobots(robots []*models.Robot) {
 		var expires string
 
 		if robot.Disable {
-			enabledStatus = views.RedStyle.Render("Disabled")
+			enabledStatus = views.GreenANSI + "Disabled" + views.ResetANSI
 		} else {
-			enabledStatus = views.GreenStyle.Render("Enabled")
+			enabledStatus = views.GreenANSI + "Enabled" + views.ResetANSI
 		}
 
 		TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
@@ -60,13 +59,12 @@ func ListRobots(robots []*models.Robot) {
 
 		createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
 		rows = append(rows, table.Row{
-			strconv.FormatInt(robot.ID, 10),
 			robot.Name,
 			enabledStatus,
 			TotalPermissions,
 			createdTime,
 			expires,
-			robot.Description,
+			string(robot.Description),
 		})
 	}
 
