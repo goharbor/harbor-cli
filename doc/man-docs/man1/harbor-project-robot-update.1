@@ -1,0 +1,51 @@
+.nh
+.TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+harbor-project-robot-update - update robot by id
+
+
+.SH SYNOPSIS
+\fBharbor project robot update [robotID] [flags]\fP
+
+
+.SH DESCRIPTION
+update robot by id
+
+
+.SH OPTIONS
+\fB-a\fP, \fB--all-permission\fP[=false]
+	Select all permissions for the robot account
+
+.PP
+\fB--description\fP=""
+	description of the robot account
+
+.PP
+\fB--duration\fP=0
+	set expiration of robot account in days
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--name\fP=""
+	name of the robot account
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project-robot(1)\fP
