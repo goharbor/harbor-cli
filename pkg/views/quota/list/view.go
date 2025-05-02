@@ -26,11 +26,11 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 4},
-	{Title: "Project", Width: 12},
-	{Title: "Owner Name", Width: 12},
-	{Title: "Storage", Width: 32},
-	{Title: "Creation Time", Width: 20},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Project", Width: tablelist.WidthXXL},
+	{Title: "Owner Name", Width: tablelist.WidthL},
+	{Title: "Storage", Width: tablelist.WidthXXL},
+	{Title: "Creation Time", Width: tablelist.WidthL},
 }
 
 // Function to get project ref details

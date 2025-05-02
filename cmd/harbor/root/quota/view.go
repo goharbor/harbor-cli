@@ -20,15 +20,17 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // View a specified quota
 func ViewQuotaCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view [QuotaID]",
+		Use:   "view [quotaID]",
 		Short: "get quota by quota ID",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -51,7 +53,17 @@ func ViewQuotaCommand() *cobra.Command {
 			}
 
 			quotas := []*models.Quota{quota.Payload}
-			list.ListQuotas(quotas)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(quota, FormatFlag)
+				if err != nil {
+					log.Errorf("failed to get quota list: %v", err)
+					return
+				}
+			} else {
+				list.ListQuotas(quotas)
+			}
+
 		},
 	}
 
