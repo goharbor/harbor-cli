@@ -27,9 +27,9 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: tablelist.WidthXS},
-	{Title: "Project", Width: tablelist.WidthXXL},
+	{Title: "Project Name", Width: tablelist.WidthL},
 	{Title: "Owner Name", Width: tablelist.WidthL},
-	{Title: "Storage", Width: tablelist.WidthXXL},
+	{Title: "Storage", Width: tablelist.WidthXL},
 	{Title: "Creation Time", Width: tablelist.WidthL},
 }
 

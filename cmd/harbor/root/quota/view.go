@@ -45,6 +45,10 @@ func ViewQuotaCommand() *cobra.Command {
 				}
 			} else {
 				quotaID := prompt.GetQuotaIDFromUser()
+				if quotaID == 0 {
+					log.Errorf("failed to get quotaID from user")
+					return
+				}
 				quota, err = api.GetQuota(quotaID)
 			}
 

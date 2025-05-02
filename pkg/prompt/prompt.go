@@ -137,7 +137,7 @@ func GetQuotaIDFromUser() int64 {
 	go func() {
 		response, err := api.ListQuota(*&api.ListQuotaFlags{})
 		if err != nil {
-			log.Fatal(err)
+			log.Errorf("failed to list quota: %v", err)
 		}
 		qview.QuotaList(response.Payload, QuotaID)
 	}()
