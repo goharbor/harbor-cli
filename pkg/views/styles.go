@@ -24,9 +24,6 @@ var (
 	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	PaginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	HelpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
-	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575"))
-	WhiteStyle        = list.DefaultStyles()
 )
 
 var BaseStyle = lipgloss.NewStyle().

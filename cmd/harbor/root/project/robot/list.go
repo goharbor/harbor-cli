@@ -14,7 +14,6 @@
 package robot
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -22,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/list"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,14 +32,21 @@ func ListRobotCommand() *cobra.Command {
 
 	projectQString := constants.ProjectQString
 	cmd := &cobra.Command{
-		Use:   "list [projectID]",
+		Use:   "list [projectName]",
 		Short: "list robot",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
-				opts.Q = projectQString + args[0]
+				project, err := api.GetProject(args[0], false)
+				if err != nil {
+					log.Errorf("Invalid Project Name: %v", err)
+				}
+				opts.ProjectID = int64(project.Payload.ProjectID)
+				opts.Q = projectQString + strconv.FormatInt(opts.ProjectID, 10)
 			} else if opts.Q != "" {
 				opts.Q = projectQString + opts.Q
+			} else if opts.ProjectID > 0 {
+				opts.Q = projectQString + strconv.FormatInt(opts.ProjectID, 10)
 			} else {
 				projectID := prompt.GetProjectIDFromUser()
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
@@ -47,22 +54,25 @@ func ListRobotCommand() *cobra.Command {
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				log.Fatalf("failed to get robots list: %v", err)
+				log.Errorf("failed to get robots list: %v", err)
 			}
 
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(robots)
-				return
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(robots, formatFlag)
+				if err != nil {
+					log.Errorf("Invalid Print Format: %v", err)
+				}
+			} else {
+				list.ListRobots(robots.Payload)
 			}
-
-			list.ListRobots(robots.Payload)
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.Int64VarP(&opts.ProjectID, "project-id", "", 0, "Project ID")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(
 		&opts.Sort,
