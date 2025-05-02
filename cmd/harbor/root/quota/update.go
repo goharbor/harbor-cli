@@ -42,7 +42,7 @@ func UpdateQuotaCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "update [QuotaID]",
-		Short: "update project quotas for projects",
+		Short: "update quotas for projects",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -55,7 +55,8 @@ func UpdateQuotaCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Errorf("failed to parse registry id: %v", err)
+				log.Errorf("failed to parse quotaID: %v", err)
+				return
 			}
 
 			if storage != "" {

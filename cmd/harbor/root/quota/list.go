@@ -14,8 +14,6 @@
 package quota
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/quota"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
@@ -31,7 +29,7 @@ func ListQuotaCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list quotas",
-		Long: "list quotas specified for each project",
+		Long:  "list quotas specified for each project",
 		Run: func(cmd *cobra.Command, args []string) {
 			if opts.PageSize > 100 {
 				log.Errorf("page size should be less than or equal to 100")
@@ -39,7 +37,7 @@ func ListQuotaCommand() *cobra.Command {
 			}
 
 			listFunc := api.ListQuota
-			fetchQuotas(listFunc, opts)
+			api.GetAllQuotas(listFunc, opts)
 
 			quota, err := api.ListQuota(opts)
 			if err != nil {
@@ -74,36 +72,4 @@ func ListQuotaCommand() *cobra.Command {
 	)
 
 	return cmd
-}
-
-// helper function to fetch quotas all quotas
-func fetchQuotas(listFunc func(api.ListQuotaFlags) (*quota.ListQuotasOK, error), opts api.ListQuotaFlags) ([]*models.Quota, error) {
-	var allQuotas []*models.Quota
-	if opts.PageSize == 0 {
-		opts.PageSize = 100
-		opts.Page = 1
-
-		for {
-			quotas, err := listFunc(opts)
-			if err != nil {
-				return nil, err
-			}
-
-			allQuotas = append(allQuotas, quotas.Payload...)
-
-			if len(quotas.Payload) < int(opts.PageSize) {
-				break
-			}
-
-			opts.Page++
-		}
-	} else {
-		quotas, err := listFunc(opts)
-		if err != nil {
-			return nil, err
-		}
-		allQuotas = quotas.Payload
-	}
-
-	return allQuotas, nil
 }
