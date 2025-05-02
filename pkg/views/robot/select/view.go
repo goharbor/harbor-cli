@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package robot
 
 import (
 	"fmt"
@@ -20,39 +20,42 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/views/base/multiselect"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ProjectList(project []*models.Project, choice chan<- string) {
-	items := make([]list.Item, len(project))
-	for i, p := range project {
-		items[i] = selection.Item(p.Name)
+func ListPermissions(perms *models.Permissions, ch chan<- []models.Permission) {
+	permissions := perms.Project
+	choices := []models.Permission{}
+
+	// Iterate over permissions and append each item to choices
+	for _, perm := range permissions {
+		choices = append(choices, *perm)
 	}
 
-	m := selection.NewModel(items, "Project")
+	selects := &[]models.Permission{}
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	m := multiselect.NewModel(choices, selects)
+
+	_, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
-		os.Exit(1)
 	}
-
-	if p, ok := p.(selection.Model); ok {
-		choice <- p.Choice
-	}
+	// Get selected permissions
+	ch <- *selects
 }
 
-func ProjectListID(project []*models.Project, choice chan<- int64) {
-	itemList := make([]list.Item, len(project))
+func ListRobot(robots []*models.Robot, choice chan<- int64) {
+	itemsList := make([]list.Item, len(robots))
 
-	items := map[string]int32{}
+	items := map[string]int64{}
 
-	for i, p := range project {
-		itemList[i] = selection.Item(p.Name)
-		items[p.Name] = p.ProjectID
+	for i, r := range robots {
+		items[r.Name] = r.ID
+		itemsList[i] = selection.Item(r.Name)
 	}
 
-	m := selection.NewModel(itemList, "Project")
+	m := selection.NewModel(itemsList, "Robot")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
@@ -61,6 +64,6 @@ func ProjectListID(project []*models.Project, choice chan<- int64) {
 	}
 
 	if p, ok := p.(selection.Model); ok {
-		choice <- int64(items[p.Choice])
+		choice <- items[p.Choice]
 	}
 }
