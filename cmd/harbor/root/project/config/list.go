@@ -24,7 +24,6 @@ import (
 
 func ListConfigCommand() *cobra.Command {
 	var projectNameorID string
-	var isID bool
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list [NAME|ID]",
@@ -52,7 +51,5 @@ func ListConfigCommand() *cobra.Command {
 			return nil
 		},
 	}
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 	return cmd
 }

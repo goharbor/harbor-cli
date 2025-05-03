@@ -28,9 +28,7 @@ func ProjectConfigCommand() *cobra.Command {
 		UpdateConfigCommand(),
 		ListConfigCommand(),
 	)
-
-	flags := cmd.Flags()
-	flags.BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
+	cmd.PersistentFlags().BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }
