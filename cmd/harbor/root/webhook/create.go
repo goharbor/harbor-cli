@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/create"
 	"github.com/spf13/cobra"
 )
@@ -68,6 +69,10 @@ or leave them out and be guided through an interactive prompt to input each fiel
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
+				err = utils.ValidateURL(opts.EndpointURL)
+				if err != nil {
+					return err
+				}
 				err = api.CreateWebhook(&opts)
 			} else {
 				err = createWebhookView(createView)
@@ -84,7 +89,7 @@ or leave them out and be guided through an interactive prompt to input each fiel
 	flags.StringVarP(&opts.ProjectName, "project", "", "", "Project Name")
 	flags.StringVarP(&opts.Description, "description", "", "", "Webhook Description")
 	flags.StringVarP(&opts.NotifyType, "notify-type", "", "", "Notify Type (http, slack)")
-	flags.StringArrayVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
+	flags.StringSliceVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
 	flags.StringVarP(&opts.EndpointURL, "endpoint-url", "", "", "Webhook Endpoint URL")
 	flags.StringVarP(&opts.PayloadFormat, "payload-format", "", "", "Payload Format (Default, CloudEvents)")
 	flags.StringVarP(&opts.AuthHeader, "auth-header", "", "", "Authentication Header")

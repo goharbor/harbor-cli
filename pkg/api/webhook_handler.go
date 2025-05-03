@@ -67,7 +67,6 @@ func CreateWebhook(opts *create.CreateView) error {
 	})
 
 	if err != nil {
-		log.Errorf("%s", err)
 		return err
 	}
 
@@ -89,7 +88,6 @@ func DeleteWebhook(projectName string, webhookId int64) error {
 		ProjectNameOrID: projectName,
 	})
 	if err != nil {
-		log.Errorf("%s", err)
 		return err
 	}
 	if response != nil {
@@ -125,7 +123,6 @@ func UpdateWebhook(opts *edit.EditView) error {
 		},
 	})
 	if err != nil {
-		log.Errorf("%s", err)
 		return err
 	}
 	if response != nil {
@@ -145,7 +142,6 @@ func GetWebhookID(projectName string, WebhookName string) (int64, error) {
 	})
 
 	if err != nil {
-		log.Errorf("%s", err)
 		return 0, err
 	}
 
@@ -171,7 +167,6 @@ func GetWebhook(projectName string, webhookId int64) (models.WebhookPolicy, erro
 		XIsResourceName: &IsResourceName,
 	})
 	if err != nil {
-		log.Errorf("%s", err)
 		return models.WebhookPolicy{}, err
 	}
 	return *response.Payload, nil

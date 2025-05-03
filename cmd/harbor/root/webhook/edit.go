@@ -100,7 +100,7 @@ or leave them out and use the interactive prompt to select and update a webhook.
 	flags.Int64VarP(&opts.WebhookId, "webhook-id", "", -1, "Webhook ID")
 	flags.StringVarP(&opts.Description, "description", "", "", "Webhook Description")
 	flags.StringVarP(&opts.NotifyType, "notify-type", "", "", "Notify Type (http, slack)")
-	flags.StringArrayVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
+	flags.StringSliceVarP(&opts.EventType, "event-type", "", []string{}, "Event Types (comma separated)")
 	flags.StringVarP(&opts.EndpointURL, "endpoint-url", "", "", "Webhook Endpoint URL")
 	flags.StringVarP(&opts.PayloadFormat, "payload-format", "", "", "Payload Format (Default, CloudEvents)")
 	flags.StringVarP(&opts.AuthHeader, "auth-header", "", "", "Authentication Header")

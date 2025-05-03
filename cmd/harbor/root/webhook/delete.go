@@ -82,14 +82,14 @@ or interactively select a project and webhook if not provided.`,
 				return fmt.Errorf("failed to delete webhook: %w", err)
 			}
 
-			fmt.Printf("✅ Webhook deleted successfully from project '%s'\n", projectName)
+			fmt.Printf("Webhook deleted successfully from project '%s'\n", projectName)
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.StringVarP(&projectName, "project", "", "", "Project name (required when providing webhook ID or name)")
-	flags.Int64VarP(&webhookId, "webhook", "", -1, "Webhook ID (alternative to providing webhook name as argument)")
+	flags.Int64VarP(&webhookId, "webhook-id", "", -1, "Webhook ID (alternative to providing webhook name as argument)")
 
 	return cmd
 }
