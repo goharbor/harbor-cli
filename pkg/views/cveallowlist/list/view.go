@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,46 +27,33 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthS},
-	{Title: "Tags", Width: tablelist.WidthL},
-	{Title: "Artifact Digest", Width: tablelist.WidthXL},
-	{Title: "Type", Width: tablelist.WidthS},
-	{Title: "Size", Width: tablelist.WidthM},
-	{Title: "Vulnerabilities", Width: tablelist.WidthL},
-	{Title: "Push Time", Width: tablelist.WidthL},
+	{Title: "ID", Width: 6},
+	{Title: "CVE Name", Width: 18},
+	{Title: "Expires At", Width: 18},
+	{Title: "Creation Time", Width: 24},
 }
 
-func ListArtifacts(artifacts []*models.Artifact) {
+func ListSystemCve(cveallowlist *models.CVEAllowlist) {
 	var rows []table.Row
-	for _, artifact := range artifacts {
-		pushTime, _ := utils.FormatCreatedTime(artifact.PushTime.String())
-		artifactSize := utils.FormatSize(artifact.Size)
+	var expiresAtStr string
+	for _, cve := range cveallowlist.Items {
+		CveName := cve.CVEID
 
-		var tagNames []string
-		for _, tag := range artifact.Tags {
-			tagNames = append(tagNames, tag.Name)
-		}
-		tags := "-"
-		if len(tagNames) > 0 {
-			tags = strings.Join(tagNames, ", ")
+		if cveallowlist.ExpiresAt != nil && *cveallowlist.ExpiresAt != 0 {
+			expiresAt := time.Unix(int64(*cveallowlist.ExpiresAt), 0)
+			expiresAtStr = expiresAt.Format("01/02/2006")
+		} else {
+			expiresAtStr = "Never expires"
 		}
 
-		var totalVulnerabilities int64
-		for _, scan := range artifact.ScanOverview {
-			totalVulnerabilities += scan.Summary.Total
-		}
-
+		createdTime, _ := utils.FormatCreatedTime(cveallowlist.CreationTime.String())
 		rows = append(rows, table.Row{
-			strconv.FormatInt(int64(artifact.ID), 10),
-			tags,
-			artifact.Digest[:16],
-			artifact.Type,
-			artifactSize,
-			strconv.FormatInt(totalVulnerabilities, 10),
-			pushTime,
+			strconv.FormatInt(cveallowlist.ID, 10),
+			CveName,
+			expiresAtStr,
+			createdTime,
 		})
 	}
-
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
