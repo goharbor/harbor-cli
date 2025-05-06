@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -26,10 +27,11 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "ID", Width: tablelist.WidthS},
+	{Title: "Tags", Width: tablelist.WidthL},
 	{Title: "Artifact Digest", Width: tablelist.WidthXL},
 	{Title: "Type", Width: tablelist.WidthS},
-	{Title: "Size", Width: tablelist.WidthS},
+	{Title: "Size", Width: tablelist.WidthM},
 	{Title: "Vulnerabilities", Width: tablelist.WidthL},
 	{Title: "Push Time", Width: tablelist.WidthL},
 }
@@ -39,12 +41,24 @@ func ListArtifacts(artifacts []*models.Artifact) {
 	for _, artifact := range artifacts {
 		pushTime, _ := utils.FormatCreatedTime(artifact.PushTime.String())
 		artifactSize := utils.FormatSize(artifact.Size)
+
+		var tagNames []string
+		for _, tag := range artifact.Tags {
+			tagNames = append(tagNames, tag.Name)
+		}
+		tags := "-"
+		if len(tagNames) > 0 {
+			tags = strings.Join(tagNames, ", ")
+		}
+
 		var totalVulnerabilities int64
 		for _, scan := range artifact.ScanOverview {
 			totalVulnerabilities += scan.Summary.Total
 		}
+
 		rows = append(rows, table.Row{
 			strconv.FormatInt(int64(artifact.ID), 10),
+			tags,
 			artifact.Digest[:16],
 			artifact.Type,
 			artifactSize,
