@@ -53,8 +53,26 @@ Supports pagination, search queries, and sorting using flags.`,
 			if len(args) > 0 {
 				projectName, repoName = utils.ParseProjectRepo(args[0])
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
-				repoName = prompt.GetRepoNameFromUser(projectName)
+				for {
+					projectName = prompt.GetProjectNameFromUser()
+					if projectName == "q" {
+						fmt.Println("Command cancelled.")
+						return nil
+					}
+					if projectName == "" {
+						fmt.Println("No project selected. Please select a project or press 'q' to exit.")
+						continue
+					}
+					repoName = prompt.GetRepoNameFromUser(projectName)
+					if repoName == "q" {
+						continue
+					}
+					if repoName == "" {
+						fmt.Println("No repository selected. Please select a repository or press 'q' to go back.")
+						continue
+					}
+					break
+				}
 			}
 
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
