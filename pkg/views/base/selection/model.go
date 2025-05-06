@@ -88,6 +88,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Choice = string(i)
 			}
 			return m, tea.Quit
+
+		case "q":
+			m.Choice = "q"
+			return m, tea.Quit
 		}
 	}
 
