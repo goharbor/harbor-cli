@@ -14,6 +14,7 @@
 package quota
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -47,54 +48,12 @@ func UpdateQuotaCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var storageValue int64
-			var quota *models.Quota
 
 			// get quota id with quota
-			if len(args) > 0 {
-				quotaID, err := strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					log.Errorf("failed to parse quotaID: %v", err)
-					return
-				}
-				quota, err = api.GetQuota(int64(quotaID))
-				if err != nil {
-					log.Errorf("failed to get Quota: %v", err)
-					return
-				}
-			} else if opts.Reference != "" {
-				project, err := api.GetProject(opts.Reference, false)
-				if err != nil {
-					log.Errorf("failed to get project: %v", err)
-					return
-				}
-				projectID := project.Payload.ProjectID
-				quota, err = api.GetQuotaByRef(int64(projectID))
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
-			} else if opts.ReferenceID != "" {
-				projectID, err := strconv.ParseInt(opts.ReferenceID, 10, 64)
-				if err != nil {
-					log.Errorf("invalid projectID: %v", err)
-					return
-				}
-				quota, err = api.GetQuotaByRef(projectID)
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
-			} else {
-				quotaID := prompt.GetQuotaIDFromUser()
-				if quotaID == 0 {
-					log.Errorf("failed to get quotaID from user")
-					return
-				}
-				quota, err = api.GetQuota(quotaID)
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
+			quota, err := GetQuotaFromUser(args, opts)
+			if err != nil {
+				log.Errorf("error: %v", err)
+				return
 			}
 
 			if storage != "" {
@@ -136,4 +95,58 @@ func UpdateQuotaCommand() *cobra.Command {
 	flags.StringVarP(&opts.ReferenceID, "project-id", "", "", "Get quota by project ID")
 
 	return cmd
+}
+
+func GetQuotaFromUser(args []string, opts api.ListQuotaFlags) (*models.Quota, error) {
+	var err error
+	var quota *models.Quota
+
+	if len(args) > 0 {
+		quotaID, err := strconv.ParseInt(args[0], 10, 64)
+		if err != nil {
+			err := fmt.Errorf("failed to parse quotaID: %v", err)
+			return nil, err
+		}
+		quota, err = api.GetQuota(int64(quotaID))
+		if err != nil {
+			err := fmt.Errorf("failed to get Quota: %v", err)
+			return nil, err
+		}
+	} else if opts.Reference != "" {
+		project, err := api.GetProject(opts.Reference, false)
+		if err != nil {
+			err := fmt.Errorf("failed to get project: %v", err)
+			return nil, err
+		}
+		projectID := project.Payload.ProjectID
+		quota, err = api.GetQuotaByRef(int64(projectID))
+		if err != nil {
+			err := fmt.Errorf("failed to get quota: %v", err)
+			return nil, err
+		}
+	} else if opts.ReferenceID != "" {
+		projectID, err := strconv.ParseInt(opts.ReferenceID, 10, 64)
+		if err != nil {
+			err := fmt.Errorf("invalid projectID: %v", err)
+			return nil, err
+		}
+		quota, err = api.GetQuotaByRef(projectID)
+		if err != nil {
+			err := fmt.Errorf("failed to get quota: %v", err)
+			return nil, err
+		}
+	} else {
+		quotaID := prompt.GetQuotaIDFromUser()
+		if quotaID == 0 {
+			err := fmt.Errorf("failed to get quotaID from user")
+			return nil, err
+		}
+		quota, err = api.GetQuota(quotaID)
+		if err != nil {
+			err := fmt.Errorf("failed to get quota: %v", err)
+			return nil, err
+		}
+	}
+
+	return quota, nil
 }

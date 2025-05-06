@@ -36,9 +36,6 @@ func ListQuotaCommand() *cobra.Command {
 				return
 			}
 
-			listFunc := api.ListQuota
-			api.GetAllQuotas(listFunc, opts)
-
 			quota, err := api.ListQuota(opts)
 			if err != nil {
 				log.Errorf("failed to get quota list: %v", err)

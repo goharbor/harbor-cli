@@ -14,11 +14,8 @@
 package quota
 
 import (
-	"strconv"
-
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
 	log "github.com/sirupsen/logrus"
@@ -37,53 +34,12 @@ func ViewQuotaCommand() *cobra.Command {
 			var err error
 			var quota *models.Quota
 
-			if len(args) > 0 {
-				quotaID, err := strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					log.Errorf("failed to parse quotaID: %v", err)
-					return
-				}
-				quota, err = api.GetQuota(int64(quotaID))
-				if err != nil {
-					log.Errorf("failed to get Quota: %v", err)
-					return
-				}
-			} else if opts.Reference != "" {
-				project, err := api.GetProject(opts.Reference, false)
-				if err != nil {
-					log.Errorf("failed to get project: %v", err)
-					return
-				}
-				projectID := project.Payload.ProjectID
-				quota, err = api.GetQuotaByRef(int64(projectID))
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
-			} else if opts.ReferenceID != "" {
-				projectID, err := strconv.ParseInt(opts.ReferenceID, 10, 64)
-				if err != nil {
-					log.Errorf("invalid projectID: %v", err)
-					return
-				}
-				quota, err = api.GetQuotaByRef(projectID)
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
-			} else {
-				quotaID := prompt.GetQuotaIDFromUser()
-				if quotaID == 0 {
-					log.Errorf("failed to get quotaID from user")
-					return
-				}
-				quota, err = api.GetQuota(quotaID)
-				if err != nil {
-					log.Errorf("failed to get quota: %v", err)
-					return
-				}
+			// get quota id with quota
+			quota, err = GetQuotaFromUser(args, opts)
+			if err != nil {
+				log.Errorf("error: %v", err)
+				return
 			}
-
 			quotas := []*models.Quota{quota}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
@@ -95,10 +51,8 @@ func ViewQuotaCommand() *cobra.Command {
 			} else {
 				list.ListQuotas(quotas)
 			}
-
 		},
 	}
-
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Reference, "project-name", "", "", "Get quota by project-name")
 	flags.StringVarP(&opts.ReferenceID, "project-id", "", "", "Get quota by project ID")
