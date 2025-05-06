@@ -1,9 +1,24 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package api
 
 import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
@@ -38,35 +53,84 @@ func CreateProject(opts create.CreateView) error {
 	return nil
 }
 
-func GetProject(projectName string) error {
+func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	response, err := client.Project.GetProject(ctx, &project.GetProjectParams{ProjectNameOrID: projectName})
+	var response = &project.GetProjectOK{}
 
 	if err != nil {
-		return err
+		return response, err
+	}
+	useResourceName := !useProjectID
+
+	response, err = client.Project.GetProject(ctx, &project.GetProjectParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: &useResourceName,
+	})
+
+	if err != nil {
+		return response, err
 	}
 
-	utils.PrintPayloadInJSONFormat(response)
-	return nil
+	return response, nil
 }
 
-func DeleteProject(projectName string) error {
+func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{ProjectNameOrID: projectName})
+	if forceDelete {
+		var resp repository.ListRepositoriesOK
+
+		project, err := GetProject(projectNameOrID, useProjectID)
+		if err != nil {
+			log.Errorf("failed to get project name: %v", err)
+			return err
+		}
+		projectName := project.Payload.Name
+
+		immutables, err := ListImmutable(projectName)
+		if err != nil {
+			log.Errorf("failed to list immutables for project: %v", err)
+			return err
+		}
+		for _, rule := range immutables.Payload {
+			err = DeleteImmutable(projectName, rule.ID)
+			if err != nil {
+				log.Errorf("failed to delete tag immutable rule: %v", err)
+				return err
+			}
+		}
+
+		resp, err = ListRepository(projectNameOrID, useProjectID)
+
+		if err != nil {
+			log.Errorf("failed to list repositories: %v", err)
+			return err
+		}
+
+		for _, repo := range resp.Payload {
+			_, repoName := utils.ParseProjectRepo(repo.Name)
+			err = RepoDelete(projectNameOrID, repoName, useProjectID)
+
+			if err != nil {
+				log.Errorf("failed to delete repository: %v", err)
+				return err
+			}
+		}
+	}
+
+	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: &useProjectID,
+	})
 
 	if err != nil {
 		return err
 	}
 
-	log.Info("project deleted successfully")
+	log.Infof("Project %s deleted successfully", projectNameOrID)
 	return nil
 }
 
@@ -82,6 +146,35 @@ func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
 	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name, Public: &listFlags.Public})
 	if err != nil {
 		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
+func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+	response, err := client.Project.ListProjects(ctx, &project.ListProjectsParams{Page: &listFlags.Page, PageSize: &listFlags.PageSize, Q: &listFlags.Q, Sort: &listFlags.Sort, Name: &listFlags.Name})
+	if err != nil {
+		return project.ListProjectsOK{}, err
+	}
+	return *response, nil
+}
+
+func SearchProject(query string) (search.SearchOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return search.SearchOK{}, err
+	}
+
+	response, err := client.Search.Search(ctx, &search.SearchParams{Q: query})
+	if err != nil {
+		return search.SearchOK{}, err
 	}
 	return *response, nil
 }

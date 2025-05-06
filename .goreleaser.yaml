@@ -1,3 +1,4 @@
+version: 2
 project_name: harbor
 
 before:
@@ -6,11 +7,11 @@ before:
 
 builds:
 - main: ./cmd/harbor/main.go
-
   env:
-    - CGO_ENABLED=0 
+    - CGO_ENABLED=0
   ldflags:
     - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
+    - -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version={{.Tag}}
   goos:
     - linux
     - windows
@@ -18,32 +19,75 @@ builds:
   goarch:
     - amd64
     - arm64
-    - arm  
-  ignore: 
+  ignore:
     - goos: windows
       goarch: arm
     - goos: windows
       goarch: arm64
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
+nfpms:
+  -
+    homepage: https://github.com/goharbor/harbor-cli/
+    maintainer: Harbor Community
+    description: |-
+      CLI for Harbor Container Registry
+    formats:
+      - rpm
+      - deb
+      - apk
+      - archlinux
+
+sboms:
+  - artifacts: archive
 
 checksum:
   name_template: 'checksums.txt'
 
-snapshot: 
-  name_template: "{{ .Tag }}-next"
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
 
 release:
   name_template: "HarborCLI {{.Tag}}"
-  # draft: true
-  # prerelease: auto
+  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
+  prerelease: auto            # Auto-detect prereleases based on tag
+  replace_existing_draft: true
+  replace_existing_artifacts: true
+  disable: false              # Ensure release publishing is enabled
+  github:
+    owner: goharbor           # Your GitHub repository owner
+    name: harbor-cli          # Your GitHub repository name
 
 changelog:
-  sort: asc
+  use: github
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+      - "merge conflict"
+  groups:
+    - title: "Dependency updates"
+      regexp: '^.*?(.+)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 400
+    - title: "Other work"
+      order: 9999

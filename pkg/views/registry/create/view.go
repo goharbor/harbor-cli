@@ -1,46 +1,84 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package create
 
 import (
 	"errors"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct {
-	Name        string
-	Type        string
-	Description string
-	URL         string
-	Credential  RegistryCredential
-	Insecure    bool
+// struct to hold registry options
+type RegistryOption struct {
+	ID   string
+	Name string
 }
 
-type RegistryCredential struct {
-	AccessKey    string `json:"access_key,omitempty"`
-	Type         string `json:"type,omitempty"`
-	AccessSecret string `json:"access_secret,omitempty"`
-}
+func CreateRegistryView(createView *api.CreateRegView) {
+	registries, _ := api.GetRegistryProviders()
 
-func CreateRegistryView(createView *CreateView) {
+	// Initialize a slice to hold registry options
+	var registryOptions []RegistryOption
+
+	// Iterate over registries to populate registryOptions
+	for i, registry := range registries {
+		registryOptions = append(registryOptions, RegistryOption{
+			ID:   strconv.FormatInt(int64(i), 10),
+			Name: registry,
+		})
+	}
+
+	// Initialize a slice to hold select options
+	var registrySelectOptions []huh.Option[string]
+
+	// Iterate over registryOptions to populate registrySelectOptions
+	for _, option := range registryOptions {
+		registrySelectOptions = append(
+			registrySelectOptions,
+			huh.NewOption(option.Name, option.Name),
+		)
+	}
+
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
-			huh.NewInput().
-				Title("Provider").
+			huh.NewSelect[string]().
+				Title("Select a Registry Provider").
 				Value(&createView.Type).
+				Options(registrySelectOptions...).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("provider cannot be empty")
+						return errors.New("registry provider cannot be empty")
 					}
 					return nil
 				}),
+
 			huh.NewInput().
 				Title("Name").
 				Value(&createView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("name cannot be empty or only spaces")
+					}
+					if isVaild := utils.ValidateRegistryName(str); !isVaild {
+						return errors.New("please enter the correct name format")
 					}
 					return nil
 				}),
@@ -51,8 +89,12 @@ func CreateRegistryView(createView *CreateView) {
 				Title("URL").
 				Value(&createView.URL).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("url cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("url cannot be empty or only spaces")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
+						return errors.New("please enter the correct url format")
 					}
 					return nil
 				}),
@@ -69,7 +111,6 @@ func CreateRegistryView(createView *CreateView) {
 				Negative("no"),
 		),
 	).WithTheme(theme).Run()
-
 	if err != nil {
 		log.Fatal(err)
 	}
