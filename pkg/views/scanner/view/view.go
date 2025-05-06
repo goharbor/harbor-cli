@@ -25,15 +25,15 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 12},
-	{Title: "UUID", Width: 38},
-	{Title: "URL", Width: 30},
-	{Title: "Default", Width: 8},
-	{Title: "Disabled", Width: 9},
-	{Title: "Skip Cert Verify", Width: 17},
-	{Title: "Internal Addr", Width: 14},
-	{Title: "Created At", Width: 18},
-	{Title: "Updated At", Width: 18},
+	{Title: "Name", Width: tablelist.WidthM},
+	{Title: "UUID", Width: tablelist.WidthXL * 2},
+	{Title: "URL", Width: tablelist.WidthXXL},
+	{Title: "Default", Width: tablelist.WidthS},
+	{Title: "Disabled", Width: tablelist.WidthS},
+	{Title: "Skip Cert Verify", Width: tablelist.WidthL},
+	{Title: "Internal Addr", Width: tablelist.WidthL},
+	{Title: "Created At", Width: tablelist.WidthL},
+	{Title: "Updated At", Width: tablelist.WidthL},
 }
 
 func ViewScanner(scanner *models.ScannerRegistration) {
