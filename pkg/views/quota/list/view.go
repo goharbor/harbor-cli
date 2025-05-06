@@ -44,7 +44,7 @@ func getRefDetails(ref models.QuotaRefObject) (string, string, error) {
 }
 
 // Function to convert bytes to human-readable storage format
-func bytesToStorageString(bytes int64) string {
+func BytesToStorageString(bytes int64) string {
 	const (
 		mebibyte = 1024 * 1024
 		gibibyte = 1024 * mebibyte
@@ -67,13 +67,13 @@ func calculateStorage(hard models.ResourceList, used models.ResourceList) (strin
 	if hard["storage"] == -1 {
 		storageGiven = "Unlimited"
 	} else {
-		storageGiven = bytesToStorageString(hard["storage"])
+		storageGiven = BytesToStorageString(hard["storage"])
 	}
 
 	if used["storage"] == 0 {
 		storageUsed = "0 MiB"
 	} else {
-		storageUsed = bytesToStorageString(used["storage"])
+		storageUsed = BytesToStorageString(used["storage"])
 	}
 
 	return storageUsed, storageGiven

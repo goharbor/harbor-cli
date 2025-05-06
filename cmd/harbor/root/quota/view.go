@@ -38,15 +38,21 @@ func ViewQuotaCommand() *cobra.Command {
 			var quota *models.Quota
 
 			if len(args) > 0 {
-				quotaID, _ := strconv.ParseInt(args[0], 10, 64)
+				quotaID, err := strconv.ParseInt(args[0], 10, 64)
+				if err != nil {
+					log.Errorf("failed to parse quotaID: %v", err)
+					return
+				}
 				quota, err = api.GetQuota(int64(quotaID))
 				if err != nil {
 					log.Errorf("failed to get Quota: %v", err)
+					return
 				}
 			} else if opts.Reference != "" {
 				project, err := api.GetProject(opts.Reference, false)
 				if err != nil {
 					log.Errorf("failed to get project: %v", err)
+					return
 				}
 				projectID := project.Payload.ProjectID
 				quota, err = api.GetQuotaByRef(int64(projectID))
@@ -72,10 +78,10 @@ func ViewQuotaCommand() *cobra.Command {
 					return
 				}
 				quota, err = api.GetQuota(quotaID)
-			}
-
-			if err != nil {
-				log.Errorf("failed to get project: %v", err)
+				if err != nil {
+					log.Errorf("failed to get quota: %v", err)
+					return
+				}
 			}
 
 			quotas := []*models.Quota{quota}

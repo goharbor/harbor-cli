@@ -36,10 +36,10 @@ type ResourceList map[string]int64
 // UpdateQuotaCommand updates the quota
 func UpdateQuotaCommand() *cobra.Command {
 	var (
-		quotaID int64
 		storage string
 	)
 
+	var opts api.ListQuotaFlags
 	cmd := &cobra.Command{
 		Use:   "update [QuotaID]",
 		Short: "update quotas for projects",
@@ -47,16 +47,54 @@ func UpdateQuotaCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var storageValue int64
+			var quota *models.Quota
 
+			// get quota id with quota
 			if len(args) > 0 {
-				quotaID, err = strconv.ParseInt(args[0], 10, 64)
+				quotaID, err := strconv.ParseInt(args[0], 10, 64)
+				if err != nil {
+					log.Errorf("failed to parse quotaID: %v", err)
+					return
+				}
+				quota, err = api.GetQuota(int64(quotaID))
+				if err != nil {
+					log.Errorf("failed to get Quota: %v", err)
+					return
+				}
+			} else if opts.Reference != "" {
+				project, err := api.GetProject(opts.Reference, false)
+				if err != nil {
+					log.Errorf("failed to get project: %v", err)
+					return
+				}
+				projectID := project.Payload.ProjectID
+				quota, err = api.GetQuotaByRef(int64(projectID))
+				if err != nil {
+					log.Errorf("failed to get quota: %v", err)
+					return
+				}
+			} else if opts.ReferenceID != "" {
+				projectID, err := strconv.ParseInt(opts.ReferenceID, 10, 64)
+				if err != nil {
+					log.Errorf("invalid projectID: %v", err)
+					return
+				}
+				quota, err = api.GetQuotaByRef(projectID)
+				if err != nil {
+					log.Errorf("failed to get quota: %v", err)
+					return
+				}
 			} else {
-				quotaID = prompt.GetQuotaIDFromUser()
-			}
-
-			if err != nil {
-				log.Errorf("failed to parse quotaID: %v", err)
-				return
+				quotaID := prompt.GetQuotaIDFromUser()
+				if quotaID == 0 {
+					log.Errorf("failed to get quotaID from user")
+					return
+				}
+				quota, err = api.GetQuota(quotaID)
+				if err != nil {
+					log.Errorf("failed to get quota: %v", err)
+					return
+				}
 			}
 
 			if storage != "" {
@@ -70,7 +108,7 @@ func UpdateQuotaCommand() *cobra.Command {
 					}
 				}
 			} else {
-				storage = update.UpdateQuotaView()
+				storage = update.UpdateQuotaView(quota)
 				storageValue, err = utils.StorageStringToBytes(storage)
 				if err != nil {
 					log.Errorf("failed to parse storage: %v", err)
@@ -82,7 +120,7 @@ func UpdateQuotaCommand() *cobra.Command {
 				Hard: models.ResourceList{"storage": storageValue},
 			}
 
-			err = api.UpdateQuota(quotaID, hardlimit)
+			err = api.UpdateQuota(quota.ID, hardlimit)
 			if err != nil {
 				log.Errorf("failed to update quota: %v", err)
 				os.Exit(1)
@@ -93,7 +131,9 @@ func UpdateQuotaCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&storage, "storage", "", "", "Enter storage size (e.g., 50GiB, 200MiB, 4TiB)")
+	flags.StringVarP(&storage, "storage", "", "", "Enter storage size (e.g., 50GiB, 20MiB, 4TiB)")
+	flags.StringVarP(&opts.Reference, "project-name", "", "", "Get quota by project-name")
+	flags.StringVarP(&opts.ReferenceID, "project-id", "", "", "Get quota by project ID")
 
 	return cmd
 }

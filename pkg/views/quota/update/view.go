@@ -16,9 +16,13 @@ package update
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,18 +31,28 @@ type CreateView struct {
 	Value       int64
 }
 
-func UpdateQuotaView() string {
+func UpdateQuotaView(quta *models.Quota) string {
 	var (
 		value      string
 		createView CreateView
 	)
 
+	rawStorage := list.BytesToStorageString(quta.Hard["storage"])
+	fmt.Printf("current storage: %v", rawStorage)
+	storagearr := strings.Split(rawStorage, " ")
 	storageUnits := []string{"MiB", "GiB", "TiB"}
+	storageUnit := storagearr[1]
+
+	// check if storageUnit is valid
+	if slices.Contains(storageUnits, storageUnit) {
+		createView.StorageUnit = storageUnit
+		value = storagearr[0]
+	}
 
 	// Initialize a slice to hold select options
 	var storageUnitSelectOptions []huh.Option[string]
 
-	// Iterate over registryOptions to populate registrySelectOptions
+	// Iterate over storageUnits to populate storageUnitSelectOptions
 	for _, option := range storageUnits {
 		storageUnitSelectOptions = append(
 			storageUnitSelectOptions,
@@ -67,11 +81,11 @@ func UpdateQuotaView() string {
 					if str == "" {
 						return errors.New("Quota Limits cannot be empty")
 					}
-					_, err := strconv.ParseInt(str, 10, 64)
+					intval, err := strconv.ParseInt(str, 10, 64)
 					if err != nil {
 						return errors.New("Quota limit must be a valid integer")
 					}
-					createView.Value, _ = strconv.ParseInt(value, 10, 64)
+					createView.Value = intval
 					return nil
 				}),
 		),
