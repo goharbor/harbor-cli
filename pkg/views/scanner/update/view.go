@@ -11,39 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package create
+package update
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/go-openapi/strfmt"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct {
-	Name             string
-	Description      string
-	Auth             string
-	AccessCredential string
-	URL              string
-	Disabled         bool
-	SkipCertVerify   bool
-	UseInternalAddr  bool
-}
-
-func CreateScannerView(createView *CreateView) {
+func UpdateScannerView(scanner *models.ScannerRegistration) {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Name").
-				Value(&createView.Name).
+				Value(&scanner.Name).
 				Validate(huh.ValidateNotEmpty()),
 			huh.NewInput().
 				Title("Description").
-				Value(&createView.Description),
+				Value(&scanner.Description),
 			huh.NewSelect[string]().
 				Title("Authentication Approach").
 				Options(
@@ -52,7 +42,7 @@ func CreateScannerView(createView *CreateView) {
 					huh.NewOption("Bearer", "Bearer"),
 					huh.NewOption("API-Key", "X-ScannerAdapter-API-Key"),
 				).
-				Value(&createView.Auth),
+				Value(&scanner.Auth),
 		),
 	).WithTheme(theme).Run()
 
@@ -60,7 +50,8 @@ func CreateScannerView(createView *CreateView) {
 		log.Fatal(err)
 	}
 
-	if createView.Auth == "Basic" {
+	switch scanner.Auth {
+	case "Basic":
 		var username, password string
 		err = huh.NewForm(
 			huh.NewGroup(
@@ -88,67 +79,58 @@ func CreateScannerView(createView *CreateView) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		createView.AccessCredential = username + ":" + password
-	} else if createView.Auth == "Bearer" || createView.Auth == "X-ScannerAdapter-API-Key" {
+		scanner.AccessCredential = username + ":" + password
+	case "Bearer", "X-ScannerAdapter-API-Key":
 		err = huh.NewForm(
 			huh.NewGroup(
 				huh.NewInput().
 					Title("Token / API Key").
-					Value(&createView.AccessCredential).
+					Value(&scanner.AccessCredential).
 					Validate(huh.ValidateNotEmpty()),
 			),
 		).WithTheme(theme).Run()
 		if err != nil {
 			log.Fatal(err)
 		}
-		if createView.Auth == "Bearer" {
-			createView.AccessCredential = "Bearer: " + createView.AccessCredential
+		if scanner.Auth == "Bearer" {
+			scanner.AccessCredential = "Bearer: " + scanner.AccessCredential
 		} else {
-			createView.AccessCredential = "APIKey: " + createView.AccessCredential
+			scanner.AccessCredential = "APIKey: " + scanner.AccessCredential
 		}
 	}
+
+	var url string = scanner.URL.String()
 	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("URL").
-				Value(&createView.URL).
-				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("server cannot be empty or only spaces")
-					}
-					formattedUrl := utils.FormatUrl(str)
-					if err := utils.ValidateURL(formattedUrl); err != nil {
-						return err
-					}
-					return nil
-				}),
+				Title("Scanner Adapter URL").
+				Value(&url).
+				Validate(huh.ValidateNotEmpty()),
 			huh.NewSelect[bool]().
 				Title("Disable ?").
 				Options(
 					huh.NewOption("No", false),
 					huh.NewOption("Yes", true),
 				).
-				Value(&createView.Disabled),
+				Value(scanner.Disabled),
 			huh.NewSelect[bool]().
 				Title("Skip Certificate Verification ?").
-				Description("Skip TLS check (use for self-signed certs).").
 				Options(
 					huh.NewOption("No", false),
 					huh.NewOption("Yes", true),
 				).
-				Value(&createView.SkipCertVerify),
+				Value(scanner.SkipCertVerify),
 			huh.NewSelect[bool]().
 				Title("Use Internal Registry Address ?").
-				Description("Use internal Harbor address (for in-cluster scanners).").
 				Options(
 					huh.NewOption("No", false),
 					huh.NewOption("Yes", true),
 				).
-				Value(&createView.UseInternalAddr),
+				Value(scanner.UseInternalAddr),
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-	createView.URL = utils.FormatUrl(createView.URL)
+	scanner.URL = strfmt.URI(utils.FormatUrl(url))
 }

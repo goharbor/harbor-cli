@@ -46,13 +46,10 @@ func FormatCreatedTime(timestamp string) (string, error) {
 }
 
 func FormatUrl(url string) string {
-	// Check if URL starts with "http://" or "https://"
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		// If not, prepend "https://"
-		url = "https://" + url
+		url = "http://" + url
 	}
 
-	// Remove all trailing slashes from the URL
 	url = strings.TrimRight(url, "/")
 	url = strings.TrimLeft(url, "/")
 
@@ -90,6 +87,11 @@ func ValidateFL(name string) bool {
 
 // check if the password format is vaild
 func ValidatePassword(password string) error {
+	password = strings.TrimSpace(password)
+	if password == "" {
+		return errors.New("password cannot be empty or only spaces")
+	}
+
 	if len(password) < 8 || len(password) > 256 {
 		return errors.New("worong! the password length must be at least 8 characters and at most 256 characters")
 	}

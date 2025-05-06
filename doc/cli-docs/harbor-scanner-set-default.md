@@ -1,15 +1,27 @@
 ---
 title: harbor scanner set default
-weight: 60
+weight: 25
 ---
 ## harbor scanner set-default
 
 ### Description
 
-##### set default scanner
+##### Set the default scanner for Harbor
+
+### Synopsis
+
+Set the scanner that will be used as the default in Harbor. This scanner will be used for all default scanning tasks unless another scanner is specified.
 
 ```sh
 harbor scanner set-default [flags]
+```
+
+### Examples
+
+```sh
+harbor scanner set-default [scanner-name]
+		OR 
+		harbor scanner set-default --id <scanner-id>
 ```
 
 ### Options

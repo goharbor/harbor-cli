@@ -29,8 +29,6 @@ func CreateScanner(opts create.CreateView) error {
 		return err
 	}
 
-	// The input for auth is not clearly stated in the API docs
-	// The source code states it needs an empty string https://github.com/goharbor/harbor/blob/115827cac7eb5753160b63339f48108937ed673e/src/pkg/scan/dao/scanner/model.go#L50C2-L50C19
 	if opts.Auth == "None" {
 		opts.Auth = ""
 	}
@@ -46,7 +44,6 @@ func CreateScanner(opts create.CreateView) error {
 		SkipCertVerify:   &opts.SkipCertVerify,
 		UseInternalAddr:  &opts.UseInternalAddr,
 	}
-
 	_, err = client.Scanner.CreateScanner(ctx, &scanner.CreateScannerParams{Registration: &scannerRegReq})
 	if err != nil {
 		return err
@@ -132,24 +129,22 @@ func DeleteScanner(registrationID string) error {
 	return nil
 }
 
-func UpdateScanner(registrationID string, opts create.CreateView) error {
+func UpdateScanner(registrationID string, opts models.ScannerRegistration) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
-	url := strfmt.URI(opts.URL)
 	scannerRegReq := models.ScannerRegistrationReq{
 		Name:             &opts.Name,
 		Description:      opts.Description,
 		Auth:             opts.Auth,
 		AccessCredential: opts.AccessCredential,
-		URL:              &url,
-		Disabled:         &opts.Disabled,
-		SkipCertVerify:   &opts.SkipCertVerify,
-		UseInternalAddr:  &opts.UseInternalAddr,
+		URL:              &opts.URL,
+		Disabled:         opts.Disabled,
+		SkipCertVerify:   opts.SkipCertVerify,
+		UseInternalAddr:  opts.UseInternalAddr,
 	}
-
 	_, err = client.Scanner.UpdateScanner(ctx, &scanner.UpdateScannerParams{RegistrationID: registrationID, Registration: &scannerRegReq})
 
 	if err != nil {
@@ -184,4 +179,25 @@ func PingScanner(opts create.CreateView) error {
 	}
 
 	return nil
+}
+
+func GetScannerByName(name string) (models.ScannerRegistration, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return models.ScannerRegistration{}, err
+	}
+
+	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{})
+
+	if err != nil {
+		return models.ScannerRegistration{}, err
+	}
+
+	for _, scanner := range response.GetPayload() {
+		if scanner.Name == name {
+			return *scanner, nil
+		}
+	}
+
+	return models.ScannerRegistration{}, fmt.Errorf("scanner with name %s not found", name)
 }

@@ -1,15 +1,35 @@
 ---
 title: harbor scanner metadata
-weight: 95
+weight: 60
 ---
 ## harbor scanner metadata
 
 ### Description
 
-##### get scanner metadata by id
+##### Retrieve metadata for a specific scanner
+
+### Synopsis
+
+Retrieve detailed metadata for a specified scanner integration in Harbor.
+
+You can either:
+  - Provide the scanner name as an argument (recommended), or
+  - Leave it blank to be prompted interactively.
+
+The metadata includes supported MIME types, capabilities, vendor information, and more.
+
+Examples:
+  # Get metadata for a specific scanner by name
+  harbor scanner metadata trivy-scanner
+
+  # Interactively select a scanner if no name is provided
+  harbor scanner metadata
+
+Flags:
+  --output-format <format>   Output format: 'json' or 'yaml' (default is table view)
 
 ```sh
-harbor scanner metadata [flags]
+harbor scanner metadata [scanner-name] [flags]
 ```
 
 ### Options

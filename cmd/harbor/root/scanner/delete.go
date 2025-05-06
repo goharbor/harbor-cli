@@ -14,6 +14,8 @@
 package scanner
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	log "github.com/sirupsen/logrus"
@@ -22,23 +24,42 @@ import (
 
 func DeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "delete scanner",
-		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:   "delete [scanner-name]",
+		Short: "Delete a scanner registration",
+		Long: `Delete a scanner registration from Harbor.
+
+You can:
+  - Provide the scanner name as an argument to delete it directly, or
+  - Omit the argument to select a scanner interactively.
+
+Note: Deleting a scanner will permanently remove its registration and associated metadata from the system.
+
+Examples:
+  # Delete a scanner by name
+  harbor scanner delete trivy-scanner
+
+  # Interactively choose a scanner to delete
+  harbor scanner delete`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var registrationID string
 			if len(args) > 0 {
-				registrationID = args[0]
+				scanner, err := api.GetScannerByName(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to retrieve scanner by name %q: %v", args[0], err)
+				}
+				registrationID = scanner.UUID
 			} else {
 				registrationID = prompt.GetScannerIdFromUser()
 			}
+
 			err = api.DeleteScanner(registrationID)
 			if err != nil {
-				log.Errorf("failed to delete scanner: %v", err)
-			} else {
-				log.Infof("scanner deleted successfully")
+				return fmt.Errorf("failed to delete scanner: %v", err)
 			}
+			log.Infof("Scanner deleted successfully")
+			return nil
 		},
 	}
 	return cmd

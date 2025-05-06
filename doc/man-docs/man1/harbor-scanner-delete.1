@@ -2,15 +2,32 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-scanner-delete - delete scanner
+harbor-scanner-delete - Delete a scanner registration
 
 
 .SH SYNOPSIS
-\fBharbor scanner delete [flags]\fP
+\fBharbor scanner delete [scanner-name] [flags]\fP
 
 
 .SH DESCRIPTION
-delete scanner
+Delete a scanner registration from Harbor.
+
+.PP
+You can:
+  - Provide the scanner name as an argument to delete it directly, or
+  - Omit the argument to select a scanner interactively.
+
+.PP
+Note: Deleting a scanner will permanently remove its registration and associated metadata from the system.
+
+.PP
+Examples:
+  # Delete a scanner by name
+  harbor scanner delete trivy-scanner
+
+.PP
+# Interactively choose a scanner to delete
+  harbor scanner delete
 
 
 .SH OPTIONS

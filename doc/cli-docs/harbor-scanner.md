@@ -1,6 +1,6 @@
 ---
 title: harbor scanner
-weight: 80
+weight: 70
 ---
 ## harbor scanner
 
@@ -26,10 +26,10 @@ weight: 80
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor scanner create](harbor-scanner-create.md)	 - Create a scanner
-* [harbor scanner delete](harbor-scanner-delete.md)	 - delete scanner
+* [harbor scanner delete](harbor-scanner-delete.md)	 - Delete a scanner registration
 * [harbor scanner list](harbor-scanner-list.md)	 - List scanners
-* [harbor scanner metadata](harbor-scanner-metadata.md)	 - get scanner metadata by id
-* [harbor scanner set-default](harbor-scanner-set-default.md)	 - set default scanner
-* [harbor scanner update](harbor-scanner-update.md)	 - update scanner
-* [harbor scanner view](harbor-scanner-view.md)	 - get scanner by id
+* [harbor scanner metadata](harbor-scanner-metadata.md)	 - Retrieve metadata for a specific scanner
+* [harbor scanner set-default](harbor-scanner-set-default.md)	 - Set the default scanner for Harbor
+* [harbor scanner update](harbor-scanner-update.md)	 - Update a scanner registration
+* [harbor scanner view](harbor-scanner-view.md)	 - Display detailed information about a scanner registration
 

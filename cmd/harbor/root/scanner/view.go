@@ -14,43 +14,65 @@
 package scanner
 
 import (
+	"fmt"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func ViewCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "view",
-		Short: "get scanner by id",
-		Args:  cobra.MaximumNArgs(1),
+	return &cobra.Command{
+		Use:   "view [scanner-name]",
+		Short: "Display detailed information about a scanner registration",
+		Long: `Display full details of a scanner registration in Harbor.
+
+You can:
+  - Provide a scanner name to view its details directly.
+  - Omit the argument to select a scanner interactively by ID.
+
+Supports custom output formats using the --output-format flag (e.g., json, yaml, table).
+
+Examples:
+  # View a specific scanner by name
+  harbor scanner view trivy-scanner
+
+  # Interactively choose a scanner to view
+  harbor scanner view
+
+  # View scanner in JSON format
+  harbor scanner view trivy-scanner --output-format=json`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var registrationID string
+			var scanner *models.ScannerRegistration
 			if len(args) > 0 {
-				registrationID = args[0]
-			} else {
-				registrationID = prompt.GetScannerIdFromUser()
-			}
-			response, err := api.GetScanner(registrationID)
-			if err != nil {
-				log.Errorf("failed to get scanner: %v", err)
-			}
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				err = utils.PrintFormat(response, formatFlag)
+				resp, err := api.GetScannerByName(args[0])
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to get scanner by name %q: %v", args[0], err)
+				}
+				scanner = &resp
+			} else {
+				id := prompt.GetScannerIdFromUser()
+				resp, err := api.GetScanner(id)
+				if err != nil {
+					return fmt.Errorf("failed to get scanner by ID %q: %v", id, err)
+				}
+				scanner = resp.GetPayload()
+			}
+
+			outputFormat := viper.GetString("output-format")
+			if outputFormat != "" {
+				if err := utils.PrintFormat(scanner, outputFormat); err != nil {
+					return fmt.Errorf("failed to format output: %v", err)
 				}
 			} else {
-				view.ViewScanner(response.Payload)
+				view.ViewScanner(scanner)
 			}
 			return nil
 		},
 	}
-	return cmd
 }

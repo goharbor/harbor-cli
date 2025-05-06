@@ -25,13 +25,13 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 10},
-	{Title: "Description", Width: 30},
-	{Title: "Disabled", Width: 20},
-	{Title: "URL", Width: 30},
-	{Title: "Default", Width: 8},
-	{Title: "Internal", Width: 14},
-	{Title: "Created", Width: 20},
+	{Title: "Name", Width: tablelist.WidthM},
+	{Title: "Description", Width: tablelist.WidthXXL},
+	{Title: "Disabled", Width: tablelist.WidthM},
+	{Title: "URL", Width: tablelist.WidthXXL},
+	{Title: "Default", Width: tablelist.WidthS},
+	{Title: "Internal", Width: tablelist.WidthM},
+	{Title: "Created", Width: tablelist.WidthM},
 }
 
 func ListScanners(scanners []*models.ScannerRegistration) {

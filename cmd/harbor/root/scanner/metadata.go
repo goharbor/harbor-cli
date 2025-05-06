@@ -26,13 +26,34 @@ import (
 
 func MetadataCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "metadata [scanner-id]",
-		Short: "Get scanner metadata by ID",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "metadata [scanner-name]",
+		Short: "Retrieve metadata for a specific scanner",
+		Long: `Retrieve detailed metadata for a specified scanner integration in Harbor.
+
+You can either:
+  - Provide the scanner name as an argument (recommended), or
+  - Leave it blank to be prompted interactively.
+
+The metadata includes supported MIME types, capabilities, vendor information, and more.
+
+Examples:
+  # Get metadata for a specific scanner by name
+  harbor scanner metadata trivy-scanner
+
+  # Interactively select a scanner if no name is provided
+  harbor scanner metadata
+
+Flags:
+  --output-format <format>   Output format: 'json' or 'yaml' (default is table view)`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var registrationID string
 			if len(args) > 0 {
-				registrationID = args[0]
+				scanner, err := api.GetScannerByName(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to retrieve scanner by name %q: %v", args[0], err)
+				}
+				registrationID = scanner.UUID
 			} else {
 				registrationID = prompt.GetScannerIdFromUser()
 			}

@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-scanner-set-default - set default scanner
+harbor-scanner-set-default - Set the default scanner for Harbor
 
 
 .SH SYNOPSIS
@@ -10,7 +10,7 @@ harbor-scanner-set-default - set default scanner
 
 
 .SH DESCRIPTION
-set default scanner
+Set the scanner that will be used as the default in Harbor. This scanner will be used for all default scanning tasks unless another scanner is specified.
 
 
 .SH OPTIONS
@@ -29,6 +29,14 @@ set default scanner
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor scanner set-default [scanner-name]
+		OR 
+		harbor scanner set-default --id <scanner-id>
+.EE
 
 
 .SH SEE ALSO

@@ -1,6 +1,6 @@
 ---
 title: harbor scanner create
-weight: 55
+weight: 95
 ---
 ## harbor scanner create
 
@@ -15,16 +15,16 @@ harbor scanner create [flags]
 ### Options
 
 ```sh
-      --auth string   Authentication approach of the scanner [None|Basic|Bearer|X-ScannerAdapter-API-Key]
-      --cred string   HTTP Authorization header value sent with each request to the Scanner Adapter API
-      --des string    Description of the scanner
-      --disable       Indicate whether the registration is enabled or not
-  -h, --help          help for create
-      --internal      Indicate whether use internal registry addr for the scanner to pull content or not
-      --name string   Name of the scanner
-      --ping          Ping the scanner adapter without creating it.
-      --skip          Indicate if skip the certificate verification when sending HTTP requests
-      --url string    Base URL of the scanner adapter
+      --auth string              Authentication method [None|Basic|Bearer|X-ScannerAdapter-API-Key]
+      --credential string        Authorization header for the Scanner Adapter API
+      --description string       New description for the scanner
+      --disabled                 Disable the scanner registration
+  -h, --help                     help for create
+      --name string              New name for the scanner
+      --ping                     Ping the scanner adapter without creating it.
+      --skip-cert-verification   Skip certificate verification in HTTP requests
+      --url string               Base URL of the scanner adapter
+      --use-internal-addr        Use internal registry address for scanning
 ```
 
 ### Options inherited from parent commands

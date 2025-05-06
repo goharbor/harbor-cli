@@ -1,29 +1,54 @@
 ---
 title: harbor scanner update
-weight: 95
+weight: 90
 ---
 ## harbor scanner update
 
 ### Description
 
-##### update scanner
+##### Update a scanner registration
+
+### Synopsis
+
+Update the fields of an existing scanner registration.
+
+You can pass the scanner name as an argument, or the CLI will prompt you to enter a scanner ID.
+Only the fields passed through flags will be updated; other fields will retain their existing values.
 
 ```sh
-harbor scanner update [flags]
+harbor scanner update [scanner-name] [flags]
+```
+
+### Examples
+
+```sh
+
+  # Update description and URL for a scanner named 'trivy-scanner'
+  harbor scanner update trivy-scanner --description "Updated scanner" --url "http://trivy.local:8080"
+
+  # Change the authentication method and credential
+  harbor scanner update trivy-scanner --auth Basic --credential "base64encodedAuth"
+
+  # Disable the scanner and rename it
+  harbor scanner update trivy-scanner --name "trivy-secure" --disabled
+
+  # If no name is passed, you'll be prompted to enter a Scanner ID
+  harbor scanner update --description "Updated via ID prompt"
+
 ```
 
 ### Options
 
 ```sh
-      --auth string   Authentication approach of the scanner [None|Basic|Bearer|X-ScannerAdapter-API-Key]
-      --cred string   HTTP Authorization header value sent with each request to the Scanner Adapter API
-      --des string    Description of the scanner
-      --disable       Indicate whether the registration is enabled or not
-  -h, --help          help for update
-      --internal      Indicate whether use internal registry addr for the scanner to pull content or not
-      --name string   Name of the scanner
-      --skip          Indicate if skip the certificate verification when sending HTTP requests
-      --url string    Base URL of the scanner adapter
+      --auth string              Authentication method [None|Basic|Bearer|X-ScannerAdapter-API-Key]
+      --credential string        Authorization header for the Scanner Adapter API
+      --description string       New description for the scanner
+      --disabled                 Disable the scanner registration
+  -h, --help                     help for update
+      --name string              New name for the scanner
+      --skip-cert-verification   Skip certificate verification in HTTP requests
+      --url string               Base URL of the scanner adapter
+      --use-internal-addr        Use internal registry address for scanning
 ```
 
 ### Options inherited from parent commands

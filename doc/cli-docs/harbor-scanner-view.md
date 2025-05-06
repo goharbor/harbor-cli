@@ -1,15 +1,35 @@
 ---
 title: harbor scanner view
-weight: 80
+weight: 95
 ---
 ## harbor scanner view
 
 ### Description
 
-##### get scanner by id
+##### Display detailed information about a scanner registration
+
+### Synopsis
+
+Display full details of a scanner registration in Harbor.
+
+You can:
+  - Provide a scanner name to view its details directly.
+  - Omit the argument to select a scanner interactively by ID.
+
+Supports custom output formats using the --output-format flag (e.g., json, yaml, table).
+
+Examples:
+  # View a specific scanner by name
+  harbor scanner view trivy-scanner
+
+  # Interactively choose a scanner to view
+  harbor scanner view
+
+  # View scanner in JSON format
+  harbor scanner view trivy-scanner --output-format=json
 
 ```sh
-harbor scanner view [flags]
+harbor scanner view [scanner-name] [flags]
 ```
 
 ### Options

@@ -1,15 +1,32 @@
 ---
 title: harbor scanner delete
-weight: 5
+weight: 0
 ---
 ## harbor scanner delete
 
 ### Description
 
-##### delete scanner
+##### Delete a scanner registration
+
+### Synopsis
+
+Delete a scanner registration from Harbor.
+
+You can:
+  - Provide the scanner name as an argument to delete it directly, or
+  - Omit the argument to select a scanner interactively.
+
+Note: Deleting a scanner will permanently remove its registration and associated metadata from the system.
+
+Examples:
+  # Delete a scanner by name
+  harbor scanner delete trivy-scanner
+
+  # Interactively choose a scanner to delete
+  harbor scanner delete
 
 ```sh
-harbor scanner delete [flags]
+harbor scanner delete [scanner-name] [flags]
 ```
 
 ### Options
