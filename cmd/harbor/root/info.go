@@ -14,6 +14,8 @@
 package root
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -57,6 +59,9 @@ The output can be formatted as table (default), JSON, or YAML using the '--outpu
 			OSinfo := version.System
 
 			cliinfo, err = api.GetCLIInfo()
+			if err != nil {
+				return fmt.Errorf("Failed to get CLI info: %w", err)
+			}
 			systemInfo := list.CreateSystemInfo(
 				generalInfo.Payload,
 				stats.Payload,

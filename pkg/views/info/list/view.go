@@ -64,7 +64,7 @@ func CreateSystemInfo(
 		Statistics: stats,
 		SystemInfo: generalInfo,
 		VolumeInfo: &Volumes{
-			Free:  func() uint64 {
+			Free: func() uint64 {
 				if volumes.Storage != nil && len(volumes.Storage) > 0 {
 					return volumes.Storage[0].Free
 				}
