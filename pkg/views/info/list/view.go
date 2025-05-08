@@ -22,25 +22,43 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
+
+var columns = []table.Column{
+	{Title: "Attribute", Width: tablelist.WidthL * 2},
+	{Title: "Value", Width: tablelist.WidthL * 2},
+}
 
 type Volumes struct {
 	Free  uint64 `json:"free,omitempty"`
 	Total uint64 `json:"total,omitempty"`
 }
 
-// Define the SystemInfo struct that includes both Statistic and GeneralInfo
+type CLIInfoView struct {
+	Username           string   `json:"username"`
+	RegistryAddress    string   `json:"registry_address"`
+	IsSysAdmin         bool     `json:"is_sys_admin"`
+	PreviouslyLoggedIn []string `json:"previously_logged_in"`
+	CLIVersion         string   `json:"cli_version"`
+	OSInfo             string   `json:"os"`
+}
+
 type SystemInfo struct {
 	Statistics *models.Statistic   `json:"statistics"`
 	SystemInfo *models.GeneralInfo `json:"system_info"`
 	VolumeInfo *Volumes            `json:"storage"`
+	CLIInfo    *CLIInfoView        `json:"cli_info"`
 }
 
 func CreateSystemInfo(
 	generalInfo *models.GeneralInfo,
 	stats *models.Statistic,
 	volumes *models.SystemInfo,
+	cliinfo *api.CLIInfo,
+	cliVersion string,
+	osInfo string,
 ) SystemInfo {
 	return SystemInfo{
 		Statistics: stats,
@@ -49,19 +67,40 @@ func CreateSystemInfo(
 			Free:  volumes.Storage[0].Free,
 			Total: volumes.Storage[0].Total,
 		},
+		CLIInfo: &CLIInfoView{
+			Username:           cliinfo.Username,
+			RegistryAddress:    cliinfo.RegistryAddress,
+			IsSysAdmin:         cliinfo.IsSysAdmin,
+			PreviouslyLoggedIn: cliinfo.PreviouslyLoggedIn,
+			CLIVersion:         cliVersion,
+			OSInfo:             osInfo,
+		},
 	}
+}
+
+func ListInfo(info *SystemInfo) {
+	renderSectionTable("System Info", info.SystemInfo)
+	renderSectionTable("Statistics", info.Statistics)
+	renderSectionTable("Storage", info.VolumeInfo)
+	renderSectionTable("Harbor CLI Info", info.CLIInfo)
+}
+
+func renderSectionTable(title string, data interface{}) {
+	var rows []table.Row
+	createRows(data, &rows)
+	fmt.Printf("\n  %s:\n", title)
+	runTable(columns, rows)
 }
 
 func createRows(data interface{}, rows *[]table.Row) {
 	val := reflect.ValueOf(data)
 
-	// Dereference pointer if necessary
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
 
 	if val.Kind() != reflect.Struct {
-		fmt.Println("Error: Expected a struct or a pointer to a struct")
+		fmt.Println("Error: Expected a struct or pointer to a struct")
 		return
 	}
 
@@ -69,84 +108,53 @@ func createRows(data interface{}, rows *[]table.Row) {
 
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
-		// Skip if the field type is a struct
-		if field.Kind() == reflect.Struct {
-			createRows(field.Interface(), rows)
-			continue
-		}
+		fieldType := typ.Field(i)
+		fieldName := fieldType.Name
 
-		fieldName := typ.Field(i).Name
-		// Initialize a string variable to store the field value
-		var fieldValue string
-
-		// Dereference pointer to access underlying value
 		if field.Kind() == reflect.Ptr && !field.IsNil() {
 			field = field.Elem()
 		}
 
-		// Handle slices of pointers to structs
-		if field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.Ptr &&
-			field.Type().Elem().Elem().Kind() == reflect.Struct {
-			for j := 0; j < field.Len(); j++ {
-				createRows(field.Index(j).Interface(), rows)
-			}
-			continue
-		}
-		// Convert field value to string
 		switch field.Kind() {
 		case reflect.Struct:
-			// Check if the field is of type strfmt.DateTime
 			if field.Type() == reflect.TypeOf(strfmt.DateTime{}) {
-				// Convert strfmt.DateTime to string
-				timeStr := field.Interface().(strfmt.DateTime).String()
-				fieldValue = timeStr
+				*rows = append(*rows, table.Row{fieldName, field.Interface().(strfmt.DateTime).String()})
 			} else {
-				// Recursively print the struct fields
 				createRows(field.Interface(), rows)
 			}
+		case reflect.Slice:
+			sliceVal := reflect.ValueOf(field.Interface())
+			for j := 0; j < sliceVal.Len(); j++ {
+				item := fmt.Sprintf("%v", sliceVal.Index(j).Interface())
+				if j == 0 {
+					*rows = append(*rows, table.Row{fieldName, item})
+				} else {
+					*rows = append(*rows, table.Row{"", item})
+				}
+			}
 		default:
-			fieldValue = fmt.Sprintf("%v", field.Interface())
+			var value string
+			if fieldName == "IsSysAdmin" {
+				value = roleString(field.Bool())
+			} else {
+				value = fmt.Sprintf("%v", field.Interface())
+			}
+			*rows = append(*rows, table.Row{fieldName, value})
 		}
-		// Append field name and value to the rows slice
-		*rows = append(*rows, table.Row{fieldName, fieldValue})
 	}
 }
 
-var column = []table.Column{
-	{Title: "Attribute", Width: 24},
-	{Title: "Value", Width: 22},
+func runTable(columns []table.Column, rows []table.Row) {
+	model := tablelist.NewModel(columns, rows, len(rows))
+	if _, err := tea.NewProgram(model).Run(); err != nil {
+		fmt.Println("Error running table:", err)
+		os.Exit(1)
+	}
 }
 
-func ListInfo(info *SystemInfo) {
-	var rows []table.Row
-	columns := column
-
-	// Create SystemInfo Table
-	createRows(info.SystemInfo, &rows)
-	fmt.Println("\n  System Info:")
-	mSystem := tablelist.NewModel(columns, rows, len(rows))
-	if _, err := tea.NewProgram(mSystem).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+func roleString(isSysAdmin bool) string {
+	if isSysAdmin {
+		return "Yes"
 	}
-
-	// Create Statistics Table
-	var rows2 []table.Row
-	createRows(info.Statistics, &rows2)
-	fmt.Println("\n  Statistics:")
-	mStats := tablelist.NewModel(columns, rows2, len(rows2))
-	if _, err := tea.NewProgram(mStats).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
-
-	// Create Storage Table
-	var rows3 []table.Row
-	createRows(info.VolumeInfo, &rows3)
-	fmt.Println("\n  Storage:")
-	mStorage := tablelist.NewModel(columns, rows3, len(rows3))
-	if _, err := tea.NewProgram(mStorage).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	return "No"
 }

@@ -14,55 +14,85 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/statistic"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/systeminfo"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/spf13/viper"
 )
+
+type CLIInfo struct {
+	Username           string
+	RegistryAddress    string
+	IsSysAdmin         bool
+	PreviouslyLoggedIn []string
+	OSinfo             string
+}
 
 func GetStats() (*statistic.GetStatisticOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get stats: %w", err)
 	}
-	response, err := client.Statistic.GetStatistic(
-		ctx,
-		&statistic.GetStatisticParams{},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	return client.Statistic.GetStatistic(ctx, &statistic.GetStatisticParams{})
 }
 
 func GetSystemInfo() (*systeminfo.GetSystemInfoOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get system info: %w", err)
 	}
-	response, err := client.Systeminfo.GetSystemInfo(
-		ctx,
-		&systeminfo.GetSystemInfoParams{},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	return client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
 }
 
 func GetSystemVolumes() (*systeminfo.GetVolumesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get system volumes: %w", err)
 	}
-	response, err := client.Systeminfo.GetVolumes(
-		ctx,
-		&systeminfo.GetVolumesParams{},
-	)
+	return client.Systeminfo.GetVolumes(ctx, &systeminfo.GetVolumesParams{})
+}
+
+func GetCLIInfo() (*CLIInfo, error) {
+	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cli info: failed to create Harbor client: %w", err)
 	}
 
-	return response, nil
+	currentCred := viper.GetString("current-credential-name")
+	if currentCred == "" {
+		return nil, fmt.Errorf("cli info: no active credentials found")
+	}
+
+	creds := viper.Get("credentials").([]interface{})
+	var registryAddress string
+	seen := make(map[string]struct{})
+	var previousRegistries []string
+
+	for _, cred := range creds {
+		c := cred.(map[string]interface{})
+		addr := c["serveraddress"].(string)
+
+		if c["name"] == currentCred {
+			registryAddress = addr
+		}
+		if _, exists := seen[addr]; !exists {
+			previousRegistries = append(previousRegistries, addr)
+			seen[addr] = struct{}{}
+		}
+	}
+
+	userResp, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
+	if err != nil {
+		return nil, fmt.Errorf("cli info: get current user info: %w", err)
+	}
+
+	return &CLIInfo{
+		Username:           userResp.Payload.Username,
+		RegistryAddress:    registryAddress,
+		IsSysAdmin:         userResp.Payload.SysadminFlag,
+		PreviouslyLoggedIn: previousRegistries,
+	}, nil
 }

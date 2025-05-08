@@ -14,6 +14,7 @@
 package root
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/info/list"
@@ -25,27 +26,45 @@ import (
 // Lists the info of the Harbor system
 func InfoCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "info",
-		Short:   "Get general system info",
-		Example: `  harbor info`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:   "info",
+		Short: "Display detailed Harbor system, statistics, and CLI environment information",
+		Long: `The 'info' command retrieves and displays general information about the Harbor instance, 
+including system metadata, storage statistics, and CLI environment details such as user identity, 
+registry address, and CLI version.
+
+The output can be formatted as table (default), JSON, or YAML using the '--output-format' flag.`,
+		Example: `  harbor info
+  harbor info --output-format json
+  harbor info -o yaml`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var cliinfo *api.CLIInfo
+			var err error
 			generalInfo, err := api.GetSystemInfo()
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			stats, err := api.GetStats()
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			sysVolume, err := api.GetSystemVolumes()
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
+			cliVersion := version.Version
+			OSinfo := version.System
 
-			// CreateSystemInfo
-			systemInfo := list.CreateSystemInfo(generalInfo.Payload, stats.Payload, sysVolume.Payload)
+			cliinfo, err = api.GetCLIInfo()
+			systemInfo := list.CreateSystemInfo(
+				generalInfo.Payload,
+				stats.Payload,
+				sysVolume.Payload,
+				cliinfo,
+				cliVersion,
+				OSinfo,
+			)
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
@@ -56,8 +75,9 @@ func InfoCommand() *cobra.Command {
 			} else {
 				list.ListInfo(&systemInfo)
 			}
+
+			return nil
 		},
 	}
-
 	return cmd
 }
