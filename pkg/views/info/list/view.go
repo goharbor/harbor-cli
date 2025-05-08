@@ -64,8 +64,18 @@ func CreateSystemInfo(
 		Statistics: stats,
 		SystemInfo: generalInfo,
 		VolumeInfo: &Volumes{
-			Free:  volumes.Storage[0].Free,
-			Total: volumes.Storage[0].Total,
+			Free:  func() uint64 {
+				if volumes.Storage != nil && len(volumes.Storage) > 0 {
+					return volumes.Storage[0].Free
+				}
+				return 0
+			}(),
+			Total: func() uint64 {
+				if volumes.Storage != nil && len(volumes.Storage) > 0 {
+					return volumes.Storage[0].Total
+				}
+				return 0
+			}(),
 		},
 		CLIInfo: &CLIInfoView{
 			Username:           cliinfo.Username,
