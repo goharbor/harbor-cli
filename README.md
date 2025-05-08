@@ -83,16 +83,23 @@ harbor help
 
 
 Available Commands:
-  artifact    Manage artifacts
-  completion  Generate the autocompletion script for the specified shell
-  health      Get the health status of Harbor components
-  help        Help about any command
-  login       Log in to Harbor registry
-  project     Manage projects and assign resources to them
-  registry    Manage registries
-  repo        Manage repositories
-  user        Manage users
-  version     Version of Harbor CLI
+  artifact      Manage artifacts
+  completion    Generate the autocompletion script for the specified shell
+  config        Manage the config of the Harbor CLI
+  cve-allowlist Manage system CVE allowlist
+  health        Get the health status of Harbor components
+  help          Help about any command
+  info          Show the current credential information
+  instance      Manage preheat provider instances in Harbor
+  label         Manage labels in Harbor
+  login         Log in to Harbor registry
+  project       Manage projects and assign resources to them
+  registry      Manage registries
+  repo          Manage repositories
+  schedule      Schedule jobs in Harbor
+  tag           Manage tags in Harbor registry
+  user          Manage users
+  version       Version of Harbor CLI
 
 Flags:
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
