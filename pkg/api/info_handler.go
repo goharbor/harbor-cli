@@ -66,7 +66,10 @@ func GetCLIInfo() (*CLIInfo, error) {
 		return nil, fmt.Errorf("cli info: no active credentials found")
 	}
 
-	creds := viper.Get("credentials").([]interface{})
+	creds, ok := viper.Get("credentials").([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("cli info: invalid type for credentials, expected []interface{}")
+	}
 	var registryAddress string
 	seen := make(map[string]struct{})
 	var previousRegistries []string
