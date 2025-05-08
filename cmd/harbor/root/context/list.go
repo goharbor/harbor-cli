@@ -36,7 +36,7 @@ func ListContextCommand() *cobra.Command {
 			}
 			var cxlist []api.ContextListView
 			for _, cred := range config.Credentials {
-				cx := api.ContextListView{cred.Name, cred.Username, cred.ServerAddress}
+				cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 				cxlist = append(cxlist, cx)
 			}
 			list.ListContexts(cxlist)

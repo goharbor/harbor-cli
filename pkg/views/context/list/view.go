@@ -16,11 +16,12 @@ package list
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
-	"os"
 )
 
 var columns = []table.Column{
