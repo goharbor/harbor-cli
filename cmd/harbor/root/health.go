@@ -15,8 +15,10 @@ package root
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/health"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func HealthCommand() *cobra.Command {
@@ -32,7 +34,15 @@ func HealthCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			health.PrintHealthStatus(status)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(status, FormatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				health.PrintHealthStatus(status)
+			}
 			return nil
 		},
 		Example: `  # Get the health status of Harbor components`,

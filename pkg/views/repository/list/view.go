@@ -26,10 +26,10 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: 24},
-	{Title: "Artifacts", Width: 12},
-	{Title: "Pulls", Width: 12},
-	{Title: "Last Modified Time", Width: 30},
+	{Title: "Name", Width: tablelist.WidthXXL},
+	{Title: "Artifacts", Width: tablelist.WidthM},
+	{Title: "Pulls", Width: tablelist.WidthM},
+	{Title: "Last Modified Time", Width: tablelist.WidthL * 2},
 }
 
 func ListRepositories(repos []*models.Repository) {

@@ -25,11 +25,11 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Name", Width: 12},
-	{Title: "Color", Width: 12},
-	{Title: "Description", Width: 18},
-	{Title: "Creation Time", Width: 24},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Name", Width: tablelist.WidthM},
+	{Title: "Color", Width: tablelist.WidthM},
+	{Title: "Description", Width: tablelist.WidthXL},
+	{Title: "Creation Time", Width: tablelist.WidthL},
 }
 
 func ListLabels(labels []*models.Label) {

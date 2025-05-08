@@ -31,18 +31,28 @@ func ElevateUserCmd() *cobra.Command {
 			var err error
 			var userId int64
 			if len(args) > 0 {
-				userId, _ = api.GetUsersIdByName(args[0])
+				userId, err = api.GetUsersIdByName(args[0])
+				if err != nil {
+					log.Errorf("failed to get user id for '%s': %v", args[0], err)
+					return
+				}
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
-
 			confirm, err := views.ConfirmElevation()
-			if confirm {
-				err = api.ElevateUser(userId)
-			} else {
-				log.Error("Permission denied for elevate user to admin.")
-			}
 			if err != nil {
+				log.Errorf("failed to confirm elevation: %v", err)
+				return
+			}
+			if !confirm {
+				log.Error("User did not confirm elevation. Aborting command.")
+				return
+			}
+
+			err = api.ElevateUser(userId)
+			if isUnauthorizedError(err) {
+				log.Error("Permission denied: Admin privileges are required to execute this command.")
+			} else {
 				log.Errorf("failed to elevate user: %v", err)
 			}
 		},

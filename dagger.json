@@ -1,7 +1,9 @@
 {
   "name": "harbor-cli",
-  "engineVersion": "v0.15.2",
-  "sdk": "go",
+  "engineVersion": "v0.18.4",
+  "sdk": {
+    "source": "go"
+  },
   "dependencies": [
     {
       "name": "cosign",
@@ -9,5 +11,5 @@
       "pin": "8359122a7b90f2c8c6f3165570fdcbec6e923023"
     }
   ],
-  "source": "dagger"
+  "source": ".dagger"
 }
