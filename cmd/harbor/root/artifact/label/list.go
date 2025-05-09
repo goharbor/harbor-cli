@@ -11,29 +11,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package artifact
+package label
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/label"
 	"github.com/spf13/cobra"
 )
 
-func Artifact() *cobra.Command {
+// DelLabelArtifactCommmand delete label command to artifact
+func ListLabelArtifactCommmand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "artifact",
-		Short:   "Manage artifacts",
-		Long:    `Manage artifacts in Harbor Repository`,
-		Example: `  harbor artifact list`,
+		Use:     "delete",
+		Aliases: []string{"del"},
+		Short:   "del label to an artifact",
+		Long:    `del label to artifact`,
+		Example: `harbor artifact label del <project>/<repository>/<reference> <label name>`,
+		Args:    cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+		},
 	}
-
-	cmd.AddCommand(
-		ListArtifactCommand(),
-		ViewArtifactCommmand(),
-		DeleteArtifactCommand(),
-		ScanArtifactCommand(),
-		ArtifactTagsCmd(),
-		label.LabelsArtifactCommmand(),
-	)
 
 	return cmd
 }
