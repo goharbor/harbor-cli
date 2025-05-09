@@ -1,0 +1,43 @@
+.nh
+.TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+harbor-artifact-label - label command for artifacts
+
+
+.SH SYNOPSIS
+\fBharbor artifact label [flags]\fP
+
+
+.SH DESCRIPTION
+label command for artifact
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for label
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor artifact label add <project>/<repository>/<reference> <label name>
+harbor artifact label del <project>/<repository>/<reference> <label name>
+		
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-artifact(1)\fP, \fBharbor-artifact-label-add(1)\fP, \fBharbor-artifact-label-delete(1)\fP
