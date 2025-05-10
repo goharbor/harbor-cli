@@ -34,6 +34,10 @@ This command provides an easy way to view all instances along with their details
 		Example: `  harbor-cli instance list --page 1 --page-size 10
   harbor-cli instance list --query "name=my-instance" --sort "asc"`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(false)
+			}
+
 			instance, err := api.ListInstance(opts)
 
 			if err != nil {

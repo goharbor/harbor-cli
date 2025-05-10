@@ -39,6 +39,10 @@ func UserListCmd() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(true)
+			}
+
 			if opts.PageSize == 0 {
 				opts.PageSize = 100
 				opts.Page = 1

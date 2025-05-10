@@ -41,6 +41,10 @@ func ListProjectCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(true)
+			}
+
 			if private && public {
 				return fmt.Errorf("Cannot specify both --private and --public flags")
 			}

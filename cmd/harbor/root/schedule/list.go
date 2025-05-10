@@ -34,6 +34,10 @@ func ListScheduleCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(false)
+			}
+
 			schedule, err := api.ListSchedule(opts)
 
 			if err != nil {

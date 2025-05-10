@@ -36,6 +36,11 @@ func ListRegistryCommand() *cobra.Command {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
+
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(false)
+			}
+
 			registry, err := api.ListRegistries(opts)
 
 			if err != nil {

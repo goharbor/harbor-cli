@@ -33,6 +33,10 @@ func LogsProjectCommmand() *cobra.Command {
 		Short: "get project logs",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(false)
+			}
+
 			var err error
 			var resp *proj.GetLogsOK
 			if len(args) > 0 {

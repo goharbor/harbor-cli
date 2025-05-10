@@ -46,6 +46,11 @@ Supports pagination, search queries, and sorting using flags.`,
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
+
+			if !cmd.Flag(("page-size")).Changed {
+				opts.PageSize = utils.GetDefaultPageSize(false)
+			}
+
 			var err error
 			var artifacts artifact.ListArtifactsOK
 			var projectName, repoName string

@@ -35,6 +35,7 @@ type Credential struct {
 type HarborConfig struct {
 	CurrentCredentialName string       `mapstructure:"current-credential-name" yaml:"current-credential-name"`
 	Credentials           []Credential `mapstructure:"credentials" yaml:"credentials"`
+	PageSize              int          `mapstructure:"page-size" yaml:"page-size"`
 }
 
 type HarborData struct {
@@ -353,10 +354,12 @@ func CreateConfigFile(configPath string) error {
 		defaultConfig := HarborConfig{
 			CurrentCredentialName: "",
 			Credentials:           []Credential{},
+			PageSize:              0,
 		}
 
 		v.Set("current-credential-name", defaultConfig.CurrentCredentialName)
 		v.Set("credentials", defaultConfig.Credentials)
+		v.Set("page-size", defaultConfig.PageSize)
 
 		if err := v.WriteConfigAs(configPath); err != nil {
 			log.Fatalf("failed to write config file: %v", err)
@@ -400,6 +403,7 @@ func UpdateConfigFile(config *HarborConfig) error {
 	// Overwrite the specific fields we care about
 	v.Set("current-credential-name", config.CurrentCredentialName)
 	v.Set("credentials", config.Credentials)
+	v.Set("page-size", config.PageSize)
 
 	// Write back to disk
 	if err := v.WriteConfig(); err != nil {
@@ -510,4 +514,19 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)
 	log.Infof("Switched to context '%s'", updatedCredential.Name)
 	return nil
+}
+
+func GetDefaultPageSize(zeroIfUnset bool) int64 {
+	const defaultPageSize int64 = 10
+
+	harborConfig, err := GetCurrentHarborConfig()
+	if err != nil || harborConfig.PageSize == 0 {
+		if zeroIfUnset {
+			return 0
+		} else {
+			return defaultPageSize
+		}
+	}
+
+	return int64(harborConfig.PageSize)
 }
