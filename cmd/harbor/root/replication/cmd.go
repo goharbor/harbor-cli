@@ -22,10 +22,12 @@ func Replication() *cobra.Command {
 	var replicationCmd = &cobra.Command{
 		Use:     "replication",
 		Aliases: []string{"repl"},
-		Short:   "",
-		Long:    ``,
+		Short:   "Manage replication policies",
+		Long:    `Manage Replication policies.`,
 	}
-	replicationCmd.AddCommand()
+	replicationCmd.AddCommand(
+		ListReplicationCommand(),
+	)
 
 	return replicationCmd
 }
