@@ -15,6 +15,7 @@ package root
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
@@ -106,6 +107,7 @@ harbor help
 		labels.Labels(),
 		InfoCommand(),
 		instance.Instance(),
+		replication.Replication(),
 	)
 
 	return root
