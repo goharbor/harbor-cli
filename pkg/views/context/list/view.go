@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/term"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -41,9 +43,14 @@ func ListContexts(contexts []api.ContextListView) {
 		})
 	}
 
+	var opts []tea.ProgramOption
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		opts = append(opts, tea.WithoutRenderer(), tea.WithInput(nil))
+	}
+
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
+	if _, err := tea.NewProgram(m, opts...).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}

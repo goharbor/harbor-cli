@@ -32,18 +32,16 @@ func Test_ContextCmd(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-// TODO: This test fails because it tries to open a TTY terminal which fails in GitHub workflows and dagger but works if you run it locally.
-// The underlying module bubbletea requires TTY to run.
-//func Test_ContextListCmd(t *testing.T) {
-//	tempDir := t.TempDir()
-//	data := Initialize(t, tempDir)
-//	defer ConfigCleanup(t, data)
-//	SetMockKeyring(t)
-//	rootCmd := root.RootCmd()
-//	rootCmd.SetArgs([]string{"context", "list"})
-//	err := rootCmd.Execute()
-//	assert.Nil(t, err)
-//}
+func Test_ContextListCmd(t *testing.T) {
+	tempDir := t.TempDir()
+	data := Initialize(t, tempDir)
+	defer ConfigCleanup(t, data)
+	SetMockKeyring(t)
+	rootCmd := root.RootCmd()
+	rootCmd.SetArgs([]string{"context", "list"})
+	err := rootCmd.Execute()
+	assert.Nil(t, err)
+}
 
 func Test_ContextGetCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()

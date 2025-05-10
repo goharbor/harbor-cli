@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/context/list"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ListContextCommand() *cobra.Command {
@@ -31,15 +32,27 @@ func ListContextCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				logrus.Errorf("Error occurred: %v", err)
+				logrus.Errorf("Failed to get config: %v", err)
 				return
 			}
-			var cxlist []api.ContextListView
-			for _, cred := range config.Credentials {
-				cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
-				cxlist = append(cxlist, cx)
+
+			// Get the output format
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				// Use utils.PrintFormat if available
+				err = utils.PrintFormat(config, formatFlag)
+				if err != nil {
+					logrus.Errorf("Failed to print config: %v", err)
+					return
+				}
+			} else {
+				var cxlist []api.ContextListView
+				for _, cred := range config.Credentials {
+					cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+					cxlist = append(cxlist, cx)
+				}
+				list.ListContexts(cxlist)
 			}
-			list.ListContexts(cxlist)
 		},
 	}
 	return cmd
