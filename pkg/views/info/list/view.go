@@ -23,6 +23,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
@@ -144,8 +145,8 @@ func createRows(data interface{}, rows *[]table.Row) {
 			}
 		default:
 			var value string
-			if fieldName == "IsSysAdmin" {
-				value = roleString(field.Bool())
+			if fieldName == "TotalStorageConsumption" {
+				value = fmt.Sprintf("%s", utils.FormatSize(int64(field.Interface().(int64))))
 			} else {
 				value = fmt.Sprintf("%v", field.Interface())
 			}
@@ -160,11 +161,4 @@ func runTable(columns []table.Column, rows []table.Row) {
 		fmt.Println("Error running table:", err)
 		os.Exit(1)
 	}
-}
-
-func roleString(isSysAdmin bool) string {
-	if isSysAdmin {
-		return "Yes"
-	}
-	return "No"
 }
