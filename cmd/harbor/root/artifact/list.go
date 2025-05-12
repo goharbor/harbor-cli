@@ -47,8 +47,8 @@ Supports pagination, search queries, and sorting using flags.`,
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 			if !cmd.Flag(("page-size")).Changed {
-				if defaultPageSize, ok := utils.GetConfiguredPageSize(); ok {
-					opts.PageSize = defaultPageSize
+				if configuredPageSize, ok := utils.GetConfiguredPageSize(); ok {
+					opts.PageSize = configuredPageSize
 				}
 			}
 

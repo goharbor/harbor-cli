@@ -36,8 +36,8 @@ func LogsProjectCommmand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !cmd.Flag(("page-size")).Changed {
-				if defaultPageSize, ok := utils.GetConfiguredPageSize(); ok {
-					opts.PageSize = defaultPageSize
+				if configuredPageSize, ok := utils.GetConfiguredPageSize(); ok {
+					opts.PageSize = configuredPageSize
 				}
 			}
 
