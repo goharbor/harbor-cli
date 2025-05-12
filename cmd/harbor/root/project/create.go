@@ -14,7 +14,10 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -28,32 +31,42 @@ func CreateProjectCommand() *cobra.Command {
 		Use:   "create [project name]",
 		Short: "create project",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			createView := &create.CreateView{
-				ProjectName:  opts.ProjectName,
-				Public:       opts.Public,
-				RegistryID:   opts.RegistryID,
-				StorageLimit: opts.StorageLimit,
-				ProxyCache:   false,
-			}
+			var ProjectName string
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
+			}
 
-				if opts.ProxyCache && opts.RegistryID == "" {
-					log.Errorf("Use the --registry-id flag with a registry ID")
-				} else {
-					err = api.CreateProject(opts)
-				}
+			if opts.ProxyCache && opts.RegistryID == "" {
+				return fmt.Errorf("Error: Proxy cache selected but no registry ID provided. Use --registry-id.")
+			}
+
+			if opts.ProjectName != "" {
+				log.Debug("Attempting to create project using flags...")
+				err = api.CreateProject(opts)
+				ProjectName = opts.ProjectName
 			} else {
+				log.Debug("No project name provided. Switching to interactive view...")
+				createView := &create.CreateView{
+					ProjectName:  opts.ProjectName,
+					Public:       opts.Public,
+					RegistryID:   opts.RegistryID,
+					StorageLimit: opts.StorageLimit,
+					ProxyCache:   opts.ProxyCache,
+				}
+
 				err = createProjectView(createView)
+				ProjectName = createView.ProjectName
 			}
 
 			if err != nil {
-				log.Errorf("failed to create project: %v", err)
+				return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
 			}
-		},
-	}
+
+			fmt.Printf("Project '%s' created successfully\n", ProjectName)
+			return nil
+		}}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
@@ -74,7 +87,9 @@ func createProjectView(createView *create.CreateView) error {
 		}
 	}
 
-	create.CreateProjectView(createView)
-
+	err := create.CreateProjectView(createView)
+	if err != nil {
+		return err
+	}
 	return api.CreateProject(*createView)
 }

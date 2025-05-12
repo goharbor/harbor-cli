@@ -53,8 +53,9 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type Model struct {
-	List   list.Model
-	Choice string
+	List    list.Model
+	Choice  string
+	Aborted bool
 }
 
 func NewModel(items []list.Item, construct string) Model {

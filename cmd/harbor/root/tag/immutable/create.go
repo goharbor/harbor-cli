@@ -16,6 +16,7 @@ package immutable
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/immutable/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -32,6 +33,7 @@ func CreateImmutableCommand() *cobra.Command {
 		Example: "harbor tag immutable create",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName string
 			createView := &create.CreateView{
 				ScopeSelectors: create.ImmutableSelector{
 					Decoration: opts.ScopeSelectors.Decoration,
@@ -43,12 +45,15 @@ func CreateImmutableCommand() *cobra.Command {
 				},
 			}
 			if len(args) > 0 {
-				err = createImmutableView(createView, args[0])
+				projectName = args[0]
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				err = createImmutableView(createView, projectName)
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
+			err = createImmutableView(createView, projectName)
 			if err != nil {
 				log.Errorf("failed to create immutable tag rule: %v", err)
 			}
