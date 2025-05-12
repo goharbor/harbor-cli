@@ -1,6 +1,6 @@
 ---
 title: harbor webhook edit
-weight: 5
+weight: 55
 ---
 ## harbor webhook edit
 
@@ -44,7 +44,7 @@ harbor webhook edit [WEBHOOK_NAME] [flags]
       --description string          Webhook Description
       --enabled                     Webhook Enabled (default true)
       --endpoint-url string         Webhook Endpoint URL
-      --event-type stringArray      Event Types (comma separated)
+      --event-type strings          Event Types (comma separated)
   -h, --help                        help for edit
       --notify-type string          Notify Type (http, slack)
       --payload-format string       Payload Format (Default, CloudEvents)

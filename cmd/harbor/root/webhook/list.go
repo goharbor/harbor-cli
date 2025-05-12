@@ -21,7 +21,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	webhookViews "github.com/goharbor/harbor-cli/pkg/views/webhook/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,7 +50,10 @@ Use the '--output-format' flag for raw JSON output.`,
 			if len(args) > 0 {
 				projectName = args[0]
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
 			}
 
 			resp, err = api.ListWebhooks(projectName)
@@ -59,7 +61,7 @@ Use the '--output-format' flag for raw JSON output.`,
 				return fmt.Errorf("failed to list webhooks: %v", err)
 			}
 			if len(resp.Payload) == 0 {
-				log.Infof("No webhooks found in project %s", projectName)
+				fmt.Printf("No webhooks found for project %s\n", projectName)
 				return nil
 			}
 			FormatFlag := viper.GetString("output-format")

@@ -1,6 +1,6 @@
 ---
 title: harbor webhook create
-weight: 95
+weight: 60
 ---
 ## harbor webhook create
 
@@ -42,7 +42,7 @@ harbor webhook create [name] [flags]
       --auth-header string          Authentication Header
       --description string          Webhook Description
       --endpoint-url string         Webhook Endpoint URL
-      --event-type stringArray      Event Types (comma separated)
+      --event-type strings          Event Types (comma separated)
   -h, --help                        help for create
       --notify-type string          Notify Type (http, slack)
       --payload-format string       Payload Format (Default, CloudEvents)

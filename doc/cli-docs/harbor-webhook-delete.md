@@ -1,6 +1,6 @@
 ---
 title: harbor webhook delete
-weight: 40
+weight: 70
 ---
 ## harbor webhook delete
 
@@ -37,7 +37,7 @@ harbor webhook delete [webhook-name] [flags]
 ```sh
   -h, --help             help for delete
       --project string   Project name (required when providing webhook ID or name)
-      --webhook int      Webhook ID (alternative to providing webhook name as argument) (default -1)
+      --webhook-id int   Webhook ID (alternative to providing webhook name as argument) (default -1)
 ```
 
 ### Options inherited from parent commands

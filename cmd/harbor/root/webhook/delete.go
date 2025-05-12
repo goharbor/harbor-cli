@@ -60,7 +60,10 @@ or interactively select a project and webhook if not provided.`,
 			}
 
 			if projectName == "" {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
 			}
 
 			if webhookName != "" {

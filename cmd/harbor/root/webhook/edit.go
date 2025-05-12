@@ -114,7 +114,10 @@ func editWebhookView(view *edit.EditView) error {
 	var selectedWebhook models.WebhookPolicy
 	var err error
 	if view.ProjectName == "" {
-		view.ProjectName = prompt.GetProjectNameFromUser()
+		view.ProjectName, err = prompt.GetProjectNameFromUser()
+		if err != nil {
+			return err
+		}
 	}
 	if view.WebhookId == -1 {
 		selectedWebhook, err = prompt.GetWebhookFromUser(view.ProjectName)

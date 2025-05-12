@@ -71,7 +71,7 @@ func CreateWebhook(opts *create.CreateView) error {
 	}
 
 	if response != nil {
-		log.Infof("Webhook `%s` created successfully", opts.Name)
+		fmt.Printf("Webhook `%s` created successfully", opts.Name)
 	}
 
 	return nil
@@ -91,7 +91,7 @@ func DeleteWebhook(projectName string, webhookId int64) error {
 		return err
 	}
 	if response != nil {
-		log.Infof("Webhook Id:`%d` deleted successfully", webhookId)
+		fmt.Printf("Webhook Id:`%d` deleted successfully", webhookId)
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func UpdateWebhook(opts *edit.EditView) error {
 		return err
 	}
 	if response != nil {
-		log.Infof("Webhook Id:`%d` Updated successfully", opts.WebhookId)
+		fmt.Printf("Webhook Id:`%d` Updated successfully", opts.WebhookId)
 	}
 	return nil
 }

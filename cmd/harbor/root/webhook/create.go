@@ -99,10 +99,14 @@ or leave them out and be guided through an interactive prompt to input each fiel
 }
 
 func createWebhookView(view *create.CreateView) error {
+	var err error
 	if view.ProjectName == "" {
-		view.ProjectName = prompt.GetProjectNameFromUser()
+		view.ProjectName, err = prompt.GetProjectNameFromUser()
+		if err != nil {
+			return err
+		}
 	}
-	err := create.WebhookCreateView(view)
+	err = create.WebhookCreateView(view)
 	if err != nil {
 		return err
 	}
