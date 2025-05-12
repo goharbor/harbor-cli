@@ -55,7 +55,11 @@ func CreateTagsCmd() *cobra.Command {
 				err = api.CreateTag(projectName, repoName, reference, tag)
 			} else {
 				var tagName string
-				projectName := prompt.GetProjectNameFromUser()
+				var projectName string
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
 				repoName := prompt.GetRepoNameFromUser(projectName)
 				reference := prompt.GetReferenceFromUser(repoName, projectName)
 				create.CreateTagView(&tagName)
@@ -83,7 +87,10 @@ func ListTagsCmd() *cobra.Command {
 			if len(args) > 0 {
 				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
@@ -124,7 +131,11 @@ func DeleteTagsCmd() *cobra.Command {
 				tag := args[1]
 				err = api.DeleteTag(projectName, repoName, reference, tag)
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
+				var projectName string
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
 				repoName := prompt.GetRepoNameFromUser(projectName)
 				reference := prompt.GetReferenceFromUser(repoName, projectName)
 				tag := prompt.GetTagFromUser(repoName, projectName, reference)

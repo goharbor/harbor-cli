@@ -58,7 +58,10 @@ Supports pagination, search queries, and sorting using flags.`,
 			if len(args) > 0 {
 				projectName, repoName = utils.ParseProjectRepo(args[0])
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
 

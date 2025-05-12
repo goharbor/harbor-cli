@@ -14,8 +14,8 @@
 package project
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,22 +23,30 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ProjectList(project []*models.Project, choice chan<- string) {
-	items := make([]list.Item, len(project))
-	for i, p := range project {
+var ErrUserAborted = errors.New("user aborted selection")
+
+func ProjectList(projects []*models.Project) (string, error) {
+	items := make([]list.Item, len(projects))
+	for i, p := range projects {
 		items[i] = selection.Item(p.Name)
 	}
 
 	m := selection.NewModel(items, "Project")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return "", fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- p.Choice
+	if model, ok := p.(selection.Model); ok {
+		if model.Aborted {
+			return "", ErrUserAborted
+		}
+		if model.Choice == "" {
+			return "", errors.New("no project selected")
+		}
+		return model.Choice, nil
 	}
+
+	return "", errors.New("unexpected program result")
 }
