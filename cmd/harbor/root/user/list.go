@@ -40,7 +40,7 @@ func UserListCmd() *cobra.Command {
 			}
 
 			if !cmd.Flag(("page-size")).Changed {
-				if defaultPageSize, ok := utils.GetDefaultPageSize(); ok {
+				if defaultPageSize, ok := utils.GetConfiguredPageSize(); ok {
 					opts.PageSize = defaultPageSize
 				}
 			}
