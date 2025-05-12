@@ -14,6 +14,8 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/list"
@@ -27,21 +29,27 @@ func SearchProjectCommand() *cobra.Command {
 		Use:   "search",
 		Short: "search project based on their names",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Starting project search command")
 			projects, err := api.SearchProject(args[0])
 			if err != nil {
-				log.Fatalf("failed to get projects: %v", err)
+				return fmt.Errorf("failed to get projects: %v", utils.ParseHarborErrorMsg(err))
+			}
+			log.Debugf("Found %d projects", len(projects.Payload.Project))
+			if len(projects.Payload.Project) == 0 {
+				return fmt.Errorf("No projects found with name similar to : %s", args[0])
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(projects, FormatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.SearchProjects(projects.Payload.Project)
 			}
+			return nil
 		},
 	}
 	return cmd
