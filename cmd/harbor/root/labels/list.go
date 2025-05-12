@@ -37,7 +37,10 @@ func ListLabelCommand() *cobra.Command {
 			}
 
 			if !cmd.Flag(("page-size")).Changed {
-				opts.PageSize = utils.GetDefaultPageSize(false)
+				defaultPageSize, err := utils.GetDefaultPageSize(true)
+				if err != nil {
+					opts.PageSize = defaultPageSize
+				}
 			}
 
 			label, err := api.ListLabel(opts)
