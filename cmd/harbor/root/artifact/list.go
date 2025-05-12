@@ -48,8 +48,7 @@ Supports pagination, search queries, and sorting using flags.`,
 			}
 
 			if !cmd.Flag(("page-size")).Changed {
-				defaultPageSize, err := utils.GetDefaultPageSize(true)
-				if err != nil {
+				if defaultPageSize, ok := utils.GetDefaultPageSize(); ok {
 					opts.PageSize = defaultPageSize
 				}
 			}

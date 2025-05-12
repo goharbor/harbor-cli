@@ -516,11 +516,11 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	return nil
 }
 
-func GetDefaultPageSize(zeroIfUnset bool) (int64, error) {
+func GetDefaultPageSize() (int64, bool) {
 	harborConfig, err := GetCurrentHarborConfig()
 	if err != nil || harborConfig.PageSize == 0 {
-		return 0, fmt.Errorf("No default page size set in config file")
+		return 0, false
 	}
 
-	return int64(harborConfig.PageSize), nil
+	return int64(harborConfig.PageSize), true
 }
