@@ -218,6 +218,46 @@ func GetCurrentHarborConfig() (*HarborConfig, error) {
 	return CurrentHarborConfig, nil
 }
 
+// SetCurrentHarborConfig replaces the current HarborConfig with the provided one,
+// both in memory and in the config file.
+func SetCurrentHarborConfig(config *HarborConfig) error {
+	configMutex.Lock()
+	defer configMutex.Unlock()
+
+	// Ensure we know where to write the config
+	if CurrentHarborData == nil {
+		return errors.New("harbor data is nil - check that your config initialization completed")
+	}
+	configPath := CurrentHarborData.ConfigPath
+
+	// Ensure the file actually exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return fmt.Errorf("config file does not exist at %s", configPath)
+	} else if err != nil {
+		return fmt.Errorf("error checking config file: %v", err)
+	}
+
+	// Replace the entire config file content
+	v := viper.New()
+	v.SetConfigFile(configPath)
+	v.SetConfigType("yaml")
+
+	// Set all the HarborConfig fields
+	v.Set("current-credential-name", config.CurrentCredentialName)
+	v.Set("credentials", config.Credentials)
+
+	// Write back to disk
+	if err := v.WriteConfig(); err != nil {
+		return fmt.Errorf("failed to write updated config file: %w", err)
+	}
+
+	// Update our global in-memory config
+	CurrentHarborConfig = config
+
+	log.Infof("Harbor configuration updated at %s", configPath)
+	return nil
+}
+
 func GetCurrentHarborData() (*HarborData, error) {
 	ConfigInitialization.Do(func() {
 		// No action needed; initialization should have been called before
