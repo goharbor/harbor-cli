@@ -143,7 +143,9 @@ func TestPrintFormat(t *testing.T) {
 	// JSON
 	err := utils.PrintFormat(obj, "json")
 	w.Close()
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
 	os.Stdout = oldOut
 	assert.NoError(t, err)
 	assert.Contains(t, buf.String(), `"foo": "bar"`)
@@ -154,7 +156,9 @@ func TestPrintFormat(t *testing.T) {
 	os.Stdout = w
 	err = utils.PrintFormat(obj, "yaml")
 	w.Close()
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
 	os.Stdout = oldOut
 	assert.NoError(t, err)
 	assert.Contains(t, buf.String(), "foo: bar")
