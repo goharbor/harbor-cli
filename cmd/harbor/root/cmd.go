@@ -15,9 +15,10 @@ package root
 
 import (
 	"fmt"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"io"
 	"time"
+
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
