@@ -25,28 +25,32 @@ import (
 
 var ErrUserAborted = errors.New("user aborted selection")
 
-func ProjectList(projects []*models.Project) (string, error) {
-	items := make([]list.Item, len(projects))
-	for i, p := range projects {
-		items[i] = selection.Item(p.Name)
+func WebhookList(webhooks []*models.WebhookPolicy) (models.WebhookPolicy, error) {
+	items := make([]list.Item, len(webhooks))
+	for i, item := range webhooks {
+		items[i] = selection.Item(item.Name)
 	}
 
-	m := selection.NewModel(items, "Project")
+	m := selection.NewModel(items, "Webhook")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		return "", fmt.Errorf("error running selection program: %w", err)
+		return models.WebhookPolicy{}, fmt.Errorf("error running selection program: %w", err)
 	}
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Aborted {
-			return "", ErrUserAborted
+			return models.WebhookPolicy{}, errors.New("user aborted selection")
 		}
 		if model.Choice == "" {
-			return "", errors.New("no project selected")
+			return models.WebhookPolicy{}, errors.New("no webhook selected")
 		}
-		return model.Choice, nil
+		for _, webhook := range webhooks {
+			if webhook.Name == model.Choice {
+				return *webhook, nil
+			}
+		}
 	}
 
-	return "", errors.New("unexpected program result")
+	return models.WebhookPolicy{}, errors.New("unexpected program result")
 }

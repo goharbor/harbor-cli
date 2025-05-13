@@ -14,6 +14,10 @@
 package prompt
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
@@ -25,6 +29,7 @@ import (
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
+	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,14 +43,40 @@ func GetRegistryNameFromUser() int64 {
 	return <-registryId
 }
 
-func GetProjectNameFromUser() string {
-	projectName := make(chan string)
+func GetProjectNameFromUser() (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
+
 	go func() {
-		response, _ := api.ListAllProjects()
-		pview.ProjectList(response.Payload, projectName)
+		response, err := api.ListAllProjects()
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{"", errors.New("no projects found")}
+			return
+		}
+
+		name, err := pview.ProjectList(response.Payload)
+		if err != nil {
+			if err == pview.ErrUserAborted {
+				resultChan <- result{"", errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{"", fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{name, nil}
 	}()
 
-	return <-projectName
+	res := <-resultChan
+	return res.name, res.err
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -108,6 +139,42 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
+	type result struct {
+		webhook models.WebhookPolicy
+		err     error
+	}
+
+	resultChan := make(chan result)
+
+	go func() {
+		res, err := api.ListWebhooks(projectName)
+		if err != nil {
+			resultChan <- result{models.WebhookPolicy{}, err}
+			return
+		}
+
+		if len(res.Payload) == 0 {
+			resultChan <- result{models.WebhookPolicy{}, errors.New("no webhooks found")}
+			return
+		}
+
+		webhook, err := wview.WebhookList(res.Payload)
+		if err != nil {
+			if err == wview.ErrUserAborted {
+				resultChan <- result{models.WebhookPolicy{}, errors.New("user aborted webhook selection")}
+			} else {
+				resultChan <- result{models.WebhookPolicy{}, fmt.Errorf("error during webhook selection: %w", err)}
+			}
+			return
+		}
+		resultChan <- result{webhook, nil}
+	}()
+
+	res := <-resultChan
+	return res.webhook, res.err
 }
 
 func GetLabelIdFromUser(opts api.ListFlags) int64 {
