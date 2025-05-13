@@ -341,6 +341,40 @@ func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
 	return test.File(report)
 }
 
+// CheckCoverageThreshold verifies that test coverage meets or exceeds the specified threshold
+func (m *HarborCli) CheckCoverageThreshold(ctx context.Context, threshold float64) (string, error) {
+	coverage := "coverage.out"
+	report := "coverage-report.out"
+	container := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."}).
+		WithExec([]string{"go", "tool", "cover", "-func=" + coverage, "-o", report}).
+		WithExec([]string{"apk", "add", "--no-cache", "bc", "grep"}).
+		WithExec([]string{"sh", "-c", fmt.Sprintf(`
+		    # Extract total coverage and print it
+		    COVERAGE_PCT=$(tail -1 %s | grep -o '[0-9]\+\.[0-9]\+%%' | sed 's/%%//')
+		    THRESHOLD=%.1f
+		    echo "Current coverage: $COVERAGE_PCT%%"
+		    echo "Required minimum: $THRESHOLD%%"
+		    COMPARE_RESULT=$(echo "$COVERAGE_PCT < $THRESHOLD" | bc -l)
+		    # Check the result directly
+		    if [ "$COMPARE_RESULT" -eq 1 ]; then
+		        echo "⚠️ WARNING: Coverage $COVERAGE_PCT%% is below threshold of $THRESHOLD%%"
+		        # Uncomment to make the function fail when coverage is insufficient:
+		        # exit 1
+		    else
+		        echo "✅ Coverage $COVERAGE_PCT%% meets threshold of $THRESHOLD%%"
+		    fi
+		`, report, threshold)})
+	return container.Stdout(ctx)
+}
+
 // Checks for vulnerabilities using govulncheck
 func (m *HarborCli) vulnerabilityCheck(ctx context.Context) *dagger.Container {
 	return dag.Container().
