@@ -45,7 +45,7 @@ Runs go test coverage tools and creates a report.
 dagger call test-coverage-report export --path=CoverageReport.out
 ```
 
-### ✅ `CheckCoverageThreshold()`
+### ✅ `CheckCoverageThreshold(context, threshold)`
 
 Runs go test coverage tools and creates a report. The total coverage is compared to a threshold that can be set to e.g. 80%.
 ```bash
