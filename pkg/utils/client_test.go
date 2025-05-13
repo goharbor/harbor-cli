@@ -18,50 +18,54 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	helpers "github.com/goharbor/harbor-cli/test/helper"
 	"github.com/stretchr/testify/assert"
 )
 
-// func TestGetClient_Success(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	helpers.SetMockKeyring(t)
-// 	data := helpers.Initialize(t, tempDir)
-// 	defer helpers.ConfigCleanup(t, data)
-// 	cred := utils.Credential{
-// 		Name:          "test-credential",
-// 		Username:      "test-user",
-// 		Password:      "test-password",
-// 		ServerAddress: "https://test-endpoint",
-// 	}
-// 	utils.AddCredentialsToConfigFile(cred, data.ConfigPath)
-// 	utils.ConfigInitialization.Reset()
-// 	utils.CurrentHarborConfig = nil
-// 	utils.CurrentHarborData = nil
-// 	utils.InitConfig(data.ConfigPath, true)
-// 	client, getErr := utils.GetClient()
-// 	assert.NoError(t, getErr)
-// 	assert.NotNil(t, client)
-// }
+func setupTestEnvironment(t *testing.T) (*utils.HarborData, error) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
 
-// func TestContextWithClient_Success(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	data := helpers.Initialize(t, tempDir)
-// 	defer helpers.ConfigCleanup(t, data)
-// 	cred := utils.Credential{
-// 		Name:          "test-credential",
-// 		Username:      "test-user",
-// 		Password:      "test-password",
-// 		ServerAddress: "https://test-endpoint",
-// 	}
-// 	utils.AddCredentialsToConfigFile(cred, data.ConfigPath)
-// 	utils.ConfigInitialization.Reset()
-// 	utils.CurrentHarborConfig = nil
-// 	utils.CurrentHarborData = nil
-// 	utils.InitConfig(data.ConfigPath, true)
-// 	ctx, client, err := utils.ContextWithClient()
-// 	assert.NotNil(t, ctx)
-// 	assert.NotNil(t, client)
-// 	assert.NoError(t, err)
-// }
+	err := utils.GenerateEncryptionKey()
+	assert.NoError(t, err)
+	key, err := utils.GetEncryptionKey()
+	assert.NoError(t, err)
+	encrypted, err := utils.Encrypt(key, []byte("test-password"))
+	assert.NoError(t, err)
+	testConfig := &utils.HarborConfig{
+		Credentials: []utils.Credential{
+			{
+				Name:          "test-credential",
+				Username:      "test-user",
+				Password:      encrypted,
+				ServerAddress: "https://test-endpoint",
+			},
+		},
+		CurrentCredentialName: "test-credential",
+	}
+	utils.SetCurrentHarborConfig(testConfig)
+	return data, err
+}
+
+func TestGetClient_Success(t *testing.T) {
+	data, err := setupTestEnvironment(t)
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, data)
+	client, getErr := utils.GetClient()
+	assert.NoError(t, getErr)
+	assert.NotNil(t, client)
+}
+
+func TestContextWithClient_Success(t *testing.T) {
+	data, err := setupTestEnvironment(t)
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, data)
+	ctx, client, err := utils.ContextWithClient()
+	assert.NotNil(t, ctx)
+	assert.NotNil(t, client)
+	assert.NoError(t, err)
+}
 
 func TestContextWithClient_Failure(t *testing.T) {
 	ctx, client, err := utils.ContextWithClient()
@@ -80,42 +84,20 @@ func TestGetClientByConfig(t *testing.T) {
 	assert.NotNil(t, client)
 }
 
-// func TestGetClientByCredentialName(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	data := helpers.Initialize(t, tempDir)
-// 	defer helpers.ConfigCleanup(t, data)
-// 	cred := utils.Credential{
-// 		Name:          "test-credential",
-// 		Username:      "test-user",
-// 		Password:      "test-password",
-// 		ServerAddress: "https://test-endpoint",
-// 	}
-// 	utils.AddCredentialsToConfigFile(cred, data.ConfigPath)
-// 	utils.ConfigInitialization.Reset()
-// 	utils.CurrentHarborConfig = nil
-// 	utils.CurrentHarborData = nil
-// 	utils.InitConfig(data.ConfigPath, true)
-// 	client, clientErr := utils.GetClientByCredentialName("test-credential")
-// 	assert.NotNil(t, client)
-// 	assert.NoError(t, clientErr)
-// }
+func TestGetClientByCredentialName(t *testing.T) {
+	data, err := setupTestEnvironment(t)
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, data)
+	client, clientErr := utils.GetClientByCredentialName("test-credential")
+	assert.NotNil(t, client)
+	assert.NoError(t, clientErr)
+}
 
-// func TestGetClientByCredentialName_Failure(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	data := helpers.Initialize(t, tempDir)
-// 	defer helpers.ConfigCleanup(t, data)
-// 	cred := utils.Credential{
-// 		Name:          "test-credential",
-// 		Username:      "test-user",
-// 		Password:      "test-password",
-// 		ServerAddress: "https://test-endpoint",
-// 	}
-// 	utils.AddCredentialsToConfigFile(cred, data.ConfigPath)
-// 	utils.ConfigInitialization.Reset()
-// 	utils.CurrentHarborConfig = nil
-// 	utils.CurrentHarborData = nil
-// 	utils.InitConfig(data.ConfigPath, true)
-// 	client, clientErr := utils.GetClientByCredentialName("non-existent-credential")
-// 	assert.Nil(t, client)
-// 	assert.Error(t, clientErr)
-// }
+func TestGetClientByCredentialName_Failure(t *testing.T) {
+	data, err := setupTestEnvironment(t)
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, data)
+	client, clientErr := utils.GetClientByCredentialName("non-existent-credential")
+	assert.Nil(t, client)
+	assert.Error(t, clientErr)
+}
