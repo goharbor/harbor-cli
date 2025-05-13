@@ -28,6 +28,7 @@ import (
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
@@ -139,6 +140,17 @@ func GetTagNameFromUser() string {
 	}()
 
 	return <-repoName
+}
+
+func GetScannerIdFromUser() string {
+	scannerId := make(chan string)
+
+	go func() {
+		response, _ := api.ListScanners()
+		sview.ScannerList(response.Payload, scannerId)
+	}()
+
+	return <-scannerId
 }
 
 func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
