@@ -223,6 +223,7 @@ func GetCurrentHarborConfig() (*HarborConfig, error) {
 func SetCurrentHarborConfig(config *HarborConfig) error {
 	configMutex.Lock()
 	defer configMutex.Unlock()
+	var err error
 
 	// Ensure we know where to write the config
 	if CurrentHarborData == nil {
@@ -255,7 +256,7 @@ func SetCurrentHarborConfig(config *HarborConfig) error {
 	CurrentHarborConfig = config
 
 	log.Infof("Harbor configuration updated at %s", configPath)
-	return nil
+	return err
 }
 
 func GetCurrentHarborData() (*HarborData, error) {
