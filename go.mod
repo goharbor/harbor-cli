@@ -14,6 +14,7 @@ require (
 	github.com/zalando/go-keyring v0.2.6
 	golang.org/x/term v0.31.0
 	gopkg.in/yaml.v3 v3.0.1
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -71,7 +72,7 @@ require (
 	github.com/go-openapi/loads v0.22.0 // indirect
 	github.com/go-openapi/runtime v0.28.0 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
-	github.com/go-openapi/strfmt v0.23.0 // indirect
+	github.com/go-openapi/strfmt v0.23.0
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-openapi/validate v0.24.0 // indirect
 	github.com/goharbor/go-client v0.210.0

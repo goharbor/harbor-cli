@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
 // Returns Harbor v2 client for given clientConfig
