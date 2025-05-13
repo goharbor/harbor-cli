@@ -137,6 +137,20 @@ jobs:
         with:
           fromJSONFile: TestReport.json
 
+      - name: Run Test Coverage
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage export --path=coverage.out
+
+      - name: Get Test Coverage Report
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage-report export --path=CoverageReport.out
+
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
         with:
