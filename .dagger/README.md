@@ -38,6 +38,20 @@ Runs `golangci-lint` on your code and saves the report to a file.
 dagger call lint-report export --path=./LintReport.json
 ```
 
+### 📝 `TestCoverageReport()`
+
+Runs go test coverage tools and creates a report.
+```bash
+dagger call test-coverage-report export --path=CoverageReport.out
+```
+
+### ✅ `CheckCoverageThreshold()`
+
+Runs go test coverage tools and creates a report. The total coverage is compared to a threshold that can be set to e.g. 80%.
+```bash
+dagger call check-coverage-threshold --threshold 80.0 
+```
+
 ### 🚀 `PublishImage(registry, imageTags)`
 
 Builds and publishes the Harbor CLI image to the given container registry with proper OCI metadata labels.
