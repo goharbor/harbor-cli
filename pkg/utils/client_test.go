@@ -44,7 +44,8 @@ func setupTestEnvironment(t *testing.T) (*utils.HarborData, error) {
 		},
 		CurrentCredentialName: "test-credential",
 	}
-	utils.SetCurrentHarborConfig(testConfig)
+	err = utils.SetCurrentHarborConfig(testConfig)
+	assert.NoError(t, err)
 	return data, err
 }
 
