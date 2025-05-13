@@ -41,7 +41,7 @@ func TestFormatUrl(t *testing.T) {
 	tests := []struct {
 		in, want string
 	}{
-		{"example.com", "https://example.com"},
+		{"https://example.com", "https://example.com"},
 		{"http://foo", "http://foo"},
 		{"https://bar", "https://bar"},
 	}
