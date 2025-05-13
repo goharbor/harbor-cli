@@ -15,15 +15,17 @@ package tag
 
 import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag/immutable"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag/retention"
 	"github.com/spf13/cobra"
 )
 
 func TagCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tag",
-		Short: "Manage tags in Harbor registry",
-		Long:  "Manage tags in the Harbor registry, including creating, listing, and deleting rules.",
+		Short: "Manage tag rules in Harbor registry",
+		Long:  "Manage rules for tags in the Harbor registry, including creating, listing, and deleting them.",
 	}
+	cmd.AddCommand(retention.Retention())
 	cmd.AddCommand(immutable.Immutable())
 	return cmd
 }
