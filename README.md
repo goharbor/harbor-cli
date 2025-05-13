@@ -1,4 +1,5 @@
-![harbor-3](https://github.com/goharbor/harbor-cli/assets/70086051/835ab686-1cce-4ac7-bc57-05a35c2b73cc)
+
+![Harbor-CLI Logo_256px](https://github.com/user-attachments/assets/fa18e8f0-a2e4-4462-ab2d-446a88f9edb3)
 
 **Harbor CLI — a command-line interface for interacting with your Harbor container registry. A streamlined, user-friendly alternative to the WebUI, as your daily driver or for scripting and automation.**
 
