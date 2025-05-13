@@ -151,6 +151,14 @@ jobs:
           verb: call
           args: test-coverage-report export --path=CoverageReport.out
 
+      - name: Check Coverage Threshold  
+        id: coverage_check
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: check-coverage-threshold --threshold 80.0
+
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
         with:
