@@ -21,6 +21,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,35 +39,34 @@ func SafeUnsetEnv(key string) {
 	os.Unsetenv(key)
 }
 
-func ConfigCleanup(t *testing.T, data *utils.HarborData) {
-	if data != nil && data.ConfigPath != "" {
-		err := os.Remove(data.ConfigPath)
-		if err != nil && !os.IsNotExist(err) {
-			t.Fatalf("Failed to clean up test config file: %v", err)
-		}
-	}
-	if os.Getenv("XDG_CONFIG_HOME") != "" {
-		err := os.RemoveAll(os.Getenv("XDG_CONFIG_HOME"))
-		if err != nil {
-			t.Fatalf("Failed to clean up test config directory: %v", err)
-		}
-	}
-	if os.Getenv("XDG_DATA_HOME") != "" {
-		err := os.RemoveAll(os.Getenv("XDG_DATA_HOME"))
-		if err != nil {
-			t.Fatalf("Failed to clean up test data directory: %v", err)
-		}
-	}
-	SafeUnsetEnv("HARBOR_CLI_CONFIG")
-	SafeUnsetEnv("XDG_CONFIG_HOME")
-	SafeUnsetEnv("XDG_DATA_HOME")
-	data = nil
+// reset all of our singletons and viper between runs
+func resetAll() {
+	// reset config loader (declared as sync.Once)
+	utils.ConfigInitialization = &utils.Once{}
+	utils.CurrentHarborConfig = nil
+	utils.CurrentHarborData = nil
+
+	// reset client singleton (also declared as sync.Once)
+	utils.ClientOnce = sync.Once{}
+	utils.ClientInstance = nil
+	utils.ClientErr = nil
+
+	// wipe viper’s global state
+	viper.Reset()
 }
 
 func Initialize(t *testing.T, tempDir string) *utils.HarborData {
-	utils.ConfigInitialization.Reset() // Reset sync.Once for the test
-	SafeSetEnv("XDG_DATA_HOME", filepath.Join(tempDir, ".data"))
-	utils.InitConfig(filepath.Join(tempDir, ".config", "config.yaml"), true)
+	resetAll()
+
+	// point the CLI at our test config dir
+	cfgDir := filepath.Join(tempDir, ".config")
+	dataDir := filepath.Join(tempDir, ".data")
+	os.Setenv("XDG_CONFIG_HOME", cfgDir)
+	os.Setenv("XDG_DATA_HOME", dataDir)
+
+	// this will create both the data.yaml and the empty config.yaml underneath
+	// and return you a *utils.HarborData with the path to config.yaml
+	utils.InitConfig(filepath.Join(cfgDir, "config.yaml"), true)
 	cds := root.RootCmd()
 	err := cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
@@ -84,4 +84,13 @@ func SetMockKeyring(t *testing.T) {
 	t.Cleanup(func() {
 		utils.SetKeyringProvider(&utils.SystemKeyring{})
 	})
+}
+
+// clean up both XDG dirs and reset again
+func ConfigCleanup(t *testing.T, data *utils.HarborData) {
+	os.RemoveAll(os.Getenv("XDG_CONFIG_HOME"))
+	os.RemoveAll(os.Getenv("XDG_DATA_HOME"))
+	os.Unsetenv("XDG_CONFIG_HOME")
+	os.Unsetenv("XDG_DATA_HOME")
+	resetAll()
 }

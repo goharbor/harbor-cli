@@ -21,35 +21,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func Test_Login_Success(t *testing.T) {
-// 	tempDir := t.TempDir()
-// 	data := Initialize(t, tempDir)
-// 	defer ConfigCleanup(t, data)
+func Test_Login_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	cmd := root.LoginCommand()
+	validServerAddresses := []string{
+		"http://demo.goharbor.io:80",
+		"https://demo.goharbor.io:443",
+		"http://demo.goharbor.io",
+		"https://demo.goharbor.io",
+	}
 
-// 	SetMockKeyring(t)
+	for _, serverAddress := range validServerAddresses {
+		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
+			args := []string{serverAddress}
+			cmd.SetArgs(args)
 
-// 	cmd := root.LoginCommand()
-// 	validServerAddresses := []string{
-// 		"http://demo.goharbor.io:80",
-// 		"https://demo.goharbor.io:443",
-// 		"http://demo.goharbor.io",
-// 		"https://demo.goharbor.io",
-// 	}
+			assert.NoError(t, cmd.Flags().Set("name", "test"))
+			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
+			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
-// 	for _, serverAddress := range validServerAddresses {
-// 		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
-// 			args := []string{serverAddress}
-// 			cmd.SetArgs(args)
-
-// 			assert.NoError(t, cmd.Flags().Set("name", "test"))
-// 			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
-// 			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
-
-// 			err := cmd.Execute()
-// 			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
-// 		})
-// 	}
-// }
+			err := cmd.Execute()
+			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
+		})
+	}
+}
 
 func Test_Login_Failure_WrongServer(t *testing.T) {
 	tempDir := t.TempDir()
