@@ -15,7 +15,10 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -109,4 +112,38 @@ func SanitizeServerAddress(server string) string {
 func DefaultCredentialName(username, server string) string {
 	sanitized := SanitizeServerAddress(server)
 	return fmt.Sprintf("%s@%s", username, sanitized)
+}
+
+func StorageStringToBytes(storage string) (int64, error) {
+	// Define the conversion multipliers
+	multipliers := map[string]int64{
+		"MiB": 1024 * 1024,
+		"GiB": 1024 * 1024 * 1024,
+		"TiB": 1024 * 1024 * 1024 * 1024,
+	}
+
+	// Define the regex to parse the input string
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
+	matches := re.FindStringSubmatch(storage)
+	if matches == nil {
+		return 0, errors.New("invalid storage format")
+	}
+
+	// Extract the value and unit from the matches
+	valueStr, unit := matches[1], matches[2]
+	value, err := strconv.ParseInt(valueStr, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	// Calculate the value in bytes
+	bytes := value * multipliers[unit]
+
+	// Check if the value exceeds 1024 TB
+	maxBytes := 1024 * 1024 * 1024 * 1024 * 1024
+	if bytes > int64(maxBytes) {
+		return 0, errors.New("value exceeds 1024 TB")
+	}
+
+	return bytes, nil
 }
