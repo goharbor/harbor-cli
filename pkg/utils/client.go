@@ -20,31 +20,36 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
-	clientInstance *v2client.HarborAPI
-	clientOnce     sync.Once
-	clientErr      error
+	ClientInstance *v2client.HarborAPI
+	ClientOnce     sync.Once
+	ClientErr      error
 )
 
 func GetClient() (*v2client.HarborAPI, error) {
-	clientOnce.Do(func() {
+	ClientOnce.Do(func() {
 		config, err := GetCurrentHarborConfig()
 		if err != nil {
-			clientErr = fmt.Errorf("failed to get current credential name: %v", err)
+			ClientErr = fmt.Errorf("failed to get current credential name: %v", err)
 			return
 		}
 		credentialName := config.CurrentCredentialName
 		if credentialName == "" {
-			clientErr = fmt.Errorf("current-credential-name is not set in config file, please login")
+			ClientErr = fmt.Errorf("current-credential-name is not set in config file")
 			return
 		}
 
-		clientInstance, clientErr = GetClientByCredentialName(credentialName)
+		ClientInstance, ClientErr = GetClientByCredentialName(credentialName)
+		if ClientErr != nil {
+			log.Errorf("failed to initialize client: %v", ClientErr)
+			return
+		}
 	})
 
-	return clientInstance, clientErr
+	return ClientInstance, ClientErr
 }
 
 func ContextWithClient() (context.Context, *v2client.HarborAPI, error) {
@@ -68,7 +73,7 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, error) {
 	credential, err := GetCredentials(credentialName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get credentials: %w", err)
+		return nil, fmt.Errorf("failed to get credential %s: %v", credentialName, err)
 	}
 
 	// Get encryption key

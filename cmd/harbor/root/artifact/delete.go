@@ -30,7 +30,12 @@ func DeleteArtifactCommand() *cobra.Command {
 			var err error
 			var projectName, repoName, reference string
 			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError := utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
+				err = api.DeleteArtifact(projectName, repoName, reference)
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
