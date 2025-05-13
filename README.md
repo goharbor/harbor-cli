@@ -22,22 +22,26 @@ The project's first goal is to reach WebUI parity.
 ✅ tag           Manage tags   
 ✅ quota         Manage quotas  
 ✅ webhook       Manage webhook policies 
+❌ robot         Robot Account 
 
 ✅ login         Log in to Harbor registry  
 ✅ user          Manage users  
 
-✅ config        Manage the config of the Harbor CLI\
-✅ cve-allowlist Manage system CVE allowlist\
-✅ health        Get the health status of Harbor components\
-✅ instance      Manage preheat provider instances in Harbor\
+✅ registry      Manage registries
+❌ replication   Manage replication
+
+✅ config        Manage the config of the Harbor CLI
+✅ cve-allowlist Manage system CVE allowlist
+✅ health        Get the health status of Harbor components
+✅ instance      Manage preheat provider instances in Harbor
 ✅ info          Display detailed Harbor system, statistics, and CLI environment information
 
-✅ registry      Manage registries\
-✅ scanner       scanner commands\
+
+✅ scanner       scanner commands
 ✅ schedule      Schedule jobs in Harbor
 
 ✅ completion    Generate the autocompletion script for the specified shell\
-✅ help          Help about any command\
+✅ help          Help about any command
 ✅ version       Version of Harbor CLI
 
 ```
