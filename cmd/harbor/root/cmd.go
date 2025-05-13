@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
@@ -100,6 +101,7 @@ harbor help
 		repository.Repository(),
 		user.User(),
 		artifact.Artifact(),
+		ldap.Ldap(),
 		tag.TagCommand(),
 		HealthCommand(),
 		cve.CVEAllowlist(),
