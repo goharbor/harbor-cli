@@ -18,7 +18,6 @@ The Harbor CLI is designed to enhance your interaction with the Harbor container
  🔹 Run commands with various flags for enhanced functionality <br>
  🔹 More features coming soon... 🚧
 
-
 # Installation
 
 ## Container 
