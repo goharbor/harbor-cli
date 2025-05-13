@@ -55,6 +55,9 @@ func StartScanArtifactCommand() *cobra.Command {
 					return
 				}
 				err = api.StartScanArtifact(projectName, repoName, reference)
+				if err != nil {
+					log.Errorf("failed to start scan of artifact: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
@@ -89,6 +92,9 @@ func StopScanArtifactCommand() *cobra.Command {
 					return
 				}
 				err = api.StopScanArtifact(projectName, repoName, reference)
+				if err != nil {
+					log.Errorf("failed to stop scan of artifact: %v", err)
+				}
 			} else {
 				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
