@@ -1,16 +1,18 @@
 .nh
-.TH "HARBOR" "1" "Apr 2025" "Habor Community" "Harbor User Mannuals"
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-tag-immutable-list - list all immutable tag rule of project
+harbor-tag-immutable-list - Display all immutable tag rules for a project
 
 
 .SH SYNOPSIS
-\fBharbor tag immutable list [flags]\fP
+\fBharbor tag immutable list [PROJECT_NAME] [flags]\fP
 
 
 .SH DESCRIPTION
-list all immutable tag rule of project
+Retrieve and display a list of immutable tag rules configured for a specified project in Harbor.
+Immutable tag rules prevent specific tags from being deleted or overwritten, ensuring better security and compliance.
+You can specify the project name as an argument or, if omitted, you will be prompted to select one interactively.
 
 
 .SH OPTIONS
@@ -29,6 +31,18 @@ list all immutable tag rule of project
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  
+  # List immutable tag rules for a specific project  
+  harbor tag immutable list my-project  
+
+  # List immutable tag rules interactively (if no project name is provided)  
+  harbor tag immutable list  
+  
+.EE
 
 
 .SH SEE ALSO
