@@ -15,8 +15,6 @@ package login
 
 import (
 	"errors"
-	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -46,12 +44,11 @@ func CreateView(loginView *LoginView) {
 						return errors.New("server cannot be empty or only spaces")
 					}
 					formattedUrl := utils.FormatUrl(str)
-					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("please enter the correct server format")
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
 					}
 					return nil
-				}),
-			huh.NewInput().
+				}), huh.NewInput().
 				Title("User Name").
 				Value(&loginView.Username).
 				Validate(func(str string) error {
@@ -81,17 +78,16 @@ func CreateView(loginView *LoginView) {
 				Value(&loginView.Name).
 				Description("Name of credential to be stored in the harbor config file.").
 				PlaceholderFunc(func() string {
-					return fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+					return utils.DefaultCredentialName(loginView.Username, loginView.Server)
 				}, &loginView).
 				SuggestionsFunc(func() []string {
 					return []string{
-						fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server)),
+						utils.DefaultCredentialName(loginView.Username, loginView.Server),
 					}
 				}, &loginView).
 				Validate(func(str string) error {
-					if str == "" {
-						loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
-						return nil
+					if strings.TrimSpace(str) == "" {
+						loginView.Name = utils.DefaultCredentialName(loginView.Username, loginView.Server)
 					}
 					return nil
 				}),

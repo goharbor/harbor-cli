@@ -44,18 +44,23 @@ You can specify the project name as an argument or, if omitted, you will be prom
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var resp immutable.ListImmuRulesOK
+			var projectName string
 
 			if len(args) > 0 {
-				projectName := args[0]
-				resp, err = api.ListImmutable(projectName)
+				projectName = args[0]
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				resp, err = api.ListImmutable(projectName)
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+					return
+				}
 			}
 
+			resp, err = api.ListImmutable(projectName)
 			if err != nil {
 				log.Errorf("failed to list immutablility rule: %v", err)
 			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				utils.PrintPayloadInJSONFormat(resp)

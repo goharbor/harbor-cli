@@ -29,7 +29,7 @@ func ViewArtifactCommmand() *cobra.Command {
 		Use:     "view",
 		Short:   "Get information of an artifact",
 		Long:    `Get information of an artifact`,
-		Example: `harbor artifact view <project>/<repository>/<reference>`,
+		Example: `harbor artifact view <project>/<repository>:<tag> OR harbor artifact view <project>/<repository>@<digest>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var projectName, repoName, reference string
@@ -38,9 +38,21 @@ func ViewArtifactCommmand() *cobra.Command {
 			if len(args) > 0 {
 				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
 			} else {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+					return
+				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
+			}
+
+			if reference == "" {
+				if len(args) > 0 {
+					log.Errorf("Invalid artifact reference format: %s", args[0])
+				} else {
+					log.Error("Invalid artifact reference format: no arguments provided")
+				}
 			}
 
 			artifact, err = api.ViewArtifact(projectName, repoName, reference)

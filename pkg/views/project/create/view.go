@@ -22,7 +22,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -43,7 +42,6 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 	ctx := context.Background()
 	var response *registry.ListRegistriesOK
 	response, err = client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{})
-
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +49,13 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 	return response, nil
 }
 
-func CreateProjectView(createView *CreateView) {
+func CreateProjectView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	// I want it to be a map of registry ID to registry name
-	registries, _ := getRegistryList()
-
+	registries, err := getRegistryList()
+	if err != nil {
+		return err
+	}
 	registryOptions := map[string]string{}
 	for _, registry := range registries.Payload {
 		regiId := fmt.Sprintf("%d", registry.ID)
@@ -67,7 +67,7 @@ func CreateProjectView(createView *CreateView) {
 		registrySelectOptions = append(registrySelectOptions, huh.NewOption(name, id))
 	}
 
-	err := huh.NewForm(
+	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Project Name").
@@ -124,6 +124,7 @@ func CreateProjectView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

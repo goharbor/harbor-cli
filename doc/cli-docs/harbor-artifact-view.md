@@ -1,6 +1,6 @@
 ---
 title: harbor artifact view
-weight: 75
+weight: 95
 ---
 ## harbor artifact view
 
@@ -19,7 +19,7 @@ harbor artifact view [flags]
 ### Examples
 
 ```sh
-harbor artifact view <project>/<repository>/<reference>
+harbor artifact view <project>/<repository>:<tag> OR harbor artifact view <project>/<repository>@<digest>
 ```
 
 ### Options

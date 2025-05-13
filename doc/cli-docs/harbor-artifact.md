@@ -1,6 +1,6 @@
 ---
 title: harbor artifact
-weight: 20
+weight: 35
 ---
 ## harbor artifact
 
@@ -27,7 +27,7 @@ Manage artifacts in Harbor Repository
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```
@@ -36,8 +36,8 @@ Manage artifacts in Harbor Repository
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor artifact delete](harbor-artifact-delete.md)	 - delete an artifact
-* [harbor artifact info](harbor-artifact-info.md)	 - Get info of an artifact
-* [harbor artifact list](harbor-artifact-list.md)	 - list artifacts within a repository
+* [harbor artifact list](harbor-artifact-list.md)	 - List container artifacts (images, charts, etc.) in a Harbor repository with metadata
 * [harbor artifact scan](harbor-artifact-scan.md)	 - Scan an artifact
 * [harbor artifact tags](harbor-artifact-tags.md)	 - Manage tags of an artifact
+* [harbor artifact view](harbor-artifact-view.md)	 - Get information of an artifact
 

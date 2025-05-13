@@ -1,6 +1,6 @@
 ---
 title: harbor artifact tags create
-weight: 60
+weight: 65
 ---
 ## harbor artifact tags create
 
@@ -27,7 +27,7 @@ harbor artifact tags create <project>/<repository>/<reference> <tag>
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```

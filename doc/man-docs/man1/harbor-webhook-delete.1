@@ -1,0 +1,59 @@
+.nh
+.TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+harbor-webhook-delete - Delete a webhook from a Harbor project
+
+
+.SH SYNOPSIS
+\fBharbor webhook delete [webhook-name] [flags]\fP
+
+
+.SH DESCRIPTION
+Delete a webhook from a specified Harbor project.
+You can either specify the project name and webhook ID using flags,
+pass the webhook name as an argument,
+or interactively select a project and webhook if not provided.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for delete
+
+.PP
+\fB--project\fP=""
+	Project name (required when providing webhook ID or name)
+
+.PP
+\fB--webhook-id\fP=-1
+	Webhook ID (alternative to providing webhook name as argument)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # Delete by project and webhook ID
+  harbor-cli webhook delete --project my-project --webhook 5
+
+  # Delete by project and webhook name
+  harbor-cli webhook delete my-webhook --project my-project
+
+  # Fully interactive deletion
+  harbor-cli webhook delete
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-webhook(1)\fP
