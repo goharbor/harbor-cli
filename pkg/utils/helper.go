@@ -184,3 +184,12 @@ func PrintFormat[T any](resp T, format string) error {
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
+
+func EmptyStringValidator(variable string) func(string) error {
+	return func(str string) error {
+		if str == "" {
+			return fmt.Errorf("%s cannot be empty", variable)
+		}
+		return nil
+	}
+}
