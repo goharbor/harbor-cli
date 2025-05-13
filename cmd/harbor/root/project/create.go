@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // CreateProjectCommand creates a new `harbor create project` command
@@ -42,12 +43,23 @@ func CreateProjectCommand() *cobra.Command {
 				return fmt.Errorf("Error: Proxy cache selected but no registry ID provided. Use --registry-id.")
 			}
 
-			if opts.ProjectName != "" {
+			if !opts.ProxyCache && opts.RegistryID != "" {
+				return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+			}
+
+			flagsSet := make(map[string]bool)
+			cmd.Flags().Visit(func(f *pflag.Flag) {
+				flagsSet[f.Name] = true
+			})
+
+			if opts.ProjectName != "" &&
+				(flagsSet["public"] && flagsSet["storage-limit"] &&
+					(!opts.ProxyCache || (opts.ProxyCache && flagsSet["proxy-cache"] && flagsSet["registry-id"]))) {
 				log.Debug("Attempting to create project using flags...")
 				err = api.CreateProject(opts)
 				ProjectName = opts.ProjectName
 			} else {
-				log.Debug("No project name provided. Switching to interactive view...")
+				log.Debug("Some flags missing. Switching to interactive view...")
 				createView := &create.CreateView{
 					ProjectName:  opts.ProjectName,
 					Public:       opts.Public,
@@ -59,8 +71,6 @@ func CreateProjectCommand() *cobra.Command {
 				err = createProjectView(createView)
 				ProjectName = createView.ProjectName
 			}
-
-			err = createProjectView(createView)
 
 			if err != nil {
 				return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
