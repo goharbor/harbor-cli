@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
@@ -28,6 +29,7 @@ import (
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
+	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -148,6 +150,42 @@ func GetScannerIdFromUser() string {
 	}()
 
 	return <-scannerId
+}
+
+func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
+	type result struct {
+		webhook models.WebhookPolicy
+		err     error
+	}
+
+	resultChan := make(chan result)
+
+	go func() {
+		res, err := api.ListWebhooks(projectName)
+		if err != nil {
+			resultChan <- result{models.WebhookPolicy{}, err}
+			return
+		}
+
+		if len(res.Payload) == 0 {
+			resultChan <- result{models.WebhookPolicy{}, errors.New("no webhooks found")}
+			return
+		}
+
+		webhook, err := wview.WebhookList(res.Payload)
+		if err != nil {
+			if err == wview.ErrUserAborted {
+				resultChan <- result{models.WebhookPolicy{}, errors.New("user aborted webhook selection")}
+			} else {
+				resultChan <- result{models.WebhookPolicy{}, fmt.Errorf("error during webhook selection: %w", err)}
+			}
+			return
+		}
+		resultChan <- result{webhook, nil}
+	}()
+
+	res := <-resultChan
+	return res.webhook, res.err
 }
 
 func GetLabelIdFromUser(opts api.ListFlags) int64 {

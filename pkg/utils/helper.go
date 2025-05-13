@@ -57,8 +57,26 @@ func FormatUrl(url string) string {
 }
 
 func FormatSize(size int64) string {
-	mbSize := float64(size) / (1024 * 1024)
-	return fmt.Sprintf("%.2fMiB", mbSize)
+	const (
+		_         = iota
+		KiB int64 = 1 << (10 * iota)
+		MiB
+		GiB
+		TiB
+	)
+
+	switch {
+	case size >= TiB:
+		return fmt.Sprintf("%.2fTiB", float64(size)/float64(TiB))
+	case size >= GiB:
+		return fmt.Sprintf("%.2fGiB", float64(size)/float64(GiB))
+	case size >= MiB:
+		return fmt.Sprintf("%.2fMiB", float64(size)/float64(MiB))
+	case size >= KiB:
+		return fmt.Sprintf("%.2fKiB", float64(size)/float64(KiB))
+	default:
+		return fmt.Sprintf("%dB", size)
+	}
 }
 
 // ValidateUserName checks if the username is valid by length and allowed characters.
@@ -185,4 +203,13 @@ func PrintFormat[T any](resp T, format string) error {
 		return nil
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
+}
+
+func EmptyStringValidator(variable string) func(string) error {
+	return func(str string) error {
+		if str == "" {
+			return fmt.Errorf("%s cannot be empty", variable)
+		}
+		return nil
+	}
 }
