@@ -47,7 +47,6 @@ func AddConfigCommand() *cobra.Command {
 					metadata[keyValueArray[0]] = keyValueArray[1]
 				} else {
 					return fmt.Errorf("Please provide metadata in the format key:value")
-
 				}
 			}
 			err = api.AddConfig(isID, projectNameorID, metadata)
@@ -58,5 +57,4 @@ func AddConfigCommand() *cobra.Command {
 		},
 	}
 	return cmd
-
 }
