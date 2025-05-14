@@ -14,6 +14,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -23,6 +25,7 @@ import (
 )
 
 func ListConfigCommand() *cobra.Command {
+	var err error
 	var projectNameorID string
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -30,14 +33,17 @@ func ListConfigCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				projectNameorID = prompt.GetProjectNameFromUser()
+				projectNameorID, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", err)
+				}
 				isID = false
 			} else {
 				projectNameorID = args[0]
 			}
 			response, err := api.ListConfig(isID, projectNameorID)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to list metadata: %v", utils.ParseHarborErrorMsg(err))
 			}
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {

@@ -19,19 +19,22 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func AddConfigCommand() *cobra.Command {
+	var err error
 	var projectNameorID string
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "add [NAME|ID] ...[KEY]:[VALUE]",
 		Args:  cobra.MinimumNArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				projectNameorID = prompt.GetProjectNameFromUser()
+				projectNameorID, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", err)
+				}
 				isID = false
 			} else {
 				projectNameorID = args[0]
@@ -43,14 +46,15 @@ func AddConfigCommand() *cobra.Command {
 				if len(keyValueArray) == 2 {
 					metadata[keyValueArray[0]] = keyValueArray[1]
 				} else {
-					fmt.Println("Please provide metadata in the format key:value")
-					return
+					return fmt.Errorf("Please provide metadata in the format key:value")
+
 				}
 			}
-			err := api.AddConfig(isID, projectNameorID, metadata)
+			err = api.AddConfig(isID, projectNameorID, metadata)
 			if err != nil {
-				log.Errorf("failed to add metadata: %v", err)
+				return fmt.Errorf("failed to add metadata: %v", err)
 			}
+			return nil
 		},
 	}
 	return cmd
