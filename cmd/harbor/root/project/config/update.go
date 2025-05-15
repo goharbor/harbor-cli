@@ -100,11 +100,11 @@ Supported flag values:
 				conf.PreventVul = &preventVulFlag
 				flagsUsed = true
 			}
-			if flags.Changed("reuse-sys-cve-allowlist") {
-				if err := validateFlag("reuse-sys-cve-allowlist", reuseSysCVEAllowlistFlag); err != nil {
+			if flags.Changed("reuse-sys-cve") {
+				if err := validateFlag("reuse-sys-cve", reuseSysCVEFlag); err != nil {
 					return err
 				}
-				conf.ReuseSysCVEAllowlist = &reuseSysCVEAllowlistFlag
+				conf.ReuseSysCVEAllowlist = &reuseSysCVEFlag
 				flagsUsed = true
 			}
 			if flags.Changed("enable-content-trust") {
