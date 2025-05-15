@@ -27,7 +27,7 @@ var (
 	publicFlag                   string
 	autoScanFlag                 string
 	preventVulFlag               string
-	reuseSysCVEAllowlistFlag     string
+	reuseSysCVEFlag              string
 	enableContentTrustFlag       string
 	enableContentTrustCosignFlag string
 	severityFlag                 string
@@ -136,6 +136,7 @@ Supported flag values:
 			if err != nil {
 				return fmt.Errorf("Failed to update project config: %v", utils.ParseHarborErrorMsg(err))
 			}
+			fmt.Printf("Project %s configuration updated successfully.\n", projectIDOrName)
 			return nil
 		},
 	}
@@ -145,7 +146,7 @@ Supported flag values:
 	flags.StringVar(&publicFlag, "public", "", "Set project visibility (true/false)")
 	flags.StringVar(&autoScanFlag, "auto-scan", "", "Enable or disable auto scan (true/false)")
 	flags.StringVar(&preventVulFlag, "prevent-vul", "", "Enable or disable vulnerability prevention (true/false)")
-	flags.StringVar(&reuseSysCVEAllowlistFlag, "reuse-sys-cve", "", "Enable or disable reuse of system CVE allowlist (true/false)")
+	flags.StringVar(&reuseSysCVEFlag, "reuse-sys-cve", "", "Enable or disable reuse of system CVE allowlist (true/false)")
 	flags.StringVar(&enableContentTrustFlag, "enable-content-trust", "", "Enable or disable content trust (true/false)")
 	flags.StringVar(&enableContentTrustCosignFlag, "enable-content-trust-cosign", "", "Enable or disable content trust cosign (true/false)")
 	flags.StringVar(&severityFlag, "severity", "", "Set severity level")
