@@ -2,15 +2,15 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-project-config-update - update [NAME|ID] [KEY] ...[KEY]:[VALUE]
+harbor-project-config-update - Update project configuration interactively
 
 
 .SH SYNOPSIS
-\fBharbor project config update [flags]\fP
+\fBharbor project config update [project_name] [flags]\fP
 
 
 .SH DESCRIPTION
-update [NAME|ID] [KEY] ...[KEY]:[VALUE]
+Update project configuration interactively
 
 
 .SH OPTIONS
@@ -21,6 +21,10 @@ update [NAME|ID] [KEY] ...[KEY]:[VALUE]
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
 \fB-c\fP, \fB--config\fP=""
 	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""

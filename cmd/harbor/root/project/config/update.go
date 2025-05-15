@@ -15,45 +15,68 @@ package config
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	log "github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/views/project/config/update"
 	"github.com/spf13/cobra"
 )
 
-func UpdateConfigCommand() *cobra.Command {
+func UpdateProjectConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "update [NAME|ID] [KEY] ...[KEY]:[VALUE]",
-		Args:  cobra.MinimumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				fmt.Println("Please provide project name, the meta name and metadata")
-			} else if len(args) == 1 {
-				fmt.Println("Please provide the meta name and metadata")
-			} else if len(args) == 2 {
-				fmt.Println("Please provide metadata")
+		Use:   "update [project_name]",
+		Short: "Update project configuration interactively",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			var projectIDOrName string
+
+			if len(args) > 0 {
+				projectIDOrName = args[0]
 			} else {
-				projectNameOrID := args[0]
-				metaName := args[1]
-				metadata := make(map[string]string)
-				for i := 2; i < len(args); i++ {
-					keyValue := args[i]
-					keyValueArray := strings.Split(keyValue, ":")
-					if len(keyValueArray) == 2 {
-						metadata[keyValueArray[0]] = keyValueArray[1]
-					} else {
-						fmt.Println("Please provide metadata in the format key:value")
-						return
+				projectIDOrName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("Failed to get project name: %v", err)
+				}
+				isID = false
+			}
+
+			resp, err := api.ListConfig(isID, projectIDOrName)
+			if err != nil {
+				return fmt.Errorf("Failed to list project config: %v", err)
+			}
+			config := resp.Payload
+			conf := &models.ProjectMetadata{}
+			if config != nil {
+				for key, value := range config {
+					switch key {
+					case "public":
+						conf.Public = value
+					case "auto_scan":
+						conf.AutoScan = &value
+					case "prevent_vul":
+						conf.PreventVul = &value
+					case "reuse_sys_cve_allowlist":
+						conf.ReuseSysCVEAllowlist = &value
+					case "enable_content_trust":
+						conf.EnableContentTrust = &value
+					case "enable_content_trust_cosign":
+						conf.EnableContentTrustCosign = &value
+					case "severity":
+						conf.Severity = &value
 					}
 				}
-				err := api.UpdateConfig(isID, projectNameOrID, metaName, metadata)
-				if err != nil {
-					log.Errorf("failed to view metadata: %v", err)
-				}
 			}
+			update.UpdateProjectMetadataView(conf)
+
+			err = api.UpdateConfig(isID, projectIDOrName, *conf)
+			if err != nil {
+				return fmt.Errorf("Failed to update project config: %v", err)
+			}
+			return nil
 		},
 	}
+
 	return cmd
 }

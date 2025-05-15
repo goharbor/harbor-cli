@@ -23,10 +23,8 @@ func ProjectConfigCommand() *cobra.Command {
 		Short: "Manage project configuration",
 	}
 	cmd.AddCommand(
-		AddConfigCommand(),
-		ViewConfigCommand(),
-		UpdateConfigCommand(),
-		ListConfigCommand(),
+		UpdateProjectConfigCmd(),
+		ListProjectConfigCmd(),
 	)
 	cmd.PersistentFlags().BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 

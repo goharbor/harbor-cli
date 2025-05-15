@@ -1,15 +1,15 @@
 ---
 title: harbor project config update
-weight: 10
+weight: 80
 ---
 ## harbor project config update
 
 ### Description
 
-##### update [NAME|ID] [KEY] ...[KEY]:[VALUE]
+##### Update project configuration interactively
 
 ```sh
-harbor project config update [flags]
+harbor project config update [project_name] [flags]
 ```
 
 ### Options
@@ -22,11 +22,12 @@ harbor project config update [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+      --id                     Use project ID instead of name
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```
 
 ### SEE ALSO
 
-* [harbor project config](harbor-project-config.md)	 - Manage project metadata
+* [harbor project config](harbor-project-config.md)	 - Manage project configuration
 

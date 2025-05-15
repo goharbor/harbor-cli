@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func ListConfigCommand() *cobra.Command {
+func ListProjectConfigCmd() *cobra.Command {
 	var err error
 	var projectNameorID string
 	cmd := &cobra.Command{

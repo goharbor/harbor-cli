@@ -1,12 +1,12 @@
 ---
 title: harbor project config
-weight: 15
+weight: 90
 ---
 ## harbor project config
 
 ### Description
 
-##### Manage project metadata
+##### Manage project configuration
 
 ### Options
 
@@ -26,9 +26,6 @@ weight: 15
 ### SEE ALSO
 
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
-* [harbor project config add](harbor-project-config-add.md)	 - add [NAME|ID] ...[KEY]:[VALUE]
-* [harbor project config delete](harbor-project-config-delete.md)	 - delete [NAME|ID] ...[KEY]
 * [harbor project config list](harbor-project-config-list.md)	 - list [NAME|ID]
-* [harbor project config update](harbor-project-config-update.md)	 - update [NAME|ID] [KEY] ...[KEY]:[VALUE]
-* [harbor project config view](harbor-project-config-view.md)	 - view [NAME|ID] [KEY]
+* [harbor project config update](harbor-project-config-update.md)	 - Update project configuration interactively
 

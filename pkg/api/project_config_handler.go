@@ -14,7 +14,9 @@
 package api
 
 import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project_metadata"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -70,14 +72,20 @@ func ListConfig(isID bool, projectNameOrID string) (project_metadata.ListProject
 	return *response, nil
 }
 
-func UpdateConfig(isID bool, projectNameOrID string, metaName string, metadata map[string]string) error {
+func UpdateConfig(isID bool, projectNameOrID string, metadata models.ProjectMetadata) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
 	isName := !isID
-	response, err := client.ProjectMetadata.UpdateProjectMetadata(ctx, &project_metadata.UpdateProjectMetadataParams{MetaName: metaName, Metadata: metadata, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
+	response, err := client.Project.UpdateProject(ctx,&project.UpdateProjectParams{
+	ProjectNameOrID: projectNameOrID,
+		XIsResourceName: &isName,
+		Project: &models.ProjectReq{
+			Metadata: &metadata,
+		},
+	})
 	if err != nil {
 		return err
 	}

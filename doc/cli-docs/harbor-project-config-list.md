@@ -1,6 +1,6 @@
 ---
 title: harbor project config list
-weight: 70
+weight: 60
 ---
 ## harbor project config list
 
@@ -22,11 +22,12 @@ harbor project config list [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+      --id                     Use project ID instead of name
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```
 
 ### SEE ALSO
 
-* [harbor project config](harbor-project-config.md)	 - Manage project metadata
+* [harbor project config](harbor-project-config.md)	 - Manage project configuration
 
