@@ -77,12 +77,13 @@ func GetCLIInfo() (*CLIInfo, error) {
 	for _, cred := range creds {
 		c := cred.(map[string]interface{})
 		addr := c["serveraddress"].(string)
+		name := c["name"].(string)
 
-		if c["name"] == currentCred {
+		if name == currentCred {
 			registryAddress = addr
 		}
 		if _, exists := seen[addr]; !exists {
-			previousRegistries = append(previousRegistries, addr)
+			previousRegistries = append(previousRegistries, name)
 			seen[addr] = struct{}{}
 		}
 	}
