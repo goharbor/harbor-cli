@@ -14,6 +14,7 @@
 package list
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -147,6 +148,16 @@ func createRows(data interface{}, rows *[]table.Row) {
 			var value string
 			if fieldName == "TotalStorageConsumption" {
 				value = fmt.Sprintf("%s", utils.FormatSize(int64(field.Interface().(int64))))
+			} else if fieldName == "BannerMessage" {
+				var bannerMessage struct {
+					Message string `json:"message"`
+				}
+				err := json.Unmarshal([]byte(field.Interface().(string)), &bannerMessage)
+				if err != nil {
+					value = fmt.Sprintf("%v", field.Interface())
+				} else {
+					value = bannerMessage.Message
+				}
 			} else {
 				value = fmt.Sprintf("%v", field.Interface())
 			}
