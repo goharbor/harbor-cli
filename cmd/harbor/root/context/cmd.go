@@ -29,6 +29,7 @@ func Context() *cobra.Command {
 		GetContextItemCommand(),
 		UpdateContextItemCommand(),
 		DeleteContextItemCommand(),
+		SwitchContextCommand(),
 	)
 
 	return cmd
