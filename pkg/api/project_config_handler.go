@@ -22,41 +22,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func AddConfig(isID bool, projectNameOrID string, metadata map[string]string) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	isName := !isID
-	response, err := client.ProjectMetadata.AddProjectMetadatas(ctx, &project_metadata.AddProjectMetadatasParams{Metadata: metadata, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
-	if err != nil {
-		return err
-	}
-	if response != nil {
-		log.Info("Metadata added successfully")
-	}
-	return nil
-}
-
-func ViewConfig(isID bool, projectNameOrID string, metaName string) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-
-	isName := !isID
-	response, err := client.ProjectMetadata.GetProjectMetadata(ctx, &project_metadata.GetProjectMetadataParams{MetaName: metaName, ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
-	if err != nil {
-		return err
-	}
-	if response != nil {
-		log.Info("Metadata: ", response.Payload)
-	}
-
-	return nil
-}
-
 func ListConfig(isID bool, projectNameOrID string) (project_metadata.ListProjectMetadatasOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -79,8 +44,8 @@ func UpdateConfig(isID bool, projectNameOrID string, metadata models.ProjectMeta
 	}
 
 	isName := !isID
-	response, err := client.Project.UpdateProject(ctx,&project.UpdateProjectParams{
-	ProjectNameOrID: projectNameOrID,
+	response, err := client.Project.UpdateProject(ctx, &project.UpdateProjectParams{
+		ProjectNameOrID: projectNameOrID,
 		XIsResourceName: &isName,
 		Project: &models.ProjectReq{
 			Metadata: &metadata,

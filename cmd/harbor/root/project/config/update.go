@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/config/update"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +45,7 @@ func UpdateProjectConfigCmd() *cobra.Command {
 
 			resp, err := api.ListConfig(isID, projectIDOrName)
 			if err != nil {
-				return fmt.Errorf("Failed to list project config: %v", err)
+				return fmt.Errorf("Failed to list project config: %v", utils.ParseHarborErrorMsg(err))
 			}
 			config := resp.Payload
 			conf := &models.ProjectMetadata{}
@@ -72,7 +73,7 @@ func UpdateProjectConfigCmd() *cobra.Command {
 
 			err = api.UpdateConfig(isID, projectIDOrName, *conf)
 			if err != nil {
-				return fmt.Errorf("Failed to update project config: %v", err)
+				return fmt.Errorf("Failed to update project config: %v", utils.ParseHarborErrorMsg(err))
 			}
 			return nil
 		},
