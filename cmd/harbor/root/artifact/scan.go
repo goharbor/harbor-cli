@@ -49,7 +49,15 @@ func StartScanArtifactCommand() *cobra.Command {
 			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError := utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
+				err = api.StartScanArtifact(projectName, repoName, reference)
+				if err != nil {
+					log.Errorf("failed to start scan of artifact: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
@@ -78,7 +86,15 @@ func StopScanArtifactCommand() *cobra.Command {
 			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError := utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
+				err = api.StopScanArtifact(projectName, repoName, reference)
+				if err != nil {
+					log.Errorf("failed to stop scan of artifact: %v", err)
+				}
 			} else {
 				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()

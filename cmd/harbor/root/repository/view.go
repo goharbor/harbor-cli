@@ -36,7 +36,11 @@ func RepoViewCmd() *cobra.Command {
 			var repo *repository.GetRepositoryOK
 
 			if len(args) > 0 {
-				projectName, repoName = utils.ParseProjectRepo(args[0])
+				projectName, repoName, err = utils.ParseProjectRepo(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo: %v", err)
+					return
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
