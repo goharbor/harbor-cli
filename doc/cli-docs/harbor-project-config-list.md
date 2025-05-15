@@ -1,15 +1,38 @@
 ---
 title: harbor project config list
-weight: 60
+weight: 25
 ---
 ## harbor project config list
 
 ### Description
 
-##### list [NAME|ID]
+##### List configuration of a Harbor project by name or ID
+
+### Synopsis
+
+Display the configuration metadata of a Harbor project specified by its name or ID.
+
+If no project name or ID is provided as an argument, you will be prompted to select a project interactively.
+
+You can use the global flag '--output-format' to specify the output format, e.g. 'json' or 'yaml', for machine-readable output.
+
+Examples:
+
+  # List configuration of project 'myproject' by name
+  harbor-cli project config list myproject
+
+  # List configuration of project with ID '123'
+  harbor-cli project config list 123
+
+  # Run interactively (prompt to select project)
+  harbor-cli project config list
+
+  # List config in JSON format
+  harbor-cli project config list myproject --output-format json
+
 
 ```sh
-harbor project config list [flags]
+harbor project config list [NAME|ID] [flags]
 ```
 
 ### Options

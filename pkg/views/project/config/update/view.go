@@ -19,6 +19,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func validateValue(value *string) *string {
+	defaultVal := "false"
+	if value == nil {
+		return &defaultVal
+	}
+	return value
+}
+
 func UpdateProjectMetadataView(config *models.ProjectMetadata) {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
@@ -37,16 +45,14 @@ func UpdateProjectMetadataView(config *models.ProjectMetadata) {
 					huh.NewOption("No", "false"),
 					huh.NewOption("Yes", "true"),
 				).
-				Value(config.AutoScan),
-
+				Value(validateValue(config.AutoScan)),
 			huh.NewSelect[string]().
 				Title("Prevent vulnerable images from running").
 				Options(
 					huh.NewOption("No", "false"),
 					huh.NewOption("Yes", "true"),
 				).
-				Value(config.PreventVul),
-
+				Value(validateValue(config.PreventVul)),
 			huh.NewSelect[string]().
 				Title("Vulnerability severity threshold").
 				Options(
@@ -56,15 +62,14 @@ func UpdateProjectMetadataView(config *models.ProjectMetadata) {
 					huh.NewOption("High", "high"),
 					huh.NewOption("Critical", "critical"),
 				).
-				Value(config.Severity),
-
+				Value(validateValue(config.Severity)),
 			huh.NewSelect[string]().
 				Title("Reuse system CVE allowlist").
 				Options(
 					huh.NewOption("No", "false"),
 					huh.NewOption("Yes", "true"),
 				).
-				Value(config.ReuseSysCVEAllowlist),
+				Value(validateValue(config.ReuseSysCVEAllowlist)),
 		),
 	).WithTheme(theme).Run()
 

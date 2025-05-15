@@ -1,6 +1,6 @@
 ---
 title: harbor project config
-weight: 90
+weight: 50
 ---
 ## harbor project config
 
@@ -26,6 +26,6 @@ weight: 90
 ### SEE ALSO
 
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
-* [harbor project config list](harbor-project-config-list.md)	 - list [NAME|ID]
-* [harbor project config update](harbor-project-config-update.md)	 - Update project configuration interactively
+* [harbor project config list](harbor-project-config-list.md)	 - List configuration of a Harbor project by name or ID
+* [harbor project config update](harbor-project-config-update.md)	 - Interactively or via flags update project configuration in Harbor
 

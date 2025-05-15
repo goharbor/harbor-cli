@@ -28,9 +28,29 @@ func ListProjectConfigCmd() *cobra.Command {
 	var err error
 	var projectNameorID string
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "list [NAME|ID]",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "list [NAME|ID]",
+		Short: "List configuration of a Harbor project by name or ID",
+		Long: `Display the configuration metadata of a Harbor project specified by its name or ID.
+
+If no project name or ID is provided as an argument, you will be prompted to select a project interactively.
+
+You can use the global flag '--output-format' to specify the output format, e.g. 'json' or 'yaml', for machine-readable output.
+
+Examples:
+
+  # List configuration of project 'myproject' by name
+  harbor-cli project config list myproject
+
+  # List configuration of project with ID '123'
+  harbor-cli project config list 123
+
+  # Run interactively (prompt to select project)
+  harbor-cli project config list
+
+  # List config in JSON format
+  harbor-cli project config list myproject --output-format json
+`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				projectNameorID, err = prompt.GetProjectNameFromUser()

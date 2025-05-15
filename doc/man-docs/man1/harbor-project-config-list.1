@@ -2,15 +2,40 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-project-config-list - list [NAME|ID]
+harbor-project-config-list - List configuration of a Harbor project by name or ID
 
 
 .SH SYNOPSIS
-\fBharbor project config list [flags]\fP
+\fBharbor project config list [NAME|ID] [flags]\fP
 
 
 .SH DESCRIPTION
-list [NAME|ID]
+Display the configuration metadata of a Harbor project specified by its name or ID.
+
+.PP
+If no project name or ID is provided as an argument, you will be prompted to select a project interactively.
+
+.PP
+You can use the global flag '--output-format' to specify the output format, e.g. 'json' or 'yaml', for machine-readable output.
+
+.PP
+Examples:
+
+.PP
+# List configuration of project 'myproject' by name
+  harbor-cli project config list myproject
+
+.PP
+# List configuration of project with ID '123'
+  harbor-cli project config list 123
+
+.PP
+# Run interactively (prompt to select project)
+  harbor-cli project config list
+
+.PP
+# List config in JSON format
+  harbor-cli project config list myproject --output-format json
 
 
 .SH OPTIONS
