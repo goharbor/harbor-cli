@@ -27,21 +27,14 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Name", Width: tablelist.WidthXXL},
+	{Title: "Name", Width: tablelist.Width3XL},
 	{Title: "Username", Width: tablelist.WidthL},
 	{Title: "Server Address", Width: tablelist.WidthXXL},
 }
 
-func ListContexts(contexts []api.ContextListView) {
-	var rows []table.Row
+func ListContexts(contexts []api.ContextListView, currentCredential string) {
 
-	for _, ctx := range contexts {
-		rows = append(rows, table.Row{
-			ctx.Name,
-			ctx.Username,
-			ctx.Server,
-		})
-	}
+	rows := selectActiveContext(contexts, currentCredential)
 
 	var opts []tea.ProgramOption
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -54,4 +47,25 @@ func ListContexts(contexts []api.ContextListView) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func selectActiveContext(contexts []api.ContextListView, currentCredential string) []table.Row {
+	var rows []table.Row
+
+	for _, ctx := range contexts {
+		if ctx.Name == currentCredential {
+			rows = append([]table.Row{{
+				"* " + ctx.Name,
+				ctx.Username,
+				ctx.Server,
+			}}, rows...)
+		} else {
+			rows = append(rows, table.Row{
+				"  " + ctx.Name,
+				ctx.Username,
+				ctx.Server,
+			})
+		}
+	}
+	return rows
 }

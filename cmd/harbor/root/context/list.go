@@ -51,7 +51,8 @@ func ListContextCommand() *cobra.Command {
 					cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 					cxlist = append(cxlist, cx)
 				}
-				list.ListContexts(cxlist)
+				currentCredential := config.CurrentCredentialName
+				list.ListContexts(cxlist, currentCredential)
 			}
 		},
 	}
