@@ -16,6 +16,7 @@ package context
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +53,15 @@ func SwitchContextCommand() *cobra.Command {
 					fmt.Errorf("context doesn't exist")
 				}
 			} else {
-				fmt.Errorf("not implemented yet")
+				res, err := prompt.GetActiveContextFromUser()
+				if err != nil {
+					fmt.Errorf("failed to get active context: %v", utils.ParseHarborErrorMsg(err))
+					return
+				}
+				config.CurrentCredentialName = res
+				if err := utils.UpdateConfigFile(config); err != nil {
+					fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 		},
 	}
