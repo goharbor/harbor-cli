@@ -36,6 +36,10 @@ func ElevateUserCmd() *cobra.Command {
 					log.Errorf("failed to get user id for '%s': %v", args[0], err)
 					return
 				}
+				if userId == 0 {
+					log.Errorf("User with name '%s' not found", args[0])
+					return
+				}
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
