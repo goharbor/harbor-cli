@@ -50,7 +50,10 @@ func CreateTagsCmd() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, err := utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", err)
+				}
 				tag := args[1]
 				err = api.CreateTag(projectName, repoName, reference, tag)
 			} else {
@@ -85,7 +88,10 @@ func ListTagsCmd() *cobra.Command {
 			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
@@ -127,7 +133,10 @@ func DeleteTagsCmd() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, err := utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", err)
+				}
 				tag := args[1]
 				err = api.DeleteTag(projectName, repoName, reference, tag)
 			} else {

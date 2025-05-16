@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
@@ -138,11 +139,10 @@ func GetTagNameFromUser() string {
 	return <-repoName
 }
 
-func GetLabelIdFromUser(opts api.ListFlags) int64 {
+func GetLabelIdFromUser(labelList []*models.Label) int64 {
 	labelId := make(chan int64)
 	go func() {
-		response, _ := api.ListLabel(opts)
-		lview.LabelList(response.Payload, labelId)
+		lview.LabelList(labelList, labelId)
 	}()
 
 	return <-labelId

@@ -14,49 +14,77 @@
 package label
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// AddLabelArtifactCommmand add label command to artifact
+// AddLabelArtifactCommmand adds a label to an artifact
 func AddLabelArtifactCommmand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "add",
-		Short:   "add label to an artifact",
-		Long:    `add label to artifact`,
-		Example: `harbor artifact label add <project>/<repository>/<reference> <label name>`,
-		Args:    cobra.ExactArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var projectName, repoName, reference string
+		Use:   "add",
+		Short: "Attach a label to an artifact in a Harbor project repository",
+		Long: `Attach an existing label to a specific artifact identified by <project>/<repository>:<reference>.
+You can specify the artifact and label directly as arguments, or interactively select them if arguments are omitted.
 
-			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
-			}
+Examples:
+  # Add a label to an artifact using project/repo:reference and label name
+  harbor artifact label add myproject/myrepo@sha256:abcdef1234567890 dev
 
-			labels, err := api.ListLabel()
-			if err != nil {
-				log.Errorf("failed to list label: %v", err)
-				return
-			}
+  # Prompt-based label selection for an artifact
+  harbor artifact label add library/nginx:1.21
 
-			var label *models.Label
-			for _, currentLabel := range labels.GetPayload() {
-				if currentLabel.Name == args[1] {
-					label = currentLabel
+  # Fully interactive mode (prompt for everything)
+  harbor artifact label add
+`,
+		Args: cobra.MaximumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var (
+				projectName, repoName, reference string
+				labelName                        string
+				labelID                          int64 = -1
+				err                              error
+			)
+
+			if len(args) >= 1 {
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to parse project/repo/reference: %v", err)
 				}
+			} else {
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
-			_, err = api.AddLabelArtifact(projectName, repoName, reference, label)
-			if err != nil {
-				log.Errorf("failed to add label on artifact: %v", err)
-				return
+			if len(args) == 2 {
+				labelName = args[1]
+				labelID, err = api.GetLabelIdByName(labelName)
+				if err != nil {
+					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+				}
+			} else {
+				labels, err := api.ListLabel()
+				if err != nil {
+					return fmt.Errorf("failed to list labels: %v", utils.ParseHarborErrorMsg(err))
+				}
+				labelID = prompt.GetLabelIdFromUser(labels.Payload)
 			}
 
-			log.Infof("Label %s added on artifact %s.", args[1], args[0])
+			label := api.GetLabel(labelID)
+
+			if _, err := api.AddLabelArtifact(projectName, repoName, reference, label); err != nil {
+				return fmt.Errorf("failed to add label to artifact: %v", utils.ParseHarborErrorMsg(err))
+			}
+
+			fmt.Printf("Label '%s' added to artifact %s/%s@%s\n", label.Name, projectName, repoName, reference)
+			return nil
 		},
 	}
 

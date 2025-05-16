@@ -14,50 +14,84 @@
 package label
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// DelLabelArtifactCommmand delete label command to artifact
+// DelLabelArtifactCommmand deletes a label from an artifact
 func DelLabelArtifactCommmand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"del"},
-		Short:   "del label to an artifact",
-		Long:    `del label to artifact`,
-		Example: `harbor artifact label del <project>/<repository>/<reference> <label name>`,
-		Args:    cobra.ExactArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var projectName, repoName, reference string
+		Short:   "Detach a label from an artifact in a Harbor project repository",
+		Long: `Remove an existing label from a specific artifact identified by <project>/<repository>:<reference>.
+You can provide the artifact and label name as arguments, or choose them interactively if not specified.
 
-			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+Examples:
+  # Remove a label by specifying artifact and label name
+  harbor artifact label delete library/nginx:latest stable
+
+  # Prompt-based label selection for a specific artifact
+  harbor artifact label del library/nginx:1.21
+
+  # Fully interactive mode (prompt for project, repo, reference, and label)
+  harbor artifact label delete
+
+  # Remove a label from an artifact identified by digest
+  harbor artifact label del myproject/myrepo@sha256:abcdef1234567890 qa-label`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var (
+				projectName, repoName, reference string
+				labelID                          int64 = -1
+				err                              error
+			)
+
+			if len(args) >= 1 {
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to parse project/repo/reference: %v", err)
+				}
+			} else {
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
-			labels, err := api.ListLabel()
-			if err != nil {
-				log.Errorf("failed to list label: %v", err)
-				return
-			}
-
-			var label *models.Label
-			for _, currentLabel := range labels.GetPayload() {
-				if currentLabel.Name == args[1] {
-					label = currentLabel
+			if len(args) == 2 {
+				labelName := args[1]
+				labelID, err = api.GetLabelIdByName(labelName)
+				if err != nil {
+					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
-			_, err = api.RemoveLabelArtifact(projectName, repoName, reference, label)
-			if err != nil {
-				log.Errorf("failed to remove label on artifact: %v", err)
-				return
+			if labelID == -1 {
+				artifact, err := api.ViewArtifact(projectName, repoName, reference, true)
+				if err != nil || artifact == nil {
+					return fmt.Errorf("failed to get artifact info: %v", utils.ParseHarborErrorMsg(err))
+				}
+
+				labels := artifact.Payload.Labels
+				if len(labels) == 0 {
+					fmt.Printf("No labels found for artifact %s/%s@%s\n", projectName, repoName, reference)
+					return nil
+				}
+				labelID = prompt.GetLabelIdFromUser(labels)
 			}
 
-			log.Infof("Label %s removed on artifact %s.", args[1], args[0])
+			if _, err := api.RemoveLabelArtifact(projectName, repoName, reference, labelID); err != nil {
+				return fmt.Errorf("failed to remove label from artifact: %v", utils.ParseHarborErrorMsg(err))
+			}
+
+			fmt.Println("Label removed successfully")
+			return nil
 		},
 	}
 
