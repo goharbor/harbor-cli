@@ -15,8 +15,8 @@
 package context
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -29,14 +29,11 @@ func SwitchContextCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				logrus.Errorf("Failed to get config: %v", err)
+				fmt.Errorf("failed to get config: %v", utils.ParseHarborErrorMsg(err))
 				return
 			}
 
-			if len(args) > 1 {
-				logrus.Errorf("Invalid number of arguments")
-				return
-			} else if len(args) == 1 {
+			if len(args) == 1 {
 				newActiveCredential := args[0]
 				found := false
 
@@ -49,13 +46,13 @@ func SwitchContextCommand() *cobra.Command {
 				if found {
 					config.CurrentCredentialName = newActiveCredential
 					if err := utils.UpdateConfigFile(config); err != nil {
-						logrus.Errorf("Failed to update config: %v", err)
+						fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
 					}
 				} else {
-					logrus.Errorf("Context doesn't exist!")
+					fmt.Errorf("context doesn't exist")
 				}
 			} else {
-				logrus.Infof("Not implemented yet")
+				fmt.Errorf("not implemented yet")
 			}
 		},
 	}
