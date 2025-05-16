@@ -25,8 +25,8 @@ import (
 
 var deleteCurrent bool
 
-// DeleteContextItemCommand creates the 'harbor config delete' subcommand,
-// allowing you to do: harbor config delete <item>
+// DeleteContextItemCommand creates the 'harbor context delete' subcommand,
+// allowing you to do: harbor context delete <item>
 func DeleteContextItemCommand() *cobra.Command {
 	var credentialName string
 
