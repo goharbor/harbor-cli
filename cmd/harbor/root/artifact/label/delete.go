@@ -46,7 +46,7 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				projectName, repoName, reference string
-				labelID                          int64 = -1
+				labelID                          int64
 				err                              error
 			)
 
