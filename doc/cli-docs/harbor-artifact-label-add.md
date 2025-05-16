@@ -1,25 +1,31 @@
 ---
 title: harbor artifact label add
-weight: 25
+weight: 40
 ---
 ## harbor artifact label add
 
 ### Description
 
-##### add label to an artifact
+##### Attach a label to an artifact in a Harbor project repository
 
 ### Synopsis
 
-add label to artifact
+Attach an existing label to a specific artifact identified by <project>/<repository>:<reference>.
+You can specify the artifact and label directly as arguments, or interactively select them if arguments are omitted.
+
+Examples:
+  # Add a label to an artifact using project/repo:reference and label name
+  harbor artifact label add myproject/myrepo@sha256:abcdef1234567890 dev
+
+  # Prompt-based label selection for an artifact
+  harbor artifact label add library/nginx:1.21
+
+  # Fully interactive mode (prompt for everything)
+  harbor artifact label add
+
 
 ```sh
 harbor artifact label add [flags]
-```
-
-### Examples
-
-```sh
-harbor artifact label add <project>/<repository>/<reference> <label name>
 ```
 
 ### Options

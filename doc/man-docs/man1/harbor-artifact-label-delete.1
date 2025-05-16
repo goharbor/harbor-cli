@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
 
 .SH NAME
-harbor-artifact-label-delete - del label to an artifact
+harbor-artifact-label-delete - Detach a label from an artifact in a Harbor project repository
 
 
 .SH SYNOPSIS
@@ -10,7 +10,25 @@ harbor-artifact-label-delete - del label to an artifact
 
 
 .SH DESCRIPTION
-del label to artifact
+Remove an existing label from a specific artifact identified by /:\&.
+You can provide the artifact and label name as arguments, or choose them interactively if not specified.
+
+.PP
+Examples:
+  # Remove a label by specifying artifact and label name
+  harbor artifact label delete library/nginx:latest stable
+
+.PP
+# Prompt-based label selection for a specific artifact
+  harbor artifact label del library/nginx:1.21
+
+.PP
+# Fully interactive mode (prompt for project, repo, reference, and label)
+  harbor artifact label delete
+
+.PP
+# Remove a label from an artifact identified by digest
+  harbor artifact label del myproject/myrepo@sha256:abcdef1234567890 qa-label
 
 
 .SH OPTIONS
@@ -29,12 +47,6 @@ del label to artifact
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
-
-
-.SH EXAMPLE
-.EX
-harbor artifact label del <project>/<repository>/<reference> <label name>
-.EE
 
 
 .SH SEE ALSO
