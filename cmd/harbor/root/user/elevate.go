@@ -54,10 +54,12 @@ func ElevateUserCmd() *cobra.Command {
 			}
 
 			err = api.ElevateUser(userId)
-			if isUnauthorizedError(err) {
-				log.Error("Permission denied: Admin privileges are required to execute this command.")
-			} else {
-				log.Errorf("failed to elevate user: %v", err)
+			if err != nil {
+				if isUnauthorizedError(err) {
+					log.Error("Permission denied: Admin privileges are required to execute this command.")
+				} else {
+					log.Errorf("failed to elevate user: %v", err)
+				}
 			}
 		},
 	}
