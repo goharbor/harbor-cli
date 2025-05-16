@@ -32,21 +32,21 @@ func DeleteLabelCommand() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			var labelId int64
 			deleteView := &api.ListFlags{
 				Scope: opts.Scope,
 			}
 
 			if len(args) > 0 {
-				labelId, _ := api.GetLabelIdByName(args[0])
-				err = api.DeleteLabel(labelId)
+				labelId, _ = api.GetLabelIdByName(args[0])
 			} else {
 				lableList, err := api.ListLabel(*deleteView)
 				if err != nil {
 					return fmt.Errorf("failed to get label list: %v", utils.ParseHarborErrorMsg(err))
 				}
-				labelId := prompt.GetLabelIdFromUser(lableList.Payload)
-				err = api.DeleteLabel(labelId)
+				labelId = prompt.GetLabelIdFromUser(lableList.Payload)
 			}
+			err = api.DeleteLabel(labelId)
 			if err != nil {
 				return fmt.Errorf("failed to delete label: %v", utils.ParseHarborErrorMsg(err))
 			}
