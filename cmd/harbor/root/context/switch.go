@@ -58,9 +58,11 @@ func SwitchContextCommand() *cobra.Command {
 					fmt.Errorf("failed to get active context: %v", utils.ParseHarborErrorMsg(err))
 					return
 				}
-				config.CurrentCredentialName = res
-				if err := utils.UpdateConfigFile(config); err != nil {
-					fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
+				if res != "" {
+					config.CurrentCredentialName = res
+					if err := utils.UpdateConfigFile(config); err != nil {
+						fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 			}
 		},
