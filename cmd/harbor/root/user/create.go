@@ -74,5 +74,8 @@ func createUserView(createView *create.CreateView) error {
 }
 
 func isUnauthorizedError(err error) bool {
+	if err == nil {
+		return false
+	}
 	return strings.Contains(err.Error(), "403")
 }
