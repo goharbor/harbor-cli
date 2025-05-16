@@ -54,6 +54,10 @@ type SystemInfo struct {
 	CLIInfo    *CLIInfoView        `json:"cli_info"`
 }
 
+type BannerMessage struct {
+	Message string `json:"message"`
+}
+
 func CreateSystemInfo(
 	generalInfo *models.GeneralInfo,
 	stats *models.Statistic,
@@ -149,9 +153,7 @@ func createRows(data interface{}, rows *[]table.Row) {
 			if fieldName == "TotalStorageConsumption" {
 				value = fmt.Sprintf("%s", utils.FormatSize(int64(field.Interface().(int64))))
 			} else if fieldName == "BannerMessage" {
-				var bannerMessage struct {
-					Message string `json:"message"`
-				}
+				var bannerMessage BannerMessage
 				err := json.Unmarshal([]byte(field.Interface().(string)), &bannerMessage)
 				if err != nil {
 					value = fmt.Sprintf("%v", field.Interface())
