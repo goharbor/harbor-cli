@@ -43,7 +43,7 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 }
 
 // InfoArtifact retrieves information about a specific artifact.
-func ViewArtifact(projectName, repoName, reference string) (*artifact.GetArtifactOK, error) {
+func ViewArtifact(projectName, repoName, reference string, withLabels bool) (*artifact.GetArtifactOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	var response = &artifact.GetArtifactOK{}
 	if err != nil {
@@ -54,6 +54,7 @@ func ViewArtifact(projectName, repoName, reference string) (*artifact.GetArtifac
 		ProjectName:    projectName,
 		RepositoryName: repoName,
 		Reference:      reference,
+		WithLabel:      &withLabels,
 	})
 
 	if err != nil {
@@ -220,7 +221,7 @@ func AddLabelArtifact(projectName, repoName, reference string, label *models.Lab
 }
 
 // LabelArtifact delete a label from a specific artifact.
-func RemoveLabelArtifact(projectName, repoName, reference string, label *models.Label) (*artifact.RemoveLabelOK, error) {
+func RemoveLabelArtifact(projectName, repoName, reference string, labelID int64) (*artifact.RemoveLabelOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	var response = &artifact.RemoveLabelOK{}
 	if err != nil {
@@ -231,7 +232,7 @@ func RemoveLabelArtifact(projectName, repoName, reference string, label *models.
 		ProjectName:    projectName,
 		RepositoryName: repoName,
 		Reference:      reference,
-		LabelID:        label.ID,
+		LabelID:        labelID,
 	})
 
 	if err != nil {
