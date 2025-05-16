@@ -11,37 +11,36 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package artifact
+package cve
 
 import (
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func DeleteArtifactCommand() *cobra.Command {
+func ListCveCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "delete an artifact",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "list",
+		Short: "List system level allowlist of cve",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var projectName, repoName, reference string
-			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
-			} else {
-				projectName, err = prompt.GetProjectNameFromUser()
-				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-				}
-				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
-			}
-			err = api.DeleteArtifact(projectName, repoName, reference)
+			cve, err := api.ListSystemCve()
 			if err != nil {
-				log.Errorf("failed to delete an artifact: %v", err)
+				log.Fatalf("failed to get system cve list: %v", err)
+			}
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(cve, FormatFlag)
+				if err != nil {
+					log.Fatalf("failed to print cve list: %v", err)
+					return
+				}
+			} else {
+				list.ListSystemCve(cve.Payload)
 			}
 		},
 	}

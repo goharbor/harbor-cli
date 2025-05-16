@@ -16,6 +16,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -53,6 +54,8 @@ func FormatUrl(url string) string {
 
 	// Remove all trailing slashes from the URL
 	url = strings.TrimRight(url, "/")
+	url = strings.TrimLeft(url, "/")
+
 	return url
 }
 
@@ -145,17 +148,28 @@ func ValidateRegistryName(rn string) bool {
 
 	return re.MatchString(rn)
 }
+
 func ValidateURL(rawURL string) error {
+	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
-		return fmt.Errorf("invalid URL format")
+		return fmt.Errorf("invalid URL format: %v", err)
 	}
-	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return fmt.Errorf("URL must use http or https scheme")
-	}
-	if parsedURL.Host == "" {
+
+	host := parsedURL.Hostname()
+	if host == "" {
 		return fmt.Errorf("URL must contain a valid host")
 	}
+
+	if net.ParseIP(host) != nil {
+		return nil
+	}
+
+	if !domainNameRegex.MatchString(host) {
+		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
+	}
+
 	return nil
 }
 
