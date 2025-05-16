@@ -43,8 +43,8 @@ func ManDoc() error {
 	header := &doc.GenManHeader{
 		Title:   "HARBOR",
 		Section: "1",
-		Source:  "Habor Community",
-		Manual:  "Harbor User Mannuals",
+		Source:  "Harbor Community",
+		Manual:  "Harbor User Manuals",
 	}
 
 	err = doc.GenManTree(cmd.RootCmd(), header, docDir)
