@@ -1,6 +1,6 @@
 ---
 title: harbor artifact label
-weight: 65
+weight: 55
 ---
 ## harbor artifact label
 
@@ -41,6 +41,7 @@ harbor artifact label del <project>/<repository>/<reference> <label name>
 ### SEE ALSO
 
 * [harbor artifact](harbor-artifact.md)	 - Manage artifacts
-* [harbor artifact label add](harbor-artifact-label-add.md)	 - add label to an artifact
-* [harbor artifact label delete](harbor-artifact-label-delete.md)	 - del label to an artifact
+* [harbor artifact label add](harbor-artifact-label-add.md)	 - Attach a label to an artifact in a Harbor project repository
+* [harbor artifact label delete](harbor-artifact-label-delete.md)	 - Detach a label from an artifact in a Harbor project repository
+* [harbor artifact label list](harbor-artifact-label-list.md)	 - Display labels attached to a specific artifact
 
