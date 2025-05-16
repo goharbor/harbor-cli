@@ -18,8 +18,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
@@ -96,7 +97,6 @@ harbor help
 	root.AddCommand(
 		versionCommand(),
 		LoginCommand(),
-		config.Config(),
 		HealthCommand(),
 		project.Project(),
 		registry.Registry(),
@@ -112,6 +112,7 @@ harbor help
 		webhook.Webhook(),
 		instance.Instance(),
 		quota.Quota(),
+		context.Context(),
 	)
 
 	return root

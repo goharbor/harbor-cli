@@ -21,29 +21,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_ConfigCmd(t *testing.T) {
+func Test_ContextCmd(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
 	SetMockKeyring(t)
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config"})
+	rootCmd.SetArgs([]string{"context"})
 	err := rootCmd.Execute()
 	assert.Nil(t, err)
 }
 
-func Test_ConfigListCmd(t *testing.T) {
+func Test_ContextListCmd(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
 	SetMockKeyring(t)
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "list"})
+	rootCmd.SetArgs([]string{"context", "list"})
 	err := rootCmd.Execute()
 	assert.Nil(t, err)
 }
 
-func Test_ConfigGetCmd_Success(t *testing.T) {
+func Test_ContextGetCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -64,12 +64,12 @@ func Test_ConfigGetCmd_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "get", "credentials.serveraddress"})
+	rootCmd.SetArgs([]string{"context", "get", "credentials.serveraddress"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigGetCmd_Failure(t *testing.T) {
+func Test_ContextGetCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -90,12 +90,12 @@ func Test_ConfigGetCmd_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "get", "serveraddress"})
+	rootCmd.SetArgs([]string{"context", "get", "serveraddress"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when getting a non-existent config item")
 }
 
-func Test_ConfigGetCmd_CredentialName_Success(t *testing.T) {
+func Test_ContextGetCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -116,12 +116,12 @@ func Test_ConfigGetCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "get", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "get", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigGetCmd_CredentialName_Failure(t *testing.T) {
+func Test_ContextGetCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -142,12 +142,12 @@ func Test_ConfigGetCmd_CredentialName_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "get", "credentials.serveraddress", "--name", "harbor-cli@http://goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "get", "credentials.serveraddress", "--name", "harbor-cli@http://goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when getting a non-existent credential name")
 }
 
-func Test_ConfigUpdateCmd_Success(t *testing.T) {
+func Test_ContextUpdateCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -168,12 +168,12 @@ func Test_ConfigUpdateCmd_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigUpdateCmd_CredentialName_Success(t *testing.T) {
+func Test_ContextUpdateCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -194,12 +194,12 @@ func Test_ConfigUpdateCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
 
-func Test_ConfigUpdateCmd_CredentialName_Failure(t *testing.T) {
+func Test_ContextUpdateCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -220,12 +220,12 @@ func Test_ConfigUpdateCmd_CredentialName_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent credential name")
 }
 
-func Test_ConfigUpdateCmd_Failure(t *testing.T) {
+func Test_ContextUpdateCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -246,12 +246,12 @@ func Test_ConfigUpdateCmd_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "update", "serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "serveraddress", "http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent config item")
 }
 
-func Test_ConfigDeleteCmd_Success(t *testing.T) {
+func Test_ContextDeleteCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -272,7 +272,7 @@ func Test_ConfigDeleteCmd_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress"})
+	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 	config, err := utils.GetCurrentHarborConfig()
@@ -282,7 +282,7 @@ func Test_ConfigDeleteCmd_Success(t *testing.T) {
 	assert.Empty(t, config.Credentials[0].ServerAddress)
 }
 
-func Test_ConfigDeleteCmd_Failure(t *testing.T) {
+func Test_ContextDeleteCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -303,12 +303,12 @@ func Test_ConfigDeleteCmd_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "serveraddress"})
+	rootCmd.SetArgs([]string{"context", "delete", "serveraddress"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when deleting a non-existent config item")
 }
 
-func Test_ConfigDeleteCmd_CredentialName_Success(t *testing.T) {
+func Test_ContextDeleteCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -329,7 +329,7 @@ func Test_ConfigDeleteCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 	config, err := utils.GetCurrentHarborConfig()
@@ -339,7 +339,7 @@ func Test_ConfigDeleteCmd_CredentialName_Success(t *testing.T) {
 	assert.Empty(t, config.Credentials[0].ServerAddress)
 }
 
-func Test_ConfigDeleteCmd_CredentialName_Failure(t *testing.T) {
+func Test_ContextDeleteCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -360,12 +360,12 @@ func Test_ConfigDeleteCmd_CredentialName_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--name", "harbor-cli@http://goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--name", "harbor-cli@http://goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when deleting a non-existent credential name")
 }
 
-func Test_ConfigDeleteCmd_Current_Flag_Success(t *testing.T) {
+func Test_ContextDeleteCmd_Current_Flag_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
@@ -392,7 +392,7 @@ func Test_ConfigDeleteCmd_Current_Flag_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "--current"})
+	rootCmd.SetArgs([]string{"context", "delete", "--current"})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 	config, err := utils.GetCurrentHarborConfig()
@@ -404,13 +404,13 @@ func Test_ConfigDeleteCmd_Current_Flag_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_ConfigDeleteCmd_Current_Flag_With_Item_Failure(t *testing.T) {
+func Test_ContextDeleteCmd_Current_Flag_With_Item_Failure(t *testing.T) {
 	tempDir := t.TempDir()
 	data := Initialize(t, tempDir)
 	defer ConfigCleanup(t, data)
 	SetMockKeyring(t)
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"config", "delete", "credentials.serveraddress", "--current"})
+	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--current"})
 	err := rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when specifying both --current and an item")
 }

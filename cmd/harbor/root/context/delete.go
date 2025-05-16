@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+package context
 
 import (
 	"fmt"
@@ -25,9 +25,9 @@ import (
 
 var deleteCurrent bool
 
-// DeleteConfigItemCommand creates the 'harbor config delete' subcommand,
-// allowing you to do: harbor config delete <item>
-func DeleteConfigItemCommand() *cobra.Command {
+// DeleteContextItemCommand creates the 'harbor context delete' subcommand,
+// allowing you to do: harbor context delete <item>
+func DeleteContextItemCommand() *cobra.Command {
 	var credentialName string
 
 	cmd := &cobra.Command{
@@ -35,13 +35,13 @@ func DeleteConfigItemCommand() *cobra.Command {
 		Short: "Delete (clear) a specific config item",
 		Example: `
   # Clear the current credential's password
-  harbor config delete credentials.password
+  harbor context delete credentials.password
 
   # Clear a specific credential's password using --name
-  harbor config delete credentials.password --name admin@http://demo.goharbor.io
+  harbor context delete credentials.password --name admin@http://demo.goharbor.io
 
   # Clear the current credential
-  harbor config delete --current
+  harbor context delete --current
 `,
 		Long: `Clear the value of a specific CLI config item by setting it to its zero value.
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.

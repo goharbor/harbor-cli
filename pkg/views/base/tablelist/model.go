@@ -27,6 +27,7 @@ const (
 	WidthL   = 16
 	WidthXL  = 20
 	WidthXXL = 24
+	Width3XL = 30
 )
 
 type Model struct {

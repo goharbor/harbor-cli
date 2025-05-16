@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+package context
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ import (
 )
 
 // GetConfigItemCommand creates the 'harbor config get' subcommand.
-func GetConfigItemCommand() *cobra.Command {
+func GetContextItemCommand() *cobra.Command {
 	var credentialName string
 
 	cmd := &cobra.Command{
@@ -34,7 +34,7 @@ func GetConfigItemCommand() *cobra.Command {
 		Short: "Get a specific config item",
 		Example: `
   # Get the current credential's username
-  harbor config get credentials.username
+  harbor context get credentials.username
 
   # Get a credential's username by specifying the credential name
   harbor config get credentials.username --name admin@http://demo.goharbor.io
