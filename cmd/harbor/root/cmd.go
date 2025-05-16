@@ -136,10 +136,6 @@ harbor help
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 
-	cmd = context.Context()
-	cmd.GroupID = "core"
-	root.AddCommand(cmd)
-
 	// Access
 	cmd = LoginCommand()
 	cmd.GroupID = "access"
@@ -150,7 +146,7 @@ harbor help
 	root.AddCommand(cmd)
 
 	// System
-	cmd = config.Config()
+	cmd = context.Context()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
