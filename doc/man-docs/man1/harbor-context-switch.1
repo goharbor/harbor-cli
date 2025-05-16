@@ -1,0 +1,41 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-context-switch - Switch to a new context
+
+
+.SH SYNOPSIS
+\fBharbor context switch  [flags]\fP
+
+
+.SH DESCRIPTION
+Switch to a new context
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for switch
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor context switch harbor-cli@https-demo-goharbor-io
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-context(1)\fP
