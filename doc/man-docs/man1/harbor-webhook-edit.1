@@ -1,0 +1,97 @@
+.nh
+.TH "HARBOR" "1"  "Habor Community" "Harbor User Mannuals"
+
+.SH NAME
+harbor-webhook-edit - Edit an existing webhook for a Harbor project
+
+
+.SH SYNOPSIS
+\fBharbor webhook edit [WEBHOOK_NAME] [flags]\fP
+
+
+.SH DESCRIPTION
+This command allows you to update an existing webhook policy in a Harbor project.
+
+.PP
+You can either pass all the necessary flags (webhook ID, project name, etc.) to perform a non-interactive update,
+or leave them out and use the interactive prompt to select and update a webhook.
+
+
+.SH OPTIONS
+\fB--auth-header\fP=""
+	Authentication Header
+
+.PP
+\fB--description\fP=""
+	Webhook Description
+
+.PP
+\fB--enabled\fP[=true]
+	Webhook Enabled
+
+.PP
+\fB--endpoint-url\fP=""
+	Webhook Endpoint URL
+
+.PP
+\fB--event-type\fP=[]
+	Event Types (comma separated)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for edit
+
+.PP
+\fB--notify-type\fP=""
+	Notify Type (http, slack)
+
+.PP
+\fB--payload-format\fP=""
+	Payload Format (Default, CloudEvents)
+
+.PP
+\fB--project\fP=""
+	Project Name
+
+.PP
+\fB--verify-remote-certificate\fP[=true]
+	Verify Remote Certificate
+
+.PP
+\fB--webhook-id\fP=-1
+	Webhook ID
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # Edit a webhook by providing all fields directly
+  harbor-cli webhook edit my-webhook \\
+    --project my-project \\
+    --notify-type http \\
+    --event-type PUSH_ARTIFACT \\
+    --endpoint-url https://new-url.com \\
+    --description "Updated webhook for artifact push" \\
+    --payload-format Default \\
+    --auth-header "Bearer newtoken" \\
+    --enabled=true
+
+  # Edit a webhook using the interactive prompt
+  harbor-cli webhook edit
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-webhook(1)\fP

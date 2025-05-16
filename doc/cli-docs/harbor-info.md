@@ -1,15 +1,31 @@
 ---
 title: harbor info
-weight: 10
+weight: 65
 ---
 ## harbor info
 
 ### Description
 
-##### Show the current credential information
+##### Display detailed Harbor system, statistics, and CLI environment information
+
+### Synopsis
+
+The 'info' command retrieves and displays general information about the Harbor instance, 
+including system metadata, storage statistics, and CLI environment details such as user identity, 
+registry address, and CLI version.
+
+The output can be formatted as table (default), JSON, or YAML using the '--output-format' flag.
 
 ```sh
 harbor info [flags]
+```
+
+### Examples
+
+```sh
+  harbor info
+  harbor info --output-format json
+  harbor info -o yaml
 ```
 
 ### Options
