@@ -20,8 +20,8 @@ func Context() *cobra.Command {
 		Use:     "context",
 		Short:   "Manage locally available contexts",
 		Example: "harbor context list",
-		Long: `The context command allows you to manage configs of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli`,
+		Long: `The context command allows you to manage configuration items of the Harbor CLI.
+				You can add, get, or delete specific configuration items, as well as list all configuration items of the Harbor CLI.`,
 	}
 
 	cmd.AddCommand(
