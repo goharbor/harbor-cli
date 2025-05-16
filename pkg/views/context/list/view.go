@@ -33,7 +33,6 @@ var columns = []table.Column{
 }
 
 func ListContexts(contexts []api.ContextListView, currentCredential string) {
-
 	rows := selectActiveContext(contexts, currentCredential)
 
 	var opts []tea.ProgramOption

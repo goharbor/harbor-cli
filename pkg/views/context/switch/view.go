@@ -17,11 +17,12 @@ package list
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
-	"os"
 )
 
 func ContextList(contexts []api.ContextListView) (string, error) {

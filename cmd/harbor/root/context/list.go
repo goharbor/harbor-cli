@@ -16,6 +16,7 @@ package context
 
 import (
 	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/context/list"
@@ -32,7 +33,7 @@ func ListContextCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				fmt.Errorf("failed to get config: %v", utils.ParseHarborErrorMsg(err))
+				fmt.Println("failed to get config: ", utils.ParseHarborErrorMsg(err))
 				return
 			}
 
@@ -42,7 +43,7 @@ func ListContextCommand() *cobra.Command {
 				// Use utils.PrintFormat if available
 				err = utils.PrintFormat(config, formatFlag)
 				if err != nil {
-					fmt.Errorf("Failed to print config: %v", utils.ParseHarborErrorMsg(err))
+					fmt.Println("Failed to print config: ", utils.ParseHarborErrorMsg(err))
 					return
 				}
 			} else {

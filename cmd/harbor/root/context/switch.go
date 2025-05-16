@@ -16,6 +16,7 @@ package context
 
 import (
 	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ func SwitchContextCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				fmt.Errorf("failed to get config: %v", utils.ParseHarborErrorMsg(err))
+				fmt.Println("failed to get config: ", utils.ParseHarborErrorMsg(err))
 				return
 			}
 
@@ -47,21 +48,21 @@ func SwitchContextCommand() *cobra.Command {
 				if found {
 					config.CurrentCredentialName = newActiveCredential
 					if err := utils.UpdateConfigFile(config); err != nil {
-						fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
+						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
 					}
 				} else {
-					fmt.Errorf("context doesn't exist")
+					fmt.Println("context doesn't exist")
 				}
 			} else {
 				res, err := prompt.GetActiveContextFromUser()
 				if err != nil {
-					fmt.Errorf("failed to get active context: %v", utils.ParseHarborErrorMsg(err))
+					fmt.Println("failed to get active context: ", utils.ParseHarborErrorMsg(err))
 					return
 				}
 				if res != "" {
 					config.CurrentCredentialName = res
 					if err := utils.UpdateConfigFile(config); err != nil {
-						fmt.Errorf("failed to update config: %v", utils.ParseHarborErrorMsg(err))
+						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
 					}
 				}
 			}

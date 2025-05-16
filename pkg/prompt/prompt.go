@@ -16,6 +16,7 @@ package prompt
 import (
 	"errors"
 	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
 
