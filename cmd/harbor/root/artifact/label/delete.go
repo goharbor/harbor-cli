@@ -70,9 +70,7 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
-			}
-
-			if labelID == -1 {
+			} else {
 				artifact, err := api.ViewArtifact(projectName, repoName, reference, true)
 				if err != nil || artifact == nil {
 					return fmt.Errorf("failed to get artifact info: %v", utils.ParseHarborErrorMsg(err))

@@ -45,7 +45,7 @@ Examples:
 			var (
 				projectName, repoName, reference string
 				labelName                        string
-				labelID                          int64 = -1
+				labelID                          int64
 				err                              error
 			)
 
