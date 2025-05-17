@@ -11,29 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package config
 
-import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/config"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func Project() *cobra.Command {
+var isID bool
+
+func ProjectConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "project",
-		Short:   "Manage projects and assign resources to them",
-		Long:    `Manage projects in Harbor`,
-		Example: `  harbor project list`,
+		Use:   "config",
+		Short: "Manage project configuration",
 	}
 	cmd.AddCommand(
-		CreateProjectCommand(),
-		DeleteProjectCommand(),
-		ListProjectCommand(),
-		ViewCommand(),
-		LogsProjectCommmand(),
-		config.ProjectConfigCommand(),
-		SearchProjectCommand(),
+		UpdateProjectConfigCmd(),
+		ListProjectConfigCmd(),
 	)
+	cmd.PersistentFlags().BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }
