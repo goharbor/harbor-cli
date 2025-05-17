@@ -39,15 +39,21 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if opts.ProxyCache && opts.RegistryID == "" {
-				return fmt.Errorf("Error: Proxy cache selected but no registry ID provided. Use --registry-id.")
+				return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
 			}
 
-			if opts.ProjectName != "" {
+			if !opts.ProxyCache && opts.RegistryID != "" {
+				return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+			}
+
+			if opts.ProjectName != "" && cmd.Flags().Changed("storage-limit") &&
+				cmd.Flags().Changed("public") && cmd.Flags().Changed("proxy-cache") &&
+				(!opts.ProxyCache || (opts.ProxyCache && opts.RegistryID != "")) {
 				log.Debug("Attempting to create project using flags...")
 				err = api.CreateProject(opts)
 				ProjectName = opts.ProjectName
 			} else {
-				log.Debug("No project name provided. Switching to interactive view...")
+				log.Debug("Switching to interactive view...")
 				createView := &create.CreateView{
 					ProjectName:  opts.ProjectName,
 					Public:       opts.Public,
