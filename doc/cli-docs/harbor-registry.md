@@ -27,7 +27,7 @@ Manage registries in Harbor
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```
@@ -36,9 +36,8 @@ Manage registries in Harbor
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor registry create](harbor-registry-create.md)	 - create registry
-* [harbor registry delete](harbor-registry-delete.md)	 - delete registry by id
-* [harbor registry info](harbor-registry-info.md)	 - get registry info
+* [harbor registry delete](harbor-registry-delete.md)	 - delete registry by name or id
 * [harbor registry list](harbor-registry-list.md)	 - list registry
 * [harbor registry update](harbor-registry-update.md)	 - update registry
-* [harbor registry view](harbor-registry-view.md)	 - get registry by id
+* [harbor registry view](harbor-registry-view.md)	 - get registry information
 

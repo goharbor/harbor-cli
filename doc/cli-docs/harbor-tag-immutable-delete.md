@@ -1,6 +1,6 @@
 ---
 title: harbor tag immutable delete
-weight: 0
+weight: 30
 ---
 ## harbor tag immutable delete
 

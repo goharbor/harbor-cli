@@ -37,5 +37,5 @@ harbor tag immutable
 * [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry
 * [harbor tag immutable create](harbor-tag-immutable-create.md)	 - create immutable tag rule
 * [harbor tag immutable delete](harbor-tag-immutable-delete.md)	 - delete immutable rule
-* [harbor tag immutable list](harbor-tag-immutable-list.md)	 - list all immutable tag rule of project
+* [harbor tag immutable list](harbor-tag-immutable-list.md)	 - Display all immutable tag rules for a project
 

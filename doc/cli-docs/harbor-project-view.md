@@ -16,12 +16,13 @@ harbor project view [NAME|ID] [flags]
 
 ```sh
   -h, --help   help for view
+      --id     Get project by id
 ```
 
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```

@@ -25,6 +25,7 @@ import (
 	cmd "github.com/goharbor/harbor-cli/cmd/harbor/root"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -36,6 +37,11 @@ weight: %d
 `
 )
 
+type FrontMatter struct {
+	Title  string `yaml:"title"`
+	Weight int    `yaml:"weight"`
+}
+
 func Doc() error {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -44,8 +50,10 @@ func Doc() error {
 	folderName := "cli-docs"
 	_, err = os.Stat(folderName)
 	if os.IsNotExist(err) {
+		log.Println("kumar err bhaa")
 		err = os.Mkdir(folderName, 0755)
 		if err != nil {
+			log.Println("kumar err bhaa noooo")
 			log.Fatal("Error creating folder:", err)
 		}
 	}
@@ -60,11 +68,17 @@ func Doc() error {
 }
 
 func preblock(filename string) string {
+	randomNumber := rand.Intn(19) + 1 //nolint:gosec
+	weight := randomNumber * 5
+
+	prevWeight := getWeight(filename)
+	if prevWeight > 0 {
+		weight = prevWeight
+	}
+
 	file := strings.Split(filename, markdownExtension)
 	name := filepath.Base(file[0])
 	title := strings.ReplaceAll(name, "-", " ")
-	randomNumber := rand.Intn(20) //nolint:gosec
-	weight := randomNumber * 5
 
 	return fmt.Sprintf(frontmdtemplate, title, weight)
 }
@@ -165,15 +179,23 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 	basename := strings.ReplaceAll(cmd.CommandPath(), " ", "-") + markdownExtension
 	filename := filepath.Join(dir, basename)
 
-	f, err := os.Create(filename)
+	// if the file doesn't exist create or append to the file
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	preblock := filePrepender(filename)
+	f.Close()
 
-	if _, err := io.WriteString(f, filePrepender(filename)); err != nil {
+	// create a fresh file and write the docs
+	f, err = os.Create(filename)
+	if err != nil {
 		return err
 	}
+	if _, err := io.WriteString(f, preblock); err != nil {
+		return err
+	}
+	defer f.Close()
 	if err := MarkdownCustom(cmd, f, linkHandler); err != nil {
 		return err
 	}
@@ -191,6 +213,43 @@ func hasSeeAlso(cmd *cobra.Command) bool {
 		return true
 	}
 	return false
+}
+
+// get previous weights from the yaml frontmatter
+func getWeight(filename string) int {
+	// Read the entire file
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		log.Warningf("unable to read file: %v", filename)
+		return 0
+	}
+
+	content := string(data)
+	lines := strings.Split(content, "\n")
+
+	// Check and extract YAML front matter
+	if len(lines) < 3 || lines[0] != "---" {
+		log.Warningf("YAML front matter not found on file: %v", filename)
+		return 0
+	}
+
+	var yamlLines []string
+	for _, line := range lines[1:] {
+		if line == "---" {
+			break
+		}
+		yamlLines = append(yamlLines, line)
+	}
+
+	yamlContent := strings.Join(yamlLines, "\n")
+
+	// Unmarshal into Go struct
+	var fm FrontMatter
+	err = yaml.Unmarshal([]byte(yamlContent), &fm)
+	if err != nil {
+		panic(err)
+	}
+	return fm.Weight
 }
 
 func main() {

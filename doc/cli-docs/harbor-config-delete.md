@@ -26,13 +26,17 @@ harbor config delete <item> [flags]
   harbor config delete credentials.password
 
   # Clear a specific credential's password using --name
-  harbor config delete credentials.password --name harbor-cli@http://demo.goharbor.io
+  harbor config delete credentials.password --name admin@http://demo.goharbor.io
+
+  # Clear the current credential
+  harbor config delete --current
 
 ```
 
 ### Options
 
 ```sh
+      --current       Remove current credentials from the config
   -h, --help          help for delete
   -n, --name string   Name of the credential to delete fields from (default: the current credential)
 ```
@@ -47,5 +51,5 @@ harbor config delete <item> [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor config](harbor-config.md)	 - Manage the config of the Harbor CLI
 

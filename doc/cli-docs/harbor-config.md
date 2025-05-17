@@ -6,11 +6,12 @@ weight: 30
 
 ### Description
 
-##### Manage the config of the Harbor Cli
+##### Manage the config of the Harbor CLI
 
 ### Synopsis
 
-Manage repositories in Harbor config
+The config command allows you to manage configurations of the Harbor CLI.
+				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli
 
 ### Options
 
@@ -32,5 +33,5 @@ Manage repositories in Harbor config
 * [harbor config delete](harbor-config-delete.md)	 - Delete (clear) a specific config item
 * [harbor config get](harbor-config-get.md)	 - Get a specific config item
 * [harbor config list](harbor-config-list.md)	 - List config items
-* [harbor config set](harbor-config-set.md)	 - Set a specific config item
+* [harbor config update](harbor-config-update.md)	 - Set/update a specific config item
 

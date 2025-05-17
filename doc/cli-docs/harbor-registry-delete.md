@@ -6,10 +6,16 @@ weight: 140
 
 ### Description
 
-##### delete registry by id
+##### delete registry by name or id
 
 ```sh
 harbor registry delete [flags]
+```
+
+### Examples
+
+```sh
+harbor registry delete [registryname]
 ```
 
 ### Options
@@ -21,7 +27,7 @@ harbor registry delete [flags]
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```

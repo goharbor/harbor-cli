@@ -27,7 +27,8 @@ harbor instance delete [flags]
 ### Options
 
 ```sh
-  -h, --help   help for delete
+  -h, --help     help for delete
+  -i, --id int   ID of the instance to delete (default -1)
 ```
 
 ### Options inherited from parent commands

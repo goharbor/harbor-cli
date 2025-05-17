@@ -25,7 +25,7 @@ harbor config get <item> [flags]
   harbor config get credentials.username
 
   # Get a credential's username by specifying the credential name
-  harbor config get credentials.username --name harbor-cli@http://demo.goharbor.io
+  harbor config get credentials.username --name admin@http://demo.goharbor.io
 
 ```
 
@@ -46,5 +46,5 @@ harbor config get <item> [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor config](harbor-config.md)	 - Manage the config of the Harbor CLI
 

@@ -10,7 +10,7 @@ harbor-project-delete - Delete project by name or ID
 
 
 .SH DESCRIPTION
-Delete project by name or ID. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID directly. The --force flag will delete all repositories and artifacts within the project.
+Delete project by name or ID. Multiple projects can be deleted by providing their names as arguments. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID for single project directly. The --force flag will delete all repositories and artifacts within the project.
 
 
 .SH OPTIONS
@@ -41,7 +41,7 @@ Delete project by name or ID. If no arguments are provided, it will prompt for t
 
 .SH EXAMPLE
 .EX
-harbor project delete [projectname] or harbor project delete --project-id [projectid]
+harbor project delete [projectname1] [projectname2] or harbor project delete --project-id [projectid]
 .EE
 
 
