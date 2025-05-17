@@ -14,6 +14,7 @@
 package list
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -51,6 +52,10 @@ type SystemInfo struct {
 	SystemInfo *models.GeneralInfo `json:"system_info"`
 	VolumeInfo *Volumes            `json:"storage"`
 	CLIInfo    *CLIInfoView        `json:"cli_info"`
+}
+
+type BannerMessage struct {
+	Message string `json:"message"`
 }
 
 func CreateSystemInfo(
@@ -147,6 +152,14 @@ func createRows(data interface{}, rows *[]table.Row) {
 			var value string
 			if fieldName == "TotalStorageConsumption" {
 				value = fmt.Sprintf("%s", utils.FormatSize(int64(field.Interface().(int64))))
+			} else if fieldName == "BannerMessage" {
+				var bannerMessage BannerMessage
+				err := json.Unmarshal([]byte(field.Interface().(string)), &bannerMessage)
+				if err != nil {
+					value = fmt.Sprintf("%v", field.Interface())
+				} else {
+					value = bannerMessage.Message
+				}
 			} else {
 				value = fmt.Sprintf("%v", field.Interface())
 			}
