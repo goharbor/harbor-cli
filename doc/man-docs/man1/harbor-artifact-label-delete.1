@@ -1,0 +1,53 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-artifact-label-delete - Detach a label from an artifact in a Harbor project repository
+
+
+.SH SYNOPSIS
+\fBharbor artifact label delete [flags]\fP
+
+
+.SH DESCRIPTION
+Remove an existing label from a specific artifact identified by /:\&.
+You can provide the artifact and label name as arguments, or choose them interactively if not specified.
+
+.PP
+Examples:
+  # Remove a label by specifying artifact and label name
+  harbor artifact label delete library/nginx:latest stable
+
+.PP
+# Prompt-based label selection for a specific artifact
+  harbor artifact label del library/nginx:1.21
+
+.PP
+# Fully interactive mode (prompt for project, repo, reference, and label)
+  harbor artifact label delete
+
+.PP
+# Remove a label from an artifact identified by digest
+  harbor artifact label del myproject/myrepo@sha256:abcdef1234567890 qa-label
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for delete
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-artifact-label(1)\fP
