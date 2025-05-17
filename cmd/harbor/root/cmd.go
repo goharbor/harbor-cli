@@ -93,26 +93,86 @@ harbor help
 		fmt.Println(err.Error())
 	}
 
-	root.AddCommand(
-		versionCommand(),
-		LoginCommand(),
-		config.Config(),
-		HealthCommand(),
-		project.Project(),
-		registry.Registry(),
-		repository.Repository(),
-		user.User(),
-		artifact.Artifact(),
-		scanner.Scanner(),
-		tag.TagCommand(),
-		cve.CVEAllowlist(),
-		schedule.Schedule(),
-		labels.Labels(),
-		InfoCommand(),
-		webhook.Webhook(),
-		instance.Instance(),
-		quota.Quota(),
-	)
+	root.AddGroup(&cobra.Group{ID: "core", Title: "Core:"})
+	root.AddGroup(&cobra.Group{ID: "access", Title: "Access:"})
+	root.AddGroup(&cobra.Group{ID: "system", Title: "System:"})
+	root.AddGroup(&cobra.Group{ID: "utils", Title: "Utility:"})
+
+	// Core
+	cmd := InfoCommand()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = project.Project()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = repository.Repository()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = artifact.Artifact()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = tag.TagCommand()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = labels.Labels()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = quota.Quota()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = cve.CVEAllowlist()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	// Access
+	cmd = LoginCommand()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
+	cmd = user.User()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
+	// System
+	cmd = config.Config()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = HealthCommand()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = instance.Instance()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = registry.Registry()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = scanner.Scanner()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = schedule.Schedule()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	// Utils
+	cmd = versionCommand()
+	cmd.GroupID = "utils"
+	root.AddCommand(cmd)
 
 	return root
 }
