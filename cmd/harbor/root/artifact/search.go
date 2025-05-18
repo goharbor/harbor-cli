@@ -45,6 +45,7 @@ Examples:
 				return fmt.Errorf("failed to list artifacts: %v", utils.ParseHarborErrorMsg(err))
 			}
 
+			artifactType := strings.ToUpper(viper.GetString("type"))
 			var matching []*models.Artifact
 
 			for _, af := range artifacts.Payload {
@@ -54,7 +55,7 @@ Examples:
 						found = true
 					}
 				}
-				if found {
+				if found && artifactType != "" && af.Type == artifactType {
 					matching = append(matching, af)
 				}
 			}
@@ -66,13 +67,19 @@ Examples:
 					return err
 				}
 			} else {
-				artifactViews.ListArtifacts(matching)
+				if len(matching) > 0 {
+					artifactViews.ListArtifacts(matching)
+				} else {
+					fmt.Println("No artifacts found")
+				}
 			}
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
+	flags.StringP("type", "t", "", "Filter artifacts by type (e.g., IMAGE, CHART)")
+	viper.BindPFlag("type", flags.Lookup("type"))
 	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
