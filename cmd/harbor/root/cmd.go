@@ -15,14 +15,10 @@ package root
 
 import (
 	"fmt"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
-)
-<<<<<<< HEAD
 	"io"
-=======
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
->>>>>>> 062384a (adds replication command)
 	"time"
+
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"

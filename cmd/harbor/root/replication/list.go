@@ -16,6 +16,7 @@ package replication
 
 import (
 	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/sirupsen/logrus"
