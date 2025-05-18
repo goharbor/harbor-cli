@@ -59,7 +59,7 @@ func CreateLabelCommand() *cobra.Command {
 	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the label")
 	flags.StringVarP(&opts.Color, "color", "", "#FFFFFF", "Color of the label.color is in hex value")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
-	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Id of the project when scope is p")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "Id of the project when scope is p")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
 
 	return cmd

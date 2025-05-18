@@ -18,7 +18,7 @@ harbor label list [flags]
   -h, --help            help for list
       --page int        Page number (default 1)
       --page-size int   Size of per page (default 20)
-  -i, --projectid int   project ID when query project labels (default 1)
+  -i, --project int     project ID when query project labels (default 1)
   -q, --query string    Query string to query resources
   -s, --scope string    default(global).'p' for project labels.Query scope of the label (default "g")
       --sort string     Sort the label list in ascending or descending order
