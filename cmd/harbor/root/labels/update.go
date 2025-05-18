@@ -86,7 +86,7 @@ func UpdateLableCommand() *cobra.Command {
 	flags.StringVarP(&opts.Color, "color", "", "", "Color of the label.color is in hex value")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
-	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Description of the label")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "Description of the label")
 
 	return cmd
 }

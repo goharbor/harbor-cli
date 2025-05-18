@@ -23,6 +23,7 @@ harbor label delete [labelname]
 ```sh
   -h, --help           help for delete
   -s, --scope string   default(global).'p' for project labels.Query scope of the label (default "g")
+  -i, --project int    project ID when query project labels (default 1)
 ```
 
 ### Options inherited from parent commands

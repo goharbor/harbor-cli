@@ -56,7 +56,7 @@ func DeleteLabelCommand() *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
-	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Id of the project when scope is p")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "Id of the project when scope is p")
 
 	return cmd
 }
