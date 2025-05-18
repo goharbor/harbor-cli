@@ -27,8 +27,9 @@ import (
 
 var columns = []table.Column{
 	{Title: "ID", Width: tablelist.WidthXL},
-	{Title: "Name", Width: tablelist.WidthXL},
-	{Title: "Registry URL", Width: tablelist.WidthXXL},
+	{Title: "Name", Width: tablelist.Width3XL},
+	{Title: "Destination Registry URL", Width: tablelist.Width3XL},
+	{Title: "Source Registry URL", Width: tablelist.Width3XL},
 }
 
 func ListReplicationPolicies(replicationPolicy []*models.ReplicationPolicy) {
@@ -36,12 +37,14 @@ func ListReplicationPolicies(replicationPolicy []*models.ReplicationPolicy) {
 	for _, rp := range replicationPolicy {
 		id := rp.ID
 		name := rp.Name
-		url := rp.DestRegistry.URL
+		sourceUrl := rp.SrcRegistry.URL
+		destUrl := rp.DestRegistry.URL
 
 		rows = append(rows, table.Row{
 			strconv.FormatInt(id, 10),
 			name,
-			url,
+			destUrl,
+			sourceUrl,
 		})
 	}
 
