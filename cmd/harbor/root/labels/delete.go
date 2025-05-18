@@ -37,13 +37,14 @@ func DeleteLabelCommand() *cobra.Command {
 			}
 			var labelId int64
 			if len(args) > 0 {
-				labelId, _ = api.GetLabelIdByName(args[0], *deleteView)
+				labelId, err = api.GetLabelIdByName(args[0], *deleteView)
 			} else {
 				labelId, err = prompt.GetLabelIdFromUser(*deleteView)
-				if err != nil {
-					return fmt.Errorf("failed to parse label id: %v", err)
-				}
 			}
+			if err != nil {
+				return fmt.Errorf("failed to get label id: %v", err)
+			}
+
 			err = api.DeleteLabel(labelId)
 			if err != nil {
 				return fmt.Errorf("failed to delete label: %v", err)
