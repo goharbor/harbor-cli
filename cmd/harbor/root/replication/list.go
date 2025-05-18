@@ -15,10 +15,9 @@
 package replication
 
 import (
-	"fmt"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/replication/list"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,8 +42,7 @@ func ListReplicationCommand() *cobra.Command {
 				utils.PrintPayloadInJSONFormat(replication)
 				return
 			} else {
-				// TODO: Add view in pkg/views/replication/list/view.go
-				fmt.Println(replication)
+				list.ListReplicationPolicies(replication.Payload)
 			}
 		},
 	}

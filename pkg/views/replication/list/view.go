@@ -13,3 +13,42 @@
 // limitations under the License.
 
 package list
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+)
+
+var columns = []table.Column{
+	{Title: "ID", Width: tablelist.WidthXL},
+	{Title: "Name", Width: tablelist.WidthXL},
+	{Title: "Registry URL", Width: tablelist.WidthXXL},
+}
+
+func ListReplicationPolicies(replicationPolicy []*models.ReplicationPolicy) {
+	var rows []table.Row
+	for _, rp := range replicationPolicy {
+		id := rp.ID
+		name := rp.Name
+		url := rp.DestRegistry.URL
+
+		rows = append(rows, table.Row{
+			strconv.FormatInt(id, 10),
+			name,
+			url,
+		})
+	}
+
+	m := tablelist.NewModel(columns, rows, len(rows))
+
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+}
