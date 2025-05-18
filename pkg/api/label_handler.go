@@ -27,7 +27,7 @@ func CreateLabel(opts create.CreateView) error {
 	if err != nil {
 		return err
 	}
-	_, err = client.Label.CreateLabel(ctx, &label.CreateLabelParams{Label: &models.Label{Name: opts.Name, Color: opts.Color, Description: opts.Description, Scope: opts.Scope}})
+	_, err = client.Label.CreateLabel(ctx, &label.CreateLabelParams{Label: &models.Label{Name: opts.Name, Color: opts.Color, Description: opts.Description, Scope: opts.Scope, ProjectID: opts.ProjectID}})
 
 	if err != nil {
 		return err
@@ -64,13 +64,13 @@ func ListLabel(opts ...ListFlags) (*label.ListLabelsOK, error) {
 	if len(opts) > 0 {
 		listFlags = opts[0]
 	}
-	scope := "g"
+
 	response, err := client.Label.ListLabels(ctx, &label.ListLabelsParams{
 		Page:      &listFlags.Page,
 		PageSize:  &listFlags.PageSize,
 		Q:         &listFlags.Q,
 		Sort:      &listFlags.Sort,
-		Scope:     &scope,
+		Scope:     &listFlags.Scope,
 		ProjectID: &listFlags.ProjectID,
 	})
 
@@ -119,9 +119,7 @@ func GetLabel(labelid int64) *models.Label {
 	return response.GetPayload()
 }
 
-func GetLabelIdByName(labelName string) (int64, error) {
-	var opts ListFlags
-
+func GetLabelIdByName(labelName string, opts ListFlags) (int64, error) {
 	l, err := ListLabel(opts)
 	if err != nil {
 		return 0, err

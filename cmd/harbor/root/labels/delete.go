@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -31,30 +30,33 @@ func DeleteLabelCommand() *cobra.Command {
 		Example: "harbor label delete [labelname]",
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var labelId int64
 			deleteView := &api.ListFlags{
-				Scope: opts.Scope,
+				Scope:     opts.Scope,
+				ProjectID: opts.ProjectID,
 			}
 
+			var err error
+			var labelId int64
 			if len(args) > 0 {
-				labelId, _ = api.GetLabelIdByName(args[0])
+				labelId, _ = api.GetLabelIdByName(args[0], *deleteView)
 			} else {
-				labelList, err := api.ListLabel(*deleteView)
+				labelId, err = prompt.GetLabelIdFromUser(*deleteView)
 				if err != nil {
-					return fmt.Errorf("failed to get label list: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to parse label id: %v", err)
 				}
-				labelId = prompt.GetLabelIdFromUser(labelList.Payload)
 			}
+
 			err = api.DeleteLabel(labelId)
 			if err != nil {
-				return fmt.Errorf("failed to delete label: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to delete label: %v", err)
 			}
+
 			return nil
 		},
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Id of the project when scope is p")
 
 	return cmd
 }

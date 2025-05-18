@@ -62,7 +62,7 @@ func ListLabelCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 20, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
-	flags.Int64VarP(&opts.ProjectID, "projectid", "i", 1, "project ID when query project labels")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "project ID when query project labels")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
 
 	return cmd

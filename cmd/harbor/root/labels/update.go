@@ -14,11 +14,12 @@
 package labels
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/label/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -30,31 +31,26 @@ func UpdateLableCommand() *cobra.Command {
 		Short:   "update label",
 		Example: "harbor label update [labelname]",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var labelId int64
 			updateflags := api.ListFlags{
-				Scope: opts.Scope,
+				Scope:     opts.Scope,
+				ProjectID: opts.ProjectID,
 			}
 
 			if len(args) > 0 {
-				labelId, err = api.GetLabelIdByName(args[0])
+				labelId, err = api.GetLabelIdByName(args[0], updateflags)
 			} else {
-				labelList, err := api.ListLabel(updateflags)
-				if err != nil {
-					log.Errorf("failed to get label list: %v", err)
-					return
-				}
-				labelId = prompt.GetLabelIdFromUser(labelList.Payload)
+				labelId, err = prompt.GetLabelIdFromUser(updateflags)
 			}
 			if err != nil {
-				log.Errorf("failed to parse label id: %v", err)
+				return fmt.Errorf("failed to parse label id: %v", err)
 			}
 
 			existingLabel := api.GetLabel(labelId)
 			if existingLabel == nil {
-				log.Errorf("label is not found")
-				return
+				return fmt.Errorf("label is not found")
 			}
 			updateView := &models.Label{
 				Name:        existingLabel.Name,
@@ -80,8 +76,9 @@ func UpdateLableCommand() *cobra.Command {
 			update.UpdateLabelView(updateView)
 			err = api.UpdateLabel(updateView, labelId)
 			if err != nil {
-				log.Errorf("failed to update label: %v", err)
+				return fmt.Errorf("failed to update label: %v", err)
 			}
+			return nil
 		},
 	}
 	flags := cmd.Flags()
@@ -89,6 +86,7 @@ func UpdateLableCommand() *cobra.Command {
 	flags.StringVarP(&opts.Color, "color", "", "", "Color of the label.color is in hex value")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Description of the label")
 
 	return cmd
 }

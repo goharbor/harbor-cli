@@ -25,6 +25,7 @@ type CreateView struct {
 	Color       string
 	Description string
 	Scope       string
+	ProjectID   int64
 }
 
 func CreateLabelView(createView *CreateView) {
@@ -86,6 +87,18 @@ func CreateLabelView(createView *CreateView) {
 			huh.NewInput().
 				Title("Description").
 				Value(&createView.Description),
+			huh.NewSelect[string]().
+				Title("Scope").
+				Options(
+					huh.NewOption("Global", "g"),
+					huh.NewOption("Project", "p"),
+				).Value(&createView.Scope).
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("scope cannot be empty")
+					}
+					return nil
+				}),
 		),
 	).WithTheme(theme).Run()
 

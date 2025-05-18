@@ -23,7 +23,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func LabelList(label []*models.Label, choice chan<- int64) {
+func LabelList(label []*models.Label) (int64, error) {
 	itemsList := make([]list.Item, len(label))
 
 	items := map[string]int64{}
@@ -43,6 +43,7 @@ func LabelList(label []*models.Label, choice chan<- int64) {
 	}
 
 	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+		return items[p.Choice], nil
 	}
+	return 0, fmt.Errorf("failed to get label id")
 }
