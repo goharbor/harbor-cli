@@ -1,14 +1,29 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package artifact
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 func SearchArtifacts() *cobra.Command {
@@ -79,7 +94,10 @@ Examples:
 
 	flags := cmd.Flags()
 	flags.StringP("type", "t", "", "Filter artifacts by type (e.g., IMAGE, CHART)")
-	viper.BindPFlag("type", flags.Lookup("type"))
+	err := viper.BindPFlag("type", flags.Lookup("type"))
+	if err != nil {
+		panic(err)
+	}
 	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
