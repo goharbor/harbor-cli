@@ -31,6 +31,7 @@ func Artifact() *cobra.Command {
 		DeleteArtifactCommand(),
 		ScanArtifactCommand(),
 		ArtifactTagsCmd(),
+		SearchArtifacts(),
 	)
 
 	return cmd
