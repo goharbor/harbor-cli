@@ -33,3 +33,18 @@ func ListReplication(opts ...ListFlags) (replication.ListReplicationPoliciesOK, 
 	}
 	return *response, nil
 }
+
+func DeleteReplication(projectId int) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Replication.DeleteReplicationPolicy(ctx, &replication.DeleteReplicationPolicyParams{ID: int64(projectId)})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
