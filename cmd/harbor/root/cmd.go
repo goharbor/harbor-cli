@@ -18,6 +18,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
@@ -132,6 +134,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = replication.Replication()
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 

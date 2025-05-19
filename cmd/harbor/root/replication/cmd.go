@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package replication
 
 import (
@@ -22,10 +23,13 @@ func Replication() *cobra.Command {
 	var replicationCmd = &cobra.Command{
 		Use:     "replication",
 		Aliases: []string{"repl"},
-		Short:   "",
-		Long:    ``,
+		Short:   "Manage replication policies",
+		Long:    `Manage Replication policies.`,
 	}
-	replicationCmd.AddCommand()
+	replicationCmd.AddCommand(
+		ListReplicationCommand(),
+		DeleteReplicationCommand(),
+	)
 
 	return replicationCmd
 }
