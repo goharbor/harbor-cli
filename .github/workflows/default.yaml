@@ -41,7 +41,7 @@ jobs:
             echo "$changed_files"
             exit 1  # This will fail the workflow
           else
-            echo "No files change found."
+            echo "No file changes found."
           fi
         continue-on-error: false
 
