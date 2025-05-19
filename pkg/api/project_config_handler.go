@@ -22,19 +22,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ListConfig(isID bool, projectNameOrID string) (project_metadata.ListProjectMetadatasOK, error) {
+func ListConfig(isID bool, projectNameOrID string) (*project_metadata.ListProjectMetadatasOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return project_metadata.ListProjectMetadatasOK{}, err
+		return nil, err
 	}
 
 	isName := !isID
 	response, err := client.ProjectMetadata.ListProjectMetadatas(ctx, &project_metadata.ListProjectMetadatasParams{ProjectNameOrID: projectNameOrID, XIsResourceName: &isName})
 	if err != nil {
-		return project_metadata.ListProjectMetadatasOK{}, err
+		return nil, err
 	}
 
-	return *response, nil
+	return response, nil
 }
 
 func UpdateConfig(isID bool, projectNameOrID string, metadata models.ProjectMetadata) error {
