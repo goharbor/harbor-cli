@@ -38,5 +38,5 @@ harbor config list [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor config](harbor-config.md)	 - Manage the config of the Harbor CLI
 

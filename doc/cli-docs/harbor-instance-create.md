@@ -1,6 +1,6 @@
 ---
 title: harbor instance create
-weight: 0
+weight: 10
 ---
 ## harbor instance create
 

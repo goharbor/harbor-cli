@@ -6,10 +6,28 @@ weight: 40
 
 ### Description
 
-##### list all immutable tag rule of project
+##### Display all immutable tag rules for a project
+
+### Synopsis
+
+Retrieve and display a list of immutable tag rules configured for a specified project in Harbor. 
+Immutable tag rules prevent specific tags from being deleted or overwritten, ensuring better security and compliance.
+You can specify the project name as an argument or, if omitted, you will be prompted to select one interactively.
 
 ```sh
-harbor tag immutable list [flags]
+harbor tag immutable list [PROJECT_NAME] [flags]
+```
+
+### Examples
+
+```sh
+  
+  # List immutable tag rules for a specific project  
+  harbor tag immutable list my-project  
+
+  # List immutable tag rules interactively (if no project name is provided)  
+  harbor tag immutable list  
+  
 ```
 
 ### Options
