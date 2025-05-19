@@ -1,6 +1,6 @@
 ---
 title: harbor project config list
-weight: 10
+weight: 85
 ---
 ## harbor project config list
 
@@ -32,7 +32,7 @@ Examples:
 
 
 ```sh
-harbor project config list [NAME|ID] [flags]
+harbor project config list  [project_name] [flags]
 ```
 
 ### Options

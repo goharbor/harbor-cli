@@ -28,7 +28,7 @@ func ListProjectConfigCmd() *cobra.Command {
 	var err error
 	var projectNameorID string
 	cmd := &cobra.Command{
-		Use:   "list [NAME|ID]",
+		Use:   "list  [project_name]",
 		Short: "List configuration of a Harbor project by name or ID",
 		Long: `Display the configuration metadata of a Harbor project specified by its name or ID.
 
