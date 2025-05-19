@@ -2,11 +2,11 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config-get - Get a specific config item
+harbor-context-get - Get a specific config item
 
 
 .SH SYNOPSIS
-\fBharbor config get  [flags]\fP
+\fBharbor context get  [flags]\fP
 
 
 .SH DESCRIPTION
@@ -40,7 +40,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 .EX
 
   # Get the current credential's username
-  harbor config get credentials.username
+  harbor context get credentials.username
 
   # Get a credential's username by specifying the credential name
   harbor config get credentials.username --name admin@http://demo.goharbor.io
@@ -49,4 +49,4 @@ If you specify --name, that credential (rather than the "current" one) will be u
 
 
 .SH SEE ALSO
-\fBharbor-config(1)\fP
+\fBharbor-context(1)\fP

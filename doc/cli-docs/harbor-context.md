@@ -1,22 +1,28 @@
 ---
-title: harbor config
+title: harbor context
 weight: 30
 ---
-## harbor config
+## harbor context
 
 ### Description
 
-##### Manage the config of the Harbor CLI
+##### Manage locally available contexts
 
 ### Synopsis
 
-The config command allows you to manage configurations of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli
+The context command allows you to manage configuration items of the Harbor CLI.
+				You can add, get, or delete specific configuration items, as well as list all configuration items of the Harbor CLI.
+
+### Examples
+
+```sh
+harbor context list
+```
 
 ### Options
 
 ```sh
-  -h, --help   help for config
+  -h, --help   help for context
 ```
 
 ### Options inherited from parent commands
@@ -30,8 +36,9 @@ The config command allows you to manage configurations of the Harbor CLI.
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
-* [harbor config delete](harbor-config-delete.md)	 - Delete (clear) a specific config item
-* [harbor config get](harbor-config-get.md)	 - Get a specific config item
-* [harbor config list](harbor-config-list.md)	 - List config items
-* [harbor config update](harbor-config-update.md)	 - Set/update a specific config item
+* [harbor context delete](harbor-context-delete.md)	 - Delete (clear) a specific config item
+* [harbor context get](harbor-context-get.md)	 - Get a specific config item
+* [harbor context list](harbor-context-list.md)	 - List contexts
+* [harbor context switch](harbor-context-switch.md)	 - Switch to a new context
+* [harbor context update](harbor-context-update.md)	 - Set/update a specific config item
 

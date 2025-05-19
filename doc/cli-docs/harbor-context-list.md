@@ -1,25 +1,21 @@
 ---
-title: harbor config list
+title: harbor context list
 weight: 25
 ---
-## harbor config list
+## harbor context list
 
 ### Description
 
-##### List config items
-
-### Synopsis
-
-Get information of all CLI config items
+##### List contexts
 
 ```sh
-harbor config list [flags]
+harbor context list [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor config list
+  harbor context list
 ```
 
 ### Options
@@ -38,5 +34,5 @@ harbor config list [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor CLI
+* [harbor context](harbor-context.md)	 - Manage locally available contexts
 
