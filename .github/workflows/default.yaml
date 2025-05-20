@@ -144,7 +144,7 @@ jobs:
           verb: call
           args: test-coverage export --path=coverage.out
 
-      - name: Generate coverage summary
+      - name: Summarize Coverage
         run: |
           echo "<h2> 📊 Test Coverage Results</h2>" >> $GITHUB_STEP_SUMMARY
 
@@ -174,28 +174,11 @@ jobs:
             # exit 1
           fi
 
-      # - name: Get Test Coverage Report
-      #   uses: dagger/dagger-for-github@v7
-      #   with:
-      #     version: ${{ steps.dagger_version.outputs.version }}
-      #     verb: call
-      #     args: test-coverage-report export --path=CoverageReport.out
-
       - uses: codecov/codecov-action@v5
         with:
-          # fail_ci_if_error: true # optional (default = false)
-          verbose: true # optional (default = false)
+          verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-
-      # - name: Check Coverage Threshold  
-      #   id: coverage_check
-      #   uses: dagger/dagger-for-github@v7
-      #   with:
-      #     version: ${{ steps.dagger_version.outputs.version }}
-      #     verb: call
-      #     args: check-coverage-threshold --threshold 80.0
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
