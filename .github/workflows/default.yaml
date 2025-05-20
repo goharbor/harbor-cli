@@ -151,6 +151,14 @@ jobs:
           verb: call
           args: test-coverage-report export --path=CoverageReport.out
 
+      - uses: codecov/codecov-action@v5
+        with:
+          # fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+
       - name: Check Coverage Threshold  
         id: coverage_check
         uses: dagger/dagger-for-github@v7
