@@ -295,8 +295,10 @@ func (m *HarborCli) Test(ctx context.Context) (string, error) {
 }
 
 // Executes Go tests and returns TestReport in json file
+// TestReport executes Go tests and returns only the JSON report file
 func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 	reportName := "TestReport.json"
+	coverage := "coverage.out"
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
@@ -306,40 +308,57 @@ func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"gotestsum", "--jsonfile", reportName})
+		WithExec([]string{"gotestsum", "--jsonfile", reportName, "--", "-coverprofile=" + coverage, "./..."})
 
 	return test.File(reportName)
 }
 
+// TestCoverage executes Go tests (same test run as TestReport) and returns the coverage file
 func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
-	coverage := "coverage.out"
+	coverage := "CoverageReport.json"
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."})
+		WithExec([]string{"gotestsum", "--", "-coverprofile=" + coverage, "./..."})
+
 	return test.File(coverage)
 }
 
-func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
-	coverage := "coverage.out"
-	report := "coverage-report.out"
-	test := dag.Container().
-		From("golang:"+GO_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
-		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
-		WithEnvVariable("GOCACHE", "/go/build-cache").
-		WithMountedDirectory("/src", m.Source).
-		WithWorkdir("/src").
-		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."}).
-		WithExec([]string{"go", "tool", "cover", "-func=" + coverage, "-o", report})
-	return test.File(report)
-}
+// func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
+// 	coverage := "coverage.out"
+// 	test := dag.Container().
+// 		From("golang:"+GO_VERSION+"-alpine").
+// 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+// 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+// 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+// 		WithEnvVariable("GOCACHE", "/go/build-cache").
+// 		WithMountedDirectory("/src", m.Source).
+// 		WithWorkdir("/src").
+// 		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."})
+// 	return test.File(coverage)
+// }
+
+// func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
+// 	coverage := "coverage.out"
+// 	report := "coverage-report.out"
+// 	test := dag.Container().
+// 		From("golang:"+GO_VERSION+"-alpine").
+// 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+// 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+// 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+// 		WithEnvVariable("GOCACHE", "/go/build-cache").
+// 		WithMountedDirectory("/src", m.Source).
+// 		WithWorkdir("/src").
+// 		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."}).
+// 		WithExec([]string{"go", "tool", "cover", "-func=" + coverage, "-o", report})
+// 	return test.File(report)
+// }
 
 // CheckCoverageThreshold verifies that test coverage meets or exceeds the specified threshold
 func (m *HarborCli) CheckCoverageThreshold(ctx context.Context, threshold float64) (string, error) {
