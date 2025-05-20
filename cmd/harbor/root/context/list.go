@@ -11,29 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+
+package context
 
 import (
 	"fmt"
 
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/views/context/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
-func ListConfigCommand() *cobra.Command {
+func ListContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List config items",
-		Example: `  harbor config list`,
-		Long:    `Get information of all CLI config items`,
+		Short:   "List contexts",
+		Example: `  harbor context list`,
 		Args:    cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				logrus.Errorf("Failed to get config: %v", err)
+				fmt.Println("failed to get config: ", utils.ParseHarborErrorMsg(err))
 				return
 			}
 
@@ -43,19 +43,19 @@ func ListConfigCommand() *cobra.Command {
 				// Use utils.PrintFormat if available
 				err = utils.PrintFormat(config, formatFlag)
 				if err != nil {
-					logrus.Errorf("Failed to print config: %v", err)
-				}
-			} else {
-				// Default to YAML format
-				data, err := yaml.Marshal(config)
-				if err != nil {
-					logrus.Errorf("Failed to marshal config to YAML: %v", err)
+					fmt.Println("Failed to print config: ", utils.ParseHarborErrorMsg(err))
 					return
 				}
-				fmt.Println(string(data))
+			} else {
+				var cxlist []api.ContextListView
+				for _, cred := range config.Credentials {
+					cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+					cxlist = append(cxlist, cx)
+				}
+				currentCredential := config.CurrentCredentialName
+				list.ListContexts(cxlist, currentCredential)
 			}
 		},
 	}
-
 	return cmd
 }

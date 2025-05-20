@@ -1,8 +1,8 @@
 ---
-title: harbor config delete
+title: harbor context delete
 weight: 85
 ---
-## harbor config delete
+## harbor context delete
 
 ### Description
 
@@ -15,7 +15,7 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 If you specify --name, that credential (rather than the "current" one) will be used.
 
 ```sh
-harbor config delete <item> [flags]
+harbor context delete <item> [flags]
 ```
 
 ### Examples
@@ -23,13 +23,13 @@ harbor config delete <item> [flags]
 ```sh
 
   # Clear the current credential's password
-  harbor config delete credentials.password
+  harbor context delete credentials.password
 
   # Clear a specific credential's password using --name
-  harbor config delete credentials.password --name admin@http://demo.goharbor.io
+  harbor context delete credentials.password --name admin@http://demo.goharbor.io
 
   # Clear the current credential
-  harbor config delete --current
+  harbor context delete --current
 
 ```
 
@@ -51,5 +51,5 @@ harbor config delete <item> [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor CLI
+* [harbor context](harbor-context.md)	 - Manage locally available contexts
 

@@ -2,21 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config - Manage the config of the Harbor CLI
+harbor-context-switch - Switch to a new context
 
 
 .SH SYNOPSIS
-\fBharbor config [flags]\fP
+\fBharbor context switch  [flags]\fP
 
 
 .SH DESCRIPTION
-The config command allows you to manage configurations of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli
+Switch to a new context
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for config
+	help for switch
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -32,5 +31,11 @@ The config command allows you to manage configurations of the Harbor CLI.
 	verbose output
 
 
+.SH EXAMPLE
+.EX
+harbor context switch harbor-cli@https-demo-goharbor-io
+.EE
+
+
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-config-delete(1)\fP, \fBharbor-config-get(1)\fP, \fBharbor-config-list(1)\fP, \fBharbor-config-update(1)\fP
+\fBharbor-context(1)\fP

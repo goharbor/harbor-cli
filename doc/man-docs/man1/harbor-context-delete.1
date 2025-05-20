@@ -2,11 +2,11 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config-delete - Delete (clear) a specific config item
+harbor-context-delete - Delete (clear) a specific config item
 
 
 .SH SYNOPSIS
-\fBharbor config delete  [flags]\fP
+\fBharbor context delete  [flags]\fP
 
 
 .SH DESCRIPTION
@@ -45,16 +45,16 @@ If you specify --name, that credential (rather than the "current" one) will be u
 .EX
 
   # Clear the current credential's password
-  harbor config delete credentials.password
+  harbor context delete credentials.password
 
   # Clear a specific credential's password using --name
-  harbor config delete credentials.password --name admin@http://demo.goharbor.io
+  harbor context delete credentials.password --name admin@http://demo.goharbor.io
 
   # Clear the current credential
-  harbor config delete --current
+  harbor context delete --current
 
 .EE
 
 
 .SH SEE ALSO
-\fBharbor-config(1)\fP
+\fBharbor-context(1)\fP
