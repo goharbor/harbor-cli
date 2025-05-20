@@ -298,6 +298,21 @@ func (m *HarborCli) Test(ctx context.Context) (string, error) {
 // TestReport executes Go tests and returns only the JSON report file
 func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 	reportName := "TestReport.json"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"gotestsum", "--jsonfile", reportName, "./..."})
+
+	return test.File(reportName)
+}
+
+func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
 	coverage := "coverage.out"
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
@@ -308,16 +323,15 @@ func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"gotestsum", "--jsonfile", reportName, "--", "-coverprofile=" + coverage, "./..."})
+		WithExec([]string{"gotestsum", "--", "-coverprofile=" + coverage, "./..."})
 
-	return test.File(reportName)
+	return test.File(coverage)
 }
 
 // TestCoverageReport processes coverage data and returns a formatted markdown report
 func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
 	coverageFile := "coverage.out"
 	reportFile := "coverage-report.md"
-
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
