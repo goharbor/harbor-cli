@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package config
+package context
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ import (
 
 // UpdateConfigItemCommand creates the 'harbor config update' subcommand,
 // allowing you to do: harbor config update <item> <value>.
-func UpdateConfigItemCommand() *cobra.Command {
+func UpdateContextItemCommand() *cobra.Command {
 	var credentialName string
 
 	cmd := &cobra.Command{
@@ -34,7 +34,7 @@ func UpdateConfigItemCommand() *cobra.Command {
 		Short: "Set/update a specific config item",
 		Example: `
   # Set/update the current credential's password
-  harbor config update credentials.password myNewSecret
+  harbor context update credentials.password myNewSecret
 
   # Set/update a credential's password by specifying the credential name
   harbor config update credentials.password myNewSecret --name admin@http://demo.goharbor.io
