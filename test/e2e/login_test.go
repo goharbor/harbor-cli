@@ -58,7 +58,6 @@ func Test_Login_Failure_WrongServer(t *testing.T) {
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"wrongserver"})
 
-	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
@@ -74,7 +73,6 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"http://demo.goharbor.io"})
 
-	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
@@ -90,7 +88,6 @@ func Test_Login_Failure_WrongPassword(t *testing.T) {
 	cmd := root.LoginCommand()
 	cmd.SetArgs([]string{"http://demo.goharbor.io"})
 
-	assert.NoError(t, cmd.Flags().Set("name", "test"))
 	assert.NoError(t, cmd.Flags().Set("username", "admin"))
 	assert.NoError(t, cmd.Flags().Set("password", "wrong"))
 
