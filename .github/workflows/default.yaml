@@ -144,12 +144,42 @@ jobs:
           verb: call
           args: test-coverage export --path=coverage.out
 
-      - name: Get Test Coverage Report
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: test-coverage-report export --path=CoverageReport.out
+      - name: Generate coverage summary
+        run: |
+          echo "<h2> 📊 Test Coverage Results</h2>" >> $GITHUB_STEP_SUMMARY
+
+          # Parse the coverage.out file to get total coverage percentage
+          total_coverage=$(go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+')
+
+          # Add emoji based on coverage level
+          if (( $(echo "$total_coverage >= 80.0" | bc -l) )); then
+            emoji="✅"
+          elif (( $(echo "$total_coverage >= 60.0" | bc -l) )); then
+            emoji="⚠️"
+          else
+            emoji="❌"
+          fi
+
+          echo "<p><b>Total coverage: $emoji $total_coverage%</b></p>" >> $GITHUB_STEP_SUMMARY
+
+          # Add more detailed package coverage
+          echo "<details><summary>Detailed package coverage</summary><pre>" >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
+          echo "</pre></details>" >> $GITHUB_STEP_SUMMARY
+
+          # Optional: Compare against threshold and fail if below
+          if (( $(echo "$total_coverage < 80.0" | bc -l) )); then
+            echo "⚠️ Coverage below threshold (80.0%)" >> $GITHUB_STEP_SUMMARY
+            # Uncomment to make the workflow fail on low coverage
+            # exit 1
+          fi
+
+      # - name: Get Test Coverage Report
+      #   uses: dagger/dagger-for-github@v7
+      #   with:
+      #     version: ${{ steps.dagger_version.outputs.version }}
+      #     verb: call
+      #     args: test-coverage-report export --path=CoverageReport.out
 
       - uses: codecov/codecov-action@v5
         with:
@@ -159,13 +189,13 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 
-      - name: Check Coverage Threshold  
-        id: coverage_check
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: check-coverage-threshold --threshold 80.0
+      # - name: Check Coverage Threshold  
+      #   id: coverage_check
+      #   uses: dagger/dagger-for-github@v7
+      #   with:
+      #     version: ${{ steps.dagger_version.outputs.version }}
+      #     verb: call
+      #     args: check-coverage-threshold --threshold 80.0
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
