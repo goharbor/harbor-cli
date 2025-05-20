@@ -333,10 +333,8 @@ func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
 	return test.WithExec([]string{"sh", "-c", `
         echo "<h2> 📊 Test Coverage Results</h2>" > ` + reportFile + `
         
-        # Parse the coverage.out file to get total coverage percentage
         total_coverage=$(go tool cover -func=` + coverageFile + ` | grep total | grep -Eo '[0-9]+\.[0-9]+')
         
-        # Add emoji based on coverage level
         if (( $(echo "$total_coverage >= 80.0" | bc -l) )); then
             emoji="✅"
         elif (( $(echo "$total_coverage >= 60.0" | bc -l) )); then
@@ -347,12 +345,10 @@ func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
         
         echo "<p><b>Total coverage: $emoji $total_coverage%</b></p>" >> ` + reportFile + `
         
-        # Add more detailed package coverage
         echo "<details><summary>Detailed package coverage</summary><pre>" >> ` + reportFile + `
         go tool cover -func=` + coverageFile + ` >> ` + reportFile + `
         echo "</pre></details>" >> ` + reportFile + `
         
-        # Include threshold warning if needed
         if (( $(echo "$total_coverage < 80.0" | bc -l) )); then
             echo "<p>⚠️ Coverage below threshold (80.0%)</p>" >> ` + reportFile + `
         fi
