@@ -313,9 +313,12 @@ func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 	return test.File(reportName)
 }
 
-// TestCoverage executes Go tests (same test run as TestReport) and returns the coverage file
-func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
-	coverage := "coverage.out"
+// TestCoverageReport processes coverage data and returns a formatted markdown report
+func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
+	coverageFile := "coverage.out"
+	reportFile := "coverage-report.md"
+
+	// First, run tests with coverage
 	test := dag.Container().
 		From("golang:"+GO_VERSION+"-alpine").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
@@ -324,8 +327,36 @@ func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"go", "test", "-coverprofile=" + coverage, "./..."})
-	return test.File(coverage)
+		WithExec([]string{"go", "test", "-coverprofile=" + coverageFile, "./..."})
+
+	// Then process the coverage data and generate a report
+	return test.WithExec([]string{"sh", "-c", `
+        echo "<h2> 📊 Test Coverage Results</h2>" > ` + reportFile + `
+        
+        # Parse the coverage.out file to get total coverage percentage
+        total_coverage=$(go tool cover -func=` + coverageFile + ` | grep total | grep -Eo '[0-9]+\.[0-9]+')
+        
+        # Add emoji based on coverage level
+        if (( $(echo "$total_coverage >= 80.0" | bc -l) )); then
+            emoji="✅"
+        elif (( $(echo "$total_coverage >= 60.0" | bc -l) )); then
+            emoji="⚠️"
+        else
+            emoji="❌"
+        fi
+        
+        echo "<p><b>Total coverage: $emoji $total_coverage%</b></p>" >> ` + reportFile + `
+        
+        # Add more detailed package coverage
+        echo "<details><summary>Detailed package coverage</summary><pre>" >> ` + reportFile + `
+        go tool cover -func=` + coverageFile + ` >> ` + reportFile + `
+        echo "</pre></details>" >> ` + reportFile + `
+        
+        # Include threshold warning if needed
+        if (( $(echo "$total_coverage < 80.0" | bc -l) )); then
+            echo "<p>⚠️ Coverage below threshold (80.0%)</p>" >> ` + reportFile + `
+        fi
+    `}).File(reportFile)
 }
 
 // Checks for vulnerabilities using govulncheck
