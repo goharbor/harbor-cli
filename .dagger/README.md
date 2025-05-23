@@ -42,7 +42,7 @@ dagger call lint-report export --path=./LintReport.json
 
 Runs go test coverage tools and creates a report.
 ```bash
-dagger call test-coverage-report export --path=CoverageReport.out
+dagger call test-coverage-report export --path=coverage-report.md
 ```
 
 ### ✅ `CheckCoverageThreshold(context, threshold)`
