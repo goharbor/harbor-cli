@@ -32,7 +32,15 @@ func RepoDeleteCmd() *cobra.Command {
 			var projectName string
 			var repoName string
 			if len(args) > 0 {
-				projectName, repoName = utils.ParseProjectRepo(args[0])
+				projectName, repoName, parseError := utils.ParseProjectRepo(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo: %v", parseError)
+					return
+				}
+				err = api.RepoDelete(projectName, repoName, false)
+				if err != nil {
+					log.Errorf("failed to delete repository: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {

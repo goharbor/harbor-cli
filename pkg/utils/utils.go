@@ -53,15 +53,15 @@ func PrintPayloadInYAMLFormat(payload any) {
 	fmt.Println(string(yamlStr))
 }
 
-func ParseProjectRepo(projectRepo string) (string, string) {
+func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 	split := strings.SplitN(projectRepo, "/", 2) //splits only at first slash
 	if len(split) != 2 {
-		log.Fatalf("invalid project/repository format: %s", projectRepo)
+		return "", "", fmt.Errorf("invalid project/repository format: %s", projectRepo)
 	}
-	return split[0], split[1]
+	return split[0], split[1], nil
 }
 
-func ParseProjectRepoReference(projectRepoReference string) (string, string, string) {
+func ParseProjectRepoReference(projectRepoReference string) (project, repo, reference string, err error) {
 	log.Infof("Parsing input: %s", projectRepoReference)
 
 	var ref string
@@ -76,18 +76,18 @@ func ParseProjectRepoReference(projectRepoReference string) (string, string, str
 		repoPath = projectRepoReference[:lastColon]
 		ref = projectRepoReference[lastColon+1:]
 	} else {
-		log.Fatalf("Invalid reference format: %s", projectRepoReference)
+		return "", "", "", fmt.Errorf("invalid reference format: %s", projectRepoReference)
 	}
 
 	projectRepoParts := strings.SplitN(repoPath, "/", 2)
 	if len(projectRepoParts) != 2 {
-		log.Fatalf("Invalid format, expected <project>/<repository>:<tag> or <project>/<repository>@<digest>, got: %s", projectRepoReference)
+		return "", "", "", fmt.Errorf("invalid format, expected <project>/<repository>:<tag> or <project>/<repository>@<digest>, got: %s", projectRepoReference)
 	}
 
-	project := projectRepoParts[0]
-	repo := projectRepoParts[1]
+	project = projectRepoParts[0]
+	repo = projectRepoParts[1]
 
-	return project, repo, ref
+	return project, repo, ref, nil
 }
 
 func SanitizeServerAddress(server string) string {
