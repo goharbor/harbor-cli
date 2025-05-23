@@ -73,7 +73,7 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, error) {
 	credential, err := GetCredentials(credentialName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get credential %s: %v", credentialName, err)
+		return nil, fmt.Errorf("failed to get credential %s: %w", credentialName, err)
 	}
 
 	// Get encryption key
