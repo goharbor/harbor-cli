@@ -60,10 +60,12 @@ func SwitchContextCommand() *cobra.Command {
 					return
 				}
 				if res != "" {
+					msg := fmt.Sprintf("context switched from '%s' to '%s'", config.CurrentCredentialName, res)
 					config.CurrentCredentialName = res
 					if err := utils.UpdateConfigFile(config); err != nil {
 						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
 					}
+					fmt.Println(msg)
 				}
 			}
 		},
