@@ -137,6 +137,29 @@ jobs:
         with:
           fromJSONFile: TestReport.json
 
+      - name: Run Test Coverage Report
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage-report export --path=coverage-report.md
+
+      - name: Add coverage to step summary
+        run: cat coverage-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Test Coverage
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage export --path=coverage.out
+
+      - uses: codecov/codecov-action@v5
+        with:
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
         with:

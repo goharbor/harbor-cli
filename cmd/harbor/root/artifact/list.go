@@ -51,7 +51,10 @@ Supports pagination, search queries, and sorting using flags.`,
 			var projectName, repoName string
 
 			if len(args) > 0 {
-				projectName, repoName = utils.ParseProjectRepo(args[0])
+				projectName, repoName, err = utils.ParseProjectRepo(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to parse project/repo: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {

@@ -81,7 +81,7 @@ func ListTagsCmd() *cobra.Command {
 		Short:   "List tags of an artifact",
 		Example: `harbor artifact tags list <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
+			var err, parseError error
 			var tags *artifact.ListTagsOK
 			var projectName, repoName, reference string
 

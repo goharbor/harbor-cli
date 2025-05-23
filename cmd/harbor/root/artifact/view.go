@@ -31,7 +31,7 @@ func ViewArtifactCommmand() *cobra.Command {
 		Long:    `Get information of an artifact`,
 		Example: `harbor artifact view <project>/<repository>:<tag> OR harbor artifact view <project>/<repository>@<digest>`,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
+			var err, parseError error
 			var projectName, repoName, reference string
 			var artifact *artifact.GetArtifactOK
 

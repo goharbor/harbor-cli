@@ -11,21 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package e2e
+package context_test
 
 import (
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	helpers "github.com/goharbor/harbor-cli/test/helper"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_ContextCmd(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	rootCmd := root.RootCmd()
 	rootCmd.SetArgs([]string{"context"})
 	err := rootCmd.Execute()
@@ -34,9 +35,9 @@ func Test_ContextCmd(t *testing.T) {
 
 func Test_ContextListCmd(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	rootCmd := root.RootCmd()
 	rootCmd.SetArgs([]string{"context", "list"})
 	err := rootCmd.Execute()
@@ -45,9 +46,9 @@ func Test_ContextListCmd(t *testing.T) {
 
 func Test_ContextGetCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -71,9 +72,9 @@ func Test_ContextGetCmd_Success(t *testing.T) {
 
 func Test_ContextGetCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -97,9 +98,9 @@ func Test_ContextGetCmd_Failure(t *testing.T) {
 
 func Test_ContextGetCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -123,9 +124,9 @@ func Test_ContextGetCmd_CredentialName_Success(t *testing.T) {
 
 func Test_ContextGetCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -149,9 +150,9 @@ func Test_ContextGetCmd_CredentialName_Failure(t *testing.T) {
 
 func Test_ContextUpdateCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -175,9 +176,9 @@ func Test_ContextUpdateCmd_Success(t *testing.T) {
 
 func Test_ContextUpdateCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -201,9 +202,9 @@ func Test_ContextUpdateCmd_CredentialName_Success(t *testing.T) {
 
 func Test_ContextUpdateCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -227,9 +228,9 @@ func Test_ContextUpdateCmd_CredentialName_Failure(t *testing.T) {
 
 func Test_ContextUpdateCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -253,9 +254,9 @@ func Test_ContextUpdateCmd_Failure(t *testing.T) {
 
 func Test_ContextDeleteCmd_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -284,9 +285,9 @@ func Test_ContextDeleteCmd_Success(t *testing.T) {
 
 func Test_ContextDeleteCmd_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -310,9 +311,9 @@ func Test_ContextDeleteCmd_Failure(t *testing.T) {
 
 func Test_ContextDeleteCmd_CredentialName_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -341,9 +342,9 @@ func Test_ContextDeleteCmd_CredentialName_Success(t *testing.T) {
 
 func Test_ContextDeleteCmd_CredentialName_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -367,9 +368,9 @@ func Test_ContextDeleteCmd_CredentialName_Failure(t *testing.T) {
 
 func Test_ContextDeleteCmd_Current_Flag_Success(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	testConfig := &utils.HarborConfig{
 		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
 		Credentials: []utils.Credential{
@@ -406,9 +407,9 @@ func Test_ContextDeleteCmd_Current_Flag_Success(t *testing.T) {
 
 func Test_ContextDeleteCmd_Current_Flag_With_Item_Failure(t *testing.T) {
 	tempDir := t.TempDir()
-	data := Initialize(t, tempDir)
-	defer ConfigCleanup(t, data)
-	SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
 	rootCmd := root.RootCmd()
 	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--current"})
 	err := rootCmd.Execute()
