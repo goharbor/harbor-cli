@@ -38,6 +38,7 @@ Manage artifacts in Harbor Repository
 * [harbor artifact delete](harbor-artifact-delete.md)	 - delete an artifact
 * [harbor artifact list](harbor-artifact-list.md)	 - List container artifacts (images, charts, etc.) in a Harbor repository with metadata
 * [harbor artifact scan](harbor-artifact-scan.md)	 - Scan an artifact
+* [harbor artifact search](harbor-artifact-search.md)	 - Search container artifacts (images, charts, etc.) in a Harbor repository
 * [harbor artifact tags](harbor-artifact-tags.md)	 - Manage tags of an artifact
 * [harbor artifact view](harbor-artifact-view.md)	 - Get information of an artifact
 
