@@ -53,11 +53,11 @@ func selectActiveContext(contexts []api.ContextListView, currentCredential strin
 
 	for _, ctx := range contexts {
 		if ctx.Name == currentCredential {
-			rows = append([]table.Row{{
+			rows = append(rows, table.Row{
 				"* " + ctx.Name,
 				ctx.Username,
 				ctx.Server,
-			}}, rows...)
+			})
 		} else {
 			rows = append(rows, table.Row{
 				"  " + ctx.Name,
