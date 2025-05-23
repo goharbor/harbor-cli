@@ -70,7 +70,7 @@ Examples:
 						found = true
 					}
 				}
-				if found && artifactType != "" && af.Type == artifactType {
+				if found && (artifactType == "" || af.Type == artifactType) {
 					matching = append(matching, af)
 				}
 			}
