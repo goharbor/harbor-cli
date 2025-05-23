@@ -64,8 +64,9 @@ func SwitchContextCommand() *cobra.Command {
 					config.CurrentCredentialName = res
 					if err := utils.UpdateConfigFile(config); err != nil {
 						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
+					} else {
+						fmt.Println(msg)
 					}
-					fmt.Println(msg)
 				}
 			}
 		},
