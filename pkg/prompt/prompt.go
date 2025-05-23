@@ -238,7 +238,7 @@ func GetActiveContextFromUser() (string, error) {
 		cxlist = append(cxlist, cx)
 	}
 
-	res, err := list.ContextList(cxlist)
+	res, err := list.ContextList(cxlist, config.CurrentCredentialName)
 	if err != nil {
 		return "", err
 	}
