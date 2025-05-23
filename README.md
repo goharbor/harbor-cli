@@ -5,7 +5,7 @@
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/harbor-cli)](https://artifacthub.io/packages/search?repo=harbor-cli)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_shield)
-[![codecov](https://codecov.io/gh/goharbor/harbor-cli/graph/badge.svg?token=B5NH6M6ZMP)](https://codecov.io/gh/goharbor/harbor-cli)
+[![codecov](https://codecov.io/gh/goharbor/harbor-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/goharbor/harbor-cli)
 
 # Scope 🧪
 
