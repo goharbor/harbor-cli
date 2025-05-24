@@ -1,6 +1,6 @@
 ---
 title: harbor artifact label add
-weight: 70
+weight: 0
 ---
 ## harbor artifact label add
 
