@@ -1,0 +1,64 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-config-list - List configuration of a Harbor project by name or ID
+
+
+.SH SYNOPSIS
+\fBharbor project config list  [project_name] [flags]\fP
+
+
+.SH DESCRIPTION
+Display the configuration metadata of a Harbor project specified by its name or ID.
+
+.PP
+If no project name or ID is provided as an argument, you will be prompted to select a project interactively.
+
+.PP
+You can use the global flag '--output-format' to specify the output format, e.g. 'json' or 'yaml', for machine-readable output.
+
+.PP
+Examples:
+
+.PP
+# List configuration of project 'myproject' by name
+  harbor-cli project config list myproject
+
+.PP
+# List configuration of project with ID '123'
+  harbor-cli project config list 123
+
+.PP
+# Run interactively (prompt to select project)
+  harbor-cli project config list
+
+.PP
+# List config in JSON format
+  harbor-cli project config list myproject --output-format json
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project-config(1)\fP
