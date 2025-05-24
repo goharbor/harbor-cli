@@ -21,7 +21,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -69,9 +68,9 @@ Supports output formatting such as JSON or YAML using the --output (-o) flag.`,
 
 			if reference == "" {
 				if len(args) > 0 {
-					log.Errorf("Invalid artifact reference format: %s", args[0])
+					return fmt.Errorf("Invalid artifact reference format: %s", args[0])
 				} else {
-					log.Error("Invalid artifact reference format: no arguments provided")
+					return fmt.Errorf("Invalid artifact reference format: no arguments provided")
 				}
 			}
 
