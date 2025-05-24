@@ -14,10 +14,12 @@
 package labels
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -28,22 +30,27 @@ func DeleteLabelCommand() *cobra.Command {
 		Short:   "delete label",
 		Example: "harbor label delete [labelname]",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			var labelId int64
 			deleteView := &api.ListFlags{
 				Scope: opts.Scope,
 			}
 
 			if len(args) > 0 {
-				labelId, _ := api.GetLabelIdByName(args[0])
-				err = api.DeleteLabel(labelId)
+				labelId, _ = api.GetLabelIdByName(args[0])
 			} else {
-				labelId := prompt.GetLabelIdFromUser(*deleteView)
-				err = api.DeleteLabel(labelId)
+				lableList, err := api.ListLabel(*deleteView)
+				if err != nil {
+					return fmt.Errorf("failed to get label list: %v", utils.ParseHarborErrorMsg(err))
+				}
+				labelId = prompt.GetLabelIdFromUser(lableList.Payload)
 			}
+			err = api.DeleteLabel(labelId)
 			if err != nil {
-				log.Errorf("failed to delete label: %v", err)
+				return fmt.Errorf("failed to delete label: %v", utils.ParseHarborErrorMsg(err))
 			}
+			return nil
 		},
 	}
 	flags := cmd.Flags()
