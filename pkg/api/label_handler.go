@@ -133,5 +133,5 @@ func GetLabelIdByName(labelName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("label %s not found", labelName)
 }

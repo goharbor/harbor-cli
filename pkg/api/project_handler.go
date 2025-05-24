@@ -111,12 +111,12 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		}
 
 		for _, repo := range resp.Payload {
-			_, repoName, parseError := utils.ParseProjectRepo(repo.Name)
-			if parseError != nil {
-				log.Errorf("failed to parse project/repo: %v", parseError)
-				return parseError
+			_, repoName, err := utils.ParseProjectRepo(repo.Name)
+			if err != nil {
+				log.Errorf("failed to parse project/repo: %v", err)
+				return err
 			}
-			err = RepoDelete(projectName, repoName, useProjectID)
+			err = RepoDelete(projectNameOrID, repoName, useProjectID)
 
 			if err != nil {
 				log.Errorf("failed to delete repository: %v", err)
