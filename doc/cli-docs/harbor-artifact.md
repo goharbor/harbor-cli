@@ -36,6 +36,7 @@ Manage artifacts in Harbor Repository
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor artifact delete](harbor-artifact-delete.md)	 - delete an artifact
+* [harbor artifact label](harbor-artifact-label.md)	 - label command for artifacts
 * [harbor artifact list](harbor-artifact-list.md)	 - List container artifacts (images, charts, etc.) in a Harbor repository with metadata
 * [harbor artifact scan](harbor-artifact-scan.md)	 - Scan an artifact
 * [harbor artifact tags](harbor-artifact-tags.md)	 - Manage tags of an artifact
