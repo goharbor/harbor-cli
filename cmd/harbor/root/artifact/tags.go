@@ -97,7 +97,7 @@ func ListTagsCmd() *cobra.Command {
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", err)
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				if repoName == "" {
