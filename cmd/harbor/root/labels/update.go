@@ -40,7 +40,12 @@ func UpdateLableCommand() *cobra.Command {
 			if len(args) > 0 {
 				labelId, err = api.GetLabelIdByName(args[0])
 			} else {
-				labelId = prompt.GetLabelIdFromUser(updateflags)
+				labelList, err := api.ListLabel(updateflags)
+				if err != nil {
+					log.Errorf("failed to get label list: %v", err)
+					return
+				}
+				labelId = prompt.GetLabelIdFromUser(labelList.Payload)
 			}
 			if err != nil {
 				log.Errorf("failed to parse label id: %v", err)

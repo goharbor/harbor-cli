@@ -1,0 +1,49 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-artifact-label-add - Attach a label to an artifact in a Harbor project repository
+
+
+.SH SYNOPSIS
+\fBharbor artifact label add [flags]\fP
+
+
+.SH DESCRIPTION
+Attach an existing label to a specific artifact identified by /:\&.
+You can specify the artifact and label directly as arguments, or interactively select them if arguments are omitted.
+
+.PP
+Examples:
+  # Add a label to an artifact using project/repo:reference and label name
+  harbor artifact label add myproject/myrepo@sha256:abcdef1234567890 dev
+
+.PP
+# Prompt-based label selection for an artifact
+  harbor artifact label add library/nginx:1.21
+
+.PP
+# Fully interactive mode (prompt for everything)
+  harbor artifact label add
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for add
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-artifact-label(1)\fP

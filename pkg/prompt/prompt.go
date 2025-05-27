@@ -192,11 +192,10 @@ func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
 	return res.webhook, res.err
 }
 
-func GetLabelIdFromUser(opts api.ListFlags) int64 {
+func GetLabelIdFromUser(labelList []*models.Label) int64 {
 	labelId := make(chan int64)
 	go func() {
-		response, _ := api.ListLabel(opts)
-		lview.LabelList(response.Payload, labelId)
+		lview.LabelList(labelList, labelId)
 	}()
 
 	return <-labelId

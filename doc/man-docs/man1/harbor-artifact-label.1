@@ -2,20 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-artifact - Manage artifacts
+harbor-artifact-label - label command for artifacts
 
 
 .SH SYNOPSIS
-\fBharbor artifact [flags]\fP
+\fBharbor artifact label [flags]\fP
 
 
 .SH DESCRIPTION
-Manage artifacts in Harbor Repository
+label command for artifact
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for artifact
+	help for label
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +33,11 @@ Manage artifacts in Harbor Repository
 
 .SH EXAMPLE
 .EX
-  harbor artifact list
+harbor artifact label add <project>/<repository>/<reference> <label name>
+harbor artifact label del <project>/<repository>/<reference> <label name>
+		
 .EE
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-artifact-delete(1)\fP, \fBharbor-artifact-label(1)\fP, \fBharbor-artifact-list(1)\fP, \fBharbor-artifact-scan(1)\fP, \fBharbor-artifact-tags(1)\fP, \fBharbor-artifact-view(1)\fP
+\fBharbor-artifact(1)\fP, \fBharbor-artifact-label-add(1)\fP, \fBharbor-artifact-label-delete(1)\fP, \fBharbor-artifact-label-list(1)\fP
