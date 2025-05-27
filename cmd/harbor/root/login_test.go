@@ -38,7 +38,6 @@ func Test_Login_Success(t *testing.T) {
 			args := []string{serverAddress}
 			cmd.SetArgs(args)
 
-			assert.NoError(t, cmd.Flags().Set("name", "test"))
 			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
