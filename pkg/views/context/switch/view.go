@@ -25,11 +25,15 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ContextList(contexts []api.ContextListView) (string, error) {
+func ContextList(contexts []api.ContextListView, activeContext string) (string, error) {
 	itemsList := make([]list.Item, len(contexts))
 
 	for i, ctx := range contexts {
-		itemsList[i] = selection.Item(ctx.Name)
+		if ctx.Name == activeContext {
+			itemsList[i] = "* " + selection.Item(ctx.Name)
+		} else {
+			itemsList[i] = "  " + selection.Item(ctx.Name)
+		}
 	}
 	m := selection.NewModel(itemsList, "Context")
 
@@ -41,7 +45,8 @@ func ContextList(contexts []api.ContextListView) (string, error) {
 	}
 
 	if p, ok := p.(selection.Model); ok {
-		return p.Choice, nil
+		// Removing the initial spaces
+		return p.Choice[2:], nil
 	} else {
 		return "", errors.New("invalid program")
 	}
