@@ -12,10 +12,6 @@ weight: 70
 
 label command for artifact
 
-```sh
-harbor artifact label [flags]
-```
-
 ### Examples
 
 ```sh
