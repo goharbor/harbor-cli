@@ -138,6 +138,7 @@ jobs:
           fromJSONFile: TestReport.json
 
       - name: Run Test Coverage Report
+        if: github.event_name == 'pull_request'
         uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
@@ -145,9 +146,11 @@ jobs:
           args: test-coverage-report export --path=coverage-report.md
 
       - name: Add coverage to step summary
+        if: github.event_name == 'pull_request'
         run: cat coverage-report.md >> $GITHUB_STEP_SUMMARY
 
       - name: Run Test Coverage
+        if: github.event_name == 'pull_request'
         uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
@@ -155,6 +158,7 @@ jobs:
           args: test-coverage export --path=coverage.out
 
       - uses: codecov/codecov-action@v5
+        if: github.event_name == 'pull_request'
         with:
           verbose: true
         env:
