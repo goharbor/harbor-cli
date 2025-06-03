@@ -87,7 +87,7 @@ func ParseProjectRepoReference(projectRepoReference string) (project, repo, refe
 	project = projectRepoParts[0]
 	repo = projectRepoParts[1]
 
-	return project, repo, ref, nil
+	return project, repo, ref, err
 }
 
 func SanitizeServerAddress(server string) string {

@@ -31,15 +31,14 @@ func ViewArtifactCommmand() *cobra.Command {
 		Long:    `Get information of an artifact`,
 		Example: `harbor artifact view <project>/<repository>:<tag> OR harbor artifact view <project>/<repository>@<digest>`,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err, parseError error
+			var err error
 			var projectName, repoName, reference string
 			var artifact *artifact.GetArtifactOK
 
 			if len(args) > 0 {
-				projectName, repoName, reference, parseError = utils.ParseProjectRepoReference(args[0])
-				if parseError != nil {
-					log.Errorf("failed to parse project/repo/reference: %v", parseError)
-					return
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", err)
 				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
@@ -59,7 +58,7 @@ func ViewArtifactCommmand() *cobra.Command {
 				}
 			}
 
-			artifact, err = api.ViewArtifact(projectName, repoName, reference)
+			artifact, err = api.ViewArtifact(projectName, repoName, reference, false)
 
 			if err != nil {
 				log.Errorf("failed to get info of an artifact: %v", err)
