@@ -14,7 +14,6 @@
 package label
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,10 +26,6 @@ func LabelsArtifactCommmand() *cobra.Command {
 		Example: `harbor artifact label add <project>/<repository>/<reference> <label name>
 harbor artifact label del <project>/<repository>/<reference> <label name>
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			log.Error("Please use label command with subcommand add or del")
-			log.Errorf("Example: %s", cmd.Example)
-		},
 	}
 	cmd.AddCommand(AddLabelArtifactCommmand())
 	cmd.AddCommand(DelLabelArtifactCommmand())
