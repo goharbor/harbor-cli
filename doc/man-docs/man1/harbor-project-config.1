@@ -2,21 +2,24 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config - Manage the config of the Harbor CLI
+harbor-project-config - Manage project configuration
 
 
 .SH SYNOPSIS
-\fBharbor config [flags]\fP
+\fBharbor project config [flags]\fP
 
 
 .SH DESCRIPTION
-The config command allows you to manage configurations of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli
+Manage project configuration
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
 	help for config
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,4 +36,4 @@ The config command allows you to manage configurations of the Harbor CLI.
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-config-delete(1)\fP, \fBharbor-config-get(1)\fP, \fBharbor-config-list(1)\fP, \fBharbor-config-update(1)\fP
+\fBharbor-project(1)\fP, \fBharbor-project-config-list(1)\fP, \fBharbor-project-config-update(1)\fP

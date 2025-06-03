@@ -35,7 +35,6 @@ func RepositoryList(repos []*models.Repository, choice chan<- string) {
 	m := selection.NewModel(itemsList, "Repository")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

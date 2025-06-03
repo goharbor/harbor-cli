@@ -1,31 +1,27 @@
 ---
-title: harbor config list
-weight: 25
+title: harbor context switch
+weight: 50
 ---
-## harbor config list
+## harbor context switch
 
 ### Description
 
-##### List config items
-
-### Synopsis
-
-Get information of all CLI config items
+##### Switch to a new context
 
 ```sh
-harbor config list [flags]
+harbor context switch <none|context> [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor config list
+harbor context switch harbor-cli@https-demo-goharbor-io
 ```
 
 ### Options
 
 ```sh
-  -h, --help   help for list
+  -h, --help   help for switch
 ```
 
 ### Options inherited from parent commands
@@ -38,5 +34,5 @@ harbor config list [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor context](harbor-context.md)	 - Manage locally available contexts
 

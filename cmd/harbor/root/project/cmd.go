@@ -14,6 +14,7 @@
 package project
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/config"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +31,7 @@ func Project() *cobra.Command {
 		ListProjectCommand(),
 		ViewCommand(),
 		LogsProjectCommmand(),
+		config.ProjectConfigCommand(),
 		SearchProjectCommand(),
 	)
 

@@ -17,6 +17,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
@@ -222,4 +225,23 @@ func GetQuotaIDFromUser() int64 {
 	}()
 
 	return <-QuotaID
+}
+
+func GetActiveContextFromUser() (string, error) {
+	config, err := utils.GetCurrentHarborConfig()
+	if err != nil {
+		return "", err
+	}
+	var cxlist []api.ContextListView
+	for _, cred := range config.Credentials {
+		cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+		cxlist = append(cxlist, cx)
+	}
+
+	res, err := list.ContextList(cxlist, config.CurrentCredentialName)
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
 }

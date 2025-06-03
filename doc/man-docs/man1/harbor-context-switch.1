@@ -2,20 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config-list - List config items
+harbor-context-switch - Switch to a new context
 
 
 .SH SYNOPSIS
-\fBharbor config list [flags]\fP
+\fBharbor context switch  [flags]\fP
 
 
 .SH DESCRIPTION
-Get information of all CLI config items
+Switch to a new context
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for list
+	help for switch
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +33,9 @@ Get information of all CLI config items
 
 .SH EXAMPLE
 .EX
-  harbor config list
+harbor context switch harbor-cli@https-demo-goharbor-io
 .EE
 
 
 .SH SEE ALSO
-\fBharbor-config(1)\fP
+\fBharbor-context(1)\fP

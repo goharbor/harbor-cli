@@ -2,11 +2,11 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-config-update - Set/update a specific config item
+harbor-context-update - Set/update a specific config item
 
 
 .SH SYNOPSIS
-\fBharbor config update   [flags]\fP
+\fBharbor context update   [flags]\fP
 
 
 .SH DESCRIPTION
@@ -41,7 +41,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 .EX
 
   # Set/update the current credential's password
-  harbor config update credentials.password myNewSecret
+  harbor context update credentials.password myNewSecret
 
   # Set/update a credential's password by specifying the credential name
   harbor config update credentials.password myNewSecret --name admin@http://demo.goharbor.io
@@ -50,4 +50,4 @@ If you specify --name, that credential (rather than the "current" one) will be u
 
 
 .SH SEE ALSO
-\fBharbor-config(1)\fP
+\fBharbor-context(1)\fP

@@ -15,19 +15,18 @@ package config
 
 import "github.com/spf13/cobra"
 
-func Config() *cobra.Command {
+var isID bool
+
+func ProjectConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
-		Short: "Manage the config of the Harbor CLI",
-		Long: `The config command allows you to manage configurations of the Harbor CLI.
-				You can add, get, or delete specific config item, as well as list all config items of the Harbor Cli`,
+		Short: "Manage project configuration",
 	}
 	cmd.AddCommand(
-		ListConfigCommand(),
-		GetConfigItemCommand(),
-		UpdateConfigItemCommand(),
-		DeleteConfigItemCommand(),
+		UpdateProjectConfigCmd(),
+		ListProjectConfigCmd(),
 	)
+	cmd.PersistentFlags().BoolVarP(&isID, "id", "", false, "Use project ID instead of name")
 
 	return cmd
 }

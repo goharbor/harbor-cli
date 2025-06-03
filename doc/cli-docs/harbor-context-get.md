@@ -1,8 +1,8 @@
 ---
-title: harbor config get
+title: harbor context get
 weight: 85
 ---
-## harbor config get
+## harbor context get
 
 ### Description
 
@@ -14,7 +14,7 @@ Get the value of a specific CLI config item.
 If you specify --name, that credential (rather than the "current" one) will be used.
 
 ```sh
-harbor config get <item> [flags]
+harbor context get <item> [flags]
 ```
 
 ### Examples
@@ -22,10 +22,10 @@ harbor config get <item> [flags]
 ```sh
 
   # Get the current credential's username
-  harbor config get credentials.username
+  harbor context get credentials.username
 
   # Get a credential's username by specifying the credential name
-  harbor config get credentials.username --name harbor-cli@http://demo.goharbor.io
+  harbor config get credentials.username --name admin@http://demo.goharbor.io
 
 ```
 
@@ -46,5 +46,5 @@ harbor config get <item> [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor context](harbor-context.md)	 - Manage locally available contexts
 

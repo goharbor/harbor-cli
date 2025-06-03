@@ -50,7 +50,11 @@ func CreateTagsCmd() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError := utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
 				tag := args[1]
 				err = api.CreateTag(projectName, repoName, reference, tag)
 			} else {
@@ -80,18 +84,25 @@ func ListTagsCmd() *cobra.Command {
 		Short:   "List tags of an artifact",
 		Example: `harbor artifact tags list <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
+			var err, parseError error
 			var tags *artifact.ListTagsOK
 			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference = utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError = utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
+				if repoName == "" {
+					return
+				}
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
@@ -127,7 +138,11 @@ func DeleteTagsCmd() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
+				projectName, repoName, reference, parseError := utils.ParseProjectRepoReference(args[0])
+				if parseError != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", parseError)
+					return
+				}
 				tag := args[1]
 				err = api.DeleteTag(projectName, repoName, reference, tag)
 			} else {

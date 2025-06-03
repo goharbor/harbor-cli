@@ -1,8 +1,8 @@
 ---
-title: harbor config update
+title: harbor context update
 weight: 10
 ---
-## harbor config update
+## harbor context update
 
 ### Description
 
@@ -15,7 +15,7 @@ Case-insensitive field lookup, but uses the canonical (Go) field name internally
 If you specify --name, that credential (rather than the "current" one) will be updated.
 
 ```sh
-harbor config update <item> <value> [flags]
+harbor context update <item> <value> [flags]
 ```
 
 ### Examples
@@ -23,7 +23,7 @@ harbor config update <item> <value> [flags]
 ```sh
 
   # Set/update the current credential's password
-  harbor config update credentials.password myNewSecret
+  harbor context update credentials.password myNewSecret
 
   # Set/update a credential's password by specifying the credential name
   harbor config update credentials.password myNewSecret --name admin@http://demo.goharbor.io
@@ -47,5 +47,5 @@ harbor config update <item> <value> [flags]
 
 ### SEE ALSO
 
-* [harbor config](harbor-config.md)	 - Manage the config of the Harbor Cli
+* [harbor context](harbor-context.md)	 - Manage locally available contexts
 

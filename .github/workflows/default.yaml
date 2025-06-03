@@ -31,17 +31,17 @@ jobs:
 
       - name: Check for changes
         run: |
-          # Check if any newly added docs exist
-          untracked_files=$(git ls-files --others --exclude-standard)
+          # Check if any docs have been modified
+          changed_files=$(git ls-files --others --modified --deleted --exclude-standard)
 
-          # If there are untracked files, fail the workflow
-          if [ -n "$untracked_files" ]; then
-            echo "New Untracked files found"
-            echo "please check if docs were added for new commands"
-            echo "$untracked_files"
+          # If there are files changed, fail the workflow
+          if [ -n "$changed_files" ]; then
+            echo "file changes found"
+            echo "please check if docs were added for new commands or updated for new commands"
+            echo "$changed_files"
             exit 1  # This will fail the workflow
           else
-            echo "No untracked files found."
+            echo "No file changes found."
           fi
         continue-on-error: false
 
@@ -136,6 +136,29 @@ jobs:
         uses: robherley/go-test-action@v0.6.0
         with:
           fromJSONFile: TestReport.json
+
+      - name: Run Test Coverage Report
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage-report export --path=coverage-report.md
+
+      - name: Add coverage to step summary
+        run: cat coverage-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Test Coverage
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage export --path=coverage.out
+
+      - uses: codecov/codecov-action@v5
+        with:
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7
