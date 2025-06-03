@@ -1,0 +1,92 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-config-update - Interactively or via flags update project configuration in Harbor
+
+
+.SH SYNOPSIS
+\fBharbor project config update [project_name] [flags]\fP
+
+
+.SH DESCRIPTION
+Update the configuration settings of a Harbor project either interactively or directly using command-line flags.
+
+.PP
+You can specify the project by its name or ID as an argument. If not provided, you will be prompted to select a project interactively.
+
+.PP
+Examples:
+
+.PP
+# Update project 'myproject' visibility to public
+  harbor-cli project config update myproject --public true
+
+.PP
+# Update multiple settings in one command
+  harbor-cli project config update myproject --public false --prevent-vul true --severity high
+
+.PP
+# Run interactively without flags
+  harbor-cli project config update
+
+.PP
+Supported flag values:
+.IP \(bu 2
+Boolean flags (public, auto-scan, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
+.IP \(bu 2
+Severity: one of "low", "medium", "high", "critical"
+
+
+.SH OPTIONS
+\fB--auto-scan\fP=""
+	Enable or disable auto scan (true/false)
+
+.PP
+\fB--enable-content-trust\fP=""
+	Enable or disable content trust (true/false)
+
+.PP
+\fB--enable-content-trust-cosign\fP=""
+	Enable or disable content trust cosign (true/false)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--prevent-vul\fP=""
+	Enable or disable vulnerability prevention (true/false)
+
+.PP
+\fB--public\fP=""
+	Set project visibility (true/false)
+
+.PP
+\fB--reuse-sys-cve\fP=""
+	Enable or disable reuse of system CVE allowlist (true/false)
+
+.PP
+\fB--severity\fP=""
+	Set severity level
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project-config(1)\fP

@@ -35,6 +35,7 @@ Manage projects in Harbor
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor project config](harbor-project-config.md)	 - Manage project configuration
 * [harbor project create](harbor-project-create.md)	 - create project
 * [harbor project delete](harbor-project-delete.md)	 - Delete project by name or ID
 * [harbor project list](harbor-project-list.md)	 - List projects

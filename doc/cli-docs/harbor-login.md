@@ -20,7 +20,6 @@ harbor login [server] [flags]
 
 ```sh
   -h, --help              help for login
-      --name string       name for the set of credentials
   -p, --password string   Password
       --password-stdin    Take the password from stdin
   -u, --username string   Username
