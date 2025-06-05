@@ -159,7 +159,7 @@ func SavePayloadJSON(filename string, payload any) {
 	}
 	// Define the filename
 	filename = filename + ".json"
-	err = os.WriteFile(filename, jsonStr, 0644)
+	err = os.WriteFile(filename, jsonStr, 0600)
 	if err != nil {
 		panic(err)
 	}
