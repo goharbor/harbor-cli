@@ -13,11 +13,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ListRobotCommand creates a new `harbor robot list` command
+// ListRobotCommand creates a new `harbor project robot list` command
 func ListRobotCommand() *cobra.Command {
 	var (
-		query     string
-		opts      api.ListFlags
+		query string
+		opts  api.ListFlags
 	)
 
 	projectQString := constants.ProjectQString
@@ -29,7 +29,7 @@ func ListRobotCommand() *cobra.Command {
 			if len(args) > 0 {
 				opts.Q = projectQString + args[0]
 			} else {
-        projectID := prompt.GetProjectIDFromUser()
+				projectID := prompt.GetProjectIDFromUser()
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}
 

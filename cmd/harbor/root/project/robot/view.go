@@ -1,6 +1,7 @@
 package robot
 
 import (
+	"os"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
@@ -12,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ViewCommand creates a new `harbor project robot view` command
-func ViewCommand() *cobra.Command {
+// handle robot view with interactive like in list command.
+func ViewRobotCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "view [robotID]",
 		Short: "get robot by id",
@@ -29,6 +30,7 @@ func ViewCommand() *cobra.Command {
 				robot, err = api.GetRobot(robotID)
 				if err != nil {
 					log.Errorf("failed to List robots")
+					os.Exit(1)
 				}
 			}
 			robots := []*models.Robot{robot.Payload}
