@@ -72,21 +72,13 @@ func CreateRobotView(createView *CreateView) {
 	}
 }
 
-func CreateRobotSecretView(response *models.RobotCreated) {
-	name := response.Name
-	secret := response.Secret
+func CreateRobotSecretView(name string, secret string) {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Robot Name").
-				Value(&name).
-				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("Name cannot be empty")
-					}
-					return nil
-				}),
+				Value(&name),
 			huh.NewInput().
 				Title("Secret").
 				Value(&secret),
