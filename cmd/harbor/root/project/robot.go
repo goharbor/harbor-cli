@@ -17,6 +17,7 @@ func Robot() *cobra.Command {
 		robot.ViewRobotCommand(),
 		robot.CreateRobotCommand(),
 		robot.UpdateRobotCommand(),
+		robot.RefreshSecretCommand(),
 	)
 
 	return cmd
