@@ -31,6 +31,7 @@ import (
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
@@ -210,7 +211,6 @@ func GetLabelIdFromUser(labelList []*models.Label) int64 {
 
 	return <-labelId
 }
-
 func GetInstanceFromUser() string {
 	instanceName := make(chan string)
 
@@ -253,4 +253,13 @@ func GetActiveContextFromUser() (string, error) {
 	}
 
 	return res, nil
+}
+
+func GetRobotPermissionsFromUser() []models.Permission {
+	permissions := make(chan []models.Permission)
+	go func() {
+		response, _ := api.GetPermissions()
+		robotView.ListPermissions(response.Payload, permissions)
+	}()
+	return <-permissions
 }
