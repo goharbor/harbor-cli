@@ -16,6 +16,7 @@ package project
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
