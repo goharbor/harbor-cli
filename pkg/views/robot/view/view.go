@@ -1,0 +1,153 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package view
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views"
+	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+)
+
+var columns = []table.Column{
+	{Title: "Name", Width: tablelist.WidthL},
+	{Title: "Status", Width: tablelist.WidthL},
+	{Title: "Permissions", Width: tablelist.WidthM},
+	{Title: "Creation Time", Width: tablelist.WidthXL},
+	{Title: "Expires in", Width: tablelist.WidthM},
+	{Title: "Description", Width: tablelist.WidthXL},
+}
+
+var permissionsColumns = []table.Column{
+	{Title: "Resource", Width: tablelist.WidthXL},
+	{Title: "Create", Width: tablelist.WidthS},
+	{Title: "Delete", Width: tablelist.WidthS},
+	{Title: "List", Width: tablelist.WidthS},
+	{Title: "Pull", Width: tablelist.WidthS},
+	{Title: "Push", Width: tablelist.WidthS},
+	{Title: "Read", Width: tablelist.WidthS},
+	{Title: "Stop", Width: tablelist.WidthS},
+	{Title: "Update", Width: tablelist.WidthS},
+}
+
+var resourceStrings = []string{
+	"Accessory", "Artifact", "Artifact Addition", "Artifact Label",
+	"Export CVE", "Immutable Tag", "Label", "Log", "Member",
+	"Metadata", "Notification Policy", "Preheat Policy",
+	"Project", "Quota", "Repository", "Robot Account", "SBOM",
+	"Scan", "Scanner", "Tag", "Tag Retention",
+}
+
+func ViewRobot(robot *models.Robot) {
+	var rows []table.Row
+	var enabledStatus string
+	var expires string
+
+	if robot.Disable {
+		enabledStatus = views.GreenANSI + "Disabled" + views.ResetANSI
+	} else {
+		enabledStatus = views.GreenANSI + "Enabled" + views.ResetANSI
+	}
+
+	TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
+
+	if robot.ExpiresAt == -1 {
+		expires = "Never"
+	} else {
+		expires = remainingTime(robot.ExpiresAt)
+	}
+
+	createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
+	rows = append(rows, table.Row{
+		robot.Name,
+		enabledStatus,
+		TotalPermissions,
+		createdTime,
+		expires,
+		string(robot.Description),
+	})
+
+	m := tablelist.NewModel(columns, rows, len(rows))
+
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+
+	var permissionRows []table.Row
+	resActs := map[string][]string{}
+	for _, perm := range robot.Permissions {
+		for _, access := range perm.Access {
+			resActs[access.Resource] = append(resActs[access.Resource], access.Action)
+		}
+	}
+
+	for _, resource := range resourceStrings {
+		actions := resActs[toKebabCase(resource)]
+		row := table.Row{resource}
+		for _, action := range []string{"create", "delete", "list", "pull", "push", "read", "stop", "update"} {
+			if contains(actions, action) {
+				row = append(row, views.GreenANSI+"✓"+views.ResetANSI)
+			} else {
+				row = append(row, views.RedANSI+"✗"+views.ResetANSI)
+			}
+		}
+		permissionRows = append(permissionRows, row)
+	}
+
+	t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
+
+	if _, err := tea.NewProgram(t).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+}
+
+func remainingTime(unixTimestamp int64) string {
+	// Get the current time
+	now := time.Now()
+	// Convert the Unix timestamp to time.Time
+	expirationTime := time.Unix(unixTimestamp, 0)
+	// Calculate the duration between now and the expiration time
+	duration := expirationTime.Sub(now)
+
+	// Calculate days, hours, minutes, and seconds
+	days := int(duration.Hours() / 24)
+	hours := int(duration.Hours()) % 24
+	minutes := int(duration.Minutes()) % 60
+
+	// Format the output string
+	return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
+}
+
+func toKebabCase(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}

@@ -17,10 +17,9 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/list"
+	"github.com/goharbor/harbor-cli/pkg/views/robot/view"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
@@ -54,8 +53,8 @@ func ViewRobotCommand() *cobra.Command {
 			}
 
 			// Convert to a list and display
-			robots := []*models.Robot{robot.Payload}
-			list.ListRobots(robots)
+			// robots := &models.Robot{robot.Payload}
+			view.ViewRobot(robot.Payload)
 		},
 	}
 
