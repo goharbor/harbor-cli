@@ -75,6 +75,7 @@ type Model struct {
 	disabled map[int]map[int]bool
 }
 
+// ToDo: Move this to package base/tablegrid
 func NewModel() Model {
 	numRows := len(resourceNames)
 	numCols := len(columns) - 1
