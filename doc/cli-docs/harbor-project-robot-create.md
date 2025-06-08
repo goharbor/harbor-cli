@@ -15,12 +15,13 @@ harbor project robot create [flags]
 ### Options
 
 ```sh
-  -a, --all-permission       Select all permissions for the robot account
-      --description string   description of the robot account
-      --duration int         set expiration of robot account in days
-  -h, --help                 help for create
-      --name string          name of the robot account
-      --project string       set project name
+  -a, --all-permission             Select all permissions for the robot account
+      --description string         description of the robot account
+      --duration int               set expiration of robot account in days
+  -h, --help                       help for create
+      --name string                name of the robot account
+      --project string             set project name
+  -r, --robot-config-file string   YAML file with robot configuration
 ```
 
 ### Options inherited from parent commands
