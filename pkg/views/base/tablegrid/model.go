@@ -310,8 +310,7 @@ func (m *TableGrid) View() string {
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
 
-	footer := m.Footer
-	footer = "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ^S submit • ⌃A toggle row • q to cancel\n"
+	footer := "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ^S submit • ⌃A toggle row • q to cancel\n"
 
 	return out + footer
 }
