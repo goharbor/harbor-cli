@@ -20,29 +20,16 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
+	"github.com/goharbor/harbor-cli/pkg/views/base/tablegrid"
 )
 
 const (
 	WidthResource = 20
 	WidthAction   = 16
 )
-
-var columns = []table.Column{
-	{Title: "Resource", Width: WidthResource},
-	{Title: "Create", Width: WidthAction},
-	{Title: "Delete", Width: WidthAction},
-	{Title: "List", Width: WidthAction},
-	{Title: "Pull", Width: WidthAction},
-	{Title: "Push", Width: WidthAction},
-	{Title: "Read", Width: WidthAction},
-	{Title: "Stop", Width: WidthAction},
-	{Title: "Update", Width: WidthAction},
-}
 
 var resourceNames = []string{
 	"Accessory",
@@ -68,21 +55,47 @@ var resourceNames = []string{
 	"Tag Retention",
 }
 
-type Model struct {
-	Table    table.Model
-	perms    [][]bool
-	selCol   int
-	disabled map[int]map[int]bool
+var columnLabels = []string{
+	"Resource", "Create", "Delete", "List", "Pull", "Push", "Read", "Stop", "Update",
 }
 
-// ToDo: Move this to package base/tablegrid
-func NewModel() Model {
-	numRows := len(resourceNames)
-	numCols := len(columns) - 1
-	perms := make([][]bool, numRows)
-	for i := 0; i < numRows; i++ {
-		perms[i] = make([]bool, numCols)
+func NewRobotPermissionsGrid() *tablegrid.TableGrid {
+	columnWidths := []int{WidthResource}
+	for range len(columnLabels) - 1 {
+		columnWidths = append(columnWidths, WidthAction)
 	}
+
+	// The disabled map corresponds to the permissions for each resource and action in the harbor UI.
+	// This shows which actions are available (✓) or unavailable (✗) for each resource:
+	//
+	// Resource           | Create | Delete | List | Pull | Push | Read | Stop | Update |
+	// -------------------|--------|--------|------|------|------|------|------|--------|
+	// Accessory          |   ✗    |   ✗    |  ✓   |  ✗   |  ✗   |  ✗   |  ✗   |   ✗    |
+	// Artifact           |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// Artifact Addition  |   ✗    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// Artifact Label     |   ✓    |   ✓    |  ✗   |  ✗   |  ✗   |  ✗   |  ✗   |   ✗    |
+	// Export CVE         |   ✓    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// Immutable Tag      |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✗   |  ✗   |   ✓    |
+	// Label              |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	// Log                |   ✗    |   ✗    |  ✓   |  ✗   |  ✗   |  ✗   |  ✗   |   ✗    |
+	// Member             |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	// Metadata           |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	// Notification Policy|   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	// Preheat Policy     |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	// Project            |   ✗    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✓   |   ✗    |
+	// Quota              |   ✗    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// Repository         |   ✗    |   ✓    |  ✓   |  ✓   |  ✓   |  ✓   |  ✗   |   ✓    |
+	// Robot Account      |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// SBOM               |   ✓    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✓   |   ✗    |
+	// Scan               |   ✓    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✓   |   ✗    |
+	// Scanner            |   ✓    |   ✗    |  ✗   |  ✗   |  ✗   |  ✓   |  ✗   |   ✗    |
+	// Tag                |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✗   |  ✗   |   ✗    |
+	// Tag Retention      |   ✓    |   ✓    |  ✓   |  ✗   |  ✗   |  ✓   |  ✗   |   ✓    |
+	//
+	// Where:
+	// - ✓ means the action is available for selection (disabled[row][col] = false)
+	// - ✗ means the action is unavailable (disabled[row][col] = true)
+	// - Indices in the map: 1=Create, 2=Delete, 3=List, 4=Pull, 5=Push, 6=Read, 7=Stop, 8=Update
 	disabled := map[int]map[int]bool{
 		0:  {1: true, 2: true, 3: false, 4: true, 5: true, 6: true, 7: true, 8: true},
 		1:  {1: false, 2: false, 3: false, 4: true, 5: true, 6: false, 7: true, 8: true},
@@ -106,168 +119,41 @@ func NewModel() Model {
 		19: {1: false, 2: false, 3: false, 4: true, 5: true, 6: true, 7: true, 8: true},
 		20: {1: false, 2: false, 3: false, 4: true, 5: true, 6: false, 7: true, 8: false},
 	}
-	rows := buildRows(resourceNames, perms, -1, -1, disabled)
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(rows)+1),
-	)
-	styles := table.DefaultStyles()
-	styles.Header = styles.Header.Bold(false)
-	t.SetStyles(styles)
-	return Model{
-		Table:    t,
-		perms:    perms,
-		selCol:   1,
-		disabled: disabled,
+
+	icons := &tablegrid.Icons{
+		Selected:   "✅",
+		Unselected: "❌",
+		Empty:      " ",
 	}
-}
 
-func buildRows(
-	names []string,
-	perms [][]bool,
-	highlightRow, highlightCol int,
-	disabled map[int]map[int]bool,
-) []table.Row {
-	grayStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	rows := make([]table.Row, len(names))
-	for i, name := range names {
-		cells := make([]string, len(columns))
-		cells[0] = name
-		for j := 1; j < len(columns); j++ {
-			if disabled[i] != nil && disabled[i][j] {
-				cells[j] = grayStyle.Render(" ")
-				continue
-			}
-			var icon string
-			if perms[i][j-1] {
-				icon = "✅"
-			} else {
-				icon = "❌"
-			}
-			if i == highlightRow && j == highlightCol {
-				cells[j] = fmt.Sprintf("▶ %s", icon)
-			} else {
-				cells[j] = icon
-			}
-		}
-		rows[i] = table.Row(cells)
-	}
-	return rows
-}
-
-func (m Model) Init() tea.Cmd {
-	return nil
-}
-
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+a":
-			rowIdx := m.Table.Cursor()
-			for colIdx := 1; colIdx < len(columns); colIdx++ {
-				if m.disabled[rowIdx] != nil && m.disabled[rowIdx][colIdx] {
-					continue
-				}
-				m.perms[rowIdx][colIdx-1] = !m.perms[rowIdx][colIdx-1]
-			}
-			newRows := buildRows(resourceNames, m.perms, rowIdx, m.selCol, m.disabled)
-			m.Table.SetRows(newRows)
-			return m, nil
-
-		case "ctrl+s":
-			return m, tea.Quit
-
-		case "left", "h":
-			curRow := m.Table.Cursor()
-			for next := m.selCol - 1; next >= 1; next-- {
-				if m.disabled[curRow] == nil || !m.disabled[curRow][next] {
-					m.selCol = next
-					break
-				}
-			}
-			return m, nil
-
-		case "right", "l":
-			curRow := m.Table.Cursor()
-			for next := m.selCol + 1; next < len(columns); next++ {
-				if m.disabled[curRow] == nil || !m.disabled[curRow][next] {
-					m.selCol = next
-					break
-				}
-			}
-			return m, nil
-
-		case "up", "k":
-			m.Table, cmd = m.Table.Update(msg)
-			for {
-				r := m.Table.Cursor()
-				if r <= 0 || m.disabled[r] == nil || !m.disabled[r][m.selCol] {
-					break
-				}
-				m.Table, _ = m.Table.Update(msg)
-			}
-			return m, cmd
-
-		case "down", "j":
-			m.Table, cmd = m.Table.Update(msg)
-			for {
-				r := m.Table.Cursor()
-				if r >= len(resourceNames)-1 || m.disabled[r] == nil || !m.disabled[r][m.selCol] {
-					break
-				}
-				m.Table, _ = m.Table.Update(msg)
-			}
-			return m, cmd
-
-		case "enter", " ":
-			rowIdx := m.Table.Cursor()
-			colIdx := m.selCol
-			if m.disabled[rowIdx] != nil && m.disabled[rowIdx][colIdx] {
-				return m, nil
-			}
-			m.perms[rowIdx][colIdx-1] = !m.perms[rowIdx][colIdx-1]
-			newRows := buildRows(resourceNames, m.perms, rowIdx, colIdx, m.disabled)
-			m.Table.SetRows(newRows)
-			return m, nil
-
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		}
-	}
-	m.Table, cmd = m.Table.Update(msg)
-	return m, cmd
-}
-
-func (m Model) View() string {
-	cursor := m.Table.Cursor()
-	highlighted := buildRows(resourceNames, m.perms, cursor, m.selCol, m.disabled)
-	orig := m.Table.Rows()
-	m.Table.SetRows(highlighted)
-	out := m.Table.View()
-	m.Table.SetRows(orig)
-	footer := "\n ↑/↓ move row • ←/→ move col • space/enter to toggle-and-submit • ⌃A toggle row • q to cancel\n"
-	return out + footer
+	return tablegrid.New(tablegrid.Config{
+		RowLabels:    resourceNames,
+		ColLabels:    columnLabels,
+		Disabled:     disabled,
+		ColumnWidths: columnWidths,
+		Icons:        icons,
+		Footer:       "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ⌃A toggle row • q to cancel\n",
+	})
 }
 
 func ListPermissions(perms *models.Permissions, ch chan<- []models.Permission) {
-	t := NewModel()
-	final, err := tea.NewProgram(t, tea.WithAltScreen()).Run()
+	grid := NewRobotPermissionsGrid()
+	_, err := tea.NewProgram(grid, tea.WithAltScreen()).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-	m := final.(Model)
+
+	data := grid.GetData()
 	selectedPerms := []models.Permission{}
+
 	for rowIdx, res := range resourceNames {
 		kebabResource := strings.ToLower(res)
 		kebabResource = strings.ReplaceAll(kebabResource, " ", "-")
-		for colIdx := 1; colIdx < len(columns); colIdx++ {
-			if m.perms[rowIdx][colIdx-1] {
-				action := strings.ToLower(columns[colIdx].Title)
+
+		for colIdx := 0; colIdx < len(columnLabels)-1; colIdx++ {
+			if data[rowIdx][colIdx] {
+				action := strings.ToLower(columnLabels[colIdx+1])
 				selectedPerms = append(selectedPerms, models.Permission{
 					Resource: kebabResource,
 					Action:   action,
@@ -275,6 +161,7 @@ func ListPermissions(perms *models.Permissions, ch chan<- []models.Permission) {
 			}
 		}
 	}
+
 	ch <- selectedPerms
 }
 

@@ -19,56 +19,84 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/config"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func CreateRobotCommand() *cobra.Command {
 	var (
-		opts create.CreateView
-		all  bool
+		opts       create.CreateView
+		all        bool
+		configFile string
 	)
 
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create robot",
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			var permissions []models.Permission
+
+			if configFile != "" {
+				fmt.Println("Loading configuration from: ", configFile)
+				loadedOpts, loadErr := config.LoadRobotConfigFromFile(configFile)
+				if loadErr != nil {
+					return fmt.Errorf("failed to load robot config from file: %v", loadErr)
+				}
+				opts = *loadedOpts
+				permissions = make([]models.Permission, len(opts.Permissions[0].Access))
+				for i, access := range opts.Permissions[0].Access {
+					permissions[i] = models.Permission{
+						Resource: access.Resource,
+						Action:   access.Action,
+					}
+				}
+			}
 
 			if opts.ProjectName == "" {
 				opts.ProjectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					logrus.Fatalf("%v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
 				}
 				if opts.ProjectName == "" {
-					log.Fatalf("Project Name Cannot be empty")
+					return fmt.Errorf("project name cannot be empty")
 				}
 			}
 
 			if len(args) == 0 {
-				if opts.Name == "" || opts.Duration == 0 {
+				if (opts.Name == "" || opts.Duration == 0) && configFile == "" {
+					fmt.Println("Opening interactive form for robot creation")
 					create.CreateRobotView(&opts)
 				}
 
-				var permissions []models.Permission
+				if opts.Duration == 0 {
+					msg := fmt.Errorf("duration cannot be 0")
+					return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
+				}
 
-				if all {
-					perms, _ := api.GetPermissions()
-					permission := perms.Payload.Project
+				if len(permissions) == 0 {
+					if all {
+						perms, _ := api.GetPermissions()
+						permission := perms.Payload.Project
 
-					choices := []models.Permission{}
-					for _, perm := range permission {
-						choices = append(choices, *perm)
+						choices := []models.Permission{}
+						for _, perm := range permission {
+							choices = append(choices, *perm)
+						}
+						permissions = choices
+					} else {
+						permissions = prompt.GetRobotPermissionsFromUser()
+						if len(permissions) == 0 {
+							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
+							return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
+						}
 					}
-					permissions = choices
-				} else {
-					permissions = prompt.GetRobotPermissionsFromUser()
 				}
 
 				// []Permission to []*Access
@@ -89,7 +117,7 @@ func CreateRobotCommand() *cobra.Command {
 			}
 			response, err := api.CreateRobot(opts, "project")
 			if err != nil {
-				log.Fatalf("failed to create robot: %v", err)
+				return fmt.Errorf("failed to create robot: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -97,17 +125,18 @@ func CreateRobotCommand() *cobra.Command {
 				name := response.Payload.Name
 				res, _ := api.GetRobot(response.Payload.ID)
 				utils.SavePayloadJSON(name, res.Payload)
-				return
+				return nil
 			}
 
 			name, secret := response.Payload.Name, response.Payload.Secret
 			create.CreateRobotSecretView(name, secret)
 			err = clipboard.WriteAll(response.Payload.Secret)
 			if err != nil {
-				log.Errorf("failed to write to clipboard")
-				return
+				logrus.Errorf("failed to write to clipboard")
+				return nil
 			}
 			fmt.Println("secret copied to clipboard.")
+			return nil
 		},
 	}
 	flags := cmd.Flags()
@@ -122,6 +151,6 @@ func CreateRobotCommand() *cobra.Command {
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
-
+	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML file with robot configuration")
 	return cmd
 }
