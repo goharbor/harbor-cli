@@ -142,7 +142,6 @@ func ViewRobot(robot *models.Robot) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-
 }
 
 func remainingTime(unixTimestamp int64) string {

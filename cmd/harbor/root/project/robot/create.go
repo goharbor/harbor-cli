@@ -177,5 +177,4 @@ func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
 			fmt.Printf("Secret saved to %s\n", filename)
 		}
 	}
-
 }
