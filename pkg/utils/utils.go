@@ -176,3 +176,7 @@ func GetSecretStdin(prompt string) (string, error) {
 	fmt.Println() // move to the next line after input
 	return strings.TrimSpace(string(bytePassword)), nil
 }
+
+func ToKebabCase(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}

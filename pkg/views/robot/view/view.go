@@ -18,7 +18,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -111,12 +110,12 @@ func ViewRobot(robot *models.Robot) {
 
 	resourceMap := make(map[string]string)
 	for _, displayName := range resourceStrings {
-		kebabName := toKebabCase(displayName)
+		kebabName := utils.ToKebabCase(displayName)
 		resourceMap[kebabName] = displayName
 	}
 
 	for _, displayName := range resourceStrings {
-		kebabName := toKebabCase(displayName)
+		kebabName := utils.ToKebabCase(displayName)
 		if _, exists := availablePerms[kebabName]; !exists {
 			continue
 		}
@@ -147,22 +146,11 @@ func ViewRobot(robot *models.Robot) {
 }
 
 func remainingTime(unixTimestamp int64) string {
-	// Get the current time
 	now := time.Now()
-	// Convert the Unix timestamp to time.Time
 	expirationTime := time.Unix(unixTimestamp, 0)
-	// Calculate the duration between now and the expiration time
 	duration := expirationTime.Sub(now)
-
-	// Calculate days, hours, minutes, and seconds
 	days := int(duration.Hours() / 24)
 	hours := int(duration.Hours()) % 24
 	minutes := int(duration.Minutes()) % 60
-
-	// Format the output string
 	return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
-}
-
-func toKebabCase(s string) string {
-	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
 }
