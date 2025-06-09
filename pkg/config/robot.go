@@ -39,10 +39,10 @@ type PermissionSpec struct {
 }
 
 type RobotSecret struct {
-	Name         string `yaml:"name"`
-	ExpiresAt    int64  `yaml:"expires_at"`
-	CreationTime string `yaml:"creation_time"`
-	Secret       string `yaml:"secret"`
+	Name         string `json:"name"`
+	ExpiresAt    int64  `json:"expires_at"`
+	CreationTime string `json:"creation_time"`
+	Secret       string `json:"secret"`
 }
 
 func LoadRobotConfigFromYAML(filename string) (*create.CreateView, error) {
