@@ -16,6 +16,7 @@ package view
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/config"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
@@ -101,14 +103,35 @@ func ViewRobot(robot *models.Robot) {
 		}
 	}
 
-	for _, resource := range resourceStrings {
-		actions := resActs[toKebabCase(resource)]
-		row := table.Row{resource}
+	availablePerms, err := config.GetAllAvailablePermissions()
+	if err != nil {
+		fmt.Printf("Error fetching available permissions: %v\n", err)
+		os.Exit(1)
+	}
+
+	resourceMap := make(map[string]string)
+	for _, displayName := range resourceStrings {
+		kebabName := toKebabCase(displayName)
+		resourceMap[kebabName] = displayName
+	}
+
+	for _, displayName := range resourceStrings {
+		kebabName := toKebabCase(displayName)
+		if _, exists := availablePerms[kebabName]; !exists {
+			continue
+		}
+
+		row := table.Row{displayName}
 		for _, action := range []string{"create", "delete", "list", "pull", "push", "read", "stop", "update"} {
-			if contains(actions, action) {
-				row = append(row, views.GreenANSI+"✓"+views.ResetANSI)
+			if slices.Contains(availablePerms[kebabName], action) {
+				actions := resActs[kebabName]
+				if slices.Contains(actions, action) {
+					row = append(row, "✅")
+				} else {
+					row = append(row, "❌")
+				}
 			} else {
-				row = append(row, views.RedANSI+"✗"+views.ResetANSI)
+				row = append(row, " ")
 			}
 		}
 		permissionRows = append(permissionRows, row)
@@ -120,6 +143,7 @@ func ViewRobot(robot *models.Robot) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
 }
 
 func remainingTime(unixTimestamp int64) string {
@@ -141,13 +165,4 @@ func remainingTime(unixTimestamp int64) string {
 
 func toKebabCase(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }

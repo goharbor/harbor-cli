@@ -82,7 +82,7 @@ func LoadRobotConfigFromYAML(filename string) (*create.CreateView, error) {
 func ProcessPermissions(specs []PermissionSpec) ([]models.Permission, error) {
 	var result []models.Permission
 
-	availablePerms, err := getAllAvailablePermissions()
+	availablePerms, err := GetAllAvailablePermissions()
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 	return opts, nil
 }
 
-func getAllAvailablePermissions() (map[string][]string, error) {
+func GetAllAvailablePermissions() (map[string][]string, error) {
 	permsResp, err := api.GetPermissions()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get permissions: %v", err)
