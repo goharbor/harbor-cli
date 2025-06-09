@@ -38,6 +38,13 @@ type PermissionSpec struct {
 	Actions   []string `yaml:"actions"`
 }
 
+type RobotSecret struct {
+	Name         string `yaml:"name"`
+	ExpiresAt    int64  `yaml:"expires_at"`
+	CreationTime string `yaml:"creation_time"`
+	Secret       string `yaml:"secret"`
+}
+
 func LoadRobotConfigFromYAML(filename string) (*create.CreateView, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {

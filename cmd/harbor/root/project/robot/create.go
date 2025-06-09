@@ -14,7 +14,9 @@
 package robot
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/atotto/clipboard"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -30,9 +32,10 @@ import (
 
 func CreateRobotCommand() *cobra.Command {
 	var (
-		opts       create.CreateView
-		all        bool
-		configFile string
+		opts         create.CreateView
+		all          bool
+		exportToFile bool
+		configFile   string
 	)
 
 	cmd := &cobra.Command{
@@ -127,30 +130,52 @@ func CreateRobotCommand() *cobra.Command {
 				utils.SavePayloadJSON(name, res.Payload)
 				return nil
 			}
-
 			name, secret := response.Payload.Name, response.Payload.Secret
-			create.CreateRobotSecretView(name, secret)
-			err = clipboard.WriteAll(response.Payload.Secret)
-			if err != nil {
-				logrus.Errorf("failed to write to clipboard")
+
+			if exportToFile {
+				exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
+				return nil
+			} else {
+				create.CreateRobotSecretView(name, secret)
+				err = clipboard.WriteAll(response.Payload.Secret)
+				if err != nil {
+					logrus.Errorf("failed to write to clipboard")
+					return nil
+				}
+				fmt.Println("secret copied to clipboard.")
 				return nil
 			}
-			fmt.Println("secret copied to clipboard.")
-			return nil
 		},
 	}
 	flags := cmd.Flags()
-	flags.BoolVarP(
-		&all,
-		"all-permission",
-		"a",
-		false,
-		"Select all permissions for the robot account",
-	)
+	flags.BoolVarP(&all, "all-permission", "a", false, "Select all permissions for the robot account")
+	flags.BoolVarP(&exportToFile, "export-to-file", "e", false, "Choose to export robot account to file")
+
 	flags.StringVarP(&opts.ProjectName, "project", "", "", "set project name")
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
 	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML file with robot configuration")
 	return cmd
+}
+
+func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
+	secretJson := config.RobotSecret{
+		Name:         name,
+		ExpiresAt:    expiresAt,
+		CreationTime: creationTime,
+		Secret:       secret,
+	}
+	filename := fmt.Sprintf("%s-secret.json", name)
+	jsonData, err := json.MarshalIndent(secretJson, "", "  ")
+	if err != nil {
+		logrus.Errorf("Failed to marshal secret to JSON: %v", err)
+	} else {
+		if err := os.WriteFile(filename, jsonData, 0600); err != nil {
+			logrus.Errorf("Failed to write secret to file: %v", err)
+		} else {
+			fmt.Printf("Secret saved to %s\n", filename)
+		}
+	}
+
 }

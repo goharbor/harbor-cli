@@ -36,27 +36,11 @@ const (
 )
 
 var resourceNames = []string{
-	"Accessory",
-	"Artifact",
-	"Artifact Addition",
-	"Artifact Label",
-	"Export CVE",
-	"Immutable Tag",
-	"Label",
-	"Log",
-	"Member",
-	"Metadata",
-	"Notification Policy",
-	"Preheat Policy",
-	"Project",
-	"Quota",
-	"Repository",
-	"Robot",
-	"SBOM",
-	"Scan",
-	"Scanner",
-	"Tag",
-	"Tag Retention",
+	"Accessory", "Artifact", "Artifact Addition", "Artifact Label",
+	"Export CVE", "Immutable Tag", "Label", "Log", "Member",
+	"Metadata", "Notification Policy", "Preheat Policy",
+	"Project", "Quota", "Repository", "Robot Account", "SBOM",
+	"Scan", "Scanner", "Tag", "Tag Retention",
 }
 
 var columnLabels = []string{
