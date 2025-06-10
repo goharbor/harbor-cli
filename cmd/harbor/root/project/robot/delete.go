@@ -14,10 +14,12 @@
 package robot
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
@@ -63,12 +65,12 @@ Examples:
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", err)
+					log.Fatalf("failed to parse robot ID: %v", utils.ParseHarborErrorMsg(err))
 				}
 			} else if ProjectName != "" {
 				project, err := api.GetProject(ProjectName, false)
 				if err != nil {
-					log.Fatalf("failed to get project by name %s: %v", ProjectName, err)
+					log.Fatalf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
@@ -77,8 +79,11 @@ Examples:
 			}
 			err = api.DeleteRobot(robotID)
 			if err != nil {
-				log.Fatalf("failed to delete robots")
+				fmt.Printf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
+				return
 			}
+			log.Infof("Successfully deleted robot with ID: %d", robotID)
+			fmt.Printf("Robot account (ID: %d) was successfully deleted\n", robotID)
 		},
 	}
 
