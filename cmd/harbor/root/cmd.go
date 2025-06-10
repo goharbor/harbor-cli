@@ -167,7 +167,7 @@ harbor help
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
-	cmd = scan_all.ScanAllCommand()
+	cmd = scan_all.ScanAll()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
