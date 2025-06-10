@@ -6,10 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// This command does not work because the API does not return the response body
+// API: https://demo.goharbor.io/devcenter-api-2.0
 func ViewScanAllScheduleCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view-schedule",
-		Short: "View the scan all schedule",
+		Use:     "view-schedule",
+		Short:   "View the scan all schedule",
+		Aliases: []string{"vs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			schedule, err := api.GetScanAllSchedule()
 			if err != nil {
