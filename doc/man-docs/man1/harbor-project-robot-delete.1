@@ -10,12 +10,46 @@ harbor-project-robot-delete - delete robot by id
 
 
 .SH DESCRIPTION
-delete robot by id
+Delete a robot account from a Harbor project.
+
+.PP
+This command permanently removes a robot account from Harbor. Once deleted,
+the robot's credentials will no longer be valid, and any automated processes
+using those credentials will fail.
+
+.PP
+The command supports multiple ways to identify the robot account to delete:
+- By providing the robot ID directly as an argument
+- By specifying a project with the --project flag and selecting the robot interactively
+- Without any arguments, which will prompt for both project and robot selection
+
+.PP
+Important considerations:
+- Deletion is permanent and cannot be undone
+- All access tokens for the robot will be invalidated immediately
+- Any systems using the robot's credentials will need to be updated
+
+.PP
+Examples:
+  # Delete robot by ID
+  harbor-cli project robot delete 123
+
+.PP
+# Delete robot by selecting from a specific project
+  harbor-cli project robot delete --project myproject
+
+.PP
+# Interactive deletion (will prompt for project and robot selection)
+  harbor-cli project robot delete
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
 	help for delete
+
+.PP
+\fB--project\fP=""
+	set project name
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS

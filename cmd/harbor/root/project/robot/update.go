@@ -27,15 +27,58 @@ import (
 
 func UpdateRobotCommand() *cobra.Command {
 	var (
-		robotID int64
-		opts    update.UpdateView
-		all     bool
+		robotID     int64
+		opts        update.UpdateView
+		all         bool
+		ProjectName string
 	)
 
 	cmd := &cobra.Command{
 		Use:   "update [robotID]",
 		Short: "update robot by id",
-		Args:  cobra.MaximumNArgs(1),
+		Long: `Update an existing robot account within a Harbor project.
+
+Robot accounts are non-human users that can be used for automation purposes
+such as CI/CD pipelines, scripts, or other automated processes that need
+to interact with Harbor. This command allows you to modify an existing robot's
+properties including its name, description, duration, and permissions.
+
+This command supports both interactive and non-interactive modes:
+- With robot ID: directly updates the specified robot
+- With --project flag: helps select a robot from the specified project
+- Without either: walks through project and robot selection interactively
+
+The update process will:
+1. Identify the robot account to be updated
+2. Load its current configuration
+3. Apply the requested changes
+4. Save the updated configuration
+
+Fields that can be updated:
+- Name: The robot account's identifier
+- Description: A human-readable description of the robot's purpose
+- Duration: The lifetime of the robot account in days
+- Permissions: The actions the robot is allowed to perform
+
+Note: Updating a robot does not regenerate its secret. If you need a new
+secret, consider deleting the robot and creating a new one instead.
+
+Examples:
+  # Update robot by ID with a new description
+  harbor-cli project robot update 123 --description "Updated CI/CD pipeline robot"
+
+  # Update robot's duration (extend lifetime)
+  harbor-cli project robot update 123 --duration 180
+
+  # Update by selecting from a specific project
+  harbor-cli project robot update --project myproject
+
+  # Update with all permissions
+  harbor-cli project robot update 123 --all-permission
+
+  # Interactive update (will prompt for robot selection and changes)
+  harbor-cli project robot update`,
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			if len(args) == 1 {
@@ -43,6 +86,12 @@ func UpdateRobotCommand() *cobra.Command {
 				if err != nil {
 					log.Fatalf("failed to parse robot ID: %v", err)
 				}
+			} else if ProjectName != "" {
+				project, err := api.GetProject(ProjectName, false)
+				if err != nil {
+					log.Fatalf("failed to get project by name %s: %v", ProjectName, err)
+				}
+				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
 				projectID := prompt.GetProjectIDFromUser()
 				robotID = prompt.GetRobotIDFromUser(projectID)
@@ -117,6 +166,7 @@ func UpdateRobotCommand() *cobra.Command {
 	)
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
+	flags.StringVarP(&ProjectName, "project", "", "", "set project name")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
 
 	return cmd
