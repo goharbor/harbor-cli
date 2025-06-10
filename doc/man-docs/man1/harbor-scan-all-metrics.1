@@ -1,0 +1,39 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scan-all-metrics - Get the metrics of the latest scan all process
+
+
+.SH SYNOPSIS
+\fBharbor scan-all metrics [flags]\fP
+
+
+.SH DESCRIPTION
+Get the metrics of the latest scan all process
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for metrics
+
+.PP
+\fB-s\fP, \fB--scheduled\fP[=false]
+	Get the metrics of the latest scheduled scan all process
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scan-all(1)\fP
