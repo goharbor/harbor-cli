@@ -14,8 +14,10 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -25,17 +27,17 @@ import (
 )
 
 type RobotPermissionConfig struct {
-	Name        string           `yaml:"name"`
-	Description string           `yaml:"description"`
-	Duration    int64            `yaml:"duration"`
-	Project     string           `yaml:"project"`
-	Permissions []PermissionSpec `yaml:"permissions"`
+	Name        string           `yaml:"name" json:"name"`
+	Description string           `yaml:"description" json:"description"`
+	Duration    int64            `yaml:"duration" json:"duration"`
+	Project     string           `yaml:"project" json:"project"`
+	Permissions []PermissionSpec `yaml:"permissions" json:"permissions"`
 }
 
 type PermissionSpec struct {
-	Resource  string   `yaml:"resource,omitempty"`
-	Resources []string `yaml:"resources,omitempty"`
-	Actions   []string `yaml:"actions"`
+	Resource  string   `yaml:"resource,omitempty" json:"resource,omitempty"`
+	Resources []string `yaml:"resources,omitempty" json:"resources,omitempty"`
+	Actions   []string `yaml:"actions" json:"actions"`
 }
 
 type RobotSecret struct {
@@ -45,15 +47,22 @@ type RobotSecret struct {
 	Secret       string `json:"secret"`
 }
 
-func LoadRobotConfigFromYAML(filename string) (*create.CreateView, error) {
+func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateView, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read YAML file: %v", err)
 	}
-
 	var config RobotPermissionConfig
-	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %v", err)
+	if fileType == "yaml" {
+		if err := yaml.Unmarshal(data, &config); err != nil {
+			return nil, fmt.Errorf("failed to parse YAML: %v", err)
+		}
+	} else if fileType == "json" {
+		if err := json.Unmarshal(data, &config); err != nil {
+			return nil, fmt.Errorf("failed to parse JSON: %v", err)
+		}
+	} else {
+		return nil, fmt.Errorf("unsupported file type: %s, expected 'yaml' or 'json'", fileType)
 	}
 
 	opts := &create.CreateView{
@@ -143,7 +152,10 @@ func ProcessPermissions(specs []PermissionSpec) ([]models.Permission, error) {
 }
 
 func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
-	opts, err := LoadRobotConfigFromYAML(filename)
+	var opts *create.CreateView
+	var err error
+	opts, err = LoadRobotConfigFromYAMLorJSON(filename, filepath.Ext(filename)[1:])
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to load configuration: %v", err)
 	}

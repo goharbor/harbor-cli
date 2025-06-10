@@ -41,7 +41,57 @@ func CreateRobotCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create robot",
-		Args:  cobra.NoArgs,
+		Long: `Create a new robot account within a Harbor project.
+
+Robot accounts are non-human users that can be used for automation purposes
+such as CI/CD pipelines, scripts, or other automated processes that need
+to interact with Harbor. They have specific permissions and a defined lifetime.
+
+This command supports both interactive and non-interactive modes:
+- Without flags: opens an interactive form for configuring the robot
+- With flags: creates a robot with the specified parameters
+- With config file: loads robot configuration from YAML or JSON
+
+A robot account requires:
+- A unique name
+- A project where it will be created
+- A set of permissions
+- A duration (lifetime in days)
+
+The generated robot credentials can be:
+- Displayed on screen
+- Copied to clipboard (default)
+- Exported to a JSON file with the -e flag
+
+Configuration File Format (YAML or JSON):
+  name: "robot-name"        # Required: Name of the robot account
+  description: "..."        # Optional: Description of the robot account
+  duration: 90              # Required: Lifetime in days
+  project: "project-name"   # Required: Project where the robot will be created
+  permissions:              # Required: At least one permission must be specified
+    - resource: "repository"  # Either specify a single resource
+      actions: ["pull", "push"]
+    - resources: ["artifact", "scan"]  # Or specify multiple resources
+      actions: ["read"]
+    - resource: "project"    # Use "*" as an action to grant all available actions
+      actions: ["*"]
+
+Examples:
+  # Interactive mode
+  harbor-cli project robot create
+
+  # Non-interactive mode with all flags
+  harbor-cli project robot create --project myproject --name ci-robot --description "CI pipeline" --duration 90
+
+  # Create with all permissions
+  harbor-cli project robot create --project myproject --name ci-robot --all-permission
+
+  # Load from configuration file
+  harbor-cli project robot create --robot-config-file ./robot-config.yaml
+
+  # Export secret to file
+  harbor-cli project robot create --project myproject --name ci-robot --export-to-file`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var permissions []models.Permission
@@ -120,7 +170,7 @@ func CreateRobotCommand() *cobra.Command {
 			}
 			response, err := api.CreateRobot(opts, "project")
 			if err != nil {
-				return fmt.Errorf("failed to create robot: %v", err)
+				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -155,7 +205,7 @@ func CreateRobotCommand() *cobra.Command {
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
-	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML file with robot configuration")
+	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML/JSON file with robot configuration")
 	return cmd
 }
 
