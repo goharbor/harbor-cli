@@ -28,6 +28,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
@@ -163,6 +164,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = scanner.Scanner()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = scan_all.ScanAllCommand()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
