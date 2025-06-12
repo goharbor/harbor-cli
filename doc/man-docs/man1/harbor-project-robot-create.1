@@ -1,0 +1,122 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-robot-create - create robot
+
+
+.SH SYNOPSIS
+\fBharbor project robot create [flags]\fP
+
+
+.SH DESCRIPTION
+Create a new robot account within a Harbor project.
+
+.PP
+Robot accounts are non-human users that can be used for automation purposes
+such as CI/CD pipelines, scripts, or other automated processes that need
+to interact with Harbor. They have specific permissions and a defined lifetime.
+
+.PP
+This command supports both interactive and non-interactive modes:
+- Without flags: opens an interactive form for configuring the robot
+- With flags: creates a robot with the specified parameters
+- With config file: loads robot configuration from YAML or JSON
+
+.PP
+A robot account requires:
+- A unique name
+- A project where it will be created
+- A set of permissions
+- A duration (lifetime in days)
+
+.PP
+The generated robot credentials can be:
+- Displayed on screen
+- Copied to clipboard (default)
+- Exported to a JSON file with the -e flag
+
+.PP
+Configuration File Format (YAML or JSON):
+  name: "robot-name"        # Required: Name of the robot account
+  description: "..."        # Optional: Description of the robot account
+  duration: 90              # Required: Lifetime in days
+  project: "project-name"   # Required: Project where the robot will be created
+  permissions:              # Required: At least one permission must be specified
+    - resource: "repository"  # Either specify a single resource
+      actions: ["pull", "push"]
+    - resources: ["artifact", "scan"]  # Or specify multiple resources
+      actions: ["read"]
+    - resource: "project"    # Use "\fI" as an action to grant all available actions
+      actions: ["\fP"]
+
+.PP
+Examples:
+  # Interactive mode
+  harbor-cli project robot create
+
+.PP
+# Non-interactive mode with all flags
+  harbor-cli project robot create --project myproject --name ci-robot --description "CI pipeline" --duration 90
+
+.PP
+# Create with all permissions
+  harbor-cli project robot create --project myproject --name ci-robot --all-permission
+
+.PP
+# Load from configuration file
+  harbor-cli project robot create --robot-config-file ./robot-config.yaml
+
+.PP
+# Export secret to file
+  harbor-cli project robot create --project myproject --name ci-robot --export-to-file
+
+
+.SH OPTIONS
+\fB-a\fP, \fB--all-permission\fP[=false]
+	Select all permissions for the robot account
+
+.PP
+\fB--description\fP=""
+	description of the robot account
+
+.PP
+\fB--duration\fP=0
+	set expiration of robot account in days
+
+.PP
+\fB-e\fP, \fB--export-to-file\fP[=false]
+	Choose to export robot account to file
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB--name\fP=""
+	name of the robot account
+
+.PP
+\fB--project\fP=""
+	set project name
+
+.PP
+\fB-r\fP, \fB--robot-config-file\fP=""
+	YAML/JSON file with robot configuration
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project-robot(1)\fP
