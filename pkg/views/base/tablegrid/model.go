@@ -215,7 +215,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+a":
+		case "ctrl+j", "ctrl+k":
 			// Toggle all in current row
 			rowIdx := m.Table.Cursor()
 			for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
@@ -225,6 +225,21 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Data[rowIdx][colIdx-1] = !m.Data[rowIdx][colIdx-1]
 			}
 			m.refreshTable(rowIdx, m.SelectedCol)
+			return m, nil
+
+		case "ctrl+h", "ctrl+l":
+			// Toggle all in current column
+			if m.SelectedCol < 1 || m.SelectedCol >= len(m.ColLabels) {
+				return m, nil // No valid column selected
+			}
+			colIdx := m.SelectedCol
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = !m.Data[rowIdx][colIdx-1]
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
 			return m, nil
 
 		case "ctrl+s":
@@ -310,7 +325,7 @@ func (m *TableGrid) View() string {
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
 
-	footer := "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ^S submit • ⌃A toggle row • q to cancel\n"
+	footer := "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ^S submit • ⌃J/^K toggle row • ⌃H/^L toggle col • q to cancel\n"
 
 	return out + footer
 }
