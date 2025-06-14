@@ -44,7 +44,10 @@ nfpms:
       - archlinux
 
 sboms:
-  - artifacts: archive
+  - id: archive-sbom
+    artifacts: archive
+  - id: binary-sbom
+    artifacts: binary
 
 checksum:
   name_template: 'checksums.txt'
@@ -54,7 +57,7 @@ snapshot:
 
 release:
   name_template: "HarborCLI {{.Tag}}"
-  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
+  draft: false                # Publishing directly as a completed release
   prerelease: auto            # Auto-detect prereleases based on tag
   replace_existing_draft: true
   replace_existing_artifacts: true

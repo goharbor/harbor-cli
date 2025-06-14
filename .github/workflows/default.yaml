@@ -181,18 +181,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Print GitHub ref for debugging
-        run: |
-          echo "GitHub ref: $GITHUB_REF"
-
       - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Run Snapshot with GoReleaser
+        uses: dagger/dagger-for-github@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          args: "snapshot-release"
+
       - name: Publish and Sign Snapshot Image
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
         uses: ./.github/actions/publish-and-sign
         with:
           IMAGE_TAGS: latest
@@ -213,28 +216,11 @@ jobs:
     if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
     steps:
       - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Checkout repo
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Push images
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: latest, ${{ github.ref_name }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
-
-      - name: Create Release
+      - name: Create Release with GoReleaser
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
         uses: dagger/dagger-for-github@v7
         env:
@@ -244,7 +230,7 @@ jobs:
           verb: call
           args: "release --github-token=env:GITHUB_TOKEN"
 
-      - name: Publish and Sign Tagged Image
+      - name: Publish and Sign Container Image Using GoReleaser Binaries
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
         uses: ./.github/actions/publish-and-sign
         with:

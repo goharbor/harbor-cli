@@ -24,7 +24,7 @@ import (
 
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
-	GO_VERSION           = "1.24.2"
+	GO_VERSION           = "1.24.4"
 	SYFT_VERSION         = "v1.9.0"
 	GORELEASER_VERSION   = "v2.8.2"
 )
@@ -78,62 +78,6 @@ func (m *HarborCli) BuildDev(
 	return builder.File("/bin/harbor-cli")
 }
 
-// Return list of containers for list of oses and arches
-//
-// FIXME: there is a bug where you cannot return a list of containers right now
-// this function works as expected because it is only called by other functions but
-// calling it via the CLI results in an error. That is why this into a private function for
-// now so that no one calls this https://github.com/dagger/dagger/issues/8202#issuecomment-2317291483
-func (m *HarborCli) build(
-	ctx context.Context,
-	version string,
-) []*dagger.Container {
-	var builds []*dagger.Container
-
-	fmt.Println("🛠️  Building with Dagger...")
-	oses := []string{"linux", "darwin", "windows"}
-	arches := []string{"amd64", "arm64"}
-
-	// temp container with git installed
-	temp := dag.Container().
-		From("alpine:latest").
-		WithMountedDirectory("/src", m.Source).
-		// --no-cache option is to avoid caching the apk package index
-		WithExec([]string{"apk", "add", "--no-cache", "git"}).
-		WithWorkdir("/src")
-
-	gitCommit, _ := temp.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
-	buildTime := time.Now().UTC().Format(time.RFC3339)
-	ldflagsArgs := fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
-						  -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s
-				`, version, GO_VERSION, buildTime, gitCommit)
-
-	for _, goos := range oses {
-		for _, goarch := range arches {
-			bin_path := fmt.Sprintf("build/%s/%s/", goos, goarch)
-			builder := dag.Container().
-				From("golang:"+GO_VERSION+"-alpine").
-				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
-				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
-				WithEnvVariable("GOCACHE", "/go/build-cache").
-				WithMountedDirectory("/src", m.Source).
-				WithWorkdir("/src").
-				WithEnvVariable("GOOS", goos).
-				WithEnvVariable("GOARCH", goarch).
-				WithExec([]string{"go", "build", "-ldflags", ldflagsArgs, "-o", bin_path + "harbor", "/src/cmd/harbor/main.go"}).
-				WithWorkdir(bin_path).
-				WithExec([]string{"ls"}).
-				WithEntrypoint([]string{"./harbor"})
-
-			builds = append(builds, builder)
-		}
-	}
-	return builds
-}
-
 // Executes Linter and writes results to a file golangci-lint.report
 func (m *HarborCli) LintReport(ctx context.Context) *dagger.File {
 	report := "golangci-lint.report"
@@ -160,109 +104,234 @@ func (m *HarborCli) lint(_ context.Context) *dagger.Container {
 	return linter
 }
 
-// PublishImage publishes a container image to a registry with a specific tag and signs it using Cosign.
+// PublishImage publishes a container image to a registry with a specific tags using goreleaser-generated binaries
 func (m *HarborCli) PublishImage(
 	ctx context.Context,
-	registry, registryUsername string,
+	registry string,
+	registryUsername string,
 	// +optional
 	// +default=["latest"]
 	imageTags []string,
 	registryPassword *dagger.Secret,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	snapshot bool,
 ) []string {
 	version := getVersion(imageTags)
-	builders := m.build(ctx, version)
-	releaseImages := []*dagger.Container{}
-
 	for i, tag := range imageTags {
 		imageTags[i] = strings.TrimSpace(tag)
 		if strings.HasPrefix(imageTags[i], "v") {
 			imageTags[i] = strings.TrimPrefix(imageTags[i], "v")
 		}
 	}
-	fmt.Printf("provided tags: %s\n", imageTags)
+	fmt.Printf("🚀 Publishing Harbor-Cli image to %s with processed tags: %s...\n", registry, imageTags)
+
+	// Use goreleaser to generate binaries for multiple platforms
+	distDir := m.RunGoreleaser(ctx, githubToken, snapshot)
 
 	// Get current time for image creation timestamp
 	creationTime := time.Now().UTC().Format(time.RFC3339)
 
-	for _, builder := range builders {
-		os, _ := builder.EnvVariable(ctx, "GOOS")
-		arch, _ := builder.EnvVariable(ctx, "GOARCH")
+	platforms := []struct {
+		goos, goarch, distPath string
+		platform               string
+	}{
+		{"linux", "amd64", "harbor_linux_amd64_v1", "linux/amd64"},
+		{"linux", "arm64", "harbor_linux_arm64_v8.0", "linux/arm64"},
+	}
 
-		if os != "linux" {
-			continue
-		}
+	// Create containers for each platform
+	var releaseImages []*dagger.Container
+	for _, p := range platforms {
+		binaries := distDir.Directory(p.distPath)
 
-		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
+		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(p.platform)}).
 			From("alpine:latest").
-			WithWorkdir("/").
-			WithFile("/harbor", builder.File("./harbor")).
-			WithExec([]string{"ls", "-al"}).
-			WithExec([]string{"./harbor", "version"}).
-			// Add required metadata labels for ArtifactHub
+			WithDirectory("/tmp/dist", binaries).
+			WithExec([]string{"sh", "-c", "cp /tmp/dist/harbor /usr/local/bin/harbor && chmod +x /usr/local/bin/harbor"}).
+			WithExec([]string{"sh", "-c", "mkdir -p /usr/share/doc/harbor && find /tmp/dist -name '*.sbom' -exec cp {} /usr/share/doc/harbor/ \\; || true"}).
+			WithEntrypoint([]string{"/usr/local/bin/harbor"}).
+			WithExec([]string{"ls", "-al", "/usr/local/bin/"}).
+			WithExec([]string{"/usr/local/bin/harbor", "version"}).
 			WithLabel("org.opencontainers.image.created", creationTime).
 			WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
 			WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
 			WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
 			WithLabel("org.opencontainers.image.version", version).
 			WithLabel("io.artifacthub.package.license", "Apache-2.0").
-			WithEntrypoint([]string{"/harbor"})
+			WithLabel("org.opencontainers.image.documentation", "SBOM available at /usr/share/doc/harbor/")
+
 		releaseImages = append(releaseImages, ctr)
 	}
 
-	imageAddrs := []string{}
-	for _, imageTag := range imageTags {
-		addr, err := dag.Container().WithRegistryAuth(registry, registryUsername, registryPassword).
-			Publish(ctx,
-				fmt.Sprintf("%s/%s/harbor-cli:%s", registry, "harbor-cli", imageTag),
-				dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
-			)
+	var imageAddrs []string
+	for _, tag := range imageTags {
+		imageAddr := fmt.Sprintf("%s/%s/harbor-cli:%s", registry, registryUsername, tag)
+
+		publishedImage, err := dag.Container().
+			WithRegistryAuth(registry, registryUsername, registryPassword).
+			Publish(ctx, imageAddr, dagger.ContainerPublishOpts{
+				PlatformVariants: releaseImages,
+			})
+
 		if err != nil {
-			panic(err)
+			log.Printf("Error publishing image %s: %v", imageAddr, err)
+			continue
 		}
-		fmt.Printf("Published image address: %s\n", addr)
-		imageAddrs = append(imageAddrs, addr)
+
+		fmt.Printf("Published image address: %s\n", publishedImage)
+		imageAddrs = append(imageAddrs, publishedImage)
 	}
+
 	return imageAddrs
+}
+
+// RunGoreleaser runs goreleaser to generate binaries
+func (m *HarborCli) RunGoreleaser(
+	ctx context.Context,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	snapshot bool,
+) *dagger.Directory {
+	fmt.Println("🚀 Running goreleaser to generate binaries...")
+
+	goreleaser := dag.Container().
+		From("goreleaser/goreleaser:"+GORELEASER_VERSION).
+		WithMountedDirectory("/src", m.Source).
+		WithMountedDirectory("/src/.git", m.Source.Directory(".git")).
+		WithWorkdir("/src")
+
+	args := []string{"goreleaser", "release", "--clean"}
+
+	if snapshot {
+		args = append(args, "--snapshot")
+	}
+
+	if githubToken != nil {
+		goreleaser = goreleaser.WithSecretVariable("GITHUB_TOKEN", githubToken)
+	}
+
+	goreleaser = goreleaser.WithExec(args)
+
+	return goreleaser.Directory("/src/dist")
+}
+
+// PublishImageAndSign builds and publishes container images to a registry with specific tags and signs them using Cosign.
+func (m *HarborCli) PublishImageAndSign(
+	ctx context.Context,
+	registry string,
+	registryUsername string,
+	// +optional
+	// +default=["latest"]
+	imageTags []string,
+	registryPassword *dagger.Secret,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestToken *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestUrl string,
+	// +optional
+	snapshot bool,
+) (string, error) {
+	fmt.Println("🚀 Starting PublishImageAndSign...")
+
+	// First publish the image
+	fmt.Println("📦 Publishing image...")
+	imageAddrs := m.PublishImage(
+		ctx,
+		registry,
+		registryUsername,
+		imageTags,
+		registryPassword,
+		githubToken,
+		snapshot,
+	)
+
+	if len(imageAddrs) == 0 {
+		return "", fmt.Errorf("no images were published")
+	}
+	fmt.Printf("✅ Published image: %s\n", imageAddrs[0])
+
+	// If no registry password is provided, skip signing
+	if registryPassword == nil {
+		fmt.Println("⚠️  No registry password provided, skipping image signing")
+		return imageAddrs[0], nil
+	}
+
+	// Then sign the first image
+	fmt.Println("🔏 Starting image signing process...")
+	signedImage, err := m.Sign(
+		ctx,
+		githubToken,
+		actionsIdTokenRequestUrl,
+		actionsIdTokenRequestToken,
+		registryUsername,
+		registryPassword,
+		imageAddrs[0],
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign image: %w", err)
+	}
+
+	fmt.Printf("✅ Successfully signed image: %s\n", signedImage)
+	return signedImage, nil
+}
+
+// Sign signs a container image using Cosign, works also with GitHub Actions
+func (m *HarborCli) Sign(ctx context.Context,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestUrl string,
+	// +optional
+	actionsIdTokenRequestToken *dagger.Secret,
+	registryUsername string,
+	registryPassword *dagger.Secret,
+	imageAddr string,
+) (string, error) {
+	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
+
+	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
+
+	// If githubToken is provided, use it to sign the image
+	if githubToken != nil {
+		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+		}
+		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
+		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
+			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
+	}
+
+	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+		WithExec([]string{"cosign", "env"}).
+		WithExec([]string{
+			"cosign", "sign", "--yes", "--recursive",
+			"--registry-username", registryUsername,
+			"--registry-password", registryPasswordPlain,
+			imageAddr,
+			"--timeout", "1m",
+		}).Stdout(ctx)
 }
 
 // SnapshotRelease Create snapshot non OCI artifacts with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
-	return m.goreleaserContainer().
-		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean"}).
-		Directory("/src/dist")
+	return m.RunGoreleaser(ctx, nil, true)
 }
 
 // Release Create release with goreleaser
 func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
-	goreleaser := m.goreleaserContainer().
-		WithSecretVariable("GITHUB_TOKEN", githubToken).
-		WithExec([]string{"goreleaser", "release", "--clean"})
-	_, err := goreleaser.Stderr(ctx)
+	distDir := m.RunGoreleaser(ctx, githubToken, false)
+	_, err := distDir.Entries(ctx)
 	if err != nil {
-		log.Printf("Error occured during release: %s", err)
+		log.Printf("Error occurred during release: %s", err)
 		return
 	}
 	log.Println("Release tasks completed successfully 🎉")
-}
-
-// Return a container with the goreleaser binary mounted and the source directory mounted.
-func (m *HarborCli) goreleaserContainer() *dagger.Container {
-	// Export the syft binary from the syft container as a file to generate SBOM
-	syft := dag.Container().
-		From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("syft-gomod")).
-		File("/syft")
-
-	return dag.Container().
-		From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
-		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
-		WithEnvVariable("GOCACHE", "/go/build-cache").
-		WithFile("/bin/syft", syft).
-		WithMountedDirectory("/src", m.Source).
-		WithWorkdir("/src").
-		WithEnvVariable("TINI_SUBREAPER", "true")
 }
 
 // Generate CLI Documentation and return the directory containing the generated files
@@ -410,74 +479,4 @@ func getVersion(tags []string) string {
 		}
 	}
 	return "latest"
-}
-
-// PublishImageAndSign builds and publishes container images to a registry with a specific tags and then signs them using Cosign.
-func (m *HarborCli) PublishImageAndSign(
-	ctx context.Context,
-	registry string,
-	registryUsername string,
-	registryPassword *dagger.Secret,
-	imageTags []string,
-	// +optional
-	githubToken *dagger.Secret,
-	// +optional
-	actionsIdTokenRequestToken *dagger.Secret,
-	// +optional
-	actionsIdTokenRequestUrl string,
-) (string, error) {
-	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
-	_, err := m.Sign(
-		ctx,
-		githubToken,
-		actionsIdTokenRequestUrl,
-		actionsIdTokenRequestToken,
-		registryUsername,
-		registryPassword,
-		imageAddrs[0],
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to sign image: %w", err)
-	}
-
-	fmt.Printf("Signed image: %s\n", imageAddrs)
-	return imageAddrs[0], nil
-}
-
-// Sign signs a container image using Cosign, works also with GitHub Actions
-func (m *HarborCli) Sign(ctx context.Context,
-	// +optional
-	githubToken *dagger.Secret,
-	// +optional
-	actionsIdTokenRequestUrl string,
-	// +optional
-	actionsIdTokenRequestToken *dagger.Secret,
-	registryUsername string,
-	registryPassword *dagger.Secret,
-	imageAddr string,
-) (string, error) {
-	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
-
-	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
-
-	// If githubToken is provided, use it to sign the image
-	if githubToken != nil {
-		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
-			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
-		}
-		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
-		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
-			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
-			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
-	}
-
-	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
-		WithExec([]string{"cosign", "env"}).
-		WithExec([]string{
-			"cosign", "sign", "--yes", "--recursive",
-			"--registry-username", registryUsername,
-			"--registry-password", registryPasswordPlain,
-			imageAddr,
-			"--timeout", "1m",
-		}).Stdout(ctx)
 }
