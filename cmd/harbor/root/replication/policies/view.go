@@ -45,7 +45,6 @@ func ViewCommand() *cobra.Command {
 			}
 
 			response, err := api.GetReplicationPolicy(rpolicyID)
-
 			if err != nil {
 				return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
 			}
