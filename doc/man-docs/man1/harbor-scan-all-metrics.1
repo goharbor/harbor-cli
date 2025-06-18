@@ -10,7 +10,41 @@ harbor-scan-all-metrics - Get the metrics of the latest scan all process
 
 
 .SH DESCRIPTION
-Get the metrics of the latest scan all process
+Display comprehensive metrics about the most recent vulnerability scan execution.
+
+.PP
+This command retrieves and displays detailed statistics about the most recent scan all
+process in Harbor, including:
+.IP \(bu 2
+Running: Number of currently running scan tasks
+.IP \(bu 2
+Success: Number of successfully completed scan tasks
+.IP \(bu 2
+Error: Number of failed scan tasks
+.IP \(bu 2
+Completed: Total number of completed scan tasks
+.IP \(bu 2
+Total: Total number of scan tasks
+.IP \(bu 2
+Ongoing: Whether the scan is still in progress
+.IP \(bu 2
+Trigger: What triggered the scan (Manual, Scheduled, etc.)
+
+.PP
+The metrics provide visibility into the progress and results of vulnerability scanning across your Harbor registry.
+
+.PP
+Examples:
+  # Get metrics for the latest scan
+  harbor-cli scan-all metrics
+
+.PP
+# Get metrics for the latest scheduled scan
+  harbor-cli scan-all metrics --scheduled
+
+.PP
+# Display metrics in JSON format
+  harbor-cli scan-all metrics --output-format json
 
 
 .SH OPTIONS

@@ -8,6 +8,20 @@ weight: 40
 
 ##### Stop scanning all artifacts
 
+### Synopsis
+
+Stop an ongoing vulnerability scan of all artifacts in Harbor.
+
+This command halts the current scan-all operation that was either manually triggered 
+or scheduled. When stopped, scans that are already in progress will complete, but no new artifacts will be scanned. The scan can be restarted later using the 'scan-all run' command.
+
+Examples:
+  # Stop the current scan-all operation
+  harbor-cli scan-all stop
+
+  # Stop and then check metrics to confirm
+  harbor-cli scan-all stop && harbor-cli scan-all metrics
+
 ```sh
 harbor scan-all stop [flags]
 ```

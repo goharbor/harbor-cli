@@ -8,6 +8,28 @@ weight: 35
 
 ##### View the scan all schedule
 
+### Synopsis
+
+Display the current vulnerability scan schedule configuration.
+
+This command retrieves and shows the current automatic scanning schedule settings for your Harbor instance, including:
+
+- Schedule Type: The type of schedule (None, Hourly, Daily, Weekly, or Custom)
+- Cron Expression: For custom schedules, shows the configured cron pattern
+- Next Scheduled Time: When the next automatic scan is scheduled to run
+
+This information helps you understand when Harbor will automatically scan your artifacts
+for vulnerabilities.
+
+Examples:
+  # View the current scan schedule
+  harbor-cli scan-all view-schedule
+
+  # View the schedule in JSON format
+  harbor-cli scan-all view-schedule --output-format json
+
+You can use this command to verify changes after updating the schedule with the 'update-schedule' command.
+
 ```sh
 harbor scan-all view-schedule [flags]
 ```

@@ -28,6 +28,31 @@ func GetScanAllMetricsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "metrics",
 		Short: "Get the metrics of the latest scan all process",
+		Long: `Display comprehensive metrics about the most recent vulnerability scan execution.
+
+This command retrieves and displays detailed statistics about the most recent scan all 
+process in Harbor, including:
+
+- Running: Number of currently running scan tasks
+- Success: Number of successfully completed scan tasks
+- Error: Number of failed scan tasks
+- Completed: Total number of completed scan tasks
+- Total: Total number of scan tasks
+- Ongoing: Whether the scan is still in progress
+- Trigger: What triggered the scan (Manual, Scheduled, etc.)
+
+The metrics provide visibility into the progress and results of vulnerability scanning across your Harbor registry.
+
+Examples:
+  # Get metrics for the latest scan
+  harbor-cli scan-all metrics
+
+  # Get metrics for the latest scheduled scan
+  harbor-cli scan-all metrics --scheduled
+
+  # Display metrics in JSON format
+  harbor-cli scan-all metrics --output-format json`,
+		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logrus.Info("Retrieving scan all metrics")
 			metrics, err := api.GetScanAllMetrics(scheduled)

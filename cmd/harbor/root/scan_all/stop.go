@@ -24,6 +24,18 @@ func StopScanAllCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stop",
 		Short: "Stop scanning all artifacts",
+		Long: `Stop an ongoing vulnerability scan of all artifacts in Harbor.
+
+This command halts the current scan-all operation that was either manually triggered 
+or scheduled. When stopped, scans that are already in progress will complete, but no new artifacts will be scanned. The scan can be restarted later using the 'scan-all run' command.
+
+Examples:
+  # Stop the current scan-all operation
+  harbor-cli scan-all stop
+
+  # Stop and then check metrics to confirm
+  harbor-cli scan-all stop && harbor-cli scan-all metrics`,
+		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logrus.Info("Stopping scan all operation")
 			err := api.StopScanAll()

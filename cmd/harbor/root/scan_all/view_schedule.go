@@ -26,8 +26,28 @@ import (
 // API: https://demo.goharbor.io/devcenter-api-2.0
 func ViewScanAllScheduleCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "view-schedule",
-		Short:   "View the scan all schedule",
+		Use:   "view-schedule",
+		Short: "View the scan all schedule",
+		Long: `Display the current vulnerability scan schedule configuration.
+
+This command retrieves and shows the current automatic scanning schedule settings for your Harbor instance, including:
+
+- Schedule Type: The type of schedule (None, Hourly, Daily, Weekly, or Custom)
+- Cron Expression: For custom schedules, shows the configured cron pattern
+- Next Scheduled Time: When the next automatic scan is scheduled to run
+
+This information helps you understand when Harbor will automatically scan your artifacts
+for vulnerabilities.
+
+Examples:
+  # View the current scan schedule
+  harbor-cli scan-all view-schedule
+
+  # View the schedule in JSON format
+  harbor-cli scan-all view-schedule --output-format json
+
+You can use this command to verify changes after updating the schedule with the 'update-schedule' command.`,
+		Args:    cobra.MaximumNArgs(0),
 		Aliases: []string{"vs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logrus.Info("Retrieving scan all schedule configuration")
