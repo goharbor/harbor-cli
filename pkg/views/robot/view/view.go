@@ -54,7 +54,7 @@ var resourceStrings = []string{
 	"Accessory", "Artifact", "Artifact Addition", "Artifact Label",
 	"Export CVE", "Immutable Tag", "Label", "Log", "Member",
 	"Metadata", "Notification Policy", "Preheat Policy",
-	"Project", "Quota", "Repository", "Robot Account", "SBOM",
+	"Project", "Quota", "Repository", "Robot", "SBOM",
 	"Scan", "Scanner", "Tag", "Tag Retention",
 }
 
