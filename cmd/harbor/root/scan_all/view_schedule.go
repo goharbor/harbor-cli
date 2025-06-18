@@ -14,12 +14,12 @@
 package scan_all
 
 import (
-	"fmt"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/scan-all/view-schedule"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // This command does not work because the API does not return the response body
@@ -37,10 +37,15 @@ func ViewScanAllScheduleCommand() *cobra.Command {
 				return err
 			}
 
-			logrus.Info("Successfully retrieved scan all schedule")
-			fmt.Println("Current cron: ", schedule.Cron)
-			fmt.Println("Current next scan time: ", schedule.NextScheduledTime)
-			fmt.Println("Current scan all type: ", schedule.Type)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(schedule, FormatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				view.ViewScanSchedule(schedule)
+			}
 			return nil
 		},
 	}

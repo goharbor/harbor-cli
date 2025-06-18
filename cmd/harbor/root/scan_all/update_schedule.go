@@ -15,17 +15,27 @@ package scan_all
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scan-all/update"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
+
+var validScheduleTypes = map[string]bool{
+	"None":   true,
+	"Hourly": true,
+	"Daily":  true,
+	"Weekly": true,
+	"Custom": true,
+}
 
 func UpdateScanAllScheduleCommand() *cobra.Command {
 	var scheduleType string
@@ -35,72 +45,114 @@ func UpdateScanAllScheduleCommand() *cobra.Command {
 		Use:     "update-schedule",
 		Short:   "update-schedule [schedule-type: none|hourly|daily|weekly|custom]",
 		Aliases: []string{"us"},
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("schedule type is required")
-			} else if len(args) > 1 {
-				return errors.New("too many arguments")
-			} else {
-				scheduleType = cases.Title(language.English).String(strings.ToLower(args[0]))
-				logrus.Infof("Updating scan all schedule to type: %s", scheduleType)
+			scheduleType = cases.Title(language.English).String(strings.ToLower(args[0]))
 
-				if scheduleType == "None" {
-					logrus.Info("Setting scan all schedule to None (disabled)")
-					err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: "None"})
-					if err != nil {
-						logrus.Errorf("Failed to update scan schedule: %v", err)
-						return err
-					}
-					logrus.Info("Successfully disabled scan all schedule")
-					return nil
-				} else if scheduleType == "Hourly" || scheduleType == "Daily" || scheduleType == "Weekly" {
-					logrus.Infof("Setting scan all schedule to %s", scheduleType)
-					// Random cron expression and random time need to be passed to the API, even though they are not used, otherwise it returns bad request
-					randomCron := "0 * * * * *"
-					randomTime := strfmt.DateTime{}
-					err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: scheduleType, Cron: randomCron, NextScheduledTime: randomTime})
-					if err != nil {
-						logrus.Errorf("Failed to update scan schedule: %v", err)
-						return err
-					}
-					logrus.Infof("Successfully set scan all schedule to %s", scheduleType)
-					return nil
-				} else if scheduleType == "Custom" {
-					if cron != "" {
-						logrus.Infof("Setting scan all schedule to Custom with cron expression: %s", cron)
-						// Random time need to be passed to the API, same reason as above
-						randomTime := strfmt.DateTime{}
-						err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: "Schedule", Cron: cron, NextScheduledTime: randomTime})
-						if err != nil {
-							logrus.Errorf("Failed to update scan schedule: %v", err)
-							return err
-						}
-						logrus.Info("Successfully set scan all schedule with custom cron expression")
-						return nil
-					} else {
-						logrus.Info("Opening interactive form for custom schedule configuration")
-						update.UpdateSchedule(&cron)
-						logrus.Infof("Setting scan all schedule with custom cron expression: %s", cron)
-						// Random time need to be passed to the API, same reason as above
-						randomTime := strfmt.DateTime{}
-						err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: "Schedule", Cron: cron, NextScheduledTime: randomTime})
-						if err != nil {
-							logrus.Errorf("Failed to update scan schedule: %v", err)
-							return err
-						}
-						logrus.Info("Successfully set scan all schedule with custom cron expression")
-						return nil
-					}
-				} else {
-					logrus.Errorf("Invalid schedule type: %s", scheduleType)
-					return errors.New("invalid schedule type")
-				}
+			if !validScheduleTypes[scheduleType] {
+				return fmt.Errorf("invalid schedule type: %s. Valid types are: none, hourly, daily, weekly, custom", args[0])
 			}
+
+			logrus.Infof("Updating scan all schedule to type: %s", scheduleType)
+
+			switch scheduleType {
+			case "None":
+				return updateScheduleToNone()
+
+			case "Hourly", "Daily", "Weekly":
+				return updatePredefinedSchedule(scheduleType)
+
+			case "Custom":
+				return updateCustomSchedule(cron)
+			}
+
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&cron, "cron", "", "Cron expression (include the expression in double quotes)")
+	flags.StringVar(&cron, "cron", "", "Cron expression for custom schedule (include the expression in double quotes)")
 
 	return cmd
+}
+
+func updateScheduleToNone() error {
+	logrus.Info("Setting scan all schedule to None (disabled)")
+	err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: "None"})
+	if err != nil {
+		return fmt.Errorf("failed to disable scan schedule: %v", utils.ParseHarborErrorMsg(err))
+	}
+	logrus.Info("Successfully disabled scan all schedule")
+	return nil
+}
+
+func updatePredefinedSchedule(scheduleType string) error {
+	logrus.Infof("Setting scan all schedule to %s", scheduleType)
+
+	// Random cron expression and time needed by API
+	randomCron := "0 0 * * * * "
+	randomTime := strfmt.DateTime{}
+
+	err := api.UpdateScanAllSchedule(models.ScheduleObj{
+		Type:              scheduleType,
+		Cron:              randomCron,
+		NextScheduledTime: randomTime,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to update scan schedule: %v", utils.ParseHarborErrorMsg(err))
+	}
+
+	logrus.Infof("Successfully set scan all schedule to %s", scheduleType)
+	return nil
+}
+
+func updateCustomSchedule(cron string) error {
+	if cron == "" {
+		logrus.Info("Opening interactive form for custom schedule configuration")
+		update.UpdateSchedule(&cron)
+	}
+
+	if err := validateCron(cron); err != nil {
+		return err
+	}
+
+	logrus.Infof("Setting scan all schedule with custom cron expression: %s", cron)
+
+	// Random time needed by API
+	randomTime := strfmt.DateTime{}
+	err := api.UpdateScanAllSchedule(models.ScheduleObj{
+		Type:              "Custom",
+		Cron:              cron,
+		NextScheduledTime: randomTime,
+	})
+
+	if err != nil {
+		errMsg := utils.ParseHarborErrorMsg(err)
+		if strings.Contains(errMsg, "400") {
+			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the standard 5-field format (minute hour day month weekday)")
+		}
+		return fmt.Errorf("failed to update scan schedule: %v", errMsg)
+	}
+
+	logrus.Info("Successfully set scan all schedule with custom cron expression")
+	return nil
+}
+
+func validateCron(cron string) error {
+	if cron == "" {
+		return errors.New("cron expression cannot be empty")
+	}
+	fields := strings.Fields(cron)
+	if len(fields) < 6 {
+		if len(fields) == 5 {
+			logrus.Infof("Converting 5-field cron to 6-field by adding '0' for seconds")
+			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
+		}
+		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
+	}
+	if len(fields) > 6 {
+		return fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
+	}
+	return nil
 }

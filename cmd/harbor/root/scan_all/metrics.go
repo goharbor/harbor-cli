@@ -14,12 +14,12 @@
 package scan_all
 
 import (
-	"fmt"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	view "github.com/goharbor/harbor-cli/pkg/views/scan-all/metrics"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func GetScanAllMetricsCommand() *cobra.Command {
@@ -36,12 +36,15 @@ func GetScanAllMetricsCommand() *cobra.Command {
 				return err
 			}
 
-			logrus.Info("Successfully retrieved scan all metrics")
-			fmt.Println("Total: ", metrics.Total)
-			fmt.Println("Ongoing: ", metrics.Ongoing)
-			fmt.Println("Completed: ", metrics.Completed)
-			fmt.Println("Trigger: ", metrics.Trigger)
-			fmt.Println("Metrics: ", metrics.Metrics)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(metrics, FormatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				view.ViewScanMetrics(metrics)
+			}
 
 			return nil
 		},

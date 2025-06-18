@@ -14,6 +14,8 @@
 package scan_all
 
 import (
+	"fmt"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -33,8 +35,7 @@ func RunScanAllCommand() *cobra.Command {
 			randomTime := strfmt.DateTime{}
 			err := api.CreateScanAllSchedule(models.ScheduleObj{Type: "Manual", Cron: randomCron, NextScheduledTime: randomTime})
 			if err != nil {
-				logrus.Errorf("Failed to start scan all operation: %v", utils.ParseHarborErrorMsg(err))
-				return err
+				return fmt.Errorf("failed to start scan all operation: %v", utils.ParseHarborErrorMsg(err))
 			}
 			logrus.Info("Successfully started scan all operation")
 			return nil
