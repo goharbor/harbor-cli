@@ -14,7 +14,6 @@
 package api
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/replication"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
@@ -31,7 +30,7 @@ func ListReplicationPolicies(opts ...ListFlags) (*replication.ListReplicationPol
 		listFlags = opts[0]
 	}
 
-	response, err := client.Registry.ListRegistries(ctx, &registry.ListRegistriesParams{
+	response, err := client.Replication.ListReplicationPolicies(ctx, &replication.ListReplicationPoliciesParams{
 		Page:     &listFlags.Page,
 		PageSize: &listFlags.PageSize,
 		Q:        &listFlags.Q,

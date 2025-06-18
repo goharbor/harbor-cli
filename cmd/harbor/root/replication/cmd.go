@@ -25,7 +25,9 @@ func Replication() *cobra.Command {
 		Short:   "",
 		Long:    ``,
 	}
-	replicationCmd.AddCommand()
+	replicationCmd.AddCommand(
+		ListReplicationPoliciesCommand(),
+	)
 
 	return replicationCmd
 }
