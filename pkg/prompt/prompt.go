@@ -33,6 +33,7 @@ import (
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
+	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
@@ -277,4 +278,18 @@ func GetRobotIDFromUser(projectID int64) int64 {
 		robotView.ListRobot(response.Payload, robotID)
 	}()
 	return <-robotID
+}
+
+func GetReplicationPolicyFromUser() int64 {
+	replicationPolicyID := make(chan int64)
+
+	go func() {
+		response, err := api.ListReplicationPolicies()
+		if err != nil {
+			log.Fatal(err)
+		}
+		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
+	}()
+
+	return <-replicationPolicyID
 }

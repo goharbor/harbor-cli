@@ -43,3 +43,17 @@ func ListReplicationPolicies(opts ...ListFlags) (*replication.ListReplicationPol
 
 	return response, nil
 }
+
+func GetReplicationPolicy(policyID int64) (*replication.GetReplicationPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.GetReplicationPolicy(ctx, &replication.GetReplicationPolicyParams{ID: policyID})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

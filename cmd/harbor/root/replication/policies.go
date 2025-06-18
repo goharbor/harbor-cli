@@ -14,7 +14,7 @@
 package replication
 
 import (
-	replicationpolicies "github.com/goharbor/harbor-cli/cmd/harbor/root/replication/policies"
+	rpolicies "github.com/goharbor/harbor-cli/cmd/harbor/root/replication/policies"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,8 @@ func ReplicationPoliciesCommand() *cobra.Command {
 		Long:    ``,
 	}
 	replicationCmd.AddCommand(
-		replicationpolicies.ListCommand(),
+		rpolicies.ListCommand(),
+		rpolicies.ViewCommand(),
 	)
 
 	return replicationCmd
