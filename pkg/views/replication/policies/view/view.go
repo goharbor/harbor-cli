@@ -26,39 +26,84 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthS},
-	{Title: "Name", Width: tablelist.WidthL},
-	{Title: "Enabled", Width: tablelist.WidthS},
-	{Title: "Source", Width: tablelist.WidthM},
-	{Title: "Destination", Width: tablelist.WidthM},
-	{Title: "Trigger Type", Width: tablelist.WidthM},
-	{Title: "Override", Width: tablelist.WidthS},
-	{Title: "Creation Time", Width: tablelist.WidthL},
-	{Title: "Last Modified", Width: tablelist.WidthL},
-	{Title: "Description", Width: tablelist.WidthXL},
+	{Title: "Property", Width: tablelist.WidthL},
+	{Title: "Value", Width: tablelist.Width3XL},
+}
+
+// Define the desired order of property keys.
+var order = []string{
+	"ID",
+	"Name",
+	"Enabled",
+	"Source",
+	"Destination",
+	"Creation Time",
+	"Last Modified",
+	"Description",
+	"Trigger Type",
+	"Override",
+	"Replicate Deletion",
+	"Copy By Chunk",
+	"Speed",
+	"Filters",
 }
 
 func ViewPolicy(rpolicy *models.ReplicationPolicy) {
-	var rows []table.Row
-
 	createdTime, _ := utils.FormatCreatedTime(rpolicy.CreationTime.String())
 	modifledTime, _ := utils.FormatCreatedTime(rpolicy.UpdateTime.String())
-	rows = append(rows, table.Row{
-		strconv.FormatInt(rpolicy.ID, 10),
-		rpolicy.Name,
-		strconv.FormatBool(rpolicy.Enabled),
-		rpolicy.SrcRegistry.Name,
-		rpolicy.DestRegistry.Name,
-		rpolicy.Trigger.Type,
-		strconv.FormatBool(rpolicy.Override),
-		createdTime,
-		modifledTime,
-		rpolicy.Description,
-	})
+	policyMap := map[string]string{
+		"ID":                 strconv.FormatInt(rpolicy.ID, 10),
+		"Name":               rpolicy.Name,
+		"Source":             rpolicy.SrcRegistry.Name,
+		"Destination":        rpolicy.DestRegistry.Name,
+		"Trigger Type":       rpolicy.Trigger.Type,
+		"Override":           strconv.FormatBool(rpolicy.Override),
+		"Enabled":            strconv.FormatBool(rpolicy.Enabled),
+		"Creation Time":      createdTime,
+		"Last Modified":      modifledTime,
+		"Description":        rpolicy.Description,
+		"Replicate Deletion": strconv.FormatBool(rpolicy.ReplicateDeletion),
+		"Copy By Chunk":      strconv.FormatBool(*rpolicy.CopyByChunk),
+		"Speed":              strconv.FormatInt(int64(*rpolicy.Speed), 10) + " B/s",
+		"Filters":            filtersToString(rpolicy.Filters),
+	}
+
+	var rows []table.Row
+	for _, key := range order {
+		rows = append(rows, table.Row{
+			key,
+			policyMap[key],
+		})
+	}
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func filtersToString(filters []*models.ReplicationFilter) string {
+	if len(filters) == 0 {
+		return "No filters"
+	}
+
+	var filterStrings []string
+	for _, filter := range filters {
+		filterStrings = append(filterStrings, fmt.Sprintf("%s:%s", filter.Type, filter.Value))
+	}
+	// return fmt.Sprintf("%d filters: [%s]", len(filters), joinWithComma(filterStrings...))
+	return fmt.Sprintf("[%s]", joinWithComma(filterStrings...))
+
+}
+
+func joinWithComma(elements ...string) string {
+	if len(elements) == 0 {
+		return ""
+	}
+	result := elements[0]
+	for _, elem := range elements[1:] {
+		result += ", " + elem
+	}
+	return result
 }
