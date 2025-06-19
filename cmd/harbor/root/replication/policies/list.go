@@ -17,8 +17,8 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	replication "github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,7 +38,7 @@ func ListCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching projects...")
-			allPolicies, err := replication.ListReplicationPolicies(opts)
+			allPolicies, err := api.ListReplicationPolicies(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
@@ -56,9 +56,9 @@ func ListCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				// } else {
-				// 	log.Debug("Listing projects using default view")
-				// 	list.ListProjects(allProjects)
+			} else {
+				log.Debug("Listing projects using default view")
+				list.ListPolicies(allPolicies.Payload)
 			}
 			return nil
 		},
