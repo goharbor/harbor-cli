@@ -92,7 +92,6 @@ func filtersToString(filters []*models.ReplicationFilter) string {
 	for _, filter := range filters {
 		filterStrings = append(filterStrings, fmt.Sprintf("%s:%s", filter.Type, filter.Value))
 	}
-	// return fmt.Sprintf("%d filters: [%s]", len(filters), joinWithComma(filterStrings...))
 	return fmt.Sprintf("[%s]", joinWithComma(filterStrings...))
 
 }

@@ -28,7 +28,7 @@ func ListCommand() *cobra.Command {
 	var opts api.ListFlags
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List replication-policies",
+		Short: "List replication policies",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting replications list command")
@@ -65,7 +65,6 @@ func ListCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.Name, "name", "", "", "Name of the project")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")

@@ -13,124 +13,160 @@
 // limitations under the License.
 package create
 
-// CopyByChunk *bool `json:"copy_by_chunk,omitempty"`
-// CreationTime strfmt.DateTime `json:"creation_time,omitempty"`
-// Deletion bool `json:"deletion,omitempty"`
-// Description string `json:"description,omitempty"`
-// DestNamespace string `json:"dest_namespace,omitempty"`
-// // Specify how many path components will be replaced by the provided destination namespace.
-// // The default value is -1 in which case the legacy mode will be applied.
-// DestNamespaceReplaceCount *int8 `json:"dest_namespace_replace_count,omitempty"`
-// DestRegistry *Registry `json:"dest_registry,omitempty"`
-// Enabled bool `json:"enabled,omitempty"`
-// // The replication policy filter array.
-// Filters []*ReplicationFilter `json:"filters"`
-// ID int64 `json:"id,omitempty"`
-// Name string `json:"name,omitempty"`
-// Override bool `json:"override,omitempty"`
-// ReplicateDeletion bool `json:"replicate_deletion,omitempty"`
-// Speed *int32 `json:"speed,omitempty"`
-// SrcRegistry *Registry `json:"src_registry,omitempty"`
-// Trigger *ReplicationTrigger `json:"trigger,omitempty"`
-// UpdateTime strfmt.DateTime `json:"update_time,omitempty"`
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
-// struct to hold RPolicy options
-type RPolicyCreateView struct {
-	Name            string
-	Description     string
-	ReplicationMode string
-	SrcRegistry     string
-	DestRegistry    string
-	DestNamespace   string
-	FlatteningLevel string
-	TriggerMode     string
-	BandWidth       int64
-	Override        bool
-	Enabled         bool
-	CopyByChunk     bool
+	"github.com/charmbracelet/huh"
+	log "github.com/sirupsen/logrus"
+)
+
+type CreateView struct {
+	Name              string `json:"name,omitempty"`
+	Description       string `json:"description,omitempty"`
+	Enabled           bool   `json:"enabled,omitempty"`
+	ReplicationMode   string `json:"mode,omitempty"`
+	Override          bool   `json:"override,omitempty"`
+	ReplicateDeletion bool   `json:"replicate_deletion,omitempty"`
+	CopyByChunk       bool   `json:"copy_by_chunk,omitempty"`
+	Speed             string `json:"speed,omitempty"`
+
+	// Trigger related fields
+	TriggerType           string `json:"trigger_type,omitempty"`
+	DeleteRemoteResources bool   `json:"delete_remote_resources,omitempty"`
+	CronString            string `json:"cron_string,omitempty"`
 }
 
-// func CreateRegistryView(createView *api.CreateRegView) {
-// 	registries, _ := api.GetRegistryProviders()
+func CreateRPolicyView(createView *CreateView) {
+	if createView.ReplicationMode == "" {
+		createView.ReplicationMode = "Pull"
+	}
+	if createView.TriggerType == "" {
+		createView.TriggerType = "manual"
+	}
 
-// 	// Initialize a slice to hold registry options
-// 	var registryOptions []RegistryOption
+	createView.Override = true
+	theme := huh.ThemeCharm()
+	basicGroup := huh.NewGroup(
+		huh.NewInput().
+			Title("Replication Policy Name").
+			Value(&createView.Name).
+			Validate(func(str string) error {
+				if str == "" {
+					return errors.New("name cannot be empty")
+				}
+				return nil
+			}),
+		huh.NewInput().
+			Title("Description").
+			Value(&createView.Description),
+		huh.NewSelect[string]().
+			Title("Replication Mode").
+			Description("Choose whether to pull from or push to an external registry").
+			Options(
+				huh.NewOption("Pull (External → Harbor)", "Pull"),
+				huh.NewOption("Push (Harbor → External)", "Push"),
+			).
+			Value(&createView.ReplicationMode),
+	)
 
-// 	// Iterate over registries to populate registryOptions
-// 	for i, registry := range registries {
-// 		registryOptions = append(registryOptions, RegistryOption{
-// 			ID:   strconv.FormatInt(int64(i), 10),
-// 			Name: registry,
-// 		})
-// 	}
+	triggerGroup := huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Trigger Mode").
+			Description("When should replication occur?").
+			Options(
+				huh.NewOption("Manual", "manual"),
+				huh.NewOption("Event Based", "event_based"),
+				huh.NewOption("Scheduled", "scheduled"),
+			).
+			Value(&createView.TriggerType),
+	)
 
-// 	// Initialize a slice to hold select options
-// 	var registrySelectOptions []huh.Option[string]
+	advancedGroup := huh.NewGroup(
+		huh.NewConfirm().
+			Title("Override").
+			Description("Replace artifacts on destination if they already exist").
+			Value(&createView.Override),
+		huh.NewConfirm().
+			Title("Replicate Deletion").
+			Description("Synchronize deletion operations between registries").
+			Value(&createView.ReplicateDeletion),
+		huh.NewConfirm().
+			Title("Copy By Chunk").
+			Description("Transfer artifacts in smaller chunks for better reliability").
+			Value(&createView.CopyByChunk),
+		huh.NewInput().
+			Title("Speed Limit").
+			Description("Maximum speed in KB/s (-1 = unlimited)").
+			Placeholder("-1").
+			Value(&createView.Speed).
+			Validate(func(s string) error {
+				if s == "" {
+					return nil
+				}
+				speed, err := strconv.ParseInt(s, 10, 32)
+				if err != nil {
+					return fmt.Errorf("speed must be a valid number")
+				}
+				if speed < -1 {
+					return fmt.Errorf("speed cannot be negative")
+				}
+				return nil
+			}),
+		huh.NewConfirm().
+			Title("Enabled").
+			Description("Activate replication policy after creation").
+			Value(&createView.Enabled),
+	)
 
-// 	// Iterate over registryOptions to populate registrySelectOptions
-// 	for _, option := range registryOptions {
-// 		registrySelectOptions = append(
-// 			registrySelectOptions,
-// 			huh.NewOption(option.Name, option.Name),
-// 		)
-// 	}
+	form := huh.NewForm(basicGroup, triggerGroup, advancedGroup)
+	form.WithTheme(theme)
+	err := form.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	theme := huh.ThemeCharm()
-// 	err := huh.NewForm(
-// 		huh.NewGroup(
-// 			huh.NewSelect[string]().
-// 				Title("Select a Registry Provider").
-// 				Value(&createView.Type).
-// 				Options(registrySelectOptions...).
-// 				Validate(func(str string) error {
-// 					if str == "" {
-// 						return errors.New("registry provider cannot be empty")
-// 					}
-// 					return nil
-// 				}),
+	if createView.TriggerType == "event_based" {
+		eventForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewConfirm().
+					Title("Delete remote resources when locally deleted").
+					Description("When artifacts are deleted locally, also delete them on the remote registry").
+					Value(&createView.DeleteRemoteResources),
+			),
+		).WithTheme(theme)
 
-// 			huh.NewInput().
-// 				Title("Name").
-// 				Value(&createView.Name).
-// 				Validate(func(str string) error {
-// 					if strings.TrimSpace(str) == "" {
-// 						return errors.New("name cannot be empty or only spaces")
-// 					}
-// 					if isVaild := utils.ValidateRegistryName(str); !isVaild {
-// 						return errors.New("please enter the correct name format")
-// 					}
-// 					return nil
-// 				}),
-// 			huh.NewInput().
-// 				Title("Description").
-// 				Value(&createView.Description),
-// 			huh.NewInput().
-// 				Title("URL").
-// 				Value(&createView.URL).
-// 				Validate(func(str string) error {
-// 					if strings.TrimSpace(str) == "" {
-// 						return errors.New("url cannot be empty or only spaces")
-// 					}
-// 					formattedUrl := utils.FormatUrl(str)
-// 					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-// 						return errors.New("please enter the correct url format")
-// 					}
-// 					return nil
-// 				}),
-// 			huh.NewInput().
-// 				Title("Access Key").
-// 				Value(&createView.Credential.AccessKey),
-// 			huh.NewInput().
-// 				Title("Access Secret").
-// 				Value(&createView.Credential.AccessSecret),
-// 			huh.NewConfirm().
-// 				Title("Verify Cert").
-// 				Value(&createView.Insecure).
-// 				Affirmative("yes").
-// 				Negative("no"),
-// 		),
-// 	).WithTheme(theme).Run()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// }
+		if err := eventForm.Run(); err != nil {
+			log.Fatal(err)
+		}
+	} else if createView.TriggerType == "scheduled" {
+		cronForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewInput().
+					Title("Cron String").
+					Description("Schedule using 6-field cron format: seconds minutes hours day-month month day-week").
+					Placeholder("0 0 0 * * *"). // At midnight (00:00:00) every day
+					Value(&createView.CronString).
+					Validate(func(s string) error {
+						if s == "" {
+							return errors.New("cron string cannot be empty for scheduled trigger")
+						}
+
+						// Basic validation for 6-field cron format
+						fields := strings.Fields(s)
+						if len(fields) != 6 {
+							return fmt.Errorf("cron must have exactly 6 fields (found %d): seconds minutes hours day-month month day-week", len(fields))
+						}
+
+						return nil
+					}),
+			),
+		).WithTheme(theme)
+
+		if err := cronForm.Run(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
