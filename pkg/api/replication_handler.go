@@ -71,3 +71,17 @@ func DeleteReplicationPolicy(policyID int64) (*replication.DeleteReplicationPoli
 
 	return response, nil
 }
+
+func CreateReplicationPolicy(policy *replication.CreateReplicationPolicyParams) (*replication.CreateReplicationPolicyCreated, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.CreateReplicationPolicy(ctx, policy)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
