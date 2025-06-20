@@ -60,14 +60,14 @@ release:
   replace_existing_artifacts: true
   disable: false              # Ensure release publishing is enabled
   github:
-    owner: bupd           # Your GitHub repository owner
+    owner: goharbor           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
 
 # https://goreleaser.com/customization/homebrew/
 brews:
   - repository:
-      owner: bupd                           # GitHub user/org who owns the tap repo
-      name: homebrew-tap                    # Tap repo name (i.e., bupd/homebrew-tap)
+      owner: goharbor                           # GitHub user/org who owns the tap repo
+      name: homebrew-tap                    # Tap repo name (i.e., goharbor/homebrew-tap)
       branch: main
     name: harbor-cli                        # Name of the CLI, becomes harbor-cli.rb
     commit_author:                          # Who commits to the tap repo
