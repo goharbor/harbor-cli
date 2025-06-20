@@ -44,7 +44,10 @@ nfpms:
       - archlinux
 
 sboms:
-  - artifacts: archive
+  - id: archive-sbom
+    artifacts: archive
+  - id: binary-sbom
+    artifacts: binary
 
 checksum:
   name_template: 'checksums.txt'
