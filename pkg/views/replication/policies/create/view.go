@@ -139,7 +139,8 @@ func CreateRPolicyView(createView *CreateView) {
 				huh.NewConfirm().
 					Title("Delete remote resources when locally deleted").
 					Description("When artifacts are deleted locally, also delete them on the remote registry").
-					Value(&createView.DeleteRemoteResources),
+					Value(&createView.DeleteRemoteResources).
+					WithButtonAlignment(lipgloss.Left),
 			),
 		).WithTheme(theme)
 
