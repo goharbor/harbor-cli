@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -88,15 +89,18 @@ func CreateRPolicyView(createView *CreateView) {
 		huh.NewConfirm().
 			Title("Override").
 			Description("Replace artifacts on destination if they already exist").
-			Value(&createView.Override),
+			Value(&createView.Override).
+			WithButtonAlignment(lipgloss.Left),
 		huh.NewConfirm().
 			Title("Replicate Deletion").
 			Description("Synchronize deletion operations between registries").
-			Value(&createView.ReplicateDeletion),
+			Value(&createView.ReplicateDeletion).
+			WithButtonAlignment(lipgloss.Left),
 		huh.NewConfirm().
 			Title("Copy By Chunk").
 			Description("Transfer artifacts in smaller chunks for better reliability").
-			Value(&createView.CopyByChunk),
+			Value(&createView.CopyByChunk).
+			WithButtonAlignment(lipgloss.Left),
 		huh.NewInput().
 			Title("Speed Limit").
 			Description("Maximum speed in KB/s (-1 = unlimited)").
@@ -118,7 +122,8 @@ func CreateRPolicyView(createView *CreateView) {
 		huh.NewConfirm().
 			Title("Enabled").
 			Description("Activate replication policy after creation").
-			Value(&createView.Enabled),
+			Value(&createView.Enabled).
+			WithButtonAlignment(lipgloss.Left),
 	)
 
 	form := huh.NewForm(basicGroup, triggerGroup, advancedGroup)
