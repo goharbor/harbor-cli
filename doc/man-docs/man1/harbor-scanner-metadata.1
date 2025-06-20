@@ -1,0 +1,56 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scanner-metadata - Retrieve metadata for a specific scanner
+
+
+.SH SYNOPSIS
+\fBharbor scanner metadata [scanner-name] [flags]\fP
+
+
+.SH DESCRIPTION
+Retrieve detailed metadata for a specified scanner integration in Harbor.
+
+.PP
+You can either:
+  - Provide the scanner name as an argument (recommended), or
+  - Leave it blank to be prompted interactively.
+
+.PP
+The metadata includes supported MIME types, capabilities, vendor information, and more.
+
+.PP
+Examples:
+  # Get metadata for a specific scanner by name
+  harbor scanner metadata trivy-scanner
+
+.PP
+# Interactively select a scanner if no name is provided
+  harbor scanner metadata
+
+.PP
+Flags:
+  --output-format    Output format: 'json' or 'yaml' (default is table view)
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for metadata
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scanner(1)\fP

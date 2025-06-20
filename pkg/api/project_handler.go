@@ -83,6 +83,26 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 	if forceDelete {
 		var resp repository.ListRepositoriesOK
 
+		project, err := GetProject(projectNameOrID, useProjectID)
+		if err != nil {
+			log.Errorf("failed to get project name: %v", err)
+			return err
+		}
+		projectName := project.Payload.Name
+
+		immutables, err := ListImmutable(projectName)
+		if err != nil {
+			log.Errorf("failed to list immutables for project: %v", err)
+			return err
+		}
+		for _, rule := range immutables.Payload {
+			err = DeleteImmutable(projectName, rule.ID)
+			if err != nil {
+				log.Errorf("failed to delete tag immutable rule: %v", err)
+				return err
+			}
+		}
+
 		resp, err = ListRepository(projectNameOrID, useProjectID)
 
 		if err != nil {
@@ -91,7 +111,11 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		}
 
 		for _, repo := range resp.Payload {
-			_, repoName := utils.ParseProjectRepo(repo.Name)
+			_, repoName, err := utils.ParseProjectRepo(repo.Name)
+			if err != nil {
+				log.Errorf("failed to parse project/repo: %v", err)
+				return err
+			}
 			err = RepoDelete(projectNameOrID, repoName, useProjectID)
 
 			if err != nil {
@@ -100,10 +124,10 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 			}
 		}
 	}
-
+	useProjectName := !useProjectID
 	_, err = client.Project.DeleteProject(ctx, &project.DeleteProjectParams{
 		ProjectNameOrID: projectNameOrID,
-		XIsResourceName: &useProjectID,
+		XIsResourceName: &useProjectName,
 	})
 
 	if err != nil {
@@ -175,4 +199,25 @@ func LogsProject(projectName string) (*project.GetLogsOK, error) {
 	}
 
 	return response, nil
+}
+
+func CheckProject(projectName string) (bool, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return false, err
+	}
+
+	response, err := client.Project.HeadProject(ctx, &project.HeadProjectParams{
+		ProjectName: projectName,
+		Context:     ctx,
+	})
+
+	if err != nil {
+		if utils.ParseHarborErrorCode(err) == "404" {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return response.IsSuccess(), nil
 }

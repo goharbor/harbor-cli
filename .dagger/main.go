@@ -24,7 +24,7 @@ import (
 
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
-	GO_VERSION           = "1.24.1"
+	GO_VERSION           = "1.24.4"
 	GORELEASER_VERSION   = "v2.8.2"
 )
 
@@ -227,7 +227,7 @@ func (m *HarborCli) PublishImage(
 // SnapshotRelease Create snapshot non OCI artifacts with goreleaser
 func (m *HarborCli) SnapshotRelease(ctx context.Context) *dagger.Directory {
 	return m.goreleaserContainer().
-		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean", "--skip", "validate"}).
+		WithExec([]string{"goreleaser", "release", "--snapshot", "--clean"}).
 		Directory("/src/dist")
 }
 
@@ -290,6 +290,7 @@ func (m *HarborCli) Test(ctx context.Context) (string, error) {
 }
 
 // Executes Go tests and returns TestReport in json file
+// TestReport executes Go tests and returns only the JSON report file
 func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 	reportName := "TestReport.json"
 	test := dag.Container().
@@ -301,9 +302,91 @@ func (m *HarborCli) TestReport(ctx context.Context) *dagger.File {
 		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src").
-		WithExec([]string{"gotestsum", "--jsonfile", reportName})
+		WithExec([]string{"gotestsum", "--jsonfile", reportName, "./..."})
 
 	return test.File(reportName)
+}
+
+func (m *HarborCli) TestCoverage(ctx context.Context) *dagger.File {
+	coverage := "coverage.out"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithExec([]string{"go", "install", "gotest.tools/gotestsum@latest"}).
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"gotestsum", "--", "-coverprofile=" + coverage, "./..."})
+
+	return test.File(coverage)
+}
+
+// TestCoverageReport processes coverage data and returns a formatted markdown report
+func (m *HarborCli) TestCoverageReport(ctx context.Context) *dagger.File {
+	coverageFile := "coverage.out"
+	reportFile := "coverage-report.md"
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithExec([]string{"apk", "add", "--no-cache", "bc"}).
+		WithExec([]string{"go", "test", "-coverprofile=" + coverageFile, "./..."})
+	return test.WithExec([]string{"sh", "-c", `
+        echo "<h2> 📊 Test Coverage Results</h2>" > ` + reportFile + `
+        if [ ! -f "` + coverageFile + `" ]; then
+            echo "<p>❌ Coverage file not found!</p>" >> ` + reportFile + `
+            exit 1
+        fi
+        total_coverage=$(go tool cover -func=` + coverageFile + ` | grep total: | grep -Eo '[0-9]+\.[0-9]+')
+        echo "DEBUG: Total coverage is $total_coverage" >&2
+        if (( $(echo "$total_coverage >= 80.0" | bc -l) )); then
+            emoji="✅"
+        elif (( $(echo "$total_coverage >= 60.0" | bc -l) )); then
+            emoji="⚠️"
+        else
+            emoji="❌"
+        fi
+		echo "<p><b>Total coverage: $emoji $total_coverage% (Target: 80%)</b></p>" >> ` + reportFile + `
+		echo "<details><summary>Detailed package coverage</summary><pre>" >> ` + reportFile + `
+        go tool cover -func=` + coverageFile + ` >> ` + reportFile + `
+        echo "</pre></details>" >> ` + reportFile + `
+        cat ` + reportFile + ` >&2
+    `}).File(reportFile)
+}
+
+// Checks for vulnerabilities using govulncheck
+func (m *HarborCli) vulnerabilityCheck(ctx context.Context) *dagger.Container {
+	return dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithExec([]string{"go", "install", "golang.org/x/vuln/cmd/govulncheck@latest"}).
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src")
+}
+
+// Runs a vulnerability check using govulncheck
+func (m *HarborCli) VulnerabilityCheck(ctx context.Context) (string, error) {
+	return m.vulnerabilityCheck(ctx).
+		WithExec([]string{"govulncheck", "-show", "verbose", "./..."}).
+		Stderr(ctx)
+}
+
+// Runs a vulnerability check using govulncheck and writes results to vulnerability-check.report
+func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context) *dagger.File {
+	report := "vulnerability-check.report"
+	return m.vulnerabilityCheck(ctx).
+		WithExec([]string{
+			"sh", "-c", fmt.Sprintf("govulncheck ./... > %s", report),
+		}).File(report)
 }
 
 // Parse the platform string into os and arch

@@ -15,17 +15,24 @@ package root
 
 import (
 	"fmt"
+	"io"
 	"time"
 
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
+
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
-	repositry "github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -58,17 +65,16 @@ harbor help
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
 			// Conditionally set the timestamp format only in verbose mode
+			formatter := &logrus.TextFormatter{}
+
 			if verbose {
-				logrus.SetFormatter(&logrus.TextFormatter{
-					FullTimestamp:   true,
-					TimestampFormat: time.RFC3339,
-				})
+				formatter.FullTimestamp = true
+				formatter.TimestampFormat = time.RFC3339
+				logrus.SetLevel(logrus.DebugLevel)
 			} else {
-				// No timestamp format for non-verbose
-				logrus.SetFormatter(&logrus.TextFormatter{
-					DisableTimestamp: true,
-				})
+				logrus.SetOutput(io.Discard)
 			}
+			logrus.SetFormatter(formatter)
 
 			return nil
 		},
@@ -88,21 +94,86 @@ harbor help
 		fmt.Println(err.Error())
 	}
 
-	root.AddCommand(
-		versionCommand(),
-		LoginCommand(),
-		config.Config(),
-		project.Project(),
-		registry.Registry(),
-		repositry.Repository(),
-		user.User(),
-		artifact.Artifact(),
-		tag.TagCommand(),
-		HealthCommand(),
-		schedule.Schedule(),
-		labels.Labels(),
-		InfoCommand(),
-	)
+	root.AddGroup(&cobra.Group{ID: "core", Title: "Core:"})
+	root.AddGroup(&cobra.Group{ID: "access", Title: "Access:"})
+	root.AddGroup(&cobra.Group{ID: "system", Title: "System:"})
+	root.AddGroup(&cobra.Group{ID: "utils", Title: "Utility:"})
+
+	// Core
+	cmd := InfoCommand()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = project.Project()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = repository.Repository()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = artifact.Artifact()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = tag.TagCommand()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = labels.Labels()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = quota.Quota()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = cve.CVEAllowlist()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	// Access
+	cmd = LoginCommand()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
+	cmd = user.User()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
+	// System
+	cmd = context.Context()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = HealthCommand()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = instance.Instance()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = registry.Registry()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = scanner.Scanner()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = schedule.Schedule()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	// Utils
+	cmd = versionCommand()
+	cmd.GroupID = "utils"
+	root.AddCommand(cmd)
 
 	return root
 }

@@ -34,9 +34,23 @@ type CreateRegView struct {
 	Insecure    bool
 }
 
+type ContextListView struct {
+	Name     string
+	Username string
+	Server   string
+}
+
 // Credential for Registry
 type RegistryCredential struct {
 	AccessKey    string `json:"access_key,omitempty"`
 	Type         string `json:"type,omitempty"`
 	AccessSecret string `json:"access_secret,omitempty"`
+}
+
+type ListQuotaFlags struct {
+	PageSize    int64
+	Page        int64
+	Sort        string
+	Reference   string
+	ReferenceID string
 }

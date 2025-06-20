@@ -1,37 +1,75 @@
-![harbor-3](https://github.com/goharbor/harbor-cli/assets/70086051/835ab686-1cce-4ac7-bc57-05a35c2b73cc)
 
-**Welcome to the Harbor CLI project! This powerful command-line tool facilitates seamless interaction with the Harbor container registry. It simplifies various tasks such as creating, updating, and managing projects, registries, and other resources in Harbor.**
+![Harbor-CLI Logo_256px](https://github.com/user-attachments/assets/fa18e8f0-a2e4-4462-ab2d-446a88f9edb3)
+
+**Harbor CLI — a command-line interface for interacting with your Harbor container registry. A streamlined, user-friendly alternative to the WebUI, as your daily driver or for scripting and automation.**
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/harbor-cli)](https://artifacthub.io/packages/search?repo=harbor-cli)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_shield)
+[![codecov](https://codecov.io/gh/goharbor/harbor-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/goharbor/harbor-cli)
 
-# Project Scope 🧪
+# Scope 🧪
 
-The Harbor CLI is designed to enhance your interaction with the Harbor container registry. Built on Golang, it offers a user-friendly interface to perform various tasks related to projects, registries, and more. Whether you're creating, updating, or managing resources, the Harbor CLI streamlines your workflow efficiently.
+1. CLI alternative to the WebUI
+2. Tool for scripting and automation of common repeatable Harbor tasks running on your machine or inside your pipeline
 
-# Project Features 🤯
+# Features
+The project's first goal is to reach WebUI parity.
 
- 🔹 Get details about projects, registries, repositories and more <br>
- 🔹 Create new projects, registries, and other resources <br>
- 🔹 Delete projects, registries, and other resources <br>
- 🔹 Run commands with various flags for enhanced functionality <br>
- 🔹 More features coming soon... 🚧
+```shell
+✅ project       Mange projects  
+✅ repo          Manage repositories  
+✅ artifact      Manage artifacts  
+✅ label         Manage labels  
+✅ tag           Manage tags   
+✅ quota         Manage quotas  
+✅ webhook       Manage webhook policies 
+❌ robot         Robot Account 
 
+✅ login         Log in to Harbor registry  
+✅ user          Manage users  
+
+✅ registry      Manage registries
+❌ replication   Manage replication
+
+✅ config        Manage the config of the Harbor CLI
+✅ cve-allowlist Manage system CVE allowlist
+✅ health        Get the health status of Harbor components
+✅ instance      Manage preheat provider instances in Harbor
+✅ info          Display detailed Harbor system, statistics, and CLI environment information
+
+
+✅ scanner       scanner commands
+✅ schedule      Schedule jobs in Harbor
+
+✅ completion    Generate the autocompletion script for the specified shell\
+✅ help          Help about any command
+✅ version       Version of Harbor CLI
+
+```
 
 # Installation
 
 ## Container 
 
-It is straightforward to use the Harbor CLI as a container. You can run the following command to use the Harbor CLI as a container:
+Running Harbor CLI as a container is simple. Use the following command to get started:
 
 ```shell
-docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor-cli/config.yaml registry.goharbor.io/harbor-cli/harbor-cli --help
-
+docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor-cli/config.yaml \
+  -e HARBOR_ENCRYPTION_KEY=$(echo "ThisIsAVeryLongPassword" | base64) \
+  registry.goharbor.io/harbor-cli/harbor-cli \
+  --help
 ```
+Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
-# Add the following command to create an alias and append the alias to your .zshrc or .bashrc file
+I you intend
+to run the CLI as a container,it is advised
+to set the following environment variables and to create an alias
+and append the alias to your .zshrc or .bashrc file
+
 ```shell
-echo "export HARBOR_CLI_CONFIG=$HOME/.config/harbor-cli/config.yaml && alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/harbor-cli/config.yaml registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc
+echo "export HARBOR_CLI_CONFIG=\$HOME/.config/harbor-cli/config.yaml" >> ~/.zshrc
+echo "export HARBOR_ENCRYPTION_KEY=\$(cat <path_to_32bit_private_key_file> | base64)" >> ~/.zshrc
+echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/harbor-cli/config.yaml -e HARBOR_ENCRYPTION_KEY=\$HARBOR_ENCRYPTION_KEY registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc 
 source ~/.zshrc # or restart your terminal
 ```
 
@@ -40,14 +78,14 @@ source ~/.zshrc # or restart your terminal
 
 Harbor CLI will soon be published on Homebrew.
 Meantime, we recommend using Harbor in the Container
-or download the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases)
+or downloading the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases)
 
 
 
 ## Add the Harbor CLI to your Container Image
 
-Using Curl or Wget isn't recommended
-for adding the Harbor CLI to your container.
+Using Curl or Wget isn't needed if you want to 
+add the Harbor CLI to your container.
 Instead, we recommend copying the Harbor CLI from our official image
 by using the following Dockerfile:
 
@@ -78,16 +116,23 @@ harbor help
 
 
 Available Commands:
-  artifact    Manage artifacts
-  completion  Generate the autocompletion script for the specified shell
-  health      Get the health status of Harbor components
-  help        Help about any command
-  login       Log in to Harbor registry
-  project     Manage projects and assign resources to them
-  registry    Manage registries
-  repo        Manage repositories
-  user        Manage users
-  version     Version of Harbor CLI
+  artifact      Manage artifacts
+  completion    Generate the autocompletion script for the specified shell
+  config        Manage the config of the Harbor CLI
+  cve-allowlist Manage system CVE allowlist
+  health        Get the health status of Harbor components
+  help          Help about any command
+  info          Show the current credential information
+  instance      Manage preheat provider instances in Harbor
+  label         Manage labels in Harbor
+  login         Log in to Harbor registry
+  project       Manage projects and assign resources to them
+  registry      Manage registries
+  repo          Manage repositories
+  schedule      Schedule jobs in Harbor
+  tag           Manage tags in Harbor registry
+  user          Manage users
+  version       Version of Harbor CLI
 
 Flags:
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
@@ -103,15 +148,19 @@ Use "harbor [command] --help" for more information about a command.
 #### Config Management
 
 ##### Hierarchy
-  Use the `--config` flag to specify a custom configuration file path (highest priority).
-  ```bash
+  Use the `--config` flag to specify a custom configuration file path (the highest priority).
+  
+```bash
   harbor --config /path/to/custom/config.yaml artifact list
   ```
+
   If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
+
   ```bash
   export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
   harbor artifact list
   ```
+
   If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
   ```bash
   harbor artifact list
@@ -178,9 +227,10 @@ Windows | ✅
 
 # Build From Source
 
-Make sure you have latest [Dagger](https://docs.dagger.io/) installed in your system. 
+Make sure you have the latest [Dagger](https://docs.dagger.io/) installed in your system. 
 
 #### Using Dagger
+
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
 dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
@@ -196,8 +246,8 @@ go build -o harbor-cli cmd/harbor/main.go
 
 # Version Compatibility With Harbor
 
-At the moment, the Harbor CLI is developed and tested with Harbor 2.11.
-The CLI should work with versions prior to 2.11,
+At the moment, the Harbor CLI is developed and tested with Harbor 2.13.
+The CLI should work with versions prior to 2.13,
 but not all functionalities may be available or work as expected.
 
 Harbor <2.0.0 is not supported.
@@ -226,3 +276,4 @@ This project is maintained by the Harbor community. We thank all our contributor
 
 For any questions or issues, please open an issue on our [GitHub Issues](https://github.com/goharbor/harbor-cli/issues) page.<br>
 Give a ⭐ if this project helped you, Thank YOU!
+

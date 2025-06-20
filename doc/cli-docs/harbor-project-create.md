@@ -9,24 +9,23 @@ weight: 80
 ##### create project
 
 ```sh
-harbor project create [flags]
+harbor project create [project name] [flags]
 ```
 
 ### Options
 
 ```sh
   -h, --help                   help for create
-      --name string            Name of the project
       --proxy-cache            Whether the project is a proxy cache project
-      --public                 Project is public or private (default true)
+      --public                 Project is public or private
       --registry-id string     ID of referenced registry when creating the proxy cache project
-      --storage-limit string   Storage quota of the project (default "-1")
+      --storage-limit string   Storage quota of the project
 ```
 
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```

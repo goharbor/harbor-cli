@@ -1,0 +1,55 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-webhook - Manage webhook policies in Harbor
+
+
+.SH SYNOPSIS
+\fBharbor webhook [flags]\fP
+
+
+.SH DESCRIPTION
+Use this command to manage webhook policies in your Harbor projects.
+
+.PP
+Webhooks enable external systems to be notified of events in Harbor (e.g., pushing an image, deleting an artifact).
+This command supports listing, creating, editing, and deleting webhook configurations.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for webhook
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # List webhook policies in a project
+  harbor-cli webhook list my-project
+
+  # Create a new webhook policy
+  harbor-cli webhook create --project my-project --name my-webhook
+
+  # Edit an existing webhook policy
+  harbor-cli webhook edit --project my-project --webhook-id 5
+
+  # Delete a webhook policy
+  harbor-cli webhook delete --project my-project --webhook-id 5
+.EE
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP, \fBharbor-webhook-create(1)\fP, \fBharbor-webhook-delete(1)\fP, \fBharbor-webhook-edit(1)\fP, \fBharbor-webhook-list(1)\fP

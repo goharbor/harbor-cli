@@ -1,0 +1,56 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scanner-view - Display detailed information about a scanner registration
+
+
+.SH SYNOPSIS
+\fBharbor scanner view [scanner-name] [flags]\fP
+
+
+.SH DESCRIPTION
+Display full details of a scanner registration in Harbor.
+
+.PP
+You can:
+  - Provide a scanner name to view its details directly.
+  - Omit the argument to select a scanner interactively by ID.
+
+.PP
+Supports custom output formats using the --output-format flag (e.g., json, yaml, table).
+
+.PP
+Examples:
+  # View a specific scanner by name
+  harbor scanner view trivy-scanner
+
+.PP
+# Interactively choose a scanner to view
+  harbor scanner view
+
+.PP
+# View scanner in JSON format
+  harbor scanner view trivy-scanner --output-format=json
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for view
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scanner(1)\fP

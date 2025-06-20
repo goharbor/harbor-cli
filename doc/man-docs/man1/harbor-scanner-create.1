@@ -1,0 +1,71 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scanner-create - Create a scanner
+
+
+.SH SYNOPSIS
+\fBharbor scanner create [flags]\fP
+
+
+.SH DESCRIPTION
+Create a scanner
+
+
+.SH OPTIONS
+\fB--auth\fP=""
+	Authentication method [None|Basic|Bearer|X-ScannerAdapter-API-Key]
+
+.PP
+\fB--credential\fP=""
+	Authorization header for the Scanner Adapter API
+
+.PP
+\fB--description\fP=""
+	New description for the scanner
+
+.PP
+\fB--disabled\fP[=false]
+	Disable the scanner registration
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB--name\fP=""
+	New name for the scanner
+
+.PP
+\fB--ping\fP[=false]
+	Ping the scanner adapter without creating it.
+
+.PP
+\fB--skip-cert-verification\fP[=false]
+	Skip certificate verification in HTTP requests
+
+.PP
+\fB--url\fP=""
+	Base URL of the scanner adapter
+
+.PP
+\fB--use-internal-addr\fP[=false]
+	Use internal registry address for scanning
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scanner(1)\fP

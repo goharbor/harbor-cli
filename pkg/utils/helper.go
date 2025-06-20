@@ -16,6 +16,8 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -44,20 +46,37 @@ func FormatCreatedTime(timestamp string) (string, error) {
 }
 
 func FormatUrl(url string) string {
-	// Check if URL starts with "http://" or "https://"
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		// If not, prepend "https://"
-		url = "https://" + url
+		url = "http://" + url
 	}
 
-	// Remove all trailing slashes from the URL
 	url = strings.TrimRight(url, "/")
+	url = strings.TrimLeft(url, "/")
+
 	return url
 }
 
 func FormatSize(size int64) string {
-	mbSize := float64(size) / (1024 * 1024)
-	return fmt.Sprintf("%.2fMiB", mbSize)
+	const (
+		_         = iota
+		KiB int64 = 1 << (10 * iota)
+		MiB
+		GiB
+		TiB
+	)
+
+	switch {
+	case size >= TiB:
+		return fmt.Sprintf("%.2fTiB", float64(size)/float64(TiB))
+	case size >= GiB:
+		return fmt.Sprintf("%.2fGiB", float64(size)/float64(GiB))
+	case size >= MiB:
+		return fmt.Sprintf("%.2fMiB", float64(size)/float64(MiB))
+	case size >= KiB:
+		return fmt.Sprintf("%.2fKiB", float64(size)/float64(KiB))
+	default:
+		return fmt.Sprintf("%dB", size)
+	}
 }
 
 // ValidateUserName checks if the username is valid by length and allowed characters.
@@ -86,6 +105,11 @@ func ValidateFL(name string) bool {
 
 // check if the password format is vaild
 func ValidatePassword(password string) error {
+	password = strings.TrimSpace(password)
+	if password == "" {
+		return errors.New("password cannot be empty or only spaces")
+	}
+
 	if len(password) < 8 || len(password) > 256 {
 		return errors.New("worong! the password length must be at least 8 characters and at most 256 characters")
 	}
@@ -145,6 +169,30 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+func ValidateURL(rawURL string) error {
+	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL format: %v", err)
+	}
+
+	host := parsedURL.Hostname()
+	if host == "" {
+		return fmt.Errorf("URL must contain a valid host")
+	}
+
+	if net.ParseIP(host) != nil {
+		return nil
+	}
+
+	if !domainNameRegex.MatchString(host) {
+		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
+	}
+
+	return nil
+}
+
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)
@@ -155,4 +203,13 @@ func PrintFormat[T any](resp T, format string) error {
 		return nil
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
+}
+
+func EmptyStringValidator(variable string) func(string) error {
+	return func(str string) error {
+		if str == "" {
+			return fmt.Errorf("%s cannot be empty", variable)
+		}
+		return nil
+	}
 }

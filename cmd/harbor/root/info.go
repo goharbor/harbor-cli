@@ -16,88 +16,73 @@ package root
 import (
 	"fmt"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/systeminfo"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/info/list"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+// Lists the info of the Harbor system
 func InfoCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "info",
-		Short: "Show the current credential information",
+		Short: "Display detailed Harbor system, statistics, and CLI environment information",
+		Long: `The 'info' command retrieves and displays general information about the Harbor instance, 
+including system metadata, storage statistics, and CLI environment details such as user identity, 
+registry address, and CLI version.
+
+The output can be formatted as table (default), JSON, or YAML using the '--output-format' flag.`,
+		Example: `  harbor info
+  harbor info --output-format json
+  harbor info -o yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			currentCredential := viper.GetString("current-credential-name")
-			if currentCredential == "" {
-				return fmt.Errorf("no active credentials found")
+			var cliinfo *api.CLIInfo
+			var err error
+			generalInfo, err := api.GetSystemInfo()
+			if err != nil {
+				return err
 			}
 
-			var registryAddress string
-			creds := viper.Get("credentials").([]interface{})
-			for _, cred := range creds {
-				c := cred.(map[string]interface{})
-				if c["name"] == currentCredential {
-					registryAddress = c["serveraddress"].(string)
-					break
+			stats, err := api.GetStats()
+			if err != nil {
+				return err
+			}
+
+			sysVolume, err := api.GetSystemVolumes()
+			if err != nil {
+				return err
+			}
+			cliVersion := version.Version
+			OSinfo := version.System
+
+			cliinfo, err = api.GetCLIInfo()
+			if err != nil {
+				return fmt.Errorf("Failed to get CLI info: %w", err)
+			}
+			systemInfo := list.CreateSystemInfo(
+				generalInfo.Payload,
+				stats.Payload,
+				sysVolume.Payload,
+				cliinfo,
+				cliVersion,
+				OSinfo,
+			)
+
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(systemInfo, FormatFlag)
+				if err != nil {
+					log.Error(err)
 				}
+			} else {
+				list.ListInfo(&systemInfo)
 			}
-
-			if registryAddress == "" {
-				return fmt.Errorf("registry address not found for current credential: %s", currentCredential)
-			}
-
-			ctx, client, err := utils.ContextWithClient()
-			if err != nil {
-				return fmt.Errorf("failed to create Harbor client: %v", err)
-			}
-
-			userInfo, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
-			if err != nil {
-				return fmt.Errorf("failed to get current user info: %v", err)
-			}
-
-			isSysAdmin := userInfo.Payload.SysadminFlag
-
-			sysInfo, err := client.Systeminfo.GetSystemInfo(ctx, &systeminfo.GetSystemInfoParams{})
-			if err != nil {
-				return fmt.Errorf("failed to get system info: %v", err)
-			}
-			harborVersion := sysInfo.Payload.HarborVersion
-
-			fmt.Println("\nHarbor CLI Info:")
-			fmt.Println("==================")
-			fmt.Printf("Logged in as: %s\n", userInfo.Payload.Username)
-			fmt.Printf("Registry: %s\n", registryAddress)
-			fmt.Printf("Harbor Version: %s\n", *harborVersion)
-			fmt.Printf("Connected as Admin: %s\n", roleString(isSysAdmin))
-
-			// Previously logged-in registries
-			fmt.Println("\nPreviously Logged in to the following registries:")
-			previousRegistriesMap := make(map[string]struct{})
-			for _, cred := range creds {
-				c := cred.(map[string]interface{})
-				if registry, ok := c["serveraddress"].(string); ok {
-					previousRegistriesMap[registry] = struct{}{}
-				}
-			}
-			for registry := range previousRegistriesMap {
-				fmt.Printf("- %s\n", registry)
-			}
-
-			fmt.Printf("\nCLI Version: %s\n", version.Version)
-			fmt.Printf("OS: %s\n", version.System)
 
 			return nil
 		},
 	}
 	return cmd
-}
-
-func roleString(isSysAdmin bool) string {
-	if isSysAdmin {
-		return "Yes"
-	}
-	return "No"
 }

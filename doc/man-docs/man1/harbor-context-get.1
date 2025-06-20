@@ -1,0 +1,52 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-context-get - Get a specific config item
+
+
+.SH SYNOPSIS
+\fBharbor context get  [flags]\fP
+
+
+.SH DESCRIPTION
+Get the value of a specific CLI config item.
+If you specify --name, that credential (rather than the "current" one) will be used.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for get
+
+.PP
+\fB-n\fP, \fB--name\fP=""
+	Name of the credential to get fields from (default: the current credential)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+
+  # Get the current credential's username
+  harbor context get credentials.username
+
+  # Get a credential's username by specifying the credential name
+  harbor config get credentials.username --name admin@http://demo.goharbor.io
+
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-context(1)\fP

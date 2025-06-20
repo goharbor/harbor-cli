@@ -1,0 +1,71 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-instance-create - Create a new preheat provider instance in Harbor
+
+
+.SH SYNOPSIS
+\fBharbor instance create [flags]\fP
+
+
+.SH DESCRIPTION
+Create a new preheat provider instance within Harbor for distributing container images.
+The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
+You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.
+
+
+.SH OPTIONS
+\fB-a\fP, \fB--authmode\fP="NONE"
+	Choosing different types of authentication method
+
+.PP
+\fB--description\fP=""
+	Description of the instance
+
+.PP
+\fB--enable\fP[=true]
+	Whether it is enabled or not
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB-i\fP, \fB--insecure\fP[=true]
+	Whether or not the certificate will be verified when Harbor tries to access the server
+
+.PP
+\fB-n\fP, \fB--name\fP=""
+	Name of the instance
+
+.PP
+\fB-p\fP, \fB--provider\fP=""
+	Provider for the instance
+
+.PP
+\fB-u\fP, \fB--url\fP=""
+	URL for the instance
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-instance(1)\fP

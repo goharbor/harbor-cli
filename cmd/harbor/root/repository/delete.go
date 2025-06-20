@@ -29,14 +29,22 @@ func RepoDeleteCmd() *cobra.Command {
 		Long:    `Delete a repository within a project in Harbor`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName string
+			var repoName string
 			if len(args) > 0 {
-				projectName, repoName := utils.ParseProjectRepo(args[0])
-				err = api.RepoDelete(projectName, repoName, false)
+				projectName, repoName, err = utils.ParseProjectRepo(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo: %v", err)
+					return
+				}
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				err = api.RepoDelete(projectName, repoName, false)
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
+			err = api.RepoDelete(projectName, repoName, false)
 			if err != nil {
 				log.Errorf("failed to delete repository: %v", err)
 			}

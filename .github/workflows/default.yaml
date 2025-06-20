@@ -31,17 +31,17 @@ jobs:
 
       - name: Check for changes
         run: |
-          # Check if any newly added docs exist
-          untracked_files=$(git ls-files --others --exclude-standard)
+          # Check if any docs have been modified
+          changed_files=$(git ls-files --others --modified --deleted --exclude-standard)
 
-          # If there are untracked files, fail the workflow
-          if [ -n "$untracked_files" ]; then
-            echo "New Untracked files found"
-            echo "please check if docs were added for new commands"
-            echo "$untracked_files"
+          # If there are files changed, fail the workflow
+          if [ -n "$changed_files" ]; then
+            echo "file changes found"
+            echo "please check if docs were added for new commands or updated for new commands"
+            echo "$changed_files"
             exit 1  # This will fail the workflow
           else
-            echo "No untracked files found."
+            echo "No file changes found."
           fi
         continue-on-error: false
 
@@ -70,6 +70,53 @@ jobs:
       #   run: |
       #     reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
 
+  vulnerability-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
+      - name: Run Vulnerability Check
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: vulnerability-check-report export --path=vulnerability-check.report
+
+      - name: Generate vulnerability summary
+        run: |
+          echo "<h2> 🔒 Vulnerability Check Results</h2>" >> $GITHUB_STEP_SUMMARY
+          cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
+          # Check if the lint report contains any content (error or issues)
+          if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
+              # If the file contains content, output an error message and exit with code 1
+              echo "⚠️ Linting issues found!" >> $GITHUB_STEP_SUMMARY
+              exit 1
+          fi
+
+  test-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dagger Version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
+      - name: Test Release
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: snapshot-release
+
   test-code:
     runs-on: ubuntu-latest
     steps:
@@ -89,6 +136,33 @@ jobs:
         uses: robherley/go-test-action@v0.6.0
         with:
           fromJSONFile: TestReport.json
+
+      - name: Run Test Coverage Report
+        if: github.event_name == 'pull_request'
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage-report export --path=coverage-report.md
+
+      - name: Add coverage to step summary
+        if: github.event_name == 'pull_request'
+        run: cat coverage-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Test Coverage
+        if: github.event_name == 'pull_request'
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: ${{ steps.dagger_version.outputs.version }}
+          verb: call
+          args: test-coverage export --path=coverage.out
+
+      - uses: codecov/codecov-action@v5
+        if: github.event_name == 'pull_request'
+        with:
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build Binary
         uses: dagger/dagger-for-github@v7

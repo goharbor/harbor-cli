@@ -36,6 +36,10 @@ func ElevateUserCmd() *cobra.Command {
 					log.Errorf("failed to get user id for '%s': %v", args[0], err)
 					return
 				}
+				if userId == 0 {
+					log.Errorf("User with name '%s' not found", args[0])
+					return
+				}
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
@@ -50,10 +54,12 @@ func ElevateUserCmd() *cobra.Command {
 			}
 
 			err = api.ElevateUser(userId)
-			if isUnauthorizedError(err) {
-				log.Error("Permission denied: Admin privileges are required to execute this command.")
-			} else {
-				log.Errorf("failed to elevate user: %v", err)
+			if err != nil {
+				if isUnauthorizedError(err) {
+					log.Error("Permission denied: Admin privileges are required to execute this command.")
+				} else {
+					log.Errorf("failed to elevate user: %v", err)
+				}
 			}
 		},
 	}

@@ -14,6 +14,8 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -44,21 +46,28 @@ func StartScanArtifactCommand() *cobra.Command {
 		Short:   "Start a scan of an artifact",
 		Long:    `Start a scan of an artifact in Harbor Repository`,
 		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.StartScanArtifact(projectName, repoName, reference)
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to parse project/repo/reference: %v", err)
+				}
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.StartScanArtifact(projectName, repoName, reference)
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+			err = api.StartScanArtifact(projectName, repoName, reference)
 			if err != nil {
-				log.Errorf("failed to start scan of artifact: %v", err)
+				return fmt.Errorf("failed to start scan of artifact: %v", err)
 			}
+			return nil
 		},
 	}
 	return cmd
@@ -72,16 +81,24 @@ func StopScanArtifactCommand() *cobra.Command {
 		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
+			var projectName, repoName, reference string
 
 			if len(args) > 0 {
-				projectName, repoName, reference := utils.ParseProjectRepoReference(args[0])
-				err = api.StopScanArtifact(projectName, repoName, reference)
+				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
+				if err != nil {
+					log.Errorf("failed to parse project/repo/reference: %v", err)
+				}
 			} else {
-				projectName := prompt.GetProjectNameFromUser()
-				repoName := prompt.GetRepoNameFromUser(projectName)
-				reference := prompt.GetReferenceFromUser(repoName, projectName)
-				err = api.StopScanArtifact(projectName, repoName, reference)
+				var projectName string
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				repoName = prompt.GetRepoNameFromUser(projectName)
+				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+
+			err = api.StopScanArtifact(projectName, repoName, reference)
 			if err != nil {
 				log.Errorf("failed to stop scan of artifact: %v", err)
 			}

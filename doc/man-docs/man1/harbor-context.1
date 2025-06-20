@@ -1,0 +1,42 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-context - Manage locally available contexts
+
+
+.SH SYNOPSIS
+\fBharbor context [flags]\fP
+
+
+.SH DESCRIPTION
+The context command allows you to manage configuration items of the Harbor CLI.
+				You can add, get, or delete specific configuration items, as well as list all configuration items of the Harbor CLI.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for context
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor context list
+.EE
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP, \fBharbor-context-delete(1)\fP, \fBharbor-context-get(1)\fP, \fBharbor-context-list(1)\fP, \fBharbor-context-switch(1)\fP, \fBharbor-context-update(1)\fP

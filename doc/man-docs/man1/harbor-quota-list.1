@@ -1,0 +1,55 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-quota-list - list quotas
+
+
+.SH SYNOPSIS
+\fBharbor quota list [flags]\fP
+
+
+.SH DESCRIPTION
+list quotas specified for each project
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=0
+	Size of per page (use 0 to fetch all)
+
+.PP
+\fB--ref\fP=""
+	Reference type of quota
+
+.PP
+\fB--refid\fP=""
+	Reference ID of quota
+
+.PP
+\fB--sort\fP=""
+	Sort the resource list in ascending or descending order
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-quota(1)\fP

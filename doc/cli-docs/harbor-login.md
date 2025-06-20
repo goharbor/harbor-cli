@@ -20,15 +20,15 @@ harbor login [server] [flags]
 
 ```sh
   -h, --help              help for login
-      --name string       name for the set of credentials
   -p, --password string   Password
+      --password-stdin    Take the password from stdin
   -u, --username string   Username
 ```
 
 ### Options inherited from parent commands
 
 ```sh
-      --config string          config file (default is $HOME/.harbor/config.yaml) (default "/home/user/.harbor/config.yaml")
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -o, --output-format string   Output format. One of: json|yaml
   -v, --verbose                verbose output
 ```
