@@ -24,7 +24,6 @@ import (
 )
 
 func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<- int64) {
-
 	policyNameIDsMap := make(map[string]int64, len(policies))
 	for _, p := range policies {
 		policyNameIDsMap[p.Name] = p.ID

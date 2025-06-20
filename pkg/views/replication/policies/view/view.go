@@ -93,7 +93,6 @@ func filtersToString(filters []*models.ReplicationFilter) string {
 		filterStrings = append(filterStrings, fmt.Sprintf("%s:%s", filter.Type, filter.Value))
 	}
 	return fmt.Sprintf("[%s]", joinWithComma(filterStrings...))
-
 }
 
 func joinWithComma(elements ...string) string {
