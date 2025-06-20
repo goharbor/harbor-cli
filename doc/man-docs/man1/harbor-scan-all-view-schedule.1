@@ -1,0 +1,60 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scan-all-view-schedule - View the scan all schedule
+
+
+.SH SYNOPSIS
+\fBharbor scan-all view-schedule [flags]\fP
+
+
+.SH DESCRIPTION
+Display the current vulnerability scan schedule configuration.
+
+.PP
+This command retrieves and shows the current automatic scanning schedule settings for your Harbor instance, including:
+.IP \(bu 2
+Schedule Type: The type of schedule (None, Hourly, Daily, Weekly, or Custom)
+.IP \(bu 2
+Cron Expression: For custom schedules, shows the configured cron pattern
+.IP \(bu 2
+Next Scheduled Time: When the next automatic scan is scheduled to run
+
+.PP
+This information helps you understand when Harbor will automatically scan your artifacts
+for vulnerabilities.
+
+.PP
+Examples:
+  # View the current scan schedule
+  harbor-cli scan-all view-schedule
+
+.PP
+# View the schedule in JSON format
+  harbor-cli scan-all view-schedule --output-format json
+
+.PP
+You can use this command to verify changes after updating the schedule with the 'update-schedule' command.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for view-schedule
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scan-all(1)\fP

@@ -47,6 +47,7 @@ harbor help
 * [harbor quota](harbor-quota.md)	 - Manage quotas
 * [harbor registry](harbor-registry.md)	 - Manage registries
 * [harbor repo](harbor-repo.md)	 - Manage repositories
+* [harbor scan-all](harbor-scan-all.md)	 - Scan all artifacts
 * [harbor scanner](harbor-scanner.md)	 - scanner commands
 * [harbor schedule](harbor-schedule.md)	 - Schedule jobs in Harbor
 * [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry
