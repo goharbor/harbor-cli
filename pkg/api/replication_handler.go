@@ -15,6 +15,7 @@ package api
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/replication"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -79,6 +80,23 @@ func CreateReplicationPolicy(policy *replication.CreateReplicationPolicyParams) 
 	}
 
 	response, err := client.Replication.CreateReplicationPolicy(ctx, policy)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func UpdateReplicationPolicy(policyID int64, policy *models.ReplicationPolicy) (*replication.UpdateReplicationPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.UpdateReplicationPolicy(ctx, &replication.UpdateReplicationPolicyParams{
+		ID:     policyID,
+		Policy: policy,
+	})
 	if err != nil {
 		return nil, err
 	}

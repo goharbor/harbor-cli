@@ -40,7 +40,7 @@ func CreateCommand() *cobra.Command {
 			create.CreateRPolicyView(opts)
 			registryID := prompt.GetRegistryNameFromUser()
 			registry := api.GetRegistryResponse(registryID)
-			policy := convertToPolicy(opts, registry)
+			policy := ConvertToPolicy(opts, registry)
 
 			response, err := api.CreateReplicationPolicy(&replication.CreateReplicationPolicyParams{
 				Policy: policy,
@@ -62,7 +62,7 @@ func CreateCommand() *cobra.Command {
 	return cmd
 }
 
-func convertToPolicy(view *create.CreateView, registry *models.Registry) *models.ReplicationPolicy {
+func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models.ReplicationPolicy {
 	policy := &models.ReplicationPolicy{
 		Name:              view.Name,
 		Description:       view.Description,
