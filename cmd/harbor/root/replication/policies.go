@@ -31,6 +31,7 @@ func ReplicationPoliciesCommand() *cobra.Command {
 		rpolicies.ViewCommand(),
 		rpolicies.DeleteCommand(),
 		rpolicies.CreateCommand(),
+		rpolicies.UpdateCommand(),
 	)
 
 	return replicationCmd
