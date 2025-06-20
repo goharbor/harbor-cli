@@ -17,11 +17,14 @@ import (
 	"errors"
 	"fmt"
 
+	"strconv"
+
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -31,6 +34,7 @@ import (
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
@@ -81,6 +85,16 @@ func GetProjectNameFromUser() (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+func GetProjectIDFromUser() int64 {
+	projectID := make(chan int64)
+	go func() {
+		response, _ := api.ListProject()
+		pview.ProjectListID(response.Payload, projectID)
+	}()
+
+	return <-projectID
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -200,7 +214,6 @@ func GetLabelIdFromUser(labelList []*models.Label) int64 {
 
 	return <-labelId
 }
-
 func GetInstanceFromUser() string {
 	instanceName := make(chan string)
 
@@ -243,4 +256,25 @@ func GetActiveContextFromUser() (string, error) {
 	}
 
 	return res, nil
+}
+
+func GetRobotPermissionsFromUser() []models.Permission {
+	permissions := make(chan []models.Permission)
+	go func() {
+		response, _ := api.GetPermissions()
+		robotView.ListPermissions(response.Payload, permissions)
+	}()
+	return <-permissions
+}
+
+func GetRobotIDFromUser(projectID int64) int64 {
+	robotID := make(chan int64)
+	var opts api.ListFlags
+	opts.Q = constants.ProjectQString + strconv.FormatInt(projectID, 10)
+
+	go func() {
+		response, _ := api.ListRobot(opts)
+		robotView.ListRobot(response.Payload, robotID)
+	}()
+	return <-robotID
 }
