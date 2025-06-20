@@ -169,6 +169,17 @@ Examples:
 				}
 				opts.Permissions = []*create.RobotPermission{perm}
 			}
+			getProjectID, err := api.GetProject(opts.ProjectName, false)
+			if err != nil {
+				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+			}
+			exists, err := api.CheckRoboWithNameExists(getProjectID.Payload.ProjectID, opts.Name)
+			if err != nil {
+				return fmt.Errorf("failed to get robot by name: %v", utils.ParseHarborErrorMsg(err))
+			}
+			if exists {
+				return fmt.Errorf("robot account with name '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
+			}
 			response, err := api.CreateRobot(opts, "project")
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))

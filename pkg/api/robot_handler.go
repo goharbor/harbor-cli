@@ -14,9 +14,13 @@
 package api
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/permissions"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
@@ -41,7 +45,6 @@ func ListRobot(opts ListFlags) (*robot.ListRobotOK, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
@@ -56,6 +59,38 @@ func GetRobot(robotID int64) (*robot.GetRobotByIDOK, error) {
 	}
 
 	return response, nil
+}
+
+func CheckRoboWithNameExists(projectID int32, name string) (bool, error) {
+	var exists bool = false
+
+	response, err := ListRobot(ListFlags{
+		Q: constants.ProjectQString + strconv.FormatInt(int64(projectID), 10),
+	})
+	if err != nil {
+		return exists, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+	}
+
+	project, err := GetProject(strconv.FormatInt(int64(projectID), 10), true)
+	if err != nil {
+		return false, fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+	}
+	projectName := project.Payload.Name
+
+	configurations, err := GetConfigurations()
+	if err != nil {
+		return exists, fmt.Errorf("failed to get configurations: %v", utils.ParseHarborErrorMsg(err))
+	}
+	robotNamePrefix := configurations.Payload.RobotNamePrefix.Value
+	targetRobotName := fmt.Sprintf("%s%s+%s", robotNamePrefix, projectName, name)
+	for _, robot := range response.Payload {
+		if robot.Name == targetRobotName {
+			exists = true
+			break
+		}
+	}
+
+	return exists, nil
 }
 
 func DeleteRobot(robotID int64) error {
