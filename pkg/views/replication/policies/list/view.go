@@ -40,7 +40,6 @@ var columns = []table.Column{
 func ListPolicies(rpolicies []*models.ReplicationPolicy) {
 	var rows []table.Row
 	for _, rpolicy := range rpolicies {
-
 		createdTime, _ := utils.FormatCreatedTime(rpolicy.CreationTime.String())
 		modifledTime, _ := utils.FormatCreatedTime(rpolicy.UpdateTime.String())
 		rows = append(rows, table.Row{

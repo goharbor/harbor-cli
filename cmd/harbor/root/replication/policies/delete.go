@@ -30,7 +30,6 @@ func DeleteCommand() *cobra.Command {
 		Short: "delete replication policy by name or id",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			var rpolicyID int64
 			if len(args) > 0 {
 				var err error
@@ -53,6 +52,5 @@ func DeleteCommand() *cobra.Command {
 			return nil
 		},
 	}
-
 	return cmd
 }
