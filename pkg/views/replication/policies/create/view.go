@@ -25,22 +25,21 @@ import (
 )
 
 type CreateView struct {
-	Name              string `json:"name,omitempty"`
-	Description       string `json:"description,omitempty"`
-	Enabled           bool   `json:"enabled,omitempty"`
-	ReplicationMode   string `json:"mode,omitempty"`
-	Override          bool   `json:"override,omitempty"`
-	ReplicateDeletion bool   `json:"replicate_deletion,omitempty"`
-	CopyByChunk       bool   `json:"copy_by_chunk,omitempty"`
-	Speed             string `json:"speed,omitempty"`
+	Name            string `json:"name,omitempty"`
+	Description     string `json:"description,omitempty"`
+	Enabled         bool   `json:"enabled,omitempty"`
+	ReplicationMode string `json:"mode,omitempty"`
+	Override        bool   `json:"override,omitempty"`
+	CopyByChunk     bool   `json:"copy_by_chunk,omitempty"`
+	Speed           string `json:"speed,omitempty"`
 
 	// Trigger related fields
-	TriggerType           string `json:"trigger_type,omitempty"`
-	DeleteRemoteResources bool   `json:"delete_remote_resources,omitempty"`
-	CronString            string `json:"cron_string,omitempty"`
+	TriggerType       string `json:"trigger_type,omitempty"`
+	ReplicateDeletion bool   `json:"replicate_deletion,omitempty"`
+	CronString        string `json:"cron_string,omitempty"`
 }
 
-func CreateRPolicyView(createView *CreateView) {
+func CreateRPolicyView(createView *CreateView, update bool) {
 	if createView.ReplicationMode == "" {
 		createView.ReplicationMode = "Pull"
 	}
@@ -50,28 +49,46 @@ func CreateRPolicyView(createView *CreateView) {
 
 	createView.Override = true
 	theme := huh.ThemeCharm()
-	basicGroup := huh.NewGroup(
-		huh.NewInput().
-			Title("Replication Policy Name").
-			Value(&createView.Name).
-			Validate(func(str string) error {
-				if str == "" {
-					return errors.New("name cannot be empty")
-				}
-				return nil
-			}),
-		huh.NewInput().
-			Title("Description").
-			Value(&createView.Description),
-		huh.NewSelect[string]().
-			Title("Replication Mode").
-			Description("Choose whether to pull from or push to an external registry").
-			Options(
-				huh.NewOption("Pull (External → Harbor)", "Pull"),
-				huh.NewOption("Push (Harbor → External)", "Push"),
-			).
-			Value(&createView.ReplicationMode),
-	)
+	var basicGroup *huh.Group
+	if update {
+		basicGroup = huh.NewGroup(
+			huh.NewInput().
+				Title("Replication Policy Name").
+				Value(&createView.Name).
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("name cannot be empty")
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("Description").
+				Value(&createView.Description),
+		)
+	} else {
+		basicGroup = huh.NewGroup(
+			huh.NewInput().
+				Title("Replication Policy Name").
+				Value(&createView.Name).
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("name cannot be empty")
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("Description").
+				Value(&createView.Description),
+			huh.NewSelect[string]().
+				Title("Replication Mode").
+				Description("Choose whether to pull from or push to an external registry").
+				Options(
+					huh.NewOption("Pull (External → Harbor)", "Pull"),
+					huh.NewOption("Push (Harbor → External)", "Push"),
+				).
+				Value(&createView.ReplicationMode),
+		)
+	}
 
 	triggerGroup := huh.NewGroup(
 		huh.NewSelect[string]().
@@ -139,7 +156,7 @@ func CreateRPolicyView(createView *CreateView) {
 				huh.NewConfirm().
 					Title("Delete remote resources when locally deleted").
 					Description("When artifacts are deleted locally, also delete them on the remote registry").
-					Value(&createView.DeleteRemoteResources).
+					Value(&createView.ReplicateDeletion).
 					WithButtonAlignment(lipgloss.Left),
 			),
 		).WithTheme(theme)
