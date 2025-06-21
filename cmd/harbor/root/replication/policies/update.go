@@ -75,13 +75,13 @@ func UpdateCommand() *cobra.Command {
 					if existingPolicy.Payload.Trigger.Type == "scheduled" {
 						createView.CronString = existingPolicy.Payload.Trigger.TriggerSettings.Cron
 					} else if existingPolicy.Payload.Trigger.Type == "event_based" {
-						createView.DeleteRemoteResources = existingPolicy.Payload.ReplicateDeletion
+						createView.ReplicateDeletion = existingPolicy.Payload.ReplicateDeletion
 					}
 				}
 			}
 
 			log.Infof("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
-			create.CreateRPolicyView(createView)
+			create.CreateRPolicyView(createView, true)
 
 			var updatedPolicy *models.ReplicationPolicy
 			if createView.ReplicationMode == "Pull" {

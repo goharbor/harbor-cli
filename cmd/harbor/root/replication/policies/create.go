@@ -37,7 +37,7 @@ func CreateCommand() *cobra.Command {
 			log.Debug("Starting replications create command")
 
 			opts := &create.CreateView{}
-			create.CreateRPolicyView(opts)
+			create.CreateRPolicyView(opts, false)
 			registryID := prompt.GetRegistryNameFromUser()
 			registry := api.GetRegistryResponse(registryID)
 			policy := ConvertToPolicy(opts, registry)
