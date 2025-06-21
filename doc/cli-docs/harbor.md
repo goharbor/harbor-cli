@@ -46,6 +46,7 @@ harbor help
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
 * [harbor quota](harbor-quota.md)	 - Manage quotas
 * [harbor registry](harbor-registry.md)	 - Manage registries
+* [harbor replication](harbor-replication.md)	 - 
 * [harbor repo](harbor-repo.md)	 - Manage repositories
 * [harbor scanner](harbor-scanner.md)	 - scanner commands
 * [harbor schedule](harbor-schedule.md)	 - Schedule jobs in Harbor
