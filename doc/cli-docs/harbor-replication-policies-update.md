@@ -1,21 +1,21 @@
 ---
-title: harbor replication
+title: harbor replication policies update
 weight: 5
 ---
-## harbor replication
+## harbor replication policies update
 
 ### Description
 
-##### Manage replications
+##### Update an existing replication policy
 
-### Synopsis
-
-Manage replications in Harbor context
+```sh
+harbor replication policies update [policy-id] [flags]
+```
 
 ### Options
 
 ```sh
-  -h, --help   help for replication
+  -h, --help   help for update
 ```
 
 ### Options inherited from parent commands
@@ -28,6 +28,5 @@ Manage replications in Harbor context
 
 ### SEE ALSO
 
-* [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 

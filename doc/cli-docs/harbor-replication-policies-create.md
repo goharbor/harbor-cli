@@ -32,5 +32,5 @@ harbor replication policies create [flags]
 
 ### SEE ALSO
 
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 
