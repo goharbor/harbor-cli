@@ -1,17 +1,21 @@
 ---
-title: harbor replication
-weight: 5
+title: harbor replication policies update
+weight: 30
 ---
-## harbor replication
+## harbor replication policies update
 
 ### Description
 
-##### 
+##### Update an existing replication policy
+
+```sh
+harbor replication policies update [policy-id] [flags]
+```
 
 ### Options
 
 ```sh
-  -h, --help   help for replication
+  -h, --help   help for update
 ```
 
 ### Options inherited from parent commands
@@ -24,8 +28,5 @@ weight: 5
 
 ### SEE ALSO
 
-* [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor replication policies](harbor-replication-policies.md)	 - 
-* [harbor replication start](harbor-replication-start.md)	 - start replication
-* [harbor replication stop](harbor-replication-stop.md)	 - stop replication
 

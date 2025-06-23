@@ -28,5 +28,6 @@ weight: 50
 * [harbor replication policies create](harbor-replication-policies-create.md)	 - create replication policies
 * [harbor replication policies delete](harbor-replication-policies-delete.md)	 - delete replication policy by name or id
 * [harbor replication policies list](harbor-replication-policies-list.md)	 - List replication policies
+* [harbor replication policies update](harbor-replication-policies-update.md)	 - Update an existing replication policy
 * [harbor replication policies view](harbor-replication-policies-view.md)	 - get replication policy by name or id
 
