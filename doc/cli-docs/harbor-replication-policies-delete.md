@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies delete
-weight: 55
+weight: 95
 ---
 ## harbor replication policies delete
 
@@ -28,5 +28,5 @@ harbor replication policies delete [NAME|ID] [flags]
 
 ### SEE ALSO
 
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 

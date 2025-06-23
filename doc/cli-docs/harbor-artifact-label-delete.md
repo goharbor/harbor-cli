@@ -1,6 +1,6 @@
 ---
 title: harbor artifact label delete
-weight: 90
+weight: 35
 ---
 ## harbor artifact label delete
 

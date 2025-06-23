@@ -28,5 +28,5 @@ harbor replication start [flags]
 
 ### SEE ALSO
 
-* [harbor replication](harbor-replication.md)	 - 
+* [harbor replication](harbor-replication.md)	 - Manage replications
 

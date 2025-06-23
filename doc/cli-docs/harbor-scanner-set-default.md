@@ -1,6 +1,6 @@
 ---
 title: harbor scanner set default
-weight: 25
+weight: 55
 ---
 ## harbor scanner set-default
 

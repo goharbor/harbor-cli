@@ -1,6 +1,6 @@
 ---
 title: harbor label list
-weight: 15
+weight: 40
 ---
 ## harbor label list
 

@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies update
-weight: 30
+weight: 90
 ---
 ## harbor replication policies update
 
@@ -28,5 +28,5 @@ harbor replication policies update [policy-id] [flags]
 
 ### SEE ALSO
 
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 

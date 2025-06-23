@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies list
-weight: 85
+weight: 75
 ---
 ## harbor replication policies list
 
@@ -32,5 +32,5 @@ harbor replication policies list [flags]
 
 ### SEE ALSO
 
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 

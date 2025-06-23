@@ -1,6 +1,6 @@
 ---
 title: harbor webhook list
-weight: 60
+weight: 25
 ---
 ## harbor webhook list
 

@@ -1,6 +1,6 @@
 ---
 title: harbor quota update
-weight: 70
+weight: 55
 ---
 ## harbor quota update
 

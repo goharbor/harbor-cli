@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies view
-weight: 20
+weight: 30
 ---
 ## harbor replication policies view
 
@@ -28,5 +28,5 @@ harbor replication policies view [NAME|ID] [flags]
 
 ### SEE ALSO
 
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 

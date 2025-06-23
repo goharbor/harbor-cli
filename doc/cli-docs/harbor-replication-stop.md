@@ -1,6 +1,6 @@
 ---
 title: harbor replication stop
-weight: 70
+weight: 10
 ---
 ## harbor replication stop
 
@@ -28,5 +28,5 @@ harbor replication stop [flags]
 
 ### SEE ALSO
 
-* [harbor replication](harbor-replication.md)	 - 
+* [harbor replication](harbor-replication.md)	 - Manage replications
 

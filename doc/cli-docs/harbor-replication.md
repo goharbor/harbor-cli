@@ -6,7 +6,11 @@ weight: 5
 
 ### Description
 
-##### 
+##### Manage replications
+
+### Synopsis
+
+Manage replications in Harbor context
 
 ### Options
 
@@ -25,7 +29,7 @@ weight: 5
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
-* [harbor replication policies](harbor-replication-policies.md)	 - 
+* [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 * [harbor replication start](harbor-replication-start.md)	 - start replication
 * [harbor replication stop](harbor-replication-stop.md)	 - stop replication
 
