@@ -28,7 +28,6 @@ import (
 )
 
 func CreateCommand() *cobra.Command {
-	var opts api.ListFlags
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create replication policies",
@@ -52,12 +51,6 @@ func CreateCommand() *cobra.Command {
 			return nil
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
