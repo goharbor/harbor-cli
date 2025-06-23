@@ -71,6 +71,10 @@ func UpdateCommand() *cobra.Command {
 			}
 
 			if existingPolicy.Payload.Speed != nil {
+				if *existingPolicy.Payload.Speed == 0 {
+					speed := int32(-1)
+					existingPolicy.Payload.Speed = &speed
+				}
 				createView.Speed = strconv.FormatInt(int64(*existingPolicy.Payload.Speed), 10)
 			}
 
@@ -96,6 +100,8 @@ func UpdateCommand() *cobra.Command {
 			create.CreateRPolicyView(createView, true)
 
 			var updatedPolicy *models.ReplicationPolicy
+
+			fmt.Println("Updated policy replicate deletion:", createView.ReplicateDeletion)
 			if createView.ReplicationMode == "Pull" {
 				updatedPolicy = ConvertToPolicy(createView, existingPolicy.Payload.SrcRegistry)
 				updatedPolicy.ID = policyID
