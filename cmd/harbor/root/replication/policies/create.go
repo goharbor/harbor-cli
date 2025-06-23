@@ -28,7 +28,6 @@ import (
 )
 
 func CreateCommand() *cobra.Command {
-	var opts api.ListFlags
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create replication policies",
@@ -53,26 +52,22 @@ func CreateCommand() *cobra.Command {
 		},
 	}
 
-	flags := cmd.Flags()
-	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-
 	return cmd
 }
 
 func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models.ReplicationPolicy {
 	policy := &models.ReplicationPolicy{
-		Name:              view.Name,
-		Description:       view.Description,
-		Enabled:           view.Enabled,
-		Override:          view.Override,
+		Name:        view.Name,
+		Description: view.Description,
+		Enabled:     view.Enabled,
+		Override:    view.Override,
+		// ReplicateDeletion is the favored field to use for deletion replication
+		// Deletion is deprecated and will be removed in future versions
+		// However, for updating from false to true, we need to set both fields
 		ReplicateDeletion: view.ReplicateDeletion,
+		Deletion:          view.ReplicateDeletion,
+		CopyByChunk:       &view.CopyByChunk,
 	}
-
-	copyByChunk := view.CopyByChunk
-	policy.CopyByChunk = &copyByChunk
 
 	if view.Speed != "" {
 		speedInt, _ := strconv.ParseInt(view.Speed, 10, 32)
@@ -83,10 +78,7 @@ func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models
 	trigger := &models.ReplicationTrigger{
 		Type: view.TriggerType,
 	}
-	if view.TriggerType == "event_based" {
-		// Currently, event-based triggers do not require additional settings, this might change in the future
-		trigger.TriggerSettings = &models.ReplicationTriggerSettings{}
-	} else if view.TriggerType == "scheduled" {
+	if view.TriggerType == "scheduled" {
 		trigger.TriggerSettings = &models.ReplicationTriggerSettings{
 			Cron: view.CronString,
 		}
