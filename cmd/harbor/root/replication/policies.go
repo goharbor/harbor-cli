@@ -23,8 +23,8 @@ func ReplicationPoliciesCommand() *cobra.Command {
 	var replicationCmd = &cobra.Command{
 		Use:     "policies",
 		Aliases: []string{"pol"},
-		Short:   "",
-		Long:    ``,
+		Short:   "Manage replication policies",
+		Long:    `Manage replication policies in Harbor context`,
 	}
 	replicationCmd.AddCommand(
 		rpolicies.ListCommand(),
