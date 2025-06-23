@@ -1,6 +1,6 @@
 ---
 title: harbor registry
-weight: 105
+weight: 85
 ---
 ## harbor registry
 

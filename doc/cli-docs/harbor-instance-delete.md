@@ -1,6 +1,6 @@
 ---
 title: harbor instance delete
-weight: 35
+weight: 70
 ---
 ## harbor instance delete
 

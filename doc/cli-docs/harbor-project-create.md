@@ -1,6 +1,6 @@
 ---
 title: harbor project create
-weight: 80
+weight: 10
 ---
 ## harbor project create
 

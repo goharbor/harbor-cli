@@ -1,6 +1,6 @@
 ---
 title: harbor repo view
-weight: 55
+weight: 85
 ---
 ## harbor repo view
 

@@ -1,6 +1,6 @@
 ---
 title: harbor registry view
-weight: 130
+weight: 30
 ---
 ## harbor registry view
 

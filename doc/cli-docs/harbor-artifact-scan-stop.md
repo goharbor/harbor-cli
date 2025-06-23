@@ -1,6 +1,6 @@
 ---
 title: harbor artifact scan stop
-weight: 10
+weight: 30
 ---
 ## harbor artifact scan stop
 

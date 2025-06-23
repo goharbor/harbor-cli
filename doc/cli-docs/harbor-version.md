@@ -1,6 +1,6 @@
 ---
 title: harbor version
-weight: 10
+weight: 90
 ---
 ## harbor version
 

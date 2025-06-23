@@ -1,6 +1,6 @@
 ---
 title: harbor context delete
-weight: 85
+weight: 60
 ---
 ## harbor context delete
 

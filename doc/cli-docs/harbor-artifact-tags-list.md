@@ -1,6 +1,6 @@
 ---
 title: harbor artifact tags list
-weight: 90
+weight: 20
 ---
 ## harbor artifact tags list
 

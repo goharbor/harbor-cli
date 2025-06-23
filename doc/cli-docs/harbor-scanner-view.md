@@ -1,6 +1,6 @@
 ---
 title: harbor scanner view
-weight: 95
+weight: 30
 ---
 ## harbor scanner view
 
