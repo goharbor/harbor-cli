@@ -90,17 +90,31 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 		)
 	}
 
-	triggerGroup := huh.NewGroup(
-		huh.NewSelect[string]().
-			Title("Trigger Mode").
-			Description("When should replication occur?").
-			Options(
-				huh.NewOption("Manual", "manual"),
-				huh.NewOption("Event Based", "event_based"),
-				huh.NewOption("Scheduled", "scheduled"),
-			).
-			Value(&createView.TriggerType),
-	)
+	var triggerGroup *huh.Group
+	if createView.ReplicationMode == "Push" {
+		triggerGroup = huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Trigger Mode").
+				Description("When should replication occur?").
+				Options(
+					huh.NewOption("Manual", "manual"),
+					huh.NewOption("Event Based", "event_based"),
+					huh.NewOption("Scheduled", "scheduled"),
+				).
+				Value(&createView.TriggerType),
+		)
+	} else if createView.ReplicationMode == "Pull" {
+		triggerGroup = huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Trigger Mode").
+				Description("When should replication occur?").
+				Options(
+					huh.NewOption("Manual", "manual"),
+					huh.NewOption("Scheduled", "scheduled"),
+				).
+				Value(&createView.TriggerType),
+		)
+	}
 
 	advancedGroup := huh.NewGroup(
 		huh.NewConfirm().
@@ -150,7 +164,8 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 		log.Fatal(err)
 	}
 
-	if createView.TriggerType == "event_based" {
+	// The Pull mode does not have event_based triggers.
+	if createView.TriggerType == "event_based" && createView.ReplicationMode == "Push" {
 		eventForm := huh.NewForm(
 			huh.NewGroup(
 				huh.NewConfirm().
