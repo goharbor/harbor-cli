@@ -52,7 +52,7 @@ func ListRepositoryCommand() *cobra.Command {
 				}
 			}
 
-			repos, err = api.ListRepository(projectName, false)
+			repos, err = api.ListRepository(projectName, false, opts)
 			if err != nil {
 				return fmt.Errorf("failed to list repositories: %v", err)
 			}
