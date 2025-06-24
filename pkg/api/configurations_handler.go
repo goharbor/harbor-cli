@@ -11,8 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package constants
+package api
 
-const (
-	ProjectQString = "Level%3Dproject%2CProjectID%3D"
+import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/configure"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 )
+
+func GetConfigurations() (*configure.GetConfigurationsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Configure.GetConfigurations(ctx, &configure.GetConfigurationsParams{})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
