@@ -104,6 +104,9 @@ Examples:
 				}
 				logrus.Info("Successfully loaded robot configuration")
 				opts = *loadedOpts
+				if opts.ProjectName == "" {
+					opts.ProjectName = opts.Permissions[0].Namespace
+				}
 				permissions = make([]models.Permission, len(opts.Permissions[0].Access))
 				for i, access := range opts.Permissions[0].Access {
 					permissions[i] = models.Permission{
@@ -113,7 +116,7 @@ Examples:
 				}
 			}
 
-			if opts.ProjectName == "" {
+			if opts.ProjectName == "" && configFile == "" {
 				opts.ProjectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
