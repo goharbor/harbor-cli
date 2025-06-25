@@ -28,6 +28,7 @@ type CreateView struct {
 	Duration    int64              `json:"duration,omitempty"`
 	Level       string             `json:"level,omitempty"`
 	Name        string             `json:"name,omitempty"`
+	Kind        string             `json:"kind,omitempty"`
 	Permissions []*RobotPermission `json:"permissions"`
 	Secret      string             `json:"secret,omitempty"`
 	ProjectName string
