@@ -215,29 +215,101 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+j", "ctrl+k":
-			// Toggle all in current row
+
+		case "ctrl+a":
+			// Turn all cells on
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						if m.Disabled[rowIdx][colIdx] {
+							continue
+						}
+						m.Data[rowIdx][colIdx-1] = true
+					}
+				} else {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						m.Data[rowIdx][colIdx-1] = true
+					}
+				}
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+
+		case "ctrl+d":
+			// Turn all cells off
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						if m.Disabled[rowIdx][colIdx] {
+							continue
+						}
+						m.Data[rowIdx][colIdx-1] = false
+					}
+				} else {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						m.Data[rowIdx][colIdx-1] = false
+					}
+				}
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+
+		case "ctrl+j":
+			// Turn on all in current row
+			if m.Table.Cursor() < 0 || m.Table.Cursor() >= len(m.RowLabels) {
+				return m, nil // No valid row selected
+			}
 			rowIdx := m.Table.Cursor()
 			for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
 				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
 					continue
 				}
-				m.Data[rowIdx][colIdx-1] = !m.Data[rowIdx][colIdx-1]
+				m.Data[rowIdx][colIdx-1] = true
 			}
 			m.refreshTable(rowIdx, m.SelectedCol)
 			return m, nil
 
-		case "ctrl+h", "ctrl+l":
-			// Toggle all in current column
+		case "ctrl+k":
+			// Turn off all in current row
+			if m.Table.Cursor() < 0 || m.Table.Cursor() >= len(m.RowLabels) {
+				return m, nil // No valid row selected
+			}
+			rowIdx := m.Table.Cursor()
+			for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = false
+			}
+			m.refreshTable(rowIdx, m.SelectedCol)
+			return m, nil
+
+		case "ctrl+h":
+			// Turn on all in current column
 			if m.SelectedCol < 1 || m.SelectedCol >= len(m.ColLabels) {
 				return m, nil // No valid column selected
 			}
 			colIdx := m.SelectedCol
-			for rowIdx := range m.RowLabels {
+			for rowIdx := 0; rowIdx < len(m.RowLabels); rowIdx++ {
 				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
 					continue
 				}
-				m.Data[rowIdx][colIdx-1] = !m.Data[rowIdx][colIdx-1]
+				m.Data[rowIdx][colIdx-1] = true
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+
+		case "ctrl+l":
+			// Turn off all in current column
+			if m.SelectedCol < 1 || m.SelectedCol >= len(m.ColLabels) {
+				return m, nil // No valid column selected
+			}
+			colIdx := m.SelectedCol
+			for rowIdx := 0; rowIdx < len(m.RowLabels); rowIdx++ {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = false
 			}
 			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
 			return m, nil
@@ -325,7 +397,8 @@ func (m *TableGrid) View() string {
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
 
-	footer := "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ^S submit • ⌃J/^K toggle row • ⌃H/^L toggle col • q to cancel\n"
+	footer := "\n ↑/↓ move row • ⌃J toggle row on  • ⌃H toggle col on  • ^A toggle table on  • space/enter to toggle\n" +
+		" ←/→ move col • ⌃K toggle row off • ⌃L toggle col off • ^D toggle table off • ^S submit • q to cancel \n"
 
 	return out + footer
 }
