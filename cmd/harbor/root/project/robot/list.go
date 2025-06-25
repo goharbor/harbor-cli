@@ -97,7 +97,6 @@ Examples:
 				if err != nil {
 					return err
 				}
-
 			} else {
 				list.ListRobots(robots.Payload)
 			}
