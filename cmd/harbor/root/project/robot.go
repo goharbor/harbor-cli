@@ -11,8 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package constants
+package project
 
-const (
-	ProjectQString = "Level%3Dproject%2CProjectID%3D"
+import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/robot"
+	"github.com/spf13/cobra"
 )
+
+func Robot() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "robot",
+		Short:   "Manage robot accounts",
+		Example: `  harbor project robot list`,
+	}
+	cmd.AddCommand(
+		robot.ListRobotCommand(),
+		robot.DeleteRobotCommand(),
+		robot.ViewRobotCommand(),
+		robot.CreateRobotCommand(),
+		robot.UpdateRobotCommand(),
+		robot.RefreshSecretCommand(),
+	)
+
+	return cmd
+}
