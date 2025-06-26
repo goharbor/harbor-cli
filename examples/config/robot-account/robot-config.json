@@ -2,29 +2,29 @@
   "name": "ci-pipeline-robot",
   "description": "Robot account for CI/CD pipeline",
   "duration": 90,
-  "project": "demo",
+  "kind": "project",
   "permissions": [
     {
-      "resource": "repository",
-      "actions": [
-        "pull",
-        "push"
-      ]
-    },
-    {
-      "resources": [
-        "artifact",
-        "scan"
+      "access": [
+        {
+          "resource": "repository",
+          "actions": [
+            "pull",
+            "push"
+          ]
+        },
+        {
+          "resources": [
+            "artifact",
+            "scan"
+          ],
+          "actions": [
+            "read"
+          ]
+        }
       ],
-      "actions": [
-        "read"
-      ]
-    },
-    {
-      "resource": "project",
-      "actions": [
-        "*"
-      ]
+      "kind": "project",
+      "namespace": "demo"
     }
   ]
 }
