@@ -44,6 +44,7 @@ func TestFormatUrl(t *testing.T) {
 		{"https://example.com", "https://example.com"},
 		{"http://foo", "http://foo"},
 		{"https://bar", "https://bar"},
+		{"demo.goharbor.io", "https://demo.goharbor.io"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.in, func(t *testing.T) {

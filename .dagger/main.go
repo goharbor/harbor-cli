@@ -24,8 +24,7 @@ import (
 
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
-	GO_VERSION           = "1.24.2"
-	SYFT_VERSION         = "v1.9.0"
+	GO_VERSION           = "1.24.4"
 	GORELEASER_VERSION   = "v2.8.2"
 )
 
@@ -237,9 +236,13 @@ func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 	goreleaser := m.goreleaserContainer().
 		WithSecretVariable("GITHUB_TOKEN", githubToken).
 		WithExec([]string{"goreleaser", "release", "--clean"})
-	_, err := goreleaser.Stderr(ctx)
+	error, err := goreleaser.Stderr(ctx)
 	if err != nil {
 		log.Printf("Error occured during release: %s", err)
+		return
+	}
+	if len(error) > 0 {
+		log.Printf("Error occured while release: %s", err)
 		return
 	}
 	log.Println("Release tasks completed successfully 🎉")
@@ -247,22 +250,14 @@ func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 
 // Return a container with the goreleaser binary mounted and the source directory mounted.
 func (m *HarborCli) goreleaserContainer() *dagger.Container {
-	// Export the syft binary from the syft container as a file to generate SBOM
-	syft := dag.Container().
-		From(fmt.Sprintf("anchore/syft:%s", SYFT_VERSION)).
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("syft-gomod")).
-		File("/syft")
-
 	return dag.Container().
 		From(fmt.Sprintf("goreleaser/goreleaser:%s", GORELEASER_VERSION)).
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
-		WithFile("/bin/syft", syft).
 		WithMountedDirectory("/src", m.Source).
-		WithWorkdir("/src").
-		WithEnvVariable("TINI_SUBREAPER", "true")
+		WithWorkdir("/src")
 }
 
 // Generate CLI Documentation and return the directory containing the generated files

@@ -1,0 +1,95 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-robot-list - list robot
+
+
+.SH SYNOPSIS
+\fBharbor project robot list [projectName] [flags]\fP
+
+
+.SH DESCRIPTION
+List robot accounts in a Harbor project.
+
+.PP
+This command displays a list of robot accounts, either from a specific project
+or by prompting you to select a project interactively. The list includes basic
+information about each robot account, such as ID, name, creation time, and
+expiration status.
+
+.PP
+The command supports multiple ways to specify the project:
+- By providing a project name as an argument
+- By using the --project-id flag
+- By using the -q/--query flag with a project filter
+- Without any arguments, which will prompt for project selection
+
+.PP
+You can control the output using pagination flags and format options:
+- Use --page and --page-size to navigate through results
+- Use --sort to order the results
+- Set output-format in your configuration for JSON, YAML, or other formats
+
+.PP
+Examples:
+  # List robots in a specific project by name
+  harbor-cli project robot list myproject
+
+.PP
+# List robots in a project by ID
+  harbor-cli project robot list --project-id 123
+
+.PP
+# List robots with pagination
+  harbor-cli project robot list --page 2 --page-size 20
+
+.PP
+# List robots with custom sorting
+  harbor-cli project robot list --sort name
+
+.PP
+# Interactive listing (will prompt for project selection)
+  harbor-cli project robot list
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=10
+	Size of per page
+
+.PP
+\fB--project-id\fP=0
+	Project ID
+
+.PP
+\fB-q\fP, \fB--query\fP=""
+	Query string to query resources
+
+.PP
+\fB--sort\fP=""
+	Sort the resource list in ascending or descending order
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project-robot(1)\fP
