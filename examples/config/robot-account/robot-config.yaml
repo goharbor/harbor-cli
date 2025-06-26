@@ -1,7 +1,7 @@
 name: ci-pipeline-robot
 description: "Robot account for CI/CD pipeline"
 duration: 90
-kind: system
+kind: project
 permissions:
   - access: 
     - resource: repository
