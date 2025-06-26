@@ -46,8 +46,10 @@ type Access struct {
 }
 
 func CreateRobotView(createView *CreateView) {
-	var duration string
-	duration = strconv.FormatInt(createView.Duration, 10)
+	duration := strconv.FormatInt(createView.Duration, 10)
+	if createView.Duration == 0 {
+		duration = "-1"
+	}
 
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
@@ -57,7 +59,7 @@ func CreateRobotView(createView *CreateView) {
 				Value(&createView.Name).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Name cannot be empty")
+						return errors.New("name cannot be empty")
 					}
 					return nil
 				}),
@@ -68,8 +70,12 @@ func CreateRobotView(createView *CreateView) {
 				Title("Expiration").
 				Value(&duration).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("Expiration cannot be empty")
+					durationInt, err := strconv.Atoi(str)
+					if err != nil {
+						return errors.New("invalid expiration time: Enter expiration time in days")
+					}
+					if durationInt < -1 || durationInt == 0 {
+						return errors.New("invalid expiration time: Enter -1 for no expiration or a positive integer for days")
 					}
 					dur, err := strconv.ParseInt(str, 10, 64)
 					if err != nil {

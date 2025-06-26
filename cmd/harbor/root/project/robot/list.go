@@ -68,7 +68,7 @@ Examples:
   # Interactive listing (will prompt for project selection)
   harbor-cli project robot list`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				project, err := api.GetProject(args[0], false)
 				if err != nil {
@@ -92,13 +92,15 @@ Examples:
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
+				log.WithField("output_format", formatFlag).Debug("Output format selected")
 				err = utils.PrintFormat(robots, formatFlag)
 				if err != nil {
-					log.Errorf("Invalid Print Format: %v", err)
+					return err
 				}
 			} else {
 				list.ListRobots(robots.Payload)
 			}
+			return nil
 		},
 	}
 
