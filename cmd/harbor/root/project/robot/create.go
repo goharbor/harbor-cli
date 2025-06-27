@@ -183,7 +183,7 @@ Examples:
 			if exists {
 				return fmt.Errorf("robot account with name '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
 			}
-			response, err := api.CreateRobot(opts, "project")
+			response, err := api.CreateRobot(opts, opts.Level)
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}

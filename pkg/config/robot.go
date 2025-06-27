@@ -33,7 +33,7 @@ type RobotPermissionConfig struct {
 	Description string            `yaml:"description" json:"description"`
 	Duration    int64             `yaml:"duration" json:"duration"`
 	Project     string            `yaml:"project,omitempty" json:"project,omitempty"` // Legacy field for backward compatibility
-	Kind        string            `yaml:"kind,omitempty" json:"kind,omitempty"`       // "project" or "system"
+	Level       string            `yaml:"kind,omitempty" json:"kind,omitempty"`       // "project" or "system"
 	Permissions []PermissionScope `yaml:"permissions" json:"permissions"`
 }
 
@@ -86,8 +86,8 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 
 	// Determine the robot kind
 	robotKind := "project" // Default to project robot
-	if config.Kind != "" {
-		robotKind = config.Kind
+	if config.Level != "" {
+		robotKind = config.Level
 	}
 
 	// Create the base view object
@@ -95,7 +95,7 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 		Name:        config.Name,
 		Description: config.Description,
 		Duration:    config.Duration,
-		Kind:        robotKind,
+		Level:       robotKind,
 	}
 
 	// For backward compatibility, set ProjectName if present in config
@@ -296,7 +296,7 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 	}
 
 	// Kind-specific validation
-	if opts.Kind == "project" {
+	if opts.Level == "project" {
 		// Project robot requires a project
 		projectName := ""
 		if opts.ProjectName != "" {
@@ -340,13 +340,13 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 			return nil, fmt.Errorf("project robots must have a permission scope of kind 'project', found '%s'",
 				opts.Permissions[0].Kind)
 		}
-	} else if opts.Kind == "system" {
+	} else if opts.Level == "system" {
 		// System robot validation
 		if len(opts.Permissions) == 0 {
 			return nil, fmt.Errorf("system robot must have at least one permission scope")
 		}
 	} else {
-		return nil, fmt.Errorf("invalid robot kind: %s. Must be 'project' or 'system'", opts.Kind)
+		return nil, fmt.Errorf("invalid robot kind: %s. Must be 'project' or 'system'", opts.Level)
 	}
 
 	// Validate permissions
