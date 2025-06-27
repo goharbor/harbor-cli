@@ -79,10 +79,14 @@ func ListProjectCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
+			} else if utils.IsOutputPiped() {
+				log.Debug("Pipe detected")
+				list.ListProjectsTabSeparated(allProjects)
 			} else {
 				log.Debug("Listing projects using default view")
 				list.ListProjects(allProjects)
 			}
+
 			return nil
 		},
 	}
