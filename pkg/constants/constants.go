@@ -12,3 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 package constants
+
+const (
+	ProjectQString = "Level%3Dproject%2CProjectID%3D"
+)
