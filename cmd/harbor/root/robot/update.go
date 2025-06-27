@@ -129,7 +129,7 @@ Examples:
 				}
 				permissions = choices
 			} else {
-				permissions = prompt.GetRobotPermissionsFromUser("project")
+				permissions = prompt.GetRobotPermissionsFromUser("system")
 			}
 
 			// []Permission to []*Access

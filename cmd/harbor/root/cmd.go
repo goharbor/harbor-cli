@@ -18,9 +18,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
-
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
@@ -28,6 +27,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/robot"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
@@ -134,6 +134,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = robot.Robot()
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 

@@ -148,7 +148,7 @@ Examples:
 						}
 						permissions = choices
 					} else {
-						permissions = prompt.GetRobotPermissionsFromUser()
+						permissions = prompt.GetRobotPermissionsFromUser("project")
 						if len(permissions) == 0 {
 							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
 							return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
@@ -183,7 +183,7 @@ Examples:
 			if exists {
 				return fmt.Errorf("robot account with name '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
 			}
-			response, err := api.CreateRobot(opts, "project")
+			response, err := api.CreateRobot(opts)
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}

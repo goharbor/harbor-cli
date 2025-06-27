@@ -108,7 +108,7 @@ func DeleteRobot(robotID int64) error {
 	return nil
 }
 
-func CreateRobot(opts create.CreateView, kind string) (*robot.CreateRobotCreated, error) {
+func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
@@ -122,11 +122,13 @@ func CreateRobot(opts create.CreateView, kind string) (*robot.CreateRobotCreated
 	for _, perm := range permissions {
 		convertedPerm := &models.RobotPermission{
 			Access:    perm.Access,
-			Kind:      kind,
-			Namespace: opts.ProjectName,
+			Kind:      perm.Kind,
+			Namespace: perm.Namespace,
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)
 	}
+	fmt.Println("This is the level", opts.Level)
+
 	response, err := client.Robot.CreateRobot(
 		ctx,
 		&robot.CreateRobotParams{
@@ -134,14 +136,14 @@ func CreateRobot(opts create.CreateView, kind string) (*robot.CreateRobotCreated
 				Description: opts.Description,
 				Disable:     false,
 				Duration:    opts.Duration,
-				Level:       kind,
+				Level:       "system", //opts.Level,
 				Name:        opts.Name,
 				Permissions: convertedPerms,
 			},
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 	}
 
 	log.Info("robot created successfully.")
