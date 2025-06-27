@@ -169,6 +169,7 @@ Examples:
 				perm := &create.RobotPermission{
 					Namespace: opts.ProjectName,
 					Access:    accesses,
+					Kind:      "project", // Default to project level
 				}
 				opts.Permissions = []*create.RobotPermission{perm}
 			}
@@ -183,6 +184,7 @@ Examples:
 			if exists {
 				return fmt.Errorf("robot account with name '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
 			}
+			opts.Level = "project" // Default to project level
 			response, err := api.CreateRobot(opts)
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))

@@ -145,9 +145,19 @@ func NewRobotPermissionsGrid(kind string) *tablegrid.TableGrid {
 	}
 
 	// Get available permissions from API
-	availablePerms, err := config.GetAllAvailablePermissions()
+	perms, err := config.GetAllAvailablePermissions()
 	if err != nil {
 		fmt.Printf("Error fetching available permissions: %v\n", err)
+		os.Exit(1)
+	}
+
+	var availablePerms map[string][]string
+	if kind == "project" {
+		availablePerms = perms.Project
+	} else if kind == "system" {
+		availablePerms = perms.System
+	} else {
+		fmt.Printf("invalid kind specified: %s, expected 'system' or 'project'\n", kind)
 		os.Exit(1)
 	}
 

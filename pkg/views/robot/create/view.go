@@ -16,6 +16,7 @@ package create
 import (
 	"errors"
 	"strconv"
+	"unicode"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -58,8 +59,8 @@ func CreateRobotView(createView *CreateView) {
 				Title("Robot Name").
 				Value(&createView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if !isValidName(str) {
+						return errors.New("invalid name: must start with a letter and contain only letters, digits, hyphen or underscore, no uppercase letters")
 					}
 					return nil
 				}),
@@ -107,4 +108,22 @@ func CreateRobotSecretView(name string, secret string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func isValidName(s string) bool {
+	if s == "" {
+		return false
+	}
+	if len(s) > 0 && !unicode.IsLetter(rune(s[0])) {
+		return false
+	}
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			return false
+		}
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '-' && r != '_' {
+			return false
+		}
+	}
+	return true
 }

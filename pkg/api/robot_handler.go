@@ -127,7 +127,6 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)
 	}
-	fmt.Println("This is the level", opts.Level)
 
 	response, err := client.Robot.CreateRobot(
 		ctx,
@@ -136,7 +135,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 				Description: opts.Description,
 				Disable:     false,
 				Duration:    opts.Duration,
-				Level:       "system", //opts.Level,
+				Level:       opts.Level,
 				Name:        opts.Name,
 				Permissions: convertedPerms,
 			},

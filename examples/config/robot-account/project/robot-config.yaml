@@ -15,4 +15,3 @@ permissions:
         - read
     kind: project
     namespace: demo
-

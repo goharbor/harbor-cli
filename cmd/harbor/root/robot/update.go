@@ -86,15 +86,8 @@ Examples:
 				if err != nil {
 					log.Fatalf("failed to parse robot ID: %v", err)
 				}
-			} else if ProjectName != "" {
-				project, err := api.GetProject(ProjectName, false)
-				if err != nil {
-					log.Fatalf("failed to get project by name %s: %v", ProjectName, err)
-				}
-				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
-				robotID = prompt.GetRobotIDFromUser(projectID)
+				robotID = prompt.GetRobotIDFromUser(-1)
 			}
 
 			robot, err := api.GetRobot(robotID)
@@ -104,6 +97,21 @@ Examples:
 
 			bot := robot.Payload
 
+			var currentPermissions []*update.RobotPermission
+			for _, perm := range bot.Permissions {
+				accesses := []*models.Access{}
+				for _, access := range perm.Access {
+					accesses = append(accesses, &models.Access{
+						Action:   access.Action,
+						Resource: access.Resource,
+					})
+				}
+				currentPermissions = append(currentPermissions, &update.RobotPermission{
+					Kind:      perm.Kind,
+					Namespace: perm.Namespace,
+					Access:    accesses,
+				})
+			}
 			opts = update.UpdateView{
 				CreationTime: bot.CreationTime,
 				Description:  bot.Description,
@@ -114,6 +122,7 @@ Examples:
 				Level:        bot.Level,
 				Name:         bot.Name,
 				Secret:       bot.Secret,
+				Permissions:  currentPermissions,
 			}
 
 			// declare empty permissions to hold permissions

@@ -139,10 +139,16 @@ func ViewRobot(robot *models.Robot) {
 		}
 	}
 
-	availablePerms, err := config.GetAllAvailablePermissions()
+	perms, err := config.GetAllAvailablePermissions()
 	if err != nil {
 		fmt.Printf("Error fetching available permissions: %v\n", err)
 		os.Exit(1)
+	}
+	var availablePerms map[string][]string
+	if systemLevel {
+		availablePerms = perms.System
+	} else {
+		availablePerms = perms.Project
 	}
 
 	resourceMap := make(map[string]string)
@@ -193,8 +199,7 @@ func ViewRobot(robot *models.Robot) {
 		for _, perm := range robot.Permissions {
 			if perm.Kind == "project" && perm.Namespace != "/" {
 				fmt.Printf("\n%sProject: %s%s\n\n", views.BoldANSI, perm.Namespace, views.ResetANSI)
-
-				projectRows := createProjectPermissionRows(perm, availablePerms)
+				projectRows := createProjectPermissionRows(perm, perms.Project)
 				pt := tablelist.NewModel(projectPermissionsColumns, projectRows, len(projectRows))
 				if _, err := tea.NewProgram(pt).Run(); err != nil {
 					fmt.Println("Error running program:", err)
