@@ -38,7 +38,7 @@ var columns = []table.Column{
 	{Title: "Description", Width: tablelist.WidthXL},
 }
 
-var permissionsColumns = []table.Column{
+var projectPermissionsColumns = []table.Column{
 	{Title: "Resource", Width: tablelist.WidthXL},
 	{Title: "Create", Width: tablelist.WidthS},
 	{Title: "Delete", Width: tablelist.WidthS},
@@ -50,12 +50,30 @@ var permissionsColumns = []table.Column{
 	{Title: "Update", Width: tablelist.WidthS},
 }
 
-var resourceStrings = []string{
+var systemPermissionsColumns = []table.Column{
+	{Title: "Resource", Width: tablelist.WidthXL},
+	{Title: "Create", Width: tablelist.WidthS},
+	{Title: "Delete", Width: tablelist.WidthS},
+	{Title: "List", Width: tablelist.WidthS},
+	{Title: "Read", Width: tablelist.WidthS},
+	{Title: "Stop", Width: tablelist.WidthS},
+	{Title: "Update", Width: tablelist.WidthS},
+}
+
+var projectResourceStrings = []string{
 	"Accessory", "Artifact", "Artifact Addition", "Artifact Label",
 	"Export CVE", "Immutable Tag", "Label", "Log", "Member",
 	"Metadata", "Notification Policy", "Preheat Policy",
-	"Project", "Quota", "Repository", "Robot", "SBOM",
+	"Project", "Quota", "Repository", "Robot Account", "SBOM",
 	"Scan", "Scanner", "Tag", "Tag Retention",
+}
+
+var systemResourceStrings = []string{
+	"Audit Log", "Catalog", "Garbage Collection", "JobService Monitor",
+	"Label", "LDAP User", "Preheat Instance", "Project", "Purge Audit",
+	"Quota", "Registry", "Replication", "Replication Adapter", "Replication Policy",
+	"Robot", "Scan All", "Scanner", "Security Hub", "System Volumes",
+	"User", "User Group",
 }
 
 func ViewRobot(robot *models.Robot) {
@@ -94,18 +112,43 @@ func ViewRobot(robot *models.Robot) {
 		os.Exit(1)
 	}
 
+	fmt.Printf("\n%sRobot Permissions:%s\n\n", views.BoldANSI, views.ResetANSI)
+
+	var permissionsColumns []table.Column
+	var resourceStrings []string
+	var systemLevel bool
+
+	if robot.Level == "system" {
+		permissionsColumns = systemPermissionsColumns
+		resourceStrings = systemResourceStrings
+		systemLevel = true
+		fmt.Printf("%sSystem-level robot with access across projects%s\n\n", views.BoldANSI, views.ResetANSI)
+	} else {
+		permissionsColumns = projectPermissionsColumns
+		resourceStrings = projectResourceStrings
+		systemLevel = false
+		fmt.Printf("%sProject-level robot for project: %s%s\n\n", views.BoldANSI, robot.Permissions[0].Namespace, views.ResetANSI)
+	}
+
 	var permissionRows []table.Row
 	resActs := map[string][]string{}
+
 	for _, perm := range robot.Permissions {
 		for _, access := range perm.Access {
 			resActs[access.Resource] = append(resActs[access.Resource], access.Action)
 		}
 	}
 
-	availablePerms, err := config.GetAllAvailablePermissions()
+	perms, err := config.GetAllAvailablePermissions()
 	if err != nil {
 		fmt.Printf("Error fetching available permissions: %v\n", err)
 		os.Exit(1)
+	}
+	var availablePerms map[string][]string
+	if systemLevel {
+		availablePerms = perms.System
+	} else {
+		availablePerms = perms.Project
 	}
 
 	resourceMap := make(map[string]string)
@@ -115,6 +158,73 @@ func ViewRobot(robot *models.Robot) {
 	}
 
 	for _, displayName := range resourceStrings {
+		kebabName := utils.ToKebabCase(displayName)
+		if _, exists := availablePerms[kebabName]; !exists {
+			continue
+		}
+
+		row := table.Row{displayName}
+
+		var actionsToCheck []string
+		if systemLevel {
+			actionsToCheck = []string{"create", "delete", "list", "read", "stop", "update"}
+		} else {
+			actionsToCheck = []string{"create", "delete", "list", "pull", "push", "read", "stop", "update"}
+		}
+
+		for _, action := range actionsToCheck {
+			if slices.Contains(availablePerms[kebabName], action) {
+				actions := resActs[kebabName]
+				if slices.Contains(actions, action) {
+					row = append(row, "✅")
+				} else {
+					row = append(row, "❌")
+				}
+			} else {
+				row = append(row, " ")
+			}
+		}
+		permissionRows = append(permissionRows, row)
+	}
+
+	if systemLevel && len(robot.Permissions) > 1 {
+		t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
+		if _, err := tea.NewProgram(t).Run(); err != nil {
+			fmt.Println("Error running program:", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("\n%sProject-specific Permissions:%s\n", views.BoldANSI, views.ResetANSI)
+
+		for _, perm := range robot.Permissions {
+			if perm.Kind == "project" && perm.Namespace != "/" {
+				fmt.Printf("\n%sProject: %s%s\n\n", views.BoldANSI, perm.Namespace, views.ResetANSI)
+				projectRows := createProjectPermissionRows(perm, perms.Project)
+				pt := tablelist.NewModel(projectPermissionsColumns, projectRows, len(projectRows))
+				if _, err := tea.NewProgram(pt).Run(); err != nil {
+					fmt.Println("Error running program:", err)
+					os.Exit(1)
+				}
+			}
+		}
+	} else {
+		t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
+		if _, err := tea.NewProgram(t).Run(); err != nil {
+			fmt.Println("Error running program:", err)
+			os.Exit(1)
+		}
+	}
+}
+
+func createProjectPermissionRows(perm *models.RobotPermission, availablePerms map[string][]string) []table.Row {
+	var rows []table.Row
+	resActs := map[string][]string{}
+
+	for _, access := range perm.Access {
+		resActs[access.Resource] = append(resActs[access.Resource], access.Action)
+	}
+
+	for _, displayName := range projectResourceStrings {
 		kebabName := utils.ToKebabCase(displayName)
 		if _, exists := availablePerms[kebabName]; !exists {
 			continue
@@ -133,15 +243,10 @@ func ViewRobot(robot *models.Robot) {
 				row = append(row, " ")
 			}
 		}
-		permissionRows = append(permissionRows, row)
+		rows = append(rows, row)
 	}
 
-	t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
-
-	if _, err := tea.NewProgram(t).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	return rows
 }
 
 func remainingTime(unixTimestamp int64) string {

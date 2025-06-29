@@ -1,0 +1,30 @@
+{
+  "name": "ci-pipeline-robot",
+  "description": "Robot account for CI/CD pipeline",
+  "duration": 90,
+  "level": "project",
+  "permissions": [
+    {
+      "access": [
+        {
+          "resource": "repository",
+          "actions": [
+            "pull",
+            "push"
+          ]
+        },
+        {
+          "resources": [
+            "artifact",
+            "scan"
+          ],
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "kind": "project",
+      "namespace": "demo"
+    }
+  ]
+}

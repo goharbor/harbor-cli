@@ -104,6 +104,9 @@ Examples:
 				}
 				logrus.Info("Successfully loaded robot configuration")
 				opts = *loadedOpts
+				if opts.ProjectName == "" {
+					opts.ProjectName = opts.Permissions[0].Namespace
+				}
 				permissions = make([]models.Permission, len(opts.Permissions[0].Access))
 				for i, access := range opts.Permissions[0].Access {
 					permissions[i] = models.Permission{
@@ -113,7 +116,7 @@ Examples:
 				}
 			}
 
-			if opts.ProjectName == "" {
+			if opts.ProjectName == "" && configFile == "" {
 				opts.ProjectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
@@ -145,7 +148,7 @@ Examples:
 						}
 						permissions = choices
 					} else {
-						permissions = prompt.GetRobotPermissionsFromUser()
+						permissions = prompt.GetRobotPermissionsFromUser("project")
 						if len(permissions) == 0 {
 							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
 							return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
@@ -166,6 +169,7 @@ Examples:
 				perm := &create.RobotPermission{
 					Namespace: opts.ProjectName,
 					Access:    accesses,
+					Kind:      "project", // Default to project level
 				}
 				opts.Permissions = []*create.RobotPermission{perm}
 			}
@@ -180,7 +184,8 @@ Examples:
 			if exists {
 				return fmt.Errorf("robot account with name '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
 			}
-			response, err := api.CreateRobot(opts, "project")
+			opts.Level = "project" // Default to project level
+			response, err := api.CreateRobot(opts)
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}
