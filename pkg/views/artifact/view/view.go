@@ -37,195 +37,174 @@ func ViewArtifact(artifact *models.Artifact) {
 }
 
 func displayDetailTable(artifact *models.Artifact) {
-	var rows []table.Row
+	var basicRows []table.Row
+	var otherRows []table.Row
 
-	// SECTION: Basic metadata
-	addSectionHeader(&rows, "BASIC INFO")
-	addRow(&rows, "ID", strconv.FormatInt(int64(artifact.ID), 10))
-	addRow(&rows, "Repository ID", strconv.FormatInt(int64(artifact.RepositoryID), 10))
-	addRow(&rows, "Digest", artifact.Digest)
-	addRow(&rows, "Media Type", artifact.MediaType)
-	addRow(&rows, "Type", artifact.Type)
+	// BASIC INFO
+	addRow(&basicRows, "ID", strconv.FormatInt(int64(artifact.ID), 10))
+	addRow(&basicRows, "Repository ID", strconv.FormatInt(int64(artifact.RepositoryID), 10))
+	addRow(&basicRows, "Digest", artifact.Digest)
+	addRow(&basicRows, "Media Type", artifact.MediaType)
+	addRow(&basicRows, "Type", artifact.Type)
 
-	// SECTION: Tags
+	// Tags
 	if len(artifact.Tags) > 0 {
-		addSectionHeader(&rows, "TAGS")
 		var tagNames []string
 		for _, tag := range artifact.Tags {
 			tagNames = append(tagNames, tag.Name)
 		}
-
-		// Handle tags as multi-line data with actual multiple rows
-		addMultiLineData(&rows, "Tags", tagNames, ", ", 80)
+		addMultiLineData(&basicRows, "Tags", tagNames, ", ", 80)
 	}
 
-	// SECTION: Size and Timing
-	addSectionHeader(&rows, "SIZE & TIMING")
-	addRow(&rows, "Size", utils.FormatSize(artifact.Size))
+	addRow(&basicRows, "Size", utils.FormatSize(artifact.Size))
 	pushTime, _ := utils.FormatCreatedTime(artifact.PushTime.String())
-	addRow(&rows, "Push Time", pushTime)
+	addRow(&basicRows, "Push Time", pushTime)
 
-	// SECTION: Platform Info from ExtraAttrs
-	addSectionHeader(&rows, "PLATFORM")
+	// Platform Info from ExtraAttrs
 	if artifact.ExtraAttrs != nil {
-		// Architecture
 		if arch, ok := artifact.ExtraAttrs["architecture"].(string); ok {
-			addRow(&rows, "Architecture", arch)
+			addRow(&basicRows, "Architecture", arch)
 		}
-
-		// OS
 		if osVal, ok := artifact.ExtraAttrs["os"].(string); ok {
-			addRow(&rows, "OS", osVal)
+			addRow(&basicRows, "OS", osVal)
 		}
-
-		// Created timestamp
 		if created, ok := artifact.ExtraAttrs["created"].(string); ok {
-			addRow(&rows, "Created", created)
-		}
-
-		// Layers
-		if layers, ok := artifact.ExtraAttrs["layers"].([]any); ok {
-			addRow(&rows, "Layer Count", strconv.Itoa(len(layers)))
+			addRow(&basicRows, "Created", created)
 		}
 	}
 
-	// SECTION: Config Information
+	// Author from config
 	if artifact.ExtraAttrs != nil {
 		if config, ok := artifact.ExtraAttrs["config"].(map[string]any); ok {
-			addSectionHeader(&rows, "CONFIGURATION")
-
-			// Author
 			if author, ok := config["author"].(string); ok {
-				addRow(&rows, "Author", author)
+				addRow(&basicRows, "Author", author)
 			}
+		}
+	}
 
+	// Version (if present in ExtraAttrs)
+	if artifact.ExtraAttrs != nil {
+		if version, ok := artifact.ExtraAttrs["version"].(string); ok {
+			addRow(&basicRows, "Version", version)
+		}
+		if apiVersion, ok := artifact.ExtraAttrs["apiVersion"].(string); ok {
+			addRow(&basicRows, "API Version", apiVersion)
+		}
+		if appVersion, ok := artifact.ExtraAttrs["appVersion"].(string); ok {
+			addRow(&basicRows, "App Version", appVersion)
+		}
+		if description, ok := artifact.ExtraAttrs["description"].(string); ok {
+			addRow(&basicRows, "Description", description)
+		}
+	}
+
+	// OTHER INFO
+	// Config details
+	if artifact.ExtraAttrs != nil {
+		if config, ok := artifact.ExtraAttrs["config"].(map[string]any); ok {
 			// Environment Variables
 			if env, ok := config["Env"].([]any); ok && len(env) > 0 {
-				// Add environment variables as separate rows
 				var envStrings []string
 				for _, e := range env {
 					envStrings = append(envStrings, fmt.Sprintf("%v", e))
 				}
-				addMultiLineData(&rows, "Environment Variables", envStrings, "", 0)
+				addMultiLineData(&otherRows, "Environment Variables", envStrings, "", 0)
 			}
-
 			// Exposed Ports
 			if ports, ok := config["ExposedPorts"].(map[string]any); ok && len(ports) > 0 {
 				var portsList []string
 				for port := range ports {
 					portsList = append(portsList, port)
 				}
-				addMultiLineData(&rows, "Exposed Ports", portsList, "", 0)
+				addMultiLineData(&otherRows, "Exposed Ports", portsList, "", 0)
 			}
-
 			// Volumes
 			if volumes, ok := config["Volumes"].(map[string]any); ok && len(volumes) > 0 {
 				var volumesList []string
 				for volume := range volumes {
 					volumesList = append(volumesList, volume)
 				}
-				addMultiLineData(&rows, "Volumes", volumesList, "", 0)
+				addMultiLineData(&otherRows, "Volumes", volumesList, "", 0)
 			}
-
 			// Entrypoint
 			if entrypoint, ok := config["Entrypoint"].([]any); ok && len(entrypoint) > 0 {
 				var entryList []string
 				for _, e := range entrypoint {
 					entryList = append(entryList, fmt.Sprintf("%v", e))
 				}
-				addRow(&rows, "Entrypoint", strings.Join(entryList, " "))
+				addRow(&otherRows, "Entrypoint", strings.Join(entryList, " "))
 			}
-
 			// Command
 			if cmd, ok := config["Cmd"].([]any); ok && len(cmd) > 0 {
 				var cmdList []string
 				for _, c := range cmd {
 					cmdList = append(cmdList, fmt.Sprintf("%v", c))
 				}
-				addRow(&rows, "Command", strings.Join(cmdList, " "))
+				addRow(&otherRows, "Command", strings.Join(cmdList, " "))
 			}
-
 			// Labels
 			if labels, ok := config["Labels"].(map[string]any); ok && len(labels) > 0 {
 				var labelsList []string
 				for k, v := range labels {
 					labelsList = append(labelsList, fmt.Sprintf("%s: %v", k, v))
 				}
-				addMultiLineData(&rows, "Labels", labelsList, "", 0)
+				addMultiLineData(&otherRows, "Labels", labelsList, "", 0)
 			}
 		}
 	}
 
-	// SECTION: Other Attributes
+	// Other ExtraAttrs (excluding those already shown)
 	if artifact.ExtraAttrs != nil {
-		otherAttrs := false
-
 		for key, value := range artifact.ExtraAttrs {
-			if key == "architecture" || key == "os" || key == "config" || key == "created" || key == "layers" {
+			if key == "architecture" || key == "os" || key == "config" || key == "created" || key == "layers" || key == "version" || key == "description" || key == "apiVersion" || key == "appVersion" {
 				continue
 			}
-
-			if !otherAttrs {
-				addSectionHeader(&rows, "OTHER ATTRIBUTES")
-				otherAttrs = true
-			}
-
 			switch v := value.(type) {
 			case string, bool, int, int64, float64:
-				addRow(&rows, key, fmt.Sprintf("%v", v))
+				addRow(&otherRows, key, fmt.Sprintf("%v", v))
 			default:
-				// For complex structures, pretty print as JSON
 				jsonBytes, err := json.MarshalIndent(value, "", "  ")
 				if err == nil {
-					jsonString := string(jsonBytes)
-					lines := strings.Split(jsonString, "\n")
-					addMultiLineData(&rows, key, lines, "", 0)
+					lines := strings.Split(string(jsonBytes), "\n")
+					addMultiLineData(&otherRows, key, lines, "", 0)
 				} else {
-					addRow(&rows, key, "(complex structure - see JSON output)")
+					addRow(&otherRows, key, "(complex structure - see JSON output)")
 				}
 			}
 		}
 	}
 
-	// SECTION: Vulnerabilities
-	addSectionHeader(&rows, "SECURITY")
-	var totalVulnerabilities int64
-	for _, scan := range artifact.ScanOverview {
-		totalVulnerabilities += scan.Summary.Total
-	}
-	addRow(&rows, "Vulnerabilities", strconv.FormatInt(totalVulnerabilities, 10))
-
-	// SECTION: References
 	if len(artifact.References) > 0 {
-		addSectionHeader(&rows, "REFERENCES")
 		for i, ref := range artifact.References {
 			if ref.Platform != nil && ref.Platform.Architecture != "" {
-				addRow(&rows, fmt.Sprintf("Reference %d", i+1), fmt.Sprintf("%s: %s", ref.Platform.Architecture, ref.ChildDigest))
+				addRow(&otherRows, fmt.Sprintf("Reference %d", i+1), fmt.Sprintf("%s: %s", ref.Platform.Architecture, ref.ChildDigest))
 			}
 		}
 	}
 
-	// SECTION: Additional links
+	// Additional links
 	if len(artifact.AdditionLinks) > 0 {
-		addSectionHeader(&rows, "ADDITIONAL INFO")
 		var links []string
 		for key := range artifact.AdditionLinks {
 			links = append(links, key)
 		}
-		addRow(&rows, "Available Endpoints", strings.Join(links, ", "))
+		addRow(&otherRows, "Available Endpoints", strings.Join(links, ", "))
 	}
 
-	// Display the table
-	m := tablelist.NewModel(detailsColumns, rows, len(rows))
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error displaying artifact details:", err)
+	// Display the tables
+	fmt.Println("\nBASIC INFORMATION")
+	basicTable := tablelist.NewModel(detailsColumns, basicRows, len(basicRows))
+	if _, err := tea.NewProgram(basicTable).Run(); err != nil {
+		fmt.Println("Error displaying basic artifact details:", err)
 		os.Exit(1)
 	}
-}
 
-func addSectionHeader(rows *[]table.Row, title string) {
-	*rows = append(*rows, table.Row{"", ""})
-	*rows = append(*rows, table.Row{"--- " + title + " ---", ""})
+	fmt.Println("\nOTHER INFORMATION")
+	otherTable := tablelist.NewModel(detailsColumns, otherRows, len(otherRows))
+	if _, err := tea.NewProgram(otherTable).Run(); err != nil {
+		fmt.Println("Error displaying other artifact details:", err)
+		os.Exit(1)
+	}
 }
 
 func addRow(rows *[]table.Row, key string, value string) {
