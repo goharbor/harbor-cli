@@ -81,8 +81,7 @@ Examples:
 					log.Fatalf("failed to parse robot ID: %v", err)
 				}
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
-				robotID = prompt.GetRobotIDFromUser(projectID)
+				robotID = prompt.GetRobotIDFromUser(-1)
 			}
 
 			if secret != "" {

@@ -85,44 +85,40 @@ Examples:
   harbor-cli robot create --name ci-robot --export-to-file`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCreateRobot(&opts, all, exportToFile, configFile)
+			var permissions []models.Permission
+			var projectPermissionsMap = make(map[string][]models.Permission)
+			var accessesSystem []*models.Access
+
+			// Handle config file or interactive input
+			if configFile != "" {
+				if err := loadFromConfigFile(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+					return err
+				}
+			} else {
+				if err := handleInteractiveInput(&opts, all, &permissions, projectPermissionsMap); err != nil {
+					return err
+				}
+			}
+
+			// Build system access permissions
+			for _, perm := range permissions {
+				accessesSystem = append(accessesSystem, &models.Access{
+					Resource: perm.Resource,
+					Action:   perm.Action,
+				})
+			}
+
+			// Build merged permissions structure
+			opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
+			opts.Level = "system"
+
+			// Create robot and handle response
+			return createRobotAndHandleResponse(&opts, exportToFile)
 		},
 	}
 
 	addFlags(cmd, &opts, &all, &exportToFile, &configFile)
 	return cmd
-}
-
-func runCreateRobot(opts *create.CreateView, all bool, exportToFile bool, configFile string) error {
-	var permissions []models.Permission
-	var projectPermissionsMap = make(map[string][]models.Permission)
-	var accessesSystem []*models.Access
-
-	// Handle config file or interactive input
-	if configFile != "" {
-		if err := loadFromConfigFile(opts, configFile, &permissions, projectPermissionsMap); err != nil {
-			return err
-		}
-	} else {
-		if err := handleInteractiveInput(opts, all, &permissions, projectPermissionsMap); err != nil {
-			return err
-		}
-	}
-
-	// Build system access permissions
-	for _, perm := range permissions {
-		accessesSystem = append(accessesSystem, &models.Access{
-			Resource: perm.Resource,
-			Action:   perm.Action,
-		})
-	}
-
-	// Build merged permissions structure
-	opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
-	opts.Level = "system"
-
-	// Create robot and handle response
-	return createRobotAndHandleResponse(opts, exportToFile)
 }
 
 func loadFromConfigFile(opts *create.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {

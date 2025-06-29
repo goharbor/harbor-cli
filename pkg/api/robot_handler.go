@@ -161,15 +161,15 @@ func UpdateRobot(opts *update.UpdateView) error {
 	permissions := opts.Permissions
 	convertedPerms := make([]*models.RobotPermission, 0, len(permissions))
 
-	// Loop through original permissions and convert them
 	for _, perm := range permissions {
 		convertedPerm := &models.RobotPermission{
 			Access:    perm.Access,
-			Kind:      opts.Permissions[0].Kind,
-			Namespace: opts.Permissions[0].Namespace,
+			Kind:      perm.Kind,
+			Namespace: perm.Namespace,
 		}
 		convertedPerms = append(convertedPerms, convertedPerm)
 	}
+
 	_, err = client.Robot.UpdateRobot(
 		ctx,
 		&robot.UpdateRobotParams{
