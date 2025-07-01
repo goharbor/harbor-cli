@@ -19,7 +19,7 @@ func Logs() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			logs, err := api.AuditLogs(opts)
 			if err != nil {
-				log.Fatalf("failed to get projects list: %v", err)
+				log.Fatalf("failed to retrieve audit logs: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
