@@ -16,6 +16,7 @@ package policies
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/replication"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -67,6 +68,7 @@ func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models
 		ReplicateDeletion: view.ReplicateDeletion,
 		Deletion:          view.ReplicateDeletion,
 		CopyByChunk:       &view.CopyByChunk,
+		Filters:           []*models.ReplicationFilter{},
 	}
 
 	if view.Speed != "" {
@@ -94,6 +96,63 @@ func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models
 		policy.SrcRegistry = nil
 		policy.DestRegistry = registry
 	}
+
+	var resourceFilter *models.ReplicationFilter
+	var nameFilter *models.ReplicationFilter
+	var tagFilter *models.ReplicationFilter
+	// var labelFilter *models.ReplicationFilter
+	var filters []*models.ReplicationFilter
+
+	if view.ResourceFilter != "" {
+		resourceFilter = &models.ReplicationFilter{
+			Type:       "resource",
+			Value:      view.ResourceFilter,
+			Decoration: "",
+		}
+		filters = append(filters, resourceFilter)
+	}
+
+	if view.NameFilter != "" {
+		nameFilter = &models.ReplicationFilter{
+			Type:       "name",
+			Value:      view.NameFilter,
+			Decoration: "",
+		}
+		filters = append(filters, nameFilter)
+	}
+
+	if view.TagPattern != "" {
+		tagFilter = &models.ReplicationFilter{
+			Type:       "tag",
+			Value:      view.TagPattern,
+			Decoration: view.TagFilter,
+		}
+		filters = append(filters, tagFilter)
+	}
+
+	if view.LabelPattern != "" {
+		decoration := "matches"
+		if view.LabelFilter == "excludes" {
+			decoration = "excludes"
+		}
+
+		var labelValues []string
+		if strings.Contains(view.LabelPattern, ",") {
+			labelValues = strings.Split(view.LabelPattern, ",")
+			for i, label := range labelValues {
+				labelValues[i] = strings.TrimSpace(label)
+			}
+		} else {
+			labelValues = []string{strings.TrimSpace(view.LabelPattern)}
+		}
+
+		filters = append(filters, &models.ReplicationFilter{
+			Type:       "label",
+			Value:      labelValues,
+			Decoration: decoration,
+		})
+	}
+	policy.Filters = filters
 
 	return policy
 }

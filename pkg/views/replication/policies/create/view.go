@@ -37,18 +37,25 @@ type CreateView struct {
 	TriggerType       string `json:"trigger_type,omitempty"`
 	ReplicateDeletion bool   `json:"replicate_deletion,omitempty"`
 	CronString        string `json:"cron_string,omitempty"`
+
+	// Filter related fields
+	ResourceFilter string `json:"resource_filter,omitempty"` // All, image, or chart
+	NameFilter     string `json:"name_filter,omitempty"`
+	TagFilter      string `json:"tag_filter,omitempty"` // matching or excluding
+	TagPattern     string `json:"tag_pattern,omitempty"`
+	LabelFilter    string `json:"label_filter,omitempty"`  // matching or excluding
+	LabelPattern   string `json:"label_pattern,omitempty"` // label key=value pairs
 }
 
 func CreateRPolicyView(createView *CreateView, update bool) {
-	if createView.ReplicationMode == "" {
-		createView.ReplicationMode = "Pull"
-	}
 	if createView.TriggerType == "" {
 		createView.TriggerType = "manual"
 	}
 
 	createView.Override = true
 	theme := huh.ThemeCharm()
+
+	// Step 1: Basic information
 	var basicGroup *huh.Group
 	if update {
 		basicGroup = huh.NewGroup(
@@ -90,6 +97,86 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 		)
 	}
 
+	// Run the basic form first
+	basicForm := huh.NewForm(basicGroup).WithTheme(theme)
+	err := basicForm.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Step 2: Create filter group based on selected mode
+	var filterGroup *huh.Group
+	fmt.Println("Selected Replication Mode:", createView.ReplicationMode)
+
+	if createView.ReplicationMode == "Pull" {
+		filterGroup = huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Resource Type").
+				Description("Type of artifacts to replicate").
+				Options(
+					huh.NewOption("Images only", "image"),
+				).
+				Value(&createView.ResourceFilter),
+			huh.NewInput().
+				Title("Name Filter").
+				Description("Repository name pattern (leave empty for all, supports wildcards like library/*)").
+				Value(&createView.NameFilter),
+			huh.NewSelect[string]().
+				Title("Tag Filter Type").
+				Description("How to filter by tags").
+				Options(
+					huh.NewOption("Include matching", "matches"),
+					huh.NewOption("Exclude matching", "excludes"),
+				).
+				Value(&createView.TagFilter),
+			huh.NewInput().
+				Title("Tag Pattern").
+				Description("Tag pattern (e.g., v*, latest, *-prod, leave empty to skip tag filtering)").
+				Value(&createView.TagPattern),
+		)
+	} else if createView.ReplicationMode == "Push" {
+		filterGroup = huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Resource Type").
+				Description("Type of artifacts to replicate").
+				Options(
+					huh.NewOption("All (Images & Charts)", ""),
+					huh.NewOption("Images only", "image"),
+					huh.NewOption("Charts only", "chart"),
+				).
+				Value(&createView.ResourceFilter),
+			huh.NewInput().
+				Title("Name Filter").
+				Description("Repository name pattern (leave empty for all, supports wildcards like library/*)").
+				Value(&createView.NameFilter),
+			huh.NewSelect[string]().
+				Title("Tag Filter Type").
+				Description("How to filter by tags").
+				Options(
+					huh.NewOption("Include matching", "matches"),
+					huh.NewOption("Exclude matching", "excludes"),
+				).
+				Value(&createView.TagFilter),
+			huh.NewInput().
+				Title("Tag Pattern").
+				Description("Tag pattern (e.g., v*, latest, *-prod, leave empty to skip tag filtering)").
+				Value(&createView.TagPattern),
+			huh.NewSelect[string]().
+				Title("Label Filter Type").
+				Description("How to filter by labels").
+				Options(
+					huh.NewOption("Include matching", "matches"),
+					huh.NewOption("Exclude matching", "excludes"),
+				).
+				Value(&createView.LabelFilter),
+			huh.NewInput().
+				Title("Label Pattern").
+				Description("Label filter (e.g., 'environment=prod' or 'env=prod,version=1.0', leave empty to skip label filtering)").
+				Value(&createView.LabelPattern),
+		)
+	}
+
+	// Step 3: Create trigger group based on selected mode
 	var triggerGroup *huh.Group
 	if createView.ReplicationMode == "Push" {
 		triggerGroup = huh.NewGroup(
@@ -116,6 +203,7 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 		)
 	}
 
+	// Step 4: Advanced options
 	advancedGroup := huh.NewGroup(
 		huh.NewConfirm().
 			Title("Override").
@@ -157,14 +245,14 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 			WithButtonAlignment(lipgloss.Left),
 	)
 
-	form := huh.NewForm(basicGroup, triggerGroup, advancedGroup)
-	form.WithTheme(theme)
-	err := form.Run()
+	// Run the remaining forms
+	restForm := huh.NewForm(filterGroup, triggerGroup, advancedGroup).WithTheme(theme)
+	err = restForm.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// The Pull mode does not have event_based triggers.
+	// Handle trigger-specific additional forms
 	if createView.TriggerType == "event_based" && createView.ReplicationMode == "Push" {
 		eventForm := huh.NewForm(
 			huh.NewGroup(
