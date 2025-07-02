@@ -46,13 +46,6 @@ func ViewCommand() *cobra.Command {
 
 			response, err := api.GetReplicationPolicy(rpolicyID)
 
-			filters := response.Payload.Filters
-			for _, filter := range filters {
-				fmt.Println("Filter Type:", filter.Type)
-				fmt.Println("Filter Value:", filter.Value)
-				fmt.Println("Filter Decoration:", filter.Decoration)
-			}
-
 			if err != nil {
 				return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
 			}

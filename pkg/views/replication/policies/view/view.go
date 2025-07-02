@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -30,7 +31,12 @@ var columns = []table.Column{
 	{Title: "Value", Width: tablelist.Width3XL},
 }
 
-// Define the desired order of property keys.
+var filterColumns = []table.Column{
+	{Title: "Type", Width: tablelist.WidthM},
+	{Title: "Decoration", Width: tablelist.WidthM},
+	{Title: "Value", Width: tablelist.WidthXL},
+}
+
 var order = []string{
 	"ID",
 	"Name",
@@ -45,7 +51,6 @@ var order = []string{
 	"Replicate Deletion",
 	"Copy By Chunk",
 	"Speed",
-	"Filters",
 }
 
 func ViewPolicy(rpolicy *models.ReplicationPolicy) {
@@ -54,8 +59,8 @@ func ViewPolicy(rpolicy *models.ReplicationPolicy) {
 	policyMap := map[string]string{
 		"ID":                 strconv.FormatInt(rpolicy.ID, 10),
 		"Name":               rpolicy.Name,
-		"Source":             rpolicy.SrcRegistry.Name,
-		"Destination":        rpolicy.DestRegistry.Name,
+		"Source":             getRegistryName(rpolicy.SrcRegistry),
+		"Destination":        getRegistryName(rpolicy.DestRegistry),
 		"Trigger Type":       rpolicy.Trigger.Type,
 		"Override":           strconv.FormatBool(rpolicy.Override),
 		"Enabled":            strconv.FormatBool(rpolicy.Enabled),
@@ -65,7 +70,6 @@ func ViewPolicy(rpolicy *models.ReplicationPolicy) {
 		"Replicate Deletion": strconv.FormatBool(rpolicy.ReplicateDeletion),
 		"Copy By Chunk":      strconv.FormatBool(*rpolicy.CopyByChunk),
 		"Speed":              strconv.FormatInt(int64(*rpolicy.Speed), 10) + " B/s",
-		"Filters":            filtersToString(rpolicy.Filters),
 	}
 
 	var rows []table.Row
@@ -81,27 +85,60 @@ func ViewPolicy(rpolicy *models.ReplicationPolicy) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
+	if len(rpolicy.Filters) > 0 {
+		fmt.Println("\nFilters:")
+		showFiltersTable(rpolicy.Filters)
+	} else {
+		fmt.Println("\nNo filters configured")
+	}
 }
 
-func filtersToString(filters []*models.ReplicationFilter) string {
-	if len(filters) == 0 {
-		return "No filters"
-	}
+func showFiltersTable(filters []*models.ReplicationFilter) {
+	var filterRows []table.Row
 
-	var filterStrings []string
 	for _, filter := range filters {
-		filterStrings = append(filterStrings, fmt.Sprintf("%s:%s", filter.Type, filter.Value))
+		decoration := filter.Decoration
+		if decoration == "" {
+			decoration = "N/A"
+		}
+
+		value := formatFilterValue(filter.Value)
+
+		filterRows = append(filterRows, table.Row{
+			filter.Type,
+			decoration,
+			value,
+		})
 	}
-	return fmt.Sprintf("[%s]", joinWithComma(filterStrings...))
+
+	m := tablelist.NewModel(filterColumns, filterRows, len(filterRows))
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 }
 
-func joinWithComma(elements ...string) string {
-	if len(elements) == 0 {
-		return ""
+func formatFilterValue(value interface{}) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case []string:
+		return strings.Join(v, ", ")
+	case []interface{}:
+		var strValues []string
+		for _, item := range v {
+			strValues = append(strValues, fmt.Sprintf("%v", item))
+		}
+		return strings.Join(strValues, ", ")
+	default:
+		return fmt.Sprintf("%v", v)
 	}
-	result := elements[0]
-	for _, elem := range elements[1:] {
-		result += ", " + elem
+}
+
+func getRegistryName(registry *models.Registry) string {
+	if registry == nil {
+		return "Local"
 	}
-	return result
+	return registry.Name
 }
