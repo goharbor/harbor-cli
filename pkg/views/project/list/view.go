@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -64,6 +65,42 @@ func ListProjects(projects []*models.Project) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func ListProjectsTabSeparated(projects []*models.Project) {
+
+	//formatting parameters can be discussed
+	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
+
+	fmt.Fprintln(w, "ID\tName\tAccess\tType\tRepoCount\tCreated")
+
+	// Print each project
+	for _, project := range projects {
+		accessLevel := "public"
+		if project.Metadata.Public != "true" {
+			accessLevel = "private"
+		}
+
+		projectType := "project"
+		if project.RegistryID != 0 {
+			projectType = "proxy cache"
+		}
+
+		createdTime, _ := utils.FormatCreatedTime(project.CreationTime.String())
+
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%s\n",
+			project.ProjectID,
+			project.Name,
+			accessLevel,
+			projectType,
+			project.RepoCount,
+			createdTime,
+		)
+	}
+
+	//enforce writing of output
+	w.Flush()
+
 }
 
 func SearchProjects(projects []*models.Project) {

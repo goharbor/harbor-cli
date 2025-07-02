@@ -14,8 +14,11 @@
 package utils
 
 import (
+	"os"
+
 	"errors"
 	"fmt"
+	"golang.org/x/term"
 	"net"
 	"net/url"
 	"regexp"
@@ -212,4 +215,8 @@ func EmptyStringValidator(variable string) func(string) error {
 		}
 		return nil
 	}
+}
+
+func IsOutputPiped() bool {
+	return !term.IsTerminal(int(os.Stdout.Fd()))
 }
