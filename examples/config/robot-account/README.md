@@ -7,20 +7,23 @@ This document describes the **YAML** format used to declare robot accounts, thei
 ## 1. File Schema
 
 ```yaml
-name: "robot-name"        # Required – unique name for the robot account
-description: "..."        # Optional – free‑form description
-duration: 90              # Required – lifetime in days (‑1 means no expiration)
-project: "project-name"   # Required – target project
-permissions:              # Required – at least one rule (see below)
-  # Either a single resource …
-  - resource: "repository"
-    actions: ["pull", "push"]
-  # … or multiple resources that share the same actions
-  - resources: ["artifact", "scan"]
-    actions: ["read"]
-  # Grant every action for a single resource with '*'
-  - resource: "project"
-    actions: ["*"]
+name: "robot-name"        # Required: Name of the robot account
+description: "..."        # Optional: Description of the robot account
+duration: 90              # Required: Lifetime in days (-1 for no expiration)
+kind: "project"           # Required: "project" or "system" - determines robot type
+permissions:              # Required: Permission scopes
+  - access:               # List of access items within this scope
+    - resource: "repository"  # Either specify a single resource
+      actions:
+        - "pull"
+        - "push"
+    - resources:          # Or specify multiple resources
+        - "artifact"
+        - "scan"
+      actions:
+        - "read"
+    kind: "project"       # Permission scope kind (project or system)
+    namespace: "my-project"  # Project name for project scope, "/" for system scope
 ```
 
 **Key rules**
@@ -30,7 +33,7 @@ permissions:              # Required – at least one rule (see below)
 | `name`        | *string*  | Must be unique per project. Lower‑case letters, numbers, and dashes recommended.                     |
 | `description` | *string*  | Optional but **highly encouraged** for auditability.                                                 |
 | `duration`    | *integer* | Days until the robot expires. Use `‑1` for an unlimited lifetime. Values `0` or < `‑1` are rejected. |
-| `project`     | *string*  | The Harbor project where the robot lives.                                                            |
+| `kind`        | *string*  | "project" or "system" level robot.                                                                   |
 | `permissions` | *list*    | One or more permission blocks, each granting one **set of actions** to one or more **resources**.    |
 
 > \*\*Tip \*\*: Store separate YAML files per robot to keep Git history clean and roll back permission changes safely.
@@ -79,10 +82,13 @@ A permission block has three fields:
 name: "ci-pipeline-robot"
 description: "Robot account for CI/CD pipeline"
 duration: 90
-project: "my-project"
+kind: "project"
 permissions:
-  - resource: "repository"
-    actions: ["pull", "push"]
+  - access:
+    - resource: "repository"
+      actions: ["pull", "push"]
+    kind: "project"
+    namespace: "my-project"
 ```
 
 ### 3.2 Read‑Only Monitoring Robot (No Expiration)
@@ -90,11 +96,14 @@ permissions:
 ```yaml
 name: "read-only-robot"
 description: "Read-only access for monitoring"
+kind: "project"
 duration: -1
-project: "my-project"
 permissions:
-  - resources: ["repository", "artifact", "scan"]
-    actions: ["read", "list"]
+  - access:
+    - resources: ["repository", "artifact", "scan"]
+      actions: ["read", "list"]
+    kind: "project"
+    namespace: "my-project"
 ```
 
 ### 3.3 Project Admin Robot (Full Access)
@@ -102,11 +111,14 @@ permissions:
 ```yaml
 name: "project-admin-robot"
 description: "Project administration tasks"
+kind: "project"
 duration: 180
-project: "my-project"
 permissions:
-  - resource: "project"
-    actions: ["*"]
+  - access: 
+    - resource: "project"
+      actions: ["*"]
+    kind: "project"
+    namespace: "my-project"
 ```
 
 ---

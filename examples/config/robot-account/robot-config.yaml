@@ -1,17 +1,18 @@
 name: ci-pipeline-robot
 description: "Robot account for CI/CD pipeline"
 duration: 90
-project: demo
+level: project
 permissions:
-  - resource: repository
-    actions:
-      - pull
-      - push
-  - resources:
-      - artifact
-      - scan
-    actions:
-      - read
-  - resource: project
-    actions:
-      -  "*"
+  - access: 
+    - resource: repository
+      actions:
+        - pull
+        - push
+    - resources:
+        - artifact
+        - scan
+      actions:
+        - read
+    kind: project
+    namespace: demo
+
