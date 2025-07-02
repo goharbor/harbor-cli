@@ -106,8 +106,6 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 
 	// Step 2: Create filter group based on selected mode
 	var filterGroup *huh.Group
-	fmt.Println("Selected Replication Mode:", createView.ReplicationMode)
-
 	if createView.ReplicationMode == "Pull" {
 		filterGroup = huh.NewGroup(
 			huh.NewSelect[string]().
