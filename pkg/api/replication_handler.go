@@ -12,3 +12,94 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 package api
+
+import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/replication"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+)
+
+func ListReplicationPolicies(opts ...ListFlags) (*replication.ListReplicationPoliciesOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	response, err := client.Replication.ListReplicationPolicies(ctx, &replication.ListReplicationPoliciesParams{
+		Page:     &listFlags.Page,
+		PageSize: &listFlags.PageSize,
+		Q:        &listFlags.Q,
+		Name:     &listFlags.Name,
+		Sort:     &listFlags.Sort,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func GetReplicationPolicy(policyID int64) (*replication.GetReplicationPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.GetReplicationPolicy(ctx, &replication.GetReplicationPolicyParams{ID: policyID})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func DeleteReplicationPolicy(policyID int64) (*replication.DeleteReplicationPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.DeleteReplicationPolicy(ctx, &replication.DeleteReplicationPolicyParams{ID: policyID})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func CreateReplicationPolicy(policy *replication.CreateReplicationPolicyParams) (*replication.CreateReplicationPolicyCreated, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.CreateReplicationPolicy(ctx, policy)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func UpdateReplicationPolicy(policyID int64, policy *models.ReplicationPolicy) (*replication.UpdateReplicationPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.UpdateReplicationPolicy(ctx, &replication.UpdateReplicationPolicyParams{
+		ID:     policyID,
+		Policy: policy,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
