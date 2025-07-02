@@ -47,7 +47,7 @@ func FormatCreatedTime(timestamp string) (string, error) {
 
 func FormatUrl(url string) string {
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		url = "http://" + url
+		url = "https://" + url
 	}
 
 	url = strings.TrimRight(url, "/")
