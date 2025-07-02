@@ -142,26 +142,3 @@ func getRegistryName(registry *models.Registry) string {
 	}
 	return registry.Name
 }
-
-func filtersToString(filters []*models.ReplicationFilter) string {
-	if len(filters) == 0 {
-		return "No filters"
-	}
-
-	var filterStrings []string
-	for _, filter := range filters {
-		filterStrings = append(filterStrings, fmt.Sprintf("%s:%s", filter.Type, filter.Value))
-	}
-	return fmt.Sprintf("[%s]", joinWithComma(filterStrings...))
-}
-
-func joinWithComma(elements ...string) string {
-	if len(elements) == 0 {
-		return ""
-	}
-	result := elements[0]
-	for _, elem := range elements[1:] {
-		result += ", " + elem
-	}
-	return result
-}

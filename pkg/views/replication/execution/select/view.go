@@ -42,7 +42,11 @@ func ReplicationExecutionList(executions []*models.ReplicationExecution, choice 
 	if p, ok := p.(selection.Model); ok {
 		// Extract the ID from p.Choice
 		var execID int64
-		fmt.Sscanf(p.Choice, "ID: %d", &execID)
+		_, err = fmt.Sscanf(p.Choice, "ID: %d", &execID)
+		if err != nil {
+			fmt.Println("error parsing execution ID:", err)
+			os.Exit(1)
+		}
 		choice <- execID
 	}
 }
