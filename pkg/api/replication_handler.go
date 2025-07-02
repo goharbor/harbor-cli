@@ -103,3 +103,69 @@ func UpdateReplicationPolicy(policyID int64, policy *models.ReplicationPolicy) (
 
 	return response, nil
 }
+
+func StartReplication(policyID int64) (*replication.StartReplicationCreated, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.StartReplication(ctx, &replication.StartReplicationParams{
+		Context: ctx,
+		Execution: &models.StartReplicationExecution{
+			PolicyID: policyID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func StopReplication(policyID int64) (*replication.StopReplicationOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.StopReplication(ctx, &replication.StopReplicationParams{
+		ID: policyID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func GetReplicationExecutions(policyID int64) (*replication.ListReplicationExecutionsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.ListReplicationExecutions(ctx, &replication.ListReplicationExecutionsParams{
+		PolicyID: &policyID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func GetReplicationExecution(executionID int64) (*replication.GetReplicationExecutionOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Replication.GetReplicationExecution(ctx, &replication.GetReplicationExecutionParams{
+		ID: executionID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}

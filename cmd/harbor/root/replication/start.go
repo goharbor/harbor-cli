@@ -11,27 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package policies
+package replication
 
 import (
 	"fmt"
 	"strconv"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	view "github.com/goharbor/harbor-cli/pkg/views/replication/policies/view"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-func ViewCommand() *cobra.Command {
+func StartCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view [NAME|ID]",
-		Short: "get replication policy by name or id",
+		Use:   "start",
+		Short: "start replication",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Starting replication")
+
 			var rpolicyID int64
 			if len(args) > 0 {
 				var err error
@@ -43,21 +43,11 @@ func ViewCommand() *cobra.Command {
 			} else {
 				rpolicyID = prompt.GetReplicationPolicyFromUser()
 			}
-
-			response, err := api.GetReplicationPolicy(rpolicyID)
+			response, err := api.StartReplication(rpolicyID)
 			if err != nil {
-				return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to start replication: %v", utils.ParseHarborErrorMsg(err))
 			}
-
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(response.Payload, FormatFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				view.ViewPolicy(response.Payload)
-			}
+			fmt.Printf("Repliation started successfully with ID: %s\n", response.Location)
 			return nil
 		},
 	}

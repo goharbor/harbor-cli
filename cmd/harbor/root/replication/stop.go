@@ -11,28 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package policies
+package replication
 
 import (
 	"fmt"
 	"strconv"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	view "github.com/goharbor/harbor-cli/pkg/views/replication/policies/view"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-func ViewCommand() *cobra.Command {
+func StopCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "view [NAME|ID]",
-		Short: "get replication policy by name or id",
+		Use:   "stop",
+		Short: "stop replication",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Stopping replication")
+
 			var rpolicyID int64
+			var executionID int64
 			if len(args) > 0 {
 				var err error
 				// convert string to int64
@@ -40,24 +41,25 @@ func ViewCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
+				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
 			} else {
 				rpolicyID = prompt.GetReplicationPolicyFromUser()
+				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
 			}
 
-			response, err := api.GetReplicationPolicy(rpolicyID)
+			execution, err := api.GetReplicationExecution(executionID)
 			if err != nil {
-				return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to get replication execution: %v", utils.ParseHarborErrorMsg(err))
+			}
+			if execution.Payload.Status != "InProgress" {
+				return fmt.Errorf("replication execution with ID: %d is already stopped, succeed or failed", executionID)
 			}
 
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(response.Payload, FormatFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				view.ViewPolicy(response.Payload)
+			_, err = api.StopReplication(executionID)
+			if err != nil {
+				return fmt.Errorf("failed to stop replication: %v", utils.ParseHarborErrorMsg(err))
 			}
+			fmt.Printf("Replication execution with ID: %d stopped successfully\n", executionID)
 			return nil
 		},
 	}
