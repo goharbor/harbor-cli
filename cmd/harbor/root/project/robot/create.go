@@ -21,7 +21,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/config"
+	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"

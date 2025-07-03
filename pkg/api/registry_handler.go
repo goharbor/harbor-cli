@@ -113,20 +113,20 @@ func ViewRegistry(registryId int64) (*registry.GetRegistryOK, error) {
 	return response, nil
 }
 
-func GetRegistryResponse(registryId int64) *models.Registry {
+func GetRegistryResponse(registryId int64) (*models.Registry, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	if response.Payload.ID == 0 {
-		return nil
+		return nil, err
 	}
 
-	return response.GetPayload()
+	return response.GetPayload(), err
 }
 
 func UpdateRegistry(updateView *models.Registry, projectID int64) error {

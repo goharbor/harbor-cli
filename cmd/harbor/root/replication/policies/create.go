@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/replication"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	config "github.com/goharbor/harbor-cli/pkg/config/replication"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
@@ -29,6 +30,10 @@ import (
 )
 
 func CreateCommand() *cobra.Command {
+	var configFile string
+	var registryID int64
+	var err error
+	var opts *create.CreateView
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create replication policies",
@@ -36,12 +41,31 @@ func CreateCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting replications create command")
 
-			opts := &create.CreateView{}
-			create.CreateRPolicyView(opts, false)
-			registryID := prompt.GetRegistryNameFromUser()
-			registry := api.GetRegistryResponse(registryID)
-			policy := ConvertToPolicy(opts, registry)
+			if configFile != "" {
+				log.Debugf("Loading replication policy configuration from file: %s", configFile)
+				opts, err = config.LoadConfigFromFile(configFile)
+				if err != nil {
+					return fmt.Errorf("failed to load replication policy configuration: %v", err)
+				}
+				registryID, err = api.GetRegistryIdByName(opts.TargetRegistry)
+				if err != nil {
+					return fmt.Errorf("failed to get registry ID for name %s: %v", opts.TargetRegistry, err)
+				}
+				if registryID == 0 {
+					return fmt.Errorf("registry with name %s not found", opts.TargetRegistry)
+				}
+			} else {
+				opts = &create.CreateView{}
+				create.CreateRPolicyView(opts, false)
+				registryID = prompt.GetRegistryNameFromUser()
+			}
 
+			registry, err := api.GetRegistryResponse(registryID)
+			if err != nil {
+				return fmt.Errorf("failed to get registry with ID %d: %v", registryID, err)
+			}
+
+			policy := ConvertToPolicy(opts, registry)
 			response, err := api.CreateReplicationPolicy(&replication.CreateReplicationPolicyParams{
 				Policy: policy,
 			})
@@ -52,6 +76,9 @@ func CreateCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&configFile, "policy-config-file", "f", "", "YAML/JSON file with robot configuration")
 
 	return cmd
 }

@@ -1,0 +1,38 @@
+{
+  "name": "nightly-backup-push",
+  "description": "Push all production images to backup registry every night",
+  "replication_mode": "push",
+  "target_registry": "dockerhub",
+  "trigger_mode": "scheduled",
+  "cron_string": "0 0 2 * * *",
+  "bandwidth_limit": "2048",
+  "override": true,
+  "replicate_deletion": true,
+  "enabled": true,
+  "copy_by_chunk": true,
+  "replication_filter": [
+    {
+      "type": "resource",
+      "value": "image"
+    },
+    {
+      "type": "name",
+      "value": "production/*"
+    },
+    {
+      "type": "tag",
+      "decoration": "excludes",
+      "value": "*-snapshot"
+    },
+    {
+      "type": "tag",
+      "decoration": "excludes",
+      "value": "*-dev"
+    },
+    {
+      "type": "label",
+      "decoration": "matches",
+      "value": "release=stable"
+    }
+  ]
+}

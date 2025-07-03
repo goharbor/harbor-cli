@@ -45,7 +45,11 @@ func UpdateRegistryCommand() *cobra.Command {
 				registryId = prompt.GetRegistryNameFromUser()
 			}
 
-			existingRegistry := api.GetRegistryResponse(registryId)
+			existingRegistry, err := api.GetRegistryResponse(registryId)
+			if err != nil {
+				log.Errorf("failed to get registry with ID %d: %v", registryId, err)
+				return
+			}
 			if existingRegistry == nil {
 				log.Errorf("registry is not found")
 				return

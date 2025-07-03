@@ -15,7 +15,8 @@ harbor replication policies create [flags]
 ### Options
 
 ```sh
-  -h, --help   help for create
+  -h, --help                        help for create
+  -f, --policy-config-file string   YAML/JSON file with robot configuration
 ```
 
 ### Options inherited from parent commands
