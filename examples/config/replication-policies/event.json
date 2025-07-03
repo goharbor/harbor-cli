@@ -1,0 +1,37 @@
+{
+  "name": "realtime-chart-sync",
+  "description": "Automatically sync Helm charts to partner registry on push",
+  "replication_mode": "push",
+  "target_registry": "dockerhub",
+  "trigger_mode": "event_based",
+  "bandwidth_limit": "512",
+  "override": true,
+  "replicate_deletion": true,
+  "enabled": true,
+  "copy_by_chunk": false,
+  "replication_filter": [
+    {
+      "type": "resource",
+      "value": "artifact"
+    },
+    {
+      "type": "name",
+      "value": "apps/*"
+    },
+    {
+      "type": "tag",
+      "decoration": "matches",
+      "value": "[0-9]*.[0-9]*.[0-9]*"
+    },
+    {
+      "type": "label",
+      "decoration": "excludes",
+      "value": "stage=development"
+    },
+    {
+      "type": "label",
+      "decoration": "matches",
+      "value": "public=true"
+    }
+  ]
+}
