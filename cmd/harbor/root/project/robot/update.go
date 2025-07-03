@@ -104,11 +104,16 @@ Examples:
 
 			bot := robot.Payload
 
+			var duration int64
+			if bot.Duration != nil {
+				duration = *bot.Duration
+			}
+
 			opts = update.UpdateView{
 				CreationTime: bot.CreationTime,
 				Description:  bot.Description,
 				Disable:      bot.Disable,
-				Duration:     bot.Duration,
+				Duration:     duration,
 				Editable:     bot.Editable,
 				ID:           bot.ID,
 				Level:        bot.Level,
