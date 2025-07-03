@@ -174,7 +174,7 @@ func UpdateRobot(opts *update.UpdateView) error {
 		&robot.UpdateRobotParams{
 			Robot: &models.Robot{
 				Description: opts.Description,
-				Duration:    opts.Duration,
+				Duration:    &opts.Duration,
 				Editable:    opts.Editable,
 				Disable:     opts.Disable,
 				ID:          opts.ID,
