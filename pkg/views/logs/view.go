@@ -19,7 +19,7 @@ var columns = []table.Column{
 	{Title: "Time", Width: 16},
 }
 
-func ListLogs(logs []*models.AuditLog) {
+func ListLogs(logs []*models.AuditLogExt) {
 	var rows []table.Row
 	for _, log := range logs {
 		operationTime, _ := utils.FormatCreatedTime(log.OpTime.String())

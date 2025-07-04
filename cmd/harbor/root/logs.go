@@ -80,7 +80,7 @@ func followLogs(opts api.ListFlags, formatFlag string) {
 		}
 
 		// Filter new logs if we have a timestamp from the last fetch
-		var newLogs []*models.AuditLog
+		var newLogs []*models.AuditLogExt
 		if lastLogTime != nil {
 			for _, logEntry := range logs.Payload {
 				// Convert strfmt.DateTime to time.Time
@@ -116,7 +116,7 @@ func followLogs(opts api.ListFlags, formatFlag string) {
 	}
 }
 
-func printLogsAsStream(logs []*models.AuditLog) {
+func printLogsAsStream(logs []*models.AuditLogExt) {
 	for _, logEntry := range logs {
 		// Format the timestamp
 		logTime := time.Time(logEntry.OpTime)
