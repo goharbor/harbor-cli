@@ -168,13 +168,6 @@ func getUsername(username string) string {
 	return username
 }
 
-func getProjectName(projectID int64) string {
-	if projectID == 0 {
-		return "unknown"
-	}
-	return fmt.Sprintf("project-%d", projectID)
-}
-
 func getResourceInfo(resourceType, resource string) string {
 	if resourceType == "" && resource == "" {
 		return "unknown"
