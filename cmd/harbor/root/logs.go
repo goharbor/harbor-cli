@@ -1,7 +1,22 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package root
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -13,21 +28,43 @@ import (
 	"github.com/spf13/viper"
 )
 
+var logsLogger = log.New()
+
 func Logs() *cobra.Command {
 	var opts api.ListFlags
 	var follow bool
+	var refreshInterval string
 
 	cmd := &cobra.Command{
 		Use:   "logs",
 		Short: "Get recent logs of the projects which the user is a member of",
+		Args:  cobra.NoArgs,
+		Long: `Get recent logs of the projects which the user is a member of.
+This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
+
+harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
+
+harbor-cli logs --follow --refresh-interval 2s
+
+harbor-cli logs --output-format json`,
 		Run: func(cmd *cobra.Command, args []string) {
 			FormatFlag := viper.GetString("output-format")
 
+			if refreshInterval != "" && !follow {
+				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
+			}
+
 			if follow {
-				// Follow mode - continuous tailing
-				followLogs(opts, FormatFlag)
+				var interval time.Duration = 1 * time.Second
+				var err error
+				if refreshInterval != "" {
+					interval, err = time.ParseDuration(refreshInterval)
+					if err != nil {
+						log.Fatalf("invalid refresh interval: %v", err)
+					}
+				}
+				followLogs(opts, interval)
 			} else {
-				// Single fetch mode
 				logs, err := api.AuditLogs(opts)
 				if err != nil {
 					log.Fatalf("failed to retrieve audit logs: %v", err)
@@ -54,47 +91,45 @@ func Logs() *cobra.Command {
 		"Sort the resource list in ascending or descending order",
 	)
 	flags.BoolVarP(&follow, "follow", "f", false, "Follow log output (tail -f behavior)")
+	flags.StringVarP(&refreshInterval, "refresh-interval", "n", "",
+		"Interval to refresh logs when following (default: 1s)")
 
 	return cmd
 }
 
-func followLogs(opts api.ListFlags, formatFlag string) {
+func followLogs(opts api.ListFlags, interval time.Duration) {
 	var lastLogTime *time.Time
 
-	// Set up logrus for clean output
-	log.SetFormatter(&log.TextFormatter{
+	logsLogger.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
 		DisableColors:   false,
 	})
+	logsLogger.SetLevel(log.InfoLevel)
+	logsLogger.SetOutput(os.Stdout)
 
 	fmt.Println("Following Harbor audit logs... (Press Ctrl+C to stop)")
-	fmt.Println()
 
 	for {
 		logs, err := api.AuditLogs(opts)
 		if err != nil {
 			log.Errorf("failed to retrieve audit logs: %v", err)
-			time.Sleep(2 * time.Second)
+			time.Sleep(interval)
 			continue
 		}
 
-		// Filter new logs if we have a timestamp from the last fetch
 		var newLogs []*models.AuditLogExt
 		if lastLogTime != nil {
 			for _, logEntry := range logs.Payload {
-				// Convert strfmt.DateTime to time.Time
 				logTime := time.Time(logEntry.OpTime)
 				if !logTime.IsZero() && logTime.After(*lastLogTime) {
 					newLogs = append(newLogs, logEntry)
 				}
 			}
 		} else {
-			// First run, show all logs
 			newLogs = logs.Payload
 		}
 
-		// Update last log time with the most recent log
 		if len(logs.Payload) > 0 {
 			logTime := time.Time(logs.Payload[0].OpTime)
 			if !logTime.IsZero() {
@@ -102,70 +137,67 @@ func followLogs(opts api.ListFlags, formatFlag string) {
 			}
 		}
 
-		// Display new logs in streaming fashion
-		if len(newLogs) > 0 {
-			if formatFlag != "" {
-				utils.PrintPayloadInJSONFormat(newLogs)
-			} else {
-				printLogsAsStream(newLogs)
-			}
-		}
-
-		// Wait before next poll
-		time.Sleep(2 * time.Second)
+		printLogsAsStream(newLogs)
+		time.Sleep(interval)
 	}
 }
 
 func printLogsAsStream(logs []*models.AuditLogExt) {
 	for _, logEntry := range logs {
-		// Format the timestamp
 		logTime := time.Time(logEntry.OpTime)
-		timeStr := logTime.Format("2006-01-02 15:04:05")
+		level := getLogLevel(logEntry.OperationResult)
 
-		// Determine log level based on operation
-		level := getLogLevel(logEntry.Operation)
+		displayUser := truncateUsername(logEntry.Username)
+		resource := getResourceInfo(logEntry.ResourceType, logEntry.Resource)
 
-		// Create a structured log entry
-		// var logEntry *models.AuditLog
-		entry := log.WithFields(log.Fields{
-			"time":      timeStr,
-			"user":      getUsername(logEntry.Username),
-			"resource":  getResourceInfo(logEntry.ResourceType, logEntry.Resource),
-			"operation": logEntry.Operation,
-		})
+		resultIcon := "✓"
+		if !logEntry.OperationResult {
+			resultIcon = "✗"
+		}
 
-		// Print with appropriate log level
+		message := fmt.Sprintf("%s %s %s %s",
+			displayUser,
+			logEntry.Operation,
+			resource,
+			resultIcon)
+
+		entry := logsLogger.WithTime(logTime)
+
 		switch level {
 		case "error":
-			entry.Error(fmt.Sprintf("%s performed %s", getUsername(logEntry.Username), logEntry.Operation))
-		case "warn":
-			entry.Warn(fmt.Sprintf("%s performed %s", getUsername(logEntry.Username), logEntry.Operation))
+			entry.Error(message)
 		case "info":
-			entry.Info(fmt.Sprintf("%s performed %s", getUsername(logEntry.Username), logEntry.Operation))
+			entry.Info(message)
 		default:
-			entry.Debug(fmt.Sprintf("%s performed %s", getUsername(logEntry.Username), logEntry.Operation))
+			entry.Debug(message)
 		}
 	}
 }
 
-func getLogLevel(operation string) string {
-	switch operation {
-	case "delete", "stop", "remove":
-		return "error"
-	case "create", "push", "pull":
-		return "info"
-	case "update", "modify":
-		return "warn"
-	default:
-		return "info"
-	}
-}
-
-func getUsername(username string) string {
+func truncateUsername(username string) string {
 	if username == "" {
 		return "unknown"
 	}
+
+	if len(username) > 30 {
+		if parts := strings.Split(username, "+"); len(parts) > 1 {
+			project := strings.TrimPrefix(parts[0], "robt_")
+			return fmt.Sprintf("%s+robot", project)
+		}
+		return username[:27] + "..."
+	}
 	return username
+}
+
+func getLogLevel(operationResult bool) string {
+	switch operationResult {
+	case false:
+		return "error"
+	case true:
+		return "info"
+	default:
+		return "error"
+	}
 }
 
 func getResourceInfo(resourceType, resource string) string {
