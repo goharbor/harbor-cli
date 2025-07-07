@@ -48,7 +48,6 @@ harbor-cli logs --follow --refresh-interval 2s
 
 harbor-cli logs --output-format json`,
 		Run: func(cmd *cobra.Command, args []string) {
-			FormatFlag := viper.GetString("output-format")
 
 			if refreshInterval != "" && !follow {
 				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
@@ -70,11 +69,17 @@ harbor-cli logs --output-format json`,
 					log.Fatalf("failed to retrieve audit logs: %v", err)
 				}
 
-				if FormatFlag != "" {
-					utils.PrintPayloadInJSONFormat(logs.Payload)
-					return
+				formatFlag := viper.GetString("output-format")
+				if formatFlag != "" {
+					log.WithField("output_format", formatFlag).Debug("Output format selected")
+					err = utils.PrintFormat(logs.Payload, formatFlag)
+					if err != nil {
+						return
+					}
+				} else {
+
+					list.ListLogs(logs.Payload)
 				}
-				list.ListLogs(logs.Payload)
 			}
 		},
 	}
