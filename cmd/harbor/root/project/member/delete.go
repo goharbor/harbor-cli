@@ -22,6 +22,8 @@ func DeleteMemberCommand() *cobra.Command {
 		Args:    cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
+			var err error
+
 			errChan := make(
 				chan error,
 				len(args),
@@ -56,7 +58,10 @@ func DeleteMemberCommand() *cobra.Command {
 				if len(args) > 0 {
 					projectName = args[0]
 				} else {
-					projectName = prompt.GetProjectNameFromUser()
+					projectName, err = prompt.GetProjectNameFromUser()
+					if err != nil {
+						log.Fatalf("failed to get project name: %v", err)
+					}
 				}
 				memID := prompt.GetMemberIDFromUser(projectName)
 				wg.Add(1)
