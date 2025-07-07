@@ -15,9 +15,9 @@ func ListMemberCommand() *cobra.Command {
 	var opts api.ListMemberOptions
 
 	cmd := &cobra.Command{
-		Use:     "list [projectName or ID]",
+		Use:     "list [projectName]",
 		Short:   "list members in a project",
-		Long:    "list members in a project by projectName Or ID",
+		Long:    "list members in a project by projectName",
 		Example: "  harbor project member list my-project",
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -39,6 +39,9 @@ func ListMemberCommand() *cobra.Command {
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(members)
+				return
+			} else if FormatFlag == "yaml" {
+				utils.PrintPayloadInYAMLFormat(members)
 				return
 			}
 
