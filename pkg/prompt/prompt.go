@@ -53,18 +53,40 @@ func GetRegistryNameFromUser() int64 {
 	return <-registryId
 }
 
-func GetProjectNameFromUser() string {
-	projectName := make(chan string)
+func GetProjectNameFromUser() (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
+
 	go func() {
-		response, _ := api.ListProject()
-		name, err := pview.ProjectList(response.Payload)
+		response, err := api.ListAllProjects()
 		if err != nil {
-			projectName <- ""
+			resultChan <- result{"", err}
 			return
 		}
-		projectName <- name
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{"", errors.New("no projects found")}
+			return
+		}
+
+		name, err := pview.ProjectList(response.Payload)
+		if err != nil {
+			if err == pview.ErrUserAborted {
+				resultChan <- result{"", errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{"", fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{name, nil}
 	}()
-	return <-projectName
+
+	res := <-resultChan
+	return res.name, res.err
 }
 
 func GetProjectIDFromUser() int64 {
