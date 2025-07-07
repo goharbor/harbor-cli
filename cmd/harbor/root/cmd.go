@@ -14,8 +14,8 @@
 package root
 
 import (
+	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
@@ -47,26 +47,6 @@ var (
 	cfgFile string
 	verbose bool
 )
-
-func initConfig() {
-	viper.SetConfigType("yaml")
-
-	// Determine the config path using utils logic
-	harborConfigPath, err := utils.DetermineConfigPath(cfgFile, cfgFile != "")
-	if err != nil {
-		log.Fatalf("Error determining config path: %v", err)
-	}
-
-	// Ensure config file exists
-	err = utils.EnsureConfigFileExists(harborConfigPath)
-	if err != nil {
-		log.Fatalf("Error ensuring config file exists: %v", err)
-	}
-
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file: %s", err)
-	}
-}
 
 func RootCmd() *cobra.Command {
 	root := &cobra.Command{
@@ -103,18 +83,19 @@ harbor help
 		},
 	}
 
-	cobra.OnInitialize(initConfig)
-
-	root.PersistentFlags().
-		StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
-	root.PersistentFlags().
-		StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
+	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
-	viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
-	viper.BindPFlag("verbose", root.PersistentFlags().Lookup("verbose"))
+	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
-	viper.BindPFlag("config", root.PersistentFlags().Lookup("config"))
+	err = viper.BindPFlag("config", root.PersistentFlags().Lookup("config"))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	root.AddGroup(&cobra.Group{ID: "core", Title: "Core:"})
 	root.AddGroup(&cobra.Group{ID: "access", Title: "Access:"})
