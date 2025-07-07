@@ -23,6 +23,7 @@ func ViewMemberCommand() *cobra.Command {
 		Example: "  harbor project member view my-project [memberID]",
 		Args:    cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 			if len(args) == 1 {
 				opts.ProjectNameOrID = args[0]
 			} else if len(args) == 2 {
@@ -30,7 +31,10 @@ func ViewMemberCommand() *cobra.Command {
 				opts.ProjectNameOrID = args[0]
 			} else if opts.ProjectNameOrID == "" || opts.ID == 0 {
 				if opts.ProjectNameOrID == "" {
-					opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
+					opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+					if err != nil {
+						log.Fatalf("failed to get project name: %v", err)
+					}
 				}
 				if opts.ID == 0 {
 					opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
