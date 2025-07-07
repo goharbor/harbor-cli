@@ -1,8 +1,6 @@
 package member
 
 import (
-	"os"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -23,12 +21,13 @@ func ListMemberCommand() *cobra.Command {
 		Example: "  harbor project member list my-project",
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 			if len(args) > 0 {
 				opts.ProjectNameOrID = args[0]
 			} else {
-				opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
-				if opts.ProjectNameOrID == "" {
-					os.Exit(1)
+				opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project name: %v", err)
 				}
 			}
 

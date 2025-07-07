@@ -28,7 +28,10 @@ func CreateMemberCommand() *cobra.Command {
 			if len(args) > 0 {
 				opts.ProjectNameOrID = args[0]
 			} else {
-				opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
+				opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project name: %v", err)
+				}
 			}
 
 			createView := &create.CreateView{

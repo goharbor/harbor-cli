@@ -22,6 +22,7 @@ func UpdateMemberCommand() *cobra.Command {
 		Example: "  harbor project member update my-project [memberID] --roleid 2",
 		Args:    cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
 			if len(args) == 1 {
 				opts.ProjectNameOrID = args[0]
 			} else if len(args) == 2 {
@@ -29,7 +30,10 @@ func UpdateMemberCommand() *cobra.Command {
 				opts.ID, _ = strconv.ParseInt(args[1], 0, 64)
 			} else if opts.ProjectNameOrID == "" || opts.ID == 0 {
 				if opts.ProjectNameOrID == "" {
-					opts.ProjectNameOrID = prompt.GetProjectNameFromUser()
+					opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+					if err != nil {
+						log.Fatalf("failed to get project name: %v", err)
+					}
 				}
 				if opts.ID == 0 {
 					opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
@@ -43,7 +47,7 @@ func UpdateMemberCommand() *cobra.Command {
 				RoleID: roleID,
 			}
 
-			err := api.UpdateMember(opts)
+			err = api.UpdateMember(opts)
 			if err != nil {
 				log.Fatalf("failed to get members list: %v", err)
 			}
