@@ -175,10 +175,6 @@ harbor help
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)
 
-	cmd = project.Member()
-	cmd.GroupID = "access"
-	root.AddCommand(cmd)
-
 	// System
 	cmd = context.Context()
 	cmd.GroupID = "system"
