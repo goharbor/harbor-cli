@@ -48,7 +48,6 @@ harbor-cli logs --follow --refresh-interval 2s
 
 harbor-cli logs --output-format json`,
 		Run: func(cmd *cobra.Command, args []string) {
-
 			if refreshInterval != "" && !follow {
 				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
 			}
@@ -77,7 +76,6 @@ harbor-cli logs --output-format json`,
 						return
 					}
 				} else {
-
 					list.ListLogs(logs.Payload)
 				}
 			}
