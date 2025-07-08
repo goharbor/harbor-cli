@@ -61,7 +61,7 @@ func CreateMember(opts create.CreateView) error {
 				MemberUser:  opts.MemberUser,
 				MemberGroup: opts.MemberGroup,
 			},
-			ProjectNameOrID: opts.ProjectNameOrID,
+			ProjectNameOrID: opts.ProjectName,
 		},
 	)
 	if err != nil {

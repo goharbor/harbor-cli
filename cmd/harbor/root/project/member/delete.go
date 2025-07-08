@@ -15,7 +15,7 @@ func DeleteMemberCommand() *cobra.Command {
 	var delAllFlag bool
 
 	cmd := &cobra.Command{
-		Use:     "delete [projectName or ID] [memberID]",
+		Use:     "delete [projectName] [memberID]",
 		Short:   "delete member by id",
 		Long:    "delete members in a project by MemberID",
 		Example: "  harbor project member delete my-project 2",

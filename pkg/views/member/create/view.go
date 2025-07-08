@@ -22,10 +22,20 @@ type MemberGroup struct {
 }
 
 type CreateView struct {
-	ProjectNameOrID string
-	RoleID          int
-	MemberUser      *models.UserEntity
-	MemberGroup     *models.UserGroup
+	ProjectName string
+	RoleID      int
+	RoleName    string
+	MemberUser  *models.UserEntity
+	MemberGroup *models.UserGroup
+}
+
+// map role names to role ids
+var RoleOptions = map[string]int{
+	"Admin":        1,
+	"Developer":    2,
+	"Guest":        3,
+	"Maintainer":   4,
+	"LimitedGuest": 5,
 }
 
 func CreateMemberView(createView *CreateView) {
