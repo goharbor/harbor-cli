@@ -18,6 +18,7 @@ import (
 	"os"
 	"strconv"
 	"text/tabwriter"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -50,13 +51,12 @@ func ListRepositories(repos []*models.Repository) {
 		os.Exit(1)
 	}
 }
-func PrintRepoInPlaintextFormat(repos []*models.Repository) error {
+
+func PrintReposInPlaintextFormat(repos []*models.Repository) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
 
-	// Header
 	fmt.Fprintln(w, "Name\tArtifacts\tPulls\tUpdated")
 
-	// Body
 	for _, repo := range repos {
 		createdTime, _ := utils.FormatCreatedTime(repo.UpdateTime.String())
 
@@ -70,4 +70,3 @@ func PrintRepoInPlaintextFormat(repos []*models.Repository) error {
 
 	return w.Flush()
 }
-

@@ -86,7 +86,6 @@ func ListProjectCommand() *cobra.Command {
 				}
 			}
 			return nil
-
 		},
 	}
 

@@ -68,8 +68,6 @@ func ListProjects(projects []*models.Project) {
 }
 
 func PrintProjectsInPlainTextFormat(projects []*models.Project) error {
-
-	//formatting parameters can be discussed
 	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
 
 	fmt.Fprintln(w, "ID\tName\tAccess\tType\tRepoCount\tCreated")
@@ -98,9 +96,7 @@ func PrintProjectsInPlainTextFormat(projects []*models.Project) error {
 		)
 	}
 
-	//enforce writing of output
 	return w.Flush()
-
 }
 
 func SearchProjects(projects []*models.Project) {

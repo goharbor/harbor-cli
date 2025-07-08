@@ -76,10 +76,9 @@ func ListArtifacts(artifacts []*models.Artifact) {
 	}
 }
 
-func PrintArtifactInPlaintextFormat(artifacts []*models.Artifact) error {
+func PrintArtifactsInPlaintextFormat(artifacts []*models.Artifact) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
 
-	// Print Header
 	fmt.Fprintln(w, "ID\tTags\tDigest\tType\tSize\tVulnerabilities\tPushed")
 
 	for _, artifact := range artifacts {
@@ -113,4 +112,3 @@ func PrintArtifactInPlaintextFormat(artifacts []*models.Artifact) error {
 
 	return w.Flush()
 }
-
