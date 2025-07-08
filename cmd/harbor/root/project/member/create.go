@@ -17,26 +17,24 @@ func CreateMemberCommand() *cobra.Command {
 	opts.MemberGroup = &models.UserGroup{} // Initialize MemberGroup
 
 	cmd := &cobra.Command{
-		Use:     "create [ProjectName Or ID]",
+		Use:     "create",
 		Short:   "create project member",
 		Long:    "create project member by Name",
-		Example: "  harbor project member create my-project --username user --roleid 1",
-		Args:    cobra.MaximumNArgs(1),
+		Example: "  harbor project member create --project my-project --username user --role Developer",
+		Args:    cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 
-			if len(args) > 0 {
-				opts.ProjectNameOrID = args[0]
-			} else {
-				opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+			if opts.ProjectName == "" {
+				opts.ProjectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					log.Fatalf("failed to get project name: %v", err)
 				}
 			}
 
 			createView := &create.CreateView{
-				ProjectNameOrID: opts.ProjectNameOrID,
-				RoleID:          opts.RoleID,
+				ProjectName: opts.ProjectName,
+				RoleID:      opts.RoleID,
 				MemberUser: &models.UserEntity{
 					UserID:   opts.MemberUser.UserID,
 					Username: opts.MemberUser.Username,
@@ -49,6 +47,14 @@ func CreateMemberCommand() *cobra.Command {
 				},
 			}
 
+			if opts.RoleName == "" && opts.RoleID == 0 {
+				opts.RoleID = int(prompt.GetRoleNameFromUser())
+			}
+			if opts.RoleName != "" && opts.RoleID == 0 {
+				setRoleIDFromRoleName(&opts)
+			}
+
+			// check if role and member is valid
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
 				err = api.CreateMember(*createView)
 			} else {
@@ -62,8 +68,10 @@ func CreateMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	flags.StringVarP(&opts.RoleName, "role", "", "", "Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]")
 	flags.IntVarP(&opts.RoleID, "roleid", "", 0, "Role ID")
 	flags.StringVarP(&opts.MemberUser.Username, "username", "", "", "Username")
+	flags.StringVarP(&opts.ProjectName, "project", "", "", "Project Name")
 	flags.StringVarP(&opts.MemberGroup.GroupName, "groupname", "", "", "Group Name")
 	flags.StringVarP(&opts.MemberGroup.LdapGroupDn, "ldapdn", "", "", "DN of LDAP Group")
 	flags.Int64VarP(&opts.MemberGroup.ID, "groupid", "", 0, "Group ID")
@@ -76,4 +84,12 @@ func CreateMemberCommand() *cobra.Command {
 func createMemberView(createView *create.CreateView) error {
 	create.CreateMemberView(createView)
 	return api.CreateMember(*createView)
+}
+
+func setRoleIDFromRoleName(opts *create.CreateView) {
+	if opts.RoleName != "" {
+		if id, ok := create.RoleOptions[opts.RoleName]; ok {
+			opts.RoleID = id
+		}
+	}
 }
