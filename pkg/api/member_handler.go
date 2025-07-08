@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
@@ -115,6 +116,38 @@ func DeleteMember(projectName string, memberID int64) error {
 		ctx,
 		&member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID},
 	)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Member deleted successfully")
+	return nil
+}
+
+func DeleteMemberByUsername(projectName string, username string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	members, err := ListMembers(projectName)
+	if err != nil {
+		return err
+	}
+
+	var memberID int64
+	for _, m := range members.Payload {
+		if m.EntityName == username {
+			memberID = m.ID
+			break
+		}
+	}
+
+	if memberID == 0 {
+		return fmt.Errorf("member with username '%s' not found in project '%s'", username, projectName)
+	}
+
+	_, err = client.Member.DeleteProjectMember(ctx, &member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID})
 	if err != nil {
 		return err
 	}
