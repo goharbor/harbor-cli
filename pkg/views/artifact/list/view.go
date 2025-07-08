@@ -18,6 +18,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -74,3 +75,42 @@ func ListArtifacts(artifacts []*models.Artifact) {
 		os.Exit(1)
 	}
 }
+
+func PrintArtifactInPlaintextFormat(artifacts []*models.Artifact) error {
+	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
+
+	// Print Header
+	fmt.Fprintln(w, "ID\tTags\tDigest\tType\tSize\tVulnerabilities\tPushed")
+
+	for _, artifact := range artifacts {
+		pushTime, _ := utils.FormatCreatedTime(artifact.PushTime.String())
+		artifactSize := utils.FormatSize(artifact.Size)
+
+		var tagNames []string
+		for _, tag := range artifact.Tags {
+			tagNames = append(tagNames, tag.Name)
+		}
+		tags := "-"
+		if len(tagNames) > 0 {
+			tags = strings.Join(tagNames, ", ")
+		}
+
+		var totalVulnerabilities int64
+		for _, scan := range artifact.ScanOverview {
+			totalVulnerabilities += scan.Summary.Total
+		}
+
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%d\t%s\n",
+			artifact.ID,
+			tags,
+			artifact.Digest[:16],
+			artifact.Type,
+			artifactSize,
+			totalVulnerabilities,
+			pushTime,
+		)
+	}
+
+	return w.Flush()
+}
+

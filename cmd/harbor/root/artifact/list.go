@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -70,15 +71,20 @@ Supports pagination, search queries, and sorting using flags.`,
 			}
 
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(artifacts, FormatFlag)
-				if err != nil {
-					return err
+			switch FormatFlag {
+			case "plain":
+				if err := list.PrintArtifactInPlaintextFormat(artifacts.Payload); err != nil {
+					return fmt.Errorf("failed to print artifacts in plain format: %w", err)
 				}
-			} else {
+			case "":
 				artifactViews.ListArtifacts(artifacts.Payload)
+			default:
+				if err := utils.PrintFormat(artifacts, FormatFlag); err != nil {
+					return fmt.Errorf("unsupported format '%s': %w", FormatFlag, err)
+				}
 			}
 			return nil
+
 		},
 	}
 
