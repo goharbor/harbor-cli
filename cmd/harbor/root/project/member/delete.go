@@ -1,8 +1,7 @@
 package member
 
 import (
-	"strconv"
-	"sync"
+	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -13,88 +12,58 @@ import (
 // Deletes the member of the given project and Member
 func DeleteMemberCommand() *cobra.Command {
 	var delAllFlag bool
+	var memID int64
+	var project string
+	var username string
 
 	cmd := &cobra.Command{
-		Use:     "delete [projectName] [memberID]",
-		Short:   "delete member by id",
-		Long:    "delete members in a project by MemberID",
-		Example: "  harbor project member delete my-project 2",
-		Args:    cobra.MinimumNArgs(0),
+		Use:     "delete",
+		Short:   "delete member by username",
+		Long:    "delete members in a project by username of the member",
+		Example: "  harbor project member delete --project my-project --username user",
+		Args:    cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var wg sync.WaitGroup
 			var err error
 
-			errChan := make(
-				chan error,
-				len(args),
-			) // Channel to collect errors
-
-			var memberID []int64
-
-			for i, mid := range args {
-				if i != 0 {
-					mID, _ := strconv.Atoi(mid)
-					memberID = append(memberID, int64(mID))
+			if project == "" {
+				project, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project name: %v", err)
 				}
 			}
 
-			if len(args) > 0 {
-				if delAllFlag {
-					api.DeleteAllMember(args[0])
-				}
-
-				for _, mid := range memberID {
-					wg.Add(1)
-					go func(member int64) {
-						defer wg.Done()
-						err := api.DeleteMember(args[0], member)
-						if err != nil {
-							errChan <- err
-						}
-					}(mid)
-				}
-			} else {
-				var projectName string
-				if len(args) > 0 {
-					projectName = args[0]
-				} else {
-					projectName, err = prompt.GetProjectNameFromUser()
-					if err != nil {
-						log.Fatalf("failed to get project name: %v", err)
-					}
-				}
-				memID := prompt.GetMemberIDFromUser(projectName)
-				wg.Add(1)
-				go func(member int64) {
-					defer wg.Done()
-					err := api.DeleteMember(projectName, memID)
-					if err != nil {
-						errChan <- err
-					}
-				}(memID)
+			if delAllFlag {
+				api.DeleteAllMember(project)
+				fmt.Println("All members deleted successfully")
+				return
 			}
-			// Wait for all goroutines to finish
-			go func() {
-				wg.Wait()
-				close(errChan)
-			}()
 
-			// Collect and handle errors
-			var finalErr error
-			for err := range errChan {
-				if finalErr == nil {
-					finalErr = err
-				} else {
-					log.Errorf("Error: %v", err)
+			if username != "" {
+				err = api.DeleteMemberByUsername(project, username)
+				if err != nil {
+					log.Fatalf("failed to delete member: %v", err)
+				}
+				return
+			} else if !delAllFlag {
+				log.Println("Please provide a username or use --all flag to delete all members")
+				memID = prompt.GetMemberIDFromUser(project)
+				if memID == 0 {
+					fmt.Println("No members found in project")
+					return
 				}
 			}
-			if finalErr != nil {
-				log.Errorf("failed to delete some members: %v", finalErr)
+
+			// normal deletion process
+			err = api.DeleteMember(project, memID)
+			if err != nil {
+				log.Fatalf("failed to delete member: %v", err)
 			}
 		},
 	}
 
 	flags := cmd.Flags()
+	flags.StringVarP(&username, "username", "u", "", "Username of the member")
+	flags.StringVarP(&project, "project", "p", "", "Project Name")
 	flags.BoolVarP(&delAllFlag, "all", "a", false, "Deletes all members of the project")
 
 	return cmd

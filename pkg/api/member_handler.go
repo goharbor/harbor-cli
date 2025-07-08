@@ -82,6 +82,11 @@ func DeleteAllMember(projectName string) {
 	length := len(response.Payload)
 	errChan := make(chan error, length)
 
+	if length < 1 {
+		log.Info("No members found in project")
+		return
+	}
+
 	for _, member := range response.Payload {
 		wg.Add(1)
 		go func(memberID int64) {
