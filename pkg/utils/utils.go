@@ -14,6 +14,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +24,11 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charmbracelet/bubbles/table"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
@@ -179,4 +184,42 @@ func GetSecretStdin(prompt string) (string, error) {
 
 func ToKebabCase(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}
+
+// GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
+func GetUserIdFromUser() int64 {
+	userId := make(chan int64)
+
+	go func() {
+		credentialName := viper.GetString("current-credential-name")
+		client, err := GetClientByCredentialName(credentialName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ctx := context.Background()
+		response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
+		if err != nil {
+			log.Fatal(err)
+		}
+		uview.UserList(response.Payload, userId)
+	}()
+
+	return <-userId
+}
+
+// RemoveColumns removes columns with specified titles from the given columns array.
+func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column {
+	titleMap := make(map[string]bool)
+	for _, title := range colsToRemove {
+		titleMap[title] = true
+	}
+
+	var filteredColumns []table.Column
+	for _, column := range columns {
+		if !titleMap[column.Title] {
+			filteredColumns = append(filteredColumns, column)
+		}
+	}
+
+	return filteredColumns
 }
