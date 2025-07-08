@@ -61,13 +61,17 @@ func ListRepositoryCommand() *cobra.Command {
 				return nil
 			}
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(repos, FormatFlag)
-				if err != nil {
-					log.Error(err)
+			switch FormatFlag {
+			case "plain":
+				if err := list.PrintReposInPlaintextFormat(repos.Payload); err != nil {
+					return fmt.Errorf("failed to print repositories in plain format: %w", err)
 				}
-			} else {
+			case "":
 				list.ListRepositories(repos.Payload)
+			default:
+				if err := utils.PrintFormat(repos, FormatFlag); err != nil {
+					return fmt.Errorf("unsupported format '%s': %w", FormatFlag, err)
+				}
 			}
 			return nil
 		},

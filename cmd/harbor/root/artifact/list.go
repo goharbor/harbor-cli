@@ -64,19 +64,22 @@ Supports pagination, search queries, and sorting using flags.`,
 			}
 
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
-
 			if err != nil {
 				return fmt.Errorf("failed to list artifacts: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(artifacts, FormatFlag)
-				if err != nil {
-					return err
+			switch FormatFlag {
+			case "plain":
+				if err := artifactViews.PrintArtifactsInPlaintextFormat(artifacts.Payload); err != nil {
+					return fmt.Errorf("failed to print artifacts in plain format: %w", err)
 				}
-			} else {
+			case "":
 				artifactViews.ListArtifacts(artifacts.Payload)
+			default:
+				if err := utils.PrintFormat(artifacts, FormatFlag); err != nil {
+					return fmt.Errorf("unsupported format '%s': %w", FormatFlag, err)
+				}
 			}
 			return nil
 		},

@@ -59,7 +59,6 @@ func ViewArtifactCommmand() *cobra.Command {
 			}
 
 			artifact, err = api.ViewArtifact(projectName, repoName, reference, false)
-
 			if err != nil {
 				log.Errorf("failed to get info of an artifact: %v", err)
 				return
