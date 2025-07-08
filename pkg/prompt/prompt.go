@@ -91,6 +91,17 @@ func GetProjectNameFromUser() (string, error) {
 	return res.name, res.err
 }
 
+// GetRoleNameFromUser prompts the user to select a role and returns it.
+func GetRoleNameFromUser() int64 {
+	roleChan := make(chan int64)
+	Roles := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
+	go func() {
+		mview.RoleList(Roles, roleChan)
+	}()
+
+	return <-roleChan
+}
+
 func GetProjectIDFromUser() int64 {
 	projectID := make(chan int64)
 	go func() {
