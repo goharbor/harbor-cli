@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
@@ -160,6 +161,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = registry.Registry()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = replication.Replication()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
