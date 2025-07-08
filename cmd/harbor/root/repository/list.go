@@ -61,7 +61,11 @@ func ListRepositoryCommand() *cobra.Command {
 				return nil
 			}
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
+						if FormatFlag != "" {
+				if FormatFlag == "plain" {
+						list.PrintRepoInPlaintextFormat(repos.Payload)				
+						return nil
+				}
 				err = utils.PrintFormat(repos, FormatFlag)
 				if err != nil {
 					log.Error(err)
@@ -70,6 +74,7 @@ func ListRepositoryCommand() *cobra.Command {
 				list.ListRepositories(repos.Payload)
 			}
 			return nil
+
 		},
 	}
 
