@@ -73,21 +73,20 @@ func ListProjectCommand() *cobra.Command {
 				return nil
 			}
 			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(allProjects, formatFlag)
-				if err != nil {
-					return err
+			switch formatFlag {
+			case "plain":
+				if err := list.PrintProjectsInPlainTextFormat(allProjects); err != nil {
+					return fmt.Errorf("failed to print artifacts in plain format: %w", err)
 				}
-			} else if utils.IsOutputPiped() {
-				log.Debug("Pipe detected")
-				list.ListProjectsTabSeparated(allProjects)
-			} else {
-				log.Debug("Listing projects using default view")
+			case "":
 				list.ListProjects(allProjects)
+			default:
+				if err := utils.PrintFormat(allProjects, formatFlag); err != nil {
+					return fmt.Errorf("unsupported format '%s': %w", formatFlag, err)
+				}
 			}
-
 			return nil
+
 		},
 	}
 

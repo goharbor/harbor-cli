@@ -67,7 +67,7 @@ func ListProjects(projects []*models.Project) {
 	}
 }
 
-func ListProjectsTabSeparated(projects []*models.Project) {
+func PrintProjectsInPlainTextFormat(projects []*models.Project) error {
 
 	//formatting parameters can be discussed
 	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
@@ -99,7 +99,7 @@ func ListProjectsTabSeparated(projects []*models.Project) {
 	}
 
 	//enforce writing of output
-	w.Flush()
+	return w.Flush()
 
 }
 
