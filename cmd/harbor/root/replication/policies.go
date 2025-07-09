@@ -14,19 +14,24 @@
 package replication
 
 import (
+	rpolicies "github.com/goharbor/harbor-cli/cmd/harbor/root/replication/policies"
 	"github.com/spf13/cobra"
 )
 
-func Replication() *cobra.Command {
+func ReplicationPoliciesCommand() *cobra.Command {
 	// replicationCmd represents the replication command.
 	var replicationCmd = &cobra.Command{
-		Use:     "replication",
-		Aliases: []string{"repl"},
-		Short:   "Manage replications",
-		Long:    `Manage replications in Harbor context`,
+		Use:     "policies",
+		Aliases: []string{"pol"},
+		Short:   "Manage replication policies",
+		Long:    `Manage replication policies in Harbor context`,
 	}
 	replicationCmd.AddCommand(
-		ReplicationPoliciesCommand(),
+		rpolicies.ListCommand(),
+		rpolicies.ViewCommand(),
+		rpolicies.DeleteCommand(),
+		rpolicies.CreateCommand(),
+		rpolicies.UpdateCommand(),
 	)
 
 	return replicationCmd

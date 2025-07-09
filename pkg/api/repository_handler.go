@@ -60,7 +60,7 @@ func RepoView(projectName, repoName string) (*repository.GetRepositoryOK, error)
 	return response, nil
 }
 
-func ListRepository(projectNameOrID string, useProjectID bool) (repository.ListRepositoriesOK, error) {
+func ListRepository(projectNameOrID string, useProjectID bool, opts ...ListFlags) (repository.ListRepositoriesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return repository.ListRepositoriesOK{}, err
@@ -75,8 +75,18 @@ func ListRepository(projectNameOrID string, useProjectID bool) (repository.ListR
 		projectName = project.Payload.Name
 	}
 
-	response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{ProjectName: projectName})
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
 
+	response, err := client.Repository.ListRepositories(ctx, &repository.ListRepositoriesParams{
+		ProjectName: projectName,
+		Page:        &listFlags.Page,
+		PageSize:    &listFlags.PageSize,
+		Q:           &listFlags.Q,
+		Sort:        &listFlags.Sort,
+	})
 	if err != nil {
 		return repository.ListRepositoriesOK{}, err
 	}

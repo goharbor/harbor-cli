@@ -11,63 +11,54 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package repository
+package policies
 
 import (
 	"fmt"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/repository/list"
+	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func ListRepositoryCommand() *cobra.Command {
+func ListCommand() *cobra.Command {
 	var opts api.ListFlags
-
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "list repositories within a project",
-		Example: `  harbor repo list <project_name>`,
-		Long:    `Get information of all repositories in a project`,
-		Args:    cobra.MaximumNArgs(1),
+		Use:   "list",
+		Short: "List replication policies",
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Debug("Starting replications list command")
+
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
-			var err error
-			var repos repository.ListRepositoriesOK
-			var projectName string
 
-			if len(args) > 0 {
-				projectName = args[0]
-			} else {
-				projectName, err = prompt.GetProjectNameFromUser()
-				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-				}
-			}
-
-			repos, err = api.ListRepository(projectName, false, opts)
+			log.Debug("Fetching projects...")
+			allPolicies, err := api.ListReplicationPolicies(opts)
 			if err != nil {
-				return fmt.Errorf("failed to list repositories: %v", err)
+				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
-			if len(repos.Payload) == 0 {
-				log.Info("No repositories found")
+
+			log.WithField("count", len(allPolicies.Payload)).Debug("Number of projects fetched")
+			if len(allPolicies.Payload) == 0 {
+				log.Info("No policies found")
 				return nil
 			}
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(repos, FormatFlag)
+
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				err = utils.PrintFormat(allPolicies.Payload, formatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
-				list.ListRepositories(repos.Payload)
+				log.Debug("Listing projects using default view")
+				list.ListPolicies(allPolicies.Payload)
 			}
 			return nil
 		},
@@ -75,7 +66,7 @@ func ListRepositoryCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 

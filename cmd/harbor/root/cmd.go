@@ -26,6 +26,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/robot"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
@@ -164,6 +165,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = registry.Registry()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = replication.Replication()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
