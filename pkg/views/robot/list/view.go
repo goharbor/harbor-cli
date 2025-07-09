@@ -49,7 +49,10 @@ func ListRobots(robots []*models.Robot) {
 			enabledStatus = views.GreenANSI + "Enabled" + views.ResetANSI
 		}
 
-		TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
+		var TotalPermissions int = 0
+		if len(robot.Permissions) > 0 {
+			TotalPermissions = len(robot.Permissions[0].Access)
+		}
 
 		if robot.ExpiresAt == -1 {
 			expires = "Never"
@@ -61,7 +64,7 @@ func ListRobots(robots []*models.Robot) {
 		rows = append(rows, table.Row{
 			robot.Name,
 			enabledStatus,
-			TotalPermissions,
+			strconv.FormatInt(int64(TotalPermissions), 10),
 			createdTime,
 			expires,
 			string(robot.Description),

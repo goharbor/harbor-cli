@@ -32,5 +32,6 @@ var BaseStyle = lipgloss.NewStyle().
 const (
 	GreenANSI = "\033[32m"
 	RedANSI   = "\033[31m"
+	BoldANSI  = "\033[1m"
 	ResetANSI = "\033[0m"
 )
