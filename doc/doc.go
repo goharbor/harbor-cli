@@ -50,10 +50,10 @@ func Doc() error {
 	folderName := "cli-docs"
 	_, err = os.Stat(folderName)
 	if os.IsNotExist(err) {
-		log.Println("kumar err bhaa")
+		log.Printf("Folder %s does not exist", folderName)
 		err = os.Mkdir(folderName, 0755)
 		if err != nil {
-			log.Println("kumar err bhaa noooo")
+			log.Printf("Failed to create directory %s : %v", folderName, err)
 			log.Fatal("Error creating folder:", err)
 		}
 	}
