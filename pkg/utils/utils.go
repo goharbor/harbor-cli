@@ -180,3 +180,11 @@ func GetSecretStdin(prompt string) (string, error) {
 func ToKebabCase(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
 }
+
+func Capitalize(s string) string {
+	if s == "" {
+		return ""
+	}
+	return s
+	// trings.ToUpper(s[:1]) + s[1:]
+}
