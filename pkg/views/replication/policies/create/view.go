@@ -32,6 +32,7 @@ type CreateView struct {
 	Override        bool   `json:"override,omitempty"`
 	CopyByChunk     bool   `json:"copy_by_chunk,omitempty"`
 	Speed           string `json:"speed,omitempty"`
+	TargetRegistry  string `json:"target_registry,omitempty"` // ID of the target registry
 
 	// Trigger related fields
 	TriggerType       string `json:"trigger_type,omitempty"`
@@ -138,9 +139,9 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 				Title("Resource Type").
 				Description("Type of artifacts to replicate").
 				Options(
-					huh.NewOption("All (Images & Charts)", ""),
+					huh.NewOption("All (Images & Artifacts)", ""),
 					huh.NewOption("Images only", "image"),
-					huh.NewOption("Charts only", "chart"),
+					huh.NewOption("Artifacts only", "artifact"),
 				).
 				Value(&createView.ResourceFilter),
 			huh.NewInput().
