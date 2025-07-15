@@ -51,8 +51,7 @@ type Access struct {
 }
 
 func UpdateRobotView(updateView *UpdateView) {
-	var duration string
-	duration = strconv.FormatInt(updateView.Duration, 10)
+	duration := strconv.FormatInt(updateView.Duration, 10)
 
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
