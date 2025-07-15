@@ -53,7 +53,7 @@ harbor-cli logs --output-format json`,
 			}
 
 			if follow {
-				var interval time.Duration = 1 * time.Second
+				var interval time.Duration = 5 * time.Second
 				var err error
 				if refreshInterval != "" {
 					interval, err = time.ParseDuration(refreshInterval)
@@ -95,7 +95,7 @@ harbor-cli logs --output-format json`,
 	)
 	flags.BoolVarP(&follow, "follow", "f", false, "Follow log output (tail -f behavior)")
 	flags.StringVarP(&refreshInterval, "refresh-interval", "n", "",
-		"Interval to refresh logs when following (default: 1s)")
+		"Interval to refresh logs when following (default: 5s)")
 
 	return cmd
 }
