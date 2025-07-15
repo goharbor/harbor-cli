@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -49,4 +50,23 @@ func ListRepositories(repos []*models.Repository) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func PrintReposInPlaintextFormat(repos []*models.Repository) error {
+	w := tabwriter.NewWriter(os.Stdout, 0, 3, 2, ' ', 0)
+
+	fmt.Fprintln(w, "Name\tArtifacts\tPulls\tUpdated")
+
+	for _, repo := range repos {
+		createdTime, _ := utils.FormatCreatedTime(repo.UpdateTime.String())
+
+		fmt.Fprintf(w, "%s\t%d\t%d\t%s\n",
+			repo.Name,
+			repo.ArtifactCount,
+			repo.PullCount,
+			createdTime,
+		)
+	}
+
+	return w.Flush()
 }
