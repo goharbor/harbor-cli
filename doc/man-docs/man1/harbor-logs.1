@@ -1,0 +1,69 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-logs - Get recent logs of the projects which the user is a member of
+
+
+.SH SYNOPSIS
+\fBharbor logs [flags]\fP
+
+
+.SH DESCRIPTION
+Get recent logs of the projects which the user is a member of.
+This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
+
+.PP
+harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
+
+.PP
+harbor-cli logs --follow --refresh-interval 2s
+
+.PP
+harbor-cli logs --output-format json
+
+
+.SH OPTIONS
+\fB-f\fP, \fB--follow\fP[=false]
+	Follow log output (tail -f behavior)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for logs
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=10
+	Size of per page
+
+.PP
+\fB-q\fP, \fB--query\fP=""
+	Query string to query resources
+
+.PP
+\fB-n\fP, \fB--refresh-interval\fP=""
+	Interval to refresh logs when following (default: 1s)
+
+.PP
+\fB--sort\fP=""
+	Sort the resource list in ascending or descending order
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP
