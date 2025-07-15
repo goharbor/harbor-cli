@@ -31,7 +31,7 @@ harbor logs [flags]
       --page int                  Page number (default 1)
       --page-size int             Size of per page (default 10)
   -q, --query string              Query string to query resources
-  -n, --refresh-interval string   Interval to refresh logs when following (default: 1s)
+  -n, --refresh-interval string   Interval to refresh logs when following (default: 5s)
       --sort string               Sort the resource list in ascending or descending order
 ```
 
