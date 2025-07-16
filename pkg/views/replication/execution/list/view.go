@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package view
+package list
 
 import (
 	"fmt"
@@ -26,39 +26,37 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthM},
+	{Title: "Exec ID", Width: tablelist.WidthS},
+	{Title: "Pol ID", Width: tablelist.WidthS},
 	{Title: "Status", Width: tablelist.WidthL},
-	{Title: "Trigger", Width: tablelist.WidthL},
-	{Title: "Succed", Width: tablelist.WidthM},
+	{Title: "Succeed", Width: tablelist.WidthM},
 	{Title: "Stopped", Width: tablelist.WidthM},
 	{Title: "Total", Width: tablelist.WidthM},
+	{Title: "Trigger", Width: tablelist.WidthL},
 	{Title: "Start Time", Width: tablelist.WidthL},
 	{Title: "End Time", Width: tablelist.WidthL},
 }
 
-func ViewExecution(exec *models.ReplicationExecution) {
+func ListExecutions(executions []*models.ReplicationExecution) {
 	var rows []table.Row
-	startTime, err := utils.FormatCreatedTime(exec.StartTime.String())
-	if err != nil {
-		fmt.Println("Error formatting start time:", err)
-		startTime = exec.StartTime.String()
+	for _, exec := range executions {
+		createdTime, _ := utils.FormatCreatedTime(exec.StartTime.String())
+		var endTime string = "-"
+		if exec.Status != "InProgress" {
+			endTime, _ = utils.FormatCreatedTime(exec.EndTime.String())
+		}
+		rows = append(rows, table.Row{
+			strconv.FormatInt(exec.ID, 10),
+			strconv.FormatInt(exec.PolicyID, 10),
+			exec.Status,
+			strconv.FormatInt(exec.Succeed, 10),
+			strconv.FormatInt(exec.Stopped, 10),
+			strconv.FormatInt(exec.Total, 10),
+			exec.Trigger,
+			createdTime,
+			endTime,
+		})
 	}
-	endTime, err := utils.FormatCreatedTime(exec.EndTime.String())
-	if err != nil {
-		fmt.Println("Error formatting end time:", err)
-		endTime = exec.EndTime.String()
-	}
-	rows = append(rows, table.Row{
-		strconv.FormatInt(exec.ID, 10),
-		exec.Status,
-		exec.Trigger,
-		strconv.FormatInt(exec.Succeed, 10),
-		strconv.FormatInt(exec.Stopped, 10),
-		strconv.FormatInt(exec.Total, 10),
-		startTime,
-		endTime,
-	})
-
 	m := tablelist.NewModel(columns, rows, len(rows))
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)

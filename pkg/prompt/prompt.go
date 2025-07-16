@@ -300,7 +300,7 @@ func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
 	executionID := make(chan int64)
 
 	go func() {
-		response, err := api.GetReplicationExecutions(rpolicyID)
+		response, err := api.ListReplicationExecutions(rpolicyID)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -139,14 +139,23 @@ func StopReplication(policyID int64) (*replication.StopReplicationOK, error) {
 	return response, nil
 }
 
-func GetReplicationExecutions(policyID int64) (*replication.ListReplicationExecutionsOK, error) {
+func ListReplicationExecutions(policyID int64, opts ...ListFlags) (*replication.ListReplicationExecutionsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
 	response, err := client.Replication.ListReplicationExecutions(ctx, &replication.ListReplicationExecutionsParams{
 		PolicyID: &policyID,
+		Page:     &listFlags.Page,
+		PageSize: &listFlags.PageSize,
+		Sort:     &listFlags.Sort,
 	})
 	if err != nil {
 		return nil, err

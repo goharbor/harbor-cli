@@ -14,22 +14,21 @@
 package replication
 
 import (
+	executions "github.com/goharbor/harbor-cli/cmd/harbor/root/replication/executions"
 	"github.com/spf13/cobra"
 )
 
-func Replication() *cobra.Command {
+func ReplicationExecutionsCommand() *cobra.Command {
 	// replicationCmd represents the replication command.
 	var replicationCmd = &cobra.Command{
-		Use:     "replication",
-		Aliases: []string{"repl"},
-		Short:   "Manage replications",
-		Long:    `Manage replications in Harbor context`,
+		Use:     "executions",
+		Aliases: []string{"exec"},
+		Short:   "Manage replication executions",
+		Long:    `Manage replication executions in Harbor context`,
 	}
 	replicationCmd.AddCommand(
-		ReplicationPoliciesCommand(),
-		ReplicationExecutionsCommand(),
-		StartCommand(),
-		StopCommand(),
+		executions.ListCommand(),
+		executions.ViewCommand(),
 	)
 
 	return replicationCmd
