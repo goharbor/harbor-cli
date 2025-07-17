@@ -35,6 +35,7 @@ import (
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
 	rexecutions "github.com/goharbor/harbor-cli/pkg/views/replication/execution/select"
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
+	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
@@ -308,6 +309,23 @@ func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
 			log.Fatal("no replication executions found")
 		}
 		rexecutions.ReplicationExecutionList(response.Payload, executionID)
+	}()
+
+	return <-executionID
+}
+
+func GetReplicationTaskIDFromUser(execID int64) int64 {
+	executionID := make(chan int64)
+
+	go func() {
+		response, err := api.ListReplicationTasks(execID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(response.Payload) == 0 {
+			log.Fatal("no replication tasks found")
+		}
+		rtasks.ReplicationTasksList(response.Payload, executionID)
 	}()
 
 	return <-executionID

@@ -31,7 +31,10 @@ func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List replication executions",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `List all replication executions for a given replication policy. If no policy ID is provided, it will prompt the user to select one interactively.`,
+		Example: `  harbor replication executions list 12345
+  harbor replication executions list`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting replication executions list command")
 

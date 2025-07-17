@@ -26,7 +26,7 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthM},
+	{Title: "Execution ID", Width: tablelist.WidthM},
 	{Title: "Status", Width: tablelist.WidthL},
 	{Title: "Trigger", Width: tablelist.WidthL},
 	{Title: "Succed", Width: tablelist.WidthM},

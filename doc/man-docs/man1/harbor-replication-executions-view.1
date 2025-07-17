@@ -1,0 +1,46 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-replication-executions-view - get replication execution by id
+
+
+.SH SYNOPSIS
+\fBharbor replication executions view [ID] [flags]\fP
+
+
+.SH DESCRIPTION
+Get a specific replication execution by its ID. If no ID is provided, it will prompt the user to select one interactively. If the --no-tasks flag is set, it will not list associated tasks.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for view
+
+.PP
+\fB--no-tasks\fP[=false]
+	Do not list associated tasks
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor replication executions view 12345
+  harbor replication executions view --no-tasks
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-replication-executions(1)\fP

@@ -24,13 +24,18 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/execution/view"
+	tasklist "github.com/goharbor/harbor-cli/pkg/views/replication/task/list"
 )
 
 func ViewCommand() *cobra.Command {
+	var notListTasks bool
 	cmd := &cobra.Command{
 		Use:   "view [ID]",
 		Short: "get replication execution by id",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Get a specific replication execution by its ID. If no ID is provided, it will prompt the user to select one interactively. If the --no-tasks flag is set, it will not list associated tasks.`,
+		Example: `  harbor replication executions view 12345
+  harbor replication executions view --no-tasks`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var execID int64
 			if len(args) > 0 {
@@ -50,18 +55,34 @@ func ViewCommand() *cobra.Command {
 				return fmt.Errorf("failed to get replication execution: %v", utils.ParseHarborErrorMsg(err))
 			}
 
+			tasks, err := api.ListReplicationTasks(execID)
+			if err != nil {
+				return fmt.Errorf("failed to list replication tasks: %v", utils.ParseHarborErrorMsg(err))
+			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(execution.Payload, FormatFlag)
 				if err != nil {
 					return err
 				}
+				if !notListTasks {
+					err = utils.PrintFormat(tasks.Payload, FormatFlag)
+					if err != nil {
+						return err
+					}
+				}
 			} else {
 				view.ViewExecution(execution.Payload)
+				if !notListTasks {
+					fmt.Println("Associated Tasks:")
+					tasklist.ListTasks(tasks.Payload)
+				}
 			}
 			return nil
 		},
 	}
-
+	flags := cmd.Flags()
+	flags.BoolVarP(&notListTasks, "no-tasks", "", false, "Do not list associated tasks")
 	return cmd
 }
