@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
@@ -33,8 +34,9 @@ type Credential struct {
 }
 
 type HarborConfig struct {
-	CurrentCredentialName string       `mapstructure:"current-credential-name" yaml:"current-credential-name"`
-	Credentials           []Credential `mapstructure:"credentials" yaml:"credentials"`
+	CurrentCredentialName string                `mapstructure:"current-credential-name" yaml:"current-credential-name"`
+	Credentials           []Credential          `mapstructure:"credentials" yaml:"credentials"`
+	Configurations        models.Configurations `mapstructure:"configurations" yaml:"configurations"`
 }
 
 type HarborData struct {
@@ -194,7 +196,7 @@ func ReadConfig(harborConfigPath string) error {
 	viper.SetConfigFile(harborConfigPath)
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
+		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists", err)
 	}
 	return nil
 }
@@ -550,5 +552,40 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 
 	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)
 	log.Infof("Switched to context '%s'", updatedCredential.Name)
+	return nil
+}
+
+func AddConfigurationsToConfigFile(config *models.ConfigurationsResponse) error {
+	currentConfig, err := GetCurrentHarborConfig()
+	if err != nil {
+		return fmt.Errorf("failed to get current Harbor configuration: %w", err)
+	}
+
+	currentData, err := GetCurrentHarborData()
+	if err != nil {
+		return fmt.Errorf("failed to get current Harbor data: %w", err)
+	}
+
+	v := viper.New()
+	v.SetConfigFile(currentData.ConfigPath)
+	v.SetConfigType("yaml")
+
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read config file: %v", err)
+	}
+
+	if err := v.Unmarshal(&currentConfig); err != nil {
+		return fmt.Errorf("failed to unmarshal config file: %v", err)
+	}
+
+	configurations := ConvertToConfigurations(config)
+	currentConfig.Configurations = *configurations
+	v.Set("current-credential-name", currentConfig.CurrentCredentialName)
+	v.Set("credentials", currentConfig.Credentials)
+	v.Set("configurations", currentConfig.Configurations)
+	err = v.WriteConfig()
+	if err != nil {
+		return err
+	}
 	return nil
 }

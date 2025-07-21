@@ -30,3 +30,16 @@ func GetConfigurations() (*configure.GetConfigurationsOK, error) {
 	}
 	return response, nil
 }
+
+func UpdateConfigurations(config *configure.UpdateConfigurationsParams) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Configure.UpdateConfigurations(ctx, config)
+	if err != nil {
+		return err
+	}
+	return nil
+}
