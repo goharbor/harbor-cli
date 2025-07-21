@@ -19,10 +19,11 @@ harbor login [server] [flags]
 ### Options
 
 ```sh
-  -h, --help              help for login
-  -p, --password string   Password
-      --password-stdin    Take the password from stdin
-  -u, --username string   Username
+  -n, --context-name string   Login context name
+  -h, --help                  help for login
+  -p, --password string       Password
+      --password-stdin        Take the password from stdin
+  -u, --username string       Username
 ```
 
 ### Options inherited from parent commands
