@@ -18,16 +18,16 @@ import (
 	"io"
 	"time"
 
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
-
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
@@ -149,6 +149,10 @@ harbor help
 
 	// System
 	cmd = context.Context()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = configurations.ConfigurationsCommand()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
