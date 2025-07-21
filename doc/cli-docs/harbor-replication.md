@@ -30,4 +30,6 @@ Manage replications in Harbor context
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
+* [harbor replication start](harbor-replication-start.md)	 - start replication
+* [harbor replication stop](harbor-replication-stop.md)	 - stop replication
 

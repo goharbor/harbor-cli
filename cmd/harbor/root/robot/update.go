@@ -20,7 +20,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/config"
+	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
@@ -111,7 +111,7 @@ Examples:
 			opts.Name = bot.Name
 			opts.Secret = bot.Secret
 			opts.Description = bot.Description
-			opts.Duration = bot.Duration
+			opts.Duration = *bot.Duration
 			opts.Disable = bot.Disable
 			opts.Editable = bot.Editable
 			opts.CreationTime = bot.CreationTime
