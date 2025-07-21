@@ -336,7 +336,7 @@ func getProjectPermissionsForUpdate(opts *update.UpdateView, projectPermissionsM
 	case "list":
 		return handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap)
 	case "per_project":
-		return handlePerProjectPermissionsForUpdate(opts, projectPermissionsMap)
+		return handlePerProjectPermissionsForUpdate(projectPermissionsMap)
 	default:
 		return fmt.Errorf("unknown permission mode: %s", permissionMode)
 	}
@@ -393,7 +393,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 	return nil
 }
 
-func handlePerProjectPermissionsForUpdate(opts *update.UpdateView, projectPermissionsMap map[string][]models.Permission) error {
+func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]models.Permission) error {
 	// First, decide whether to replace or keep existing project permissions
 	if len(projectPermissionsMap) > 0 {
 		var modifyMode string
@@ -543,19 +543,23 @@ func buildMergedPermissionsForUpdate(projectPermissionsMap map[string][]models.P
 				Action:   perm.Action,
 			})
 		}
-		mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-			Namespace: projectName,
-			Access:    accessesProject,
-			Kind:      "project",
-		})
+		if len(accessesProject) > 0 {
+			mergedPermissions = append(mergedPermissions, &update.RobotPermission{
+				Namespace: projectName,
+				Access:    accessesProject,
+				Kind:      "project",
+			})
+		}
 	}
 
-	// Add system permissions
-	mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-		Namespace: "/",
-		Access:    accessesSystem,
-		Kind:      "system",
-	})
+	if len(accessesSystem) > 0 {
+		// Add system permissions only if there are any
+		mergedPermissions = append(mergedPermissions, &update.RobotPermission{
+			Namespace: "/",
+			Access:    accessesSystem,
+			Kind:      "system",
+		})
+	}
 
 	return mergedPermissions
 }
@@ -619,27 +623,3 @@ func promptPermissionModeForUpdate(hasExistingProjectPerms bool) (string, error)
 
 	return permissionMode, err
 }
-
-// // Stub functions that would need to be implemented or imported
-// func getMultipleProjectsFromUser() ([]string, error) {
-// 	// Implementation would go here
-// 	// This should show a list of projects and let the user select multiple
-// 	return []string{}, nil
-// }
-
-// func promptMoreProjects() (bool, error) {
-// 	var moreProjects bool
-// 	err := huh.NewForm(
-// 		huh.NewGroup(
-// 			huh.NewSelect[bool]().
-// 				Title("Do you want to add more projects?").
-// 				Options(
-// 					huh.NewOption("No", false),
-// 					huh.NewOption("Yes", true),
-// 				).
-// 				Value(&moreProjects),
-// 		),
-// 	).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
-
-// 	return moreProjects, err
-// }
