@@ -31,7 +31,8 @@ func ConvertToConfigurations(resp *models.ConfigurationsResponse) *models.Config
 		respFieldName := respType.Field(i).Name
 		// Find corresponding field in Configurations
 		if configField := configValue.FieldByName(respFieldName); configField.IsValid() && configField.CanSet() {
-			if respFieldName == "OIDCClientSecret" || respFieldName == "UaaClientSecret" {
+			if respFieldName == "OIDCClientSecret" || respFieldName == "UaaClientSecret" || respFieldName == "LdapSearchPassword" {
+				fmt.Println("Converting secret field:", respFieldName, configField)
 				convertSecretField(respField, configField)
 			} else {
 				convertAndSetField(respField, configField)
