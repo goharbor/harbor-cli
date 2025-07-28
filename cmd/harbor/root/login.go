@@ -79,7 +79,7 @@ func LoginCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&Username, "username", "u", "", "Username")
-	flags.StringVarP(&Name, "context-name", "n", "", "Login context name")
+	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 

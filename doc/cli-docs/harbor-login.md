@@ -19,7 +19,7 @@ harbor login [server] [flags]
 ### Options
 
 ```sh
-  -n, --context-name string   Login context name
+      --context-name string   Login context name (optional)
   -h, --help                  help for login
   -p, --password string       Password
       --password-stdin        Take the password from stdin
