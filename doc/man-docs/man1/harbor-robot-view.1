@@ -1,0 +1,66 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-robot-view - get robot by id
+
+
+.SH SYNOPSIS
+\fBharbor robot view [robotID] [flags]\fP
+
+
+.SH DESCRIPTION
+View detailed information about a robot account in Harbor.
+
+.PP
+This command displays comprehensive information about a robot account including
+its ID, name, description, creation time, expiration, and the permissions
+it has been granted. Supports both system-level and project-level robot accounts.
+
+.PP
+The command supports multiple ways to identify the robot account:
+- By providing the robot ID directly as an argument
+- Without any arguments, which will prompt for robot selection
+
+.PP
+The displayed information includes:
+- Basic details (ID, name, description)
+- Temporal information (creation date, expiration date, remaining time)
+- Security details (disabled status)
+- Detailed permissions breakdown by resource and action
+- For system robots: permissions across multiple projects are shown separately
+
+.PP
+System-level robots can have permissions spanning multiple projects, while
+project-level robots are scoped to a single project.
+
+.PP
+Examples:
+  # View robot by ID
+  harbor-cli robot view 123
+
+.PP
+# Interactive selection (will prompt for robot)
+  harbor-cli robot view
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for view
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-robot(1)\fP
