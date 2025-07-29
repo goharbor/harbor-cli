@@ -19,7 +19,10 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+<<<<<<< HEAD
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
+=======
+>>>>>>> 3c8e623 (Add Support for System-Level Robot Accounts (#507))
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
@@ -29,6 +32,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/robot"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
@@ -135,6 +139,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = webhook.Webhook()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = robot.Robot()
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 

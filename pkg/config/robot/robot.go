@@ -11,6 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package config
 
 import (
@@ -19,21 +33,26 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
+
+// PermissionMap holds permissions separated by scope
+type PermissionMap struct {
+	Project map[string][]string
+	System  map[string][]string
+}
 
 // RobotPermissionConfig represents the robot account configuration from file
 type RobotPermissionConfig struct {
 	Name        string            `yaml:"name" json:"name"`
 	Description string            `yaml:"description" json:"description"`
 	Duration    int64             `yaml:"duration" json:"duration"`
-	Project     string            `yaml:"project,omitempty" json:"project,omitempty"` // Legacy field for backward compatibility
-	Level       string            `yaml:"kind,omitempty" json:"kind,omitempty"`       // "project" or "system"
+	Level       string            `yaml:"level,omitempty" json:"level,omitempty"` // "project" or "system"
 	Permissions []PermissionScope `yaml:"permissions" json:"permissions"`
 }
 
@@ -46,13 +65,6 @@ type PermissionScope struct {
 
 // AccessItem represents a resource permission definition
 type AccessItem struct {
-	Resource  string   `yaml:"resource,omitempty" json:"resource,omitempty"`
-	Resources []string `yaml:"resources,omitempty" json:"resources,omitempty"`
-	Actions   []string `yaml:"actions" json:"actions"`
-}
-
-// Legacy PermissionSpec for backward compatibility
-type PermissionSpec struct {
 	Resource  string   `yaml:"resource,omitempty" json:"resource,omitempty"`
 	Resources []string `yaml:"resources,omitempty" json:"resources,omitempty"`
 	Actions   []string `yaml:"actions" json:"actions"`
@@ -84,10 +96,10 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 		return nil, fmt.Errorf("unsupported file type: %s, expected 'yaml' or 'json'", fileType)
 	}
 
-	// Determine the robot kind
-	robotKind := "project" // Default to project robot
+	// Determine the robot level and ensure it's lowercase
+	robotLevel := "project" // Default to project robot
 	if config.Level != "" {
-		robotKind = config.Level
+		robotLevel = strings.ToLower(config.Level)
 	}
 
 	// Create the base view object
@@ -95,46 +107,31 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 		Name:        config.Name,
 		Description: config.Description,
 		Duration:    config.Duration,
-		Level:       robotKind,
+		Level:       robotLevel, // Keep lowercase
 	}
 
-	// For backward compatibility, set ProjectName if present in config
-	if config.Project != "" {
-		opts.ProjectName = config.Project
-	}
-
-	// Process permissions based on the new format
-	robotPermissions, err := processPermissionScopes(config.Permissions)
+	// Process permissions
+	robotPermissions, err := processPermissionScopes(config.Permissions, opts.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	// If no permissions defined in new format but we have legacy format,
-	// try to process them as backward compatibility
-	if len(robotPermissions) == 0 && len(config.Permissions) == 0 {
+	if len(robotPermissions) == 0 {
 		return nil, fmt.Errorf("no permissions defined in the configuration")
 	}
 
 	opts.Permissions = robotPermissions
 
-	// if no permission scopes but Project is defined
-	if len(opts.Permissions) == 0 && opts.ProjectName != "" {
-		log.Warn("Using legacy format for robot configuration")
-		// Create a default permission with the project
-		opts.Permissions = []*create.RobotPermission{
-			{
-				Kind:      "project",
-				Namespace: opts.ProjectName,
-				Access:    []*models.Access{},
-			},
-		}
+	// If this is a project robot, set the ProjectName from the first permission's namespace
+	if opts.Level == "project" && len(opts.Permissions) > 0 {
+		opts.ProjectName = opts.Permissions[0].Namespace
 	}
 
 	return opts, nil
 }
 
-// Process permission scopes from the new format
-func processPermissionScopes(scopes []PermissionScope) ([]*create.RobotPermission, error) {
+// Process permission scopes
+func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*create.RobotPermission, error) {
 	var result []*create.RobotPermission
 
 	// Get available permissions for validation
@@ -143,10 +140,21 @@ func processPermissionScopes(scopes []PermissionScope) ([]*create.RobotPermissio
 		return nil, err
 	}
 
+	// Check if we're creating a project robot
+	isProjectRobot := robotLevel == "project"
+
 	// Process each permission scope
 	for _, scope := range scopes {
+		// Make sure kind is lowercase
+		scopeKind := strings.ToLower(scope.Kind)
+
+		// For project robots, enforce only project permissions
+		if isProjectRobot && scopeKind != "project" {
+			return nil, fmt.Errorf("project robots can only have project permission scopes, found %s", scopeKind)
+		}
+
 		robotPerm := &create.RobotPermission{
-			Kind:      scope.Kind,
+			Kind:      scopeKind,
 			Namespace: scope.Namespace,
 			Access:    []*models.Access{},
 		}
@@ -165,19 +173,36 @@ func processPermissionScopes(scopes []PermissionScope) ([]*create.RobotPermissio
 
 			// Handle wildcard for resources
 			if containsWildcard(resources) {
-				resources = getAllResourceNames(availablePerms)
+				// Get appropriate resources based on scope kind
+				if scopeKind == "project" {
+					resources = getAllResourceNames(availablePerms.Project)
+				} else {
+					resources = getAllResourceNames(availablePerms.System)
+				}
 			}
 
 			// Process each resource
 			for _, resource := range resources {
-				if !isValidResource(resource, availablePerms) && resource != "*" {
-					fmt.Printf("Warning: Resource '%s' is not valid and will be skipped\n", resource)
+				// Determine which permission map to use based on scope kind
+				var validActions []string
+				var isValid bool
+
+				if scopeKind == "project" {
+					isValid = isValidResource(resource, availablePerms.Project)
+					validActions = getValidActionsForResource(resource, availablePerms.Project)
+				} else {
+					isValid = isValidResource(resource, availablePerms.System)
+					validActions = getValidActionsForResource(resource, availablePerms.System)
+				}
+
+				if !isValid && resource != "*" {
+					fmt.Printf("Warning: Resource '%s' is not valid for scope '%s' and will be skipped\n",
+						resource, scopeKind)
 					continue
 				}
 
 				// Handle wildcard for actions
 				if containsWildcard(accessItem.Actions) {
-					validActions := getValidActionsForResource(resource, availablePerms)
 					for _, action := range validActions {
 						robotPerm.Access = append(robotPerm.Access, &models.Access{
 							Resource: resource,
@@ -187,14 +212,22 @@ func processPermissionScopes(scopes []PermissionScope) ([]*create.RobotPermissio
 				} else {
 					// Process specific actions
 					for _, action := range accessItem.Actions {
-						if isValidAction(resource, action, availablePerms) {
+						var actionValid bool
+
+						if scopeKind == "project" {
+							actionValid = isValidAction(resource, action, availablePerms.Project)
+						} else {
+							actionValid = isValidAction(resource, action, availablePerms.System)
+						}
+
+						if actionValid {
 							robotPerm.Access = append(robotPerm.Access, &models.Access{
 								Resource: resource,
 								Action:   action,
 							})
 						} else {
-							fmt.Printf("Warning: Action '%s' is not valid for resource '%s' and will be skipped\n",
-								action, resource)
+							fmt.Printf("Warning: Action '%s' is not valid for resource '%s' in scope '%s' and will be skipped\n",
+								action, resource, scopeKind)
 						}
 					}
 				}
@@ -207,61 +240,9 @@ func processPermissionScopes(scopes []PermissionScope) ([]*create.RobotPermissio
 		}
 	}
 
-	return result, nil
-}
-
-// ProcessPermissions processes the legacy permission format
-func ProcessPermissions(specs []PermissionSpec) ([]models.Permission, error) {
-	var result []models.Permission
-
-	availablePerms, err := GetAllAvailablePermissions()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, spec := range specs {
-		var resources []string
-
-		if spec.Resource != "" {
-			resources = []string{spec.Resource}
-		} else if len(spec.Resources) > 0 {
-			resources = spec.Resources
-		} else {
-			return nil, fmt.Errorf("permission must specify either 'resource' or 'resources'")
-		}
-
-		if containsWildcard(resources) {
-			resources = getAllResourceNames(availablePerms)
-		}
-
-		for _, resource := range resources {
-			if !isValidResource(resource, availablePerms) && resource != "*" {
-				fmt.Printf("Warning: Resource '%s' is not valid and will be skipped\n", resource)
-				continue
-			}
-
-			if containsWildcard(spec.Actions) {
-				validActions := getValidActionsForResource(resource, availablePerms)
-				for _, action := range validActions {
-					result = append(result, models.Permission{
-						Resource: resource,
-						Action:   action,
-					})
-				}
-			} else {
-				for _, action := range spec.Actions {
-					if isValidAction(resource, action, availablePerms) {
-						result = append(result, models.Permission{
-							Resource: resource,
-							Action:   action,
-						})
-					} else {
-						fmt.Printf("Warning: Action '%s' is not valid for resource '%s' and will be skipped\n",
-							action, resource)
-					}
-				}
-			}
-		}
+	// For project robots, ensure there's only one permission scope
+	if isProjectRobot && len(result) > 1 {
+		return nil, fmt.Errorf("project robots can only have one permission scope, found %d", len(result))
 	}
 
 	return result, nil
@@ -276,7 +257,7 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 		return nil, fmt.Errorf("file must have an extension (.yaml, .yml, or .json)")
 	}
 
-	fileType := ext[1:]
+	fileType := ext[1:] // Remove the dot
 	if fileType == "yml" {
 		fileType = "yaml"
 	}
@@ -295,7 +276,7 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 		return nil, fmt.Errorf("duration cannot be 0")
 	}
 
-	// Kind-specific validation
+	// Level-specific validation
 	if opts.Level == "project" {
 		// Project robot requires a project
 		projectName := ""
@@ -329,24 +310,13 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 
 		// Set the project name consistently
 		opts.ProjectName = projectName
-
-		// For project robots, ensure there's exactly one permission scope
-		if len(opts.Permissions) > 1 {
-			return nil, fmt.Errorf("project robots can only have one permission scope, found %d", len(opts.Permissions))
-		}
-
-		// Also validate that the single permission scope is of kind "project"
-		if len(opts.Permissions) == 1 && opts.Permissions[0].Kind != "project" {
-			return nil, fmt.Errorf("project robots must have a permission scope of kind 'project', found '%s'",
-				opts.Permissions[0].Kind)
-		}
 	} else if opts.Level == "system" {
 		// System robot validation
 		if len(opts.Permissions) == 0 {
 			return nil, fmt.Errorf("system robot must have at least one permission scope")
 		}
 	} else {
-		return nil, fmt.Errorf("invalid robot kind: %s. Must be 'project' or 'system'", opts.Level)
+		return nil, fmt.Errorf("invalid robot level: %s. Must be 'project' or 'system'", opts.Level)
 	}
 
 	// Validate permissions
@@ -363,31 +333,35 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 	return opts, nil
 }
 
-func GetAllAvailablePermissions() (map[string][]string, error) {
+// GetAllAvailablePermissions returns permissions organized by scope
+func GetAllAvailablePermissions() (*PermissionMap, error) {
 	permsResp, err := api.GetPermissions()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get permissions: %v", err)
 	}
 
-	result := make(map[string][]string)
+	result := &PermissionMap{
+		Project: make(map[string][]string),
+		System:  make(map[string][]string),
+	}
 
 	// Add project permissions
 	for _, perm := range permsResp.Payload.Project {
 		resource := perm.Resource
-		if _, exists := result[resource]; !exists {
-			result[resource] = []string{}
+		if _, exists := result.Project[resource]; !exists {
+			result.Project[resource] = []string{}
 		}
-		result[resource] = append(result[resource], perm.Action)
+		result.Project[resource] = append(result.Project[resource], perm.Action)
 	}
 
 	// Add system permissions if available
 	if permsResp.Payload.System != nil {
 		for _, perm := range permsResp.Payload.System {
 			resource := perm.Resource
-			if _, exists := result[resource]; !exists {
-				result[resource] = []string{}
+			if _, exists := result.System[resource]; !exists {
+				result.System[resource] = []string{}
 			}
-			result[resource] = append(result[resource], perm.Action)
+			result.System[resource] = append(result.System[resource], perm.Action)
 		}
 	}
 
