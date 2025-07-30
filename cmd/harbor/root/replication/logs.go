@@ -15,7 +15,6 @@ package replication
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,30 +25,26 @@ import (
 )
 
 func LogsCommand() *cobra.Command {
+	var taskID int64
+	var execID int64
 	cmd := &cobra.Command{
 		Use:   "log [EXECUTION_ID] [TASK_ID]",
 		Short: "get replication execution logs by execution and task id",
 		Long:  `Get the logs of a specific replication execution and task by their IDs. If no IDs are provided, it will prompt the user to select them interactively.`,
-		Example: `  harbor replication log 12345 67890
+		Example: `  harbor replication log -e 12345 -t 67890
+		  harbor replication log --execution-id 12345 --task-id 67890
+		  harbor replication log --execution-id 12345
   harbor replication log`,
-		Args: cobra.MaximumNArgs(2),
+		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var taskID int64
-			var execID int64
-			if len(args) == 2 {
-				var err error
-				execID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("invalid replication execution ID: %s, %v", args[0], err)
-				}
-				taskID, err = strconv.ParseInt(args[1], 10, 64)
-				if err != nil {
-					return fmt.Errorf("invalid replication task ID: %s, %v", args[1], err)
-				}
-			} else {
+			if execID != 0 && taskID == 0 {
+				taskID = prompt.GetReplicationTaskIDFromUser(execID)
+			} else if execID == 0 && taskID == 0 {
 				rpolicyID := prompt.GetReplicationPolicyFromUser()
 				execID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
 				taskID = prompt.GetReplicationTaskIDFromUser(execID)
+			} else if execID == 0 && taskID != 0 {
+				return fmt.Errorf("execution ID must be provided if task ID is specified")
 			}
 
 			logs, err := api.GetReplicationLog(execID, taskID)
@@ -71,5 +66,10 @@ func LogsCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&execID, "execution-id", "e", 0, "Replication execution ID")
+	flags.Int64VarP(&taskID, "task-id", "t", 0, "Replication task ID")
+
 	return cmd
 }

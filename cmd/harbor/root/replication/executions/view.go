@@ -20,12 +20,31 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/execution/view"
 	tasklist "github.com/goharbor/harbor-cli/pkg/views/replication/task/list"
 )
+
+type ExecutionsAndTasks struct {
+	Execution *models.ReplicationExecution      `json:"execution,omitempty" yaml:"execution,omitempty"`
+	Tasks     map[int64]*models.ReplicationTask `json:"tasks,omitempty" yaml:"tasks,omitempty"`
+}
+
+func NewExecutionsAndTasks(execution *models.ReplicationExecution, tasks []*models.ReplicationTask) *ExecutionsAndTasks {
+	taskMap := make(map[int64]*models.ReplicationTask)
+	for _, task := range tasks {
+		if task.ID != 0 {
+			taskMap[task.ID] = task
+		}
+	}
+	return &ExecutionsAndTasks{
+		Execution: execution,
+		Tasks:     taskMap,
+	}
+}
 
 func ViewCommand() *cobra.Command {
 	var notListTasks bool
@@ -62,12 +81,14 @@ func ViewCommand() *cobra.Command {
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				err = utils.PrintFormat(execution.Payload, FormatFlag)
-				if err != nil {
-					return err
-				}
-				if !notListTasks {
-					err = utils.PrintFormat(tasks.Payload, FormatFlag)
+				if notListTasks {
+					err = utils.PrintFormat(execution.Payload, FormatFlag)
+					if err != nil {
+						return err
+					}
+				} else {
+					combinedOutput := NewExecutionsAndTasks(execution.Payload, tasks.Payload)
+					err = utils.PrintFormat(combinedOutput, FormatFlag)
 					if err != nil {
 						return err
 					}
@@ -75,7 +96,7 @@ func ViewCommand() *cobra.Command {
 			} else {
 				view.ViewExecution(execution.Payload)
 				if !notListTasks {
-					fmt.Println("Associated Tasks:")
+					fmt.Println("Tasks:")
 					tasklist.ListTasks(tasks.Payload)
 				}
 			}

@@ -14,8 +14,16 @@ Get the logs of a specific replication execution and task by their IDs. If no ID
 
 
 .SH OPTIONS
+\fB-e\fP, \fB--execution-id\fP=0
+	Replication execution ID
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for log
+
+.PP
+\fB-t\fP, \fB--task-id\fP=0
+	Replication task ID
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,7 +41,9 @@ Get the logs of a specific replication execution and task by their IDs. If no ID
 
 .SH EXAMPLE
 .EX
-  harbor replication log 12345 67890
+  harbor replication log -e 12345 -t 67890
+		  harbor replication log --execution-id 12345 --task-id 67890
+		  harbor replication log --execution-id 12345
   harbor replication log
 .EE
 

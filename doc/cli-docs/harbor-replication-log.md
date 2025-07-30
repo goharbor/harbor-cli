@@ -19,14 +19,18 @@ harbor replication log [EXECUTION_ID] [TASK_ID] [flags]
 ### Examples
 
 ```sh
-  harbor replication log 12345 67890
+  harbor replication log -e 12345 -t 67890
+		  harbor replication log --execution-id 12345 --task-id 67890
+		  harbor replication log --execution-id 12345
   harbor replication log
 ```
 
 ### Options
 
 ```sh
-  -h, --help   help for log
+  -e, --execution-id int   Replication execution ID
+  -h, --help               help for log
+  -t, --task-id int        Replication task ID
 ```
 
 ### Options inherited from parent commands
