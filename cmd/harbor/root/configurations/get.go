@@ -47,12 +47,13 @@ func GetConfigCmd() *cobra.Command {
 				return err
 			}
 
-			configs := utils.ConvertToConfigurations(response.Payload)
+			// configs := utils.ConvertToConfigurations(response.Payload)
 			if err := utils.AddConfigurationsToConfigFile(response.Payload); err != nil {
 				return fmt.Errorf("failed to update config file: %v", err)
 			}
 
-			return displayAllConfigurations(configs)
+			return nil
+			// displayAllConfigurations(configs)
 		},
 	}
 
