@@ -14,31 +14,42 @@
 package configurations
 
 import (
-	"fmt"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/configurations/view"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func GetConfigCmd() *cobra.Command {
+func ViewConfigCmd() *cobra.Command {
+	var category string
 	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "Get Harbor configurations",
-		Long: `Get Harbor system configurations.
-		
-		This command retrieves the current configurations from Harbor and stores them in your local config file.`,
+		Use:   "view",
+		Short: "View Harbor configurations",
+		Long: `View Harbor system configurations. You can filter by category:
+- authentication: User and service authentication settings
+- security: Security policies and certificate settings  
+- system: General system behavior and storage settings`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetConfigurations()
 			if err != nil {
 				return err
 			}
-			if err := utils.AddConfigurationsToConfigFile(response.Payload); err != nil {
-				return fmt.Errorf("failed to update config file: %v", err)
+			FormatFlag := viper.GetString("output-format")
+			if FormatFlag != "" {
+				err = utils.PrintFormat(response.Payload, FormatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				view.ViewConfigurations(response.Payload, category)
 			}
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVar(&category, "category", "", "Filter by category (authentication, security, system)")
+
 	return cmd
 }
