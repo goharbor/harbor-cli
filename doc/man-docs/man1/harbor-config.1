@@ -1,0 +1,41 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-config - Manage system configurations
+
+
+.SH SYNOPSIS
+\fBharbor config [flags]\fP
+
+
+.SH DESCRIPTION
+Manage system configurations
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for config
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor config get
+.EE
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP, \fBharbor-config-get(1)\fP, \fBharbor-config-update(1)\fP, \fBharbor-config-view(1)\fP

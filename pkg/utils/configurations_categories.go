@@ -1,12 +1,18 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package utils
 
-import (
-	"reflect"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-)
-
-// ConfigurationCategories maps each configuration field to its category
 var ConfigurationCategories = map[string]string{
 	// Authentication - User/service authentication methods
 	"AuthMode":                         "authentication",
@@ -71,64 +77,12 @@ var ConfigurationCategories = map[string]string{
 	"OIDCLogout":                 "system",
 }
 
-// GetValidCategories returns all available categories
-func GetValidCategories() []string {
-	categories := make(map[string]bool)
-	for _, category := range ConfigurationCategories {
-		categories[category] = true
+func IsCategory(fieldName string, category string) bool {
+	if category == "" {
+		return true // If no category is specified, return true for all fields
 	}
-
-	result := make([]string, 0, len(categories))
-	for category := range categories {
-		result = append(result, category)
+	if cat, exists := ConfigurationCategories[fieldName]; exists {
+		return cat == category
 	}
-	return result
-}
-
-// GetConfigurationsByCategory filters configurations by category
-func GetConfigurationsByCategory(configs *models.Configurations, category string) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	configValue := reflect.ValueOf(configs).Elem()
-	configType := configValue.Type()
-
-	for i := 0; i < configValue.NumField(); i++ {
-		fieldName := configType.Field(i).Name
-		fieldValue := configValue.Field(i)
-
-		// Check if this field belongs to the requested category
-		if ConfigurationCategories[fieldName] == category {
-			if fieldValue.IsValid() && !fieldValue.IsNil() {
-				result[fieldName] = fieldValue.Interface()
-			}
-		}
-	}
-
-	return result
-}
-
-// GetAllCategorizedConfigurations returns configurations grouped by category
-func GetAllCategorizedConfigurations(configs *models.Configurations) map[string]map[string]interface{} {
-	result := make(map[string]map[string]interface{})
-
-	// Initialize categories
-	for _, category := range GetValidCategories() {
-		result[category] = make(map[string]interface{})
-	}
-
-	configValue := reflect.ValueOf(configs).Elem()
-	configType := configValue.Type()
-
-	for i := 0; i < configValue.NumField(); i++ {
-		fieldName := configType.Field(i).Name
-		fieldValue := configValue.Field(i)
-
-		if category, exists := ConfigurationCategories[fieldName]; exists {
-			if fieldValue.IsValid() && !fieldValue.IsNil() {
-				result[category][fieldName] = fieldValue.Interface()
-			}
-		}
-	}
-
-	return result
+	return false
 }

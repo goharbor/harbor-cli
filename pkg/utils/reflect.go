@@ -26,181 +26,59 @@ func ConvertToConfigurations(resp *models.ConfigurationsResponse) *models.Config
 
 	apiConfigurationsResponseObject := reflect.ValueOf(resp).Elem()
 	apiConfigurationsResponseType := apiConfigurationsResponseObject.Type()
-	// Iterate through all fields in ConfigurationsResponse
+
 	for i := 0; i < apiConfigurationsResponseObject.NumField(); i++ {
 		responseObjField := apiConfigurationsResponseObject.Field(i)
 		responseObjFieldName := apiConfigurationsResponseType.Field(i).Name
-		// fmt.Println(responseObjFieldName, responseObjField, responseObjField.Elem().Type(), responseObjField.Type())
-
 		targetConfigurationsField := targetConfigurationsObject.FieldByName(responseObjFieldName)
+
 		if targetConfigurationsField.IsValid() && targetConfigurationsField.CanSet() {
+			isSecretField := false
 			if responseObjFieldName == "OIDCClientSecret" || responseObjFieldName == "UaaClientSecret" || responseObjFieldName == "LdapSearchPassword" {
-				fmt.Println("Converting secret field:", responseObjFieldName, targetConfigurationsField)
-				convertSecretField(responseObjField, targetConfigurationsField)
-			} else {
-				convertAndSetField(responseObjField, targetConfigurationsField)
+				isSecretField = true
 			}
-		}
-	}
-	// DEBUG: Print the final converted configuration
-	fmt.Println("\n=== FINAL CONVERTED CONFIGURATION ===")
-	finalValue := reflect.ValueOf(targetConfigurationsPointer).Elem()
-	finalType := finalValue.Type()
-
-	for i := 0; i < finalValue.NumField(); i++ {
-		field := finalValue.Field(i)
-		fieldName := finalType.Field(i).Name
-
-		if field.IsNil() {
-			fmt.Printf("  %s: <nil>\n", fieldName)
-		} else {
-			fmt.Printf("  %s: %v (type: %T)\n", fieldName, field.Elem().Interface(), field.Elem().Interface())
+			convertAndSetField(responseObjField, targetConfigurationsField, isSecretField)
 		}
 	}
 	return targetConfigurationsPointer
 }
 
-// func convertAndSetField(source, target reflect.Value) {
-// 	if !source.IsValid() || source.IsNil() {
-// 		return
-// 	}
-// 	sourceObject := source.Elem()
-// 	sourceObjectType := sourceObject.Type()
-// 	if sourceObjectType.Kind() == reflect.Struct {
-
-//			fmt.Println(sourceObject, "xxx", sourceObjectType)
-//			if valueField := sourceObject.FieldByName("Value"); valueField.IsValid() {
-//				valuePtr := reflect.New(valueField.Type())
-//				valuePtr.Elem().Set(valueField)
-//				target.Set(valuePtr)
-//			}
-//		}
-//	}
-func convertAndSetField(source, target reflect.Value) {
+func convertAndSetField(source, target reflect.Value, secret bool) {
 	if !source.IsValid() || source.IsNil() {
-		fmt.Println("DEBUG: Source is invalid or nil")
 		return
 	}
-
 	sourceObject := source.Elem()
 	sourceObjectType := sourceObject.Type()
-
 	if sourceObjectType.Kind() == reflect.Struct {
-		fmt.Printf("DEBUG: Processing %v\n", sourceObjectType)
-
-		// Get both fields for debugging
-		if editableField := sourceObject.FieldByName("Editable"); editableField.IsValid() {
-			fmt.Printf("DEBUG: Editable = %v\n", editableField.Interface())
-		}
-
 		if valueField := sourceObject.FieldByName("Value"); valueField.IsValid() {
-			fmt.Printf("DEBUG: Value = %v (type: %v)\n", valueField.Interface(), valueField.Type())
-
-			// Create pointer to the value
-			valuePtr := reflect.New(valueField.Type())
-			valuePtr.Elem().Set(valueField)
-
-			// Debug the pointer we created
-			fmt.Printf("DEBUG: Created pointer: %v (type: %v, points to: %v)\n",
-				valuePtr.Interface(), valuePtr.Type(), valuePtr.Elem().Interface())
-
-			// Debug target before setting
-			fmt.Printf("DEBUG: Target before set - CanSet: %v, Type: %v, Kind: %v\n",
-				target.CanSet(), target.Type(), target.Kind())
-
-			// Set the target
-			target.Set(valuePtr)
-
-			// Debug target after setting
-			fmt.Printf("DEBUG: Target after set - IsNil: %v, Type: %v, Kind: %v\n",
-				target.IsNil(), target.Type(), target.Kind())
-
-			if !target.IsNil() {
-				fmt.Printf("DEBUG: Target points to: %v\n", target.Elem().Interface())
+			actualValue := valueField.Interface()
+			displayValue := fmt.Sprintf("%v", actualValue)
+			var finalValue any
+			if displayValue != "" && secret {
+				encryptedValue, err := encrypt(displayValue)
+				if err != nil {
+					fmt.Printf("Error encrypting field %s: %v\n", sourceObjectType.Name(), err)
+					return
+				}
+				finalValue = encryptedValue
 			} else {
-				fmt.Printf("DEBUG: Target is nil!\n")
+				finalValue = actualValue
 			}
-
-			fmt.Printf("DEBUG: Set target to pointer of %v\n", valueField.Interface())
-		} else {
-			fmt.Println("DEBUG: No 'Value' field found")
+			valuePtr := reflect.New(valueField.Type())
+			valuePtr.Elem().Set(reflect.ValueOf(finalValue))
+			target.Set(valuePtr)
 		}
-	} else {
-		fmt.Printf("DEBUG: Source is not a struct, kind: %v\n", sourceObjectType.Kind())
 	}
 }
 
-func convertSecretField(source, target reflect.Value) {
-	if !source.IsValid() || source.IsNil() {
-		// Set to empty string pointer instead of nil for secret fields
-		emptyString := ""
-		target.Set(reflect.ValueOf(&emptyString))
-		fmt.Printf("DEBUG: Set secret field to empty string (source was nil)\n")
-		return
+func encrypt(originalSecretValue string) (string, error) {
+	key, err := GetEncryptionKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to get encryption key: %w", err)
 	}
-
-	sourceElem := source.Elem()
-	var originalSecretValue string
-
-	// Extract the actual secret value from the config item
-	if sourceElem.Type().Kind() == reflect.Struct {
-		if valueField := sourceElem.FieldByName("Value"); valueField.IsValid() {
-			if secretValue, ok := valueField.Interface().(string); ok {
-				originalSecretValue = secretValue
-			}
-		}
+	encryptedSecret, err := Encrypt(key, []byte(originalSecretValue))
+	if err != nil {
+		return "", fmt.Errorf("failed to encrypt secret: %w", err)
 	}
-
-	// IMPORTANT: Don't encrypt for Harbor API updates - Harbor expects plain text
-	// Set to empty string if no value, otherwise use the actual value
-	if originalSecretValue == "" {
-		emptyString := ""
-		target.Set(reflect.ValueOf(&emptyString))
-		fmt.Printf("DEBUG: Set secret field to empty string (value was empty)\n")
-	} else {
-		target.Set(reflect.ValueOf(&originalSecretValue))
-		fmt.Printf("DEBUG: Set secret field to: '%s'\n", originalSecretValue)
-	}
+	return string(encryptedSecret), nil
 }
-
-// func convertSecretField(source, target reflect.Value) {
-// 	if !source.IsValid() || source.IsNil() {
-// 		// Set to nil pointer for empty secrets
-// 		target.Set(reflect.Zero(target.Type()))
-// 		return
-// 	}
-// 	sourceElem := source.Elem()
-// 	var originalSecretValue string
-// 	// Extract the actual secret value from the config item
-// 	if sourceElem.Type().Kind() == reflect.Struct {
-// 		if valueField := sourceElem.FieldByName("Value"); valueField.IsValid() {
-// 			if secretValue, ok := valueField.Interface().(string); ok {
-// 				originalSecretValue = secretValue
-// 			}
-// 		}
-// 	}
-// 	// If the secret is empty, set appropriate null/empty value
-// 	if originalSecretValue == "" {
-// 		// Set to nil pointer (which becomes null in YAML)
-// 		target.Set(reflect.Zero(target.Type()))
-// 		return
-// 	}
-// 	// Only encrypt non-empty secrets
-// 	key, err := GetEncryptionKey()
-// 	if err != nil {
-// 		fmt.Printf("Error getting encryption key for secret: %v\n", err)
-// 		// Set to nil on encryption error
-// 		target.Set(reflect.Zero(target.Type()))
-// 		return
-// 	}
-// 	encryptedSecret, err := Encrypt(key, []byte(originalSecretValue))
-// 	if err != nil {
-// 		fmt.Printf("Error encrypting secret: %v\n", err)
-// 		// Set to nil on encryption error
-// 		target.Set(reflect.Zero(target.Type()))
-// 		return
-// 	}
-// 	// Set the encrypted secret
-// 	target.Set(reflect.ValueOf(&encryptedSecret))
-// 	fmt.Printf("Secret field encrypted and stored successfully (encrypted length: %d)\n", len(encryptedSecret))
-// }
