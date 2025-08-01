@@ -30,3 +30,20 @@ func GetConfigurations() (*configure.GetConfigurationsOK, error) {
 	}
 	return response, nil
 }
+
+func UpdateConfigurations(config *utils.HarborConfig) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	params := &configure.UpdateConfigurationsParams{
+		Configurations: &config.Configurations,
+	}
+
+	_, err = client.Configure.UpdateConfigurations(ctx, params)
+	if err != nil {
+		return err
+	}
+	return nil
+}
