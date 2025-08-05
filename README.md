@@ -24,7 +24,7 @@ The project's first goal is to reach WebUI parity.
 ✅ tag           Manage tags   
 ✅ quota         Manage quotas  
 ✅ webhook       Manage webhook policies 
-❌ robot         Robot Account 
+✅ robot         Robot Account 
 
 ✅ login         Log in to Harbor registry  
 ✅ user          Manage users  
