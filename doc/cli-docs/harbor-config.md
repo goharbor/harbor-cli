@@ -35,7 +35,7 @@ harbor config get
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor config apply](harbor-config-apply.md)	 - Update system configurations from local config file
 * [harbor config get](harbor-config-get.md)	 - Get Harbor configurations
-* [harbor config update](harbor-config-update.md)	 - Update system configurations from local config file
 * [harbor config view](harbor-config-view.md)	 - View Harbor configurations
 
