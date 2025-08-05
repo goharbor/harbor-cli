@@ -1,0 +1,52 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-replication-log - get replication execution logs by execution and task id
+
+
+.SH SYNOPSIS
+\fBharbor replication log [EXECUTION_ID] [TASK_ID] [flags]\fP
+
+
+.SH DESCRIPTION
+Get the logs of a specific replication execution and task by their IDs. If no IDs are provided, it will prompt the user to select them interactively.
+
+
+.SH OPTIONS
+\fB-e\fP, \fB--execution-id\fP=0
+	Replication execution ID
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for log
+
+.PP
+\fB-t\fP, \fB--task-id\fP=0
+	Replication task ID
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor replication log -e 12345 -t 67890
+		  harbor replication log --execution-id 12345 --task-id 67890
+		  harbor replication log --execution-id 12345
+  harbor replication log
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-replication(1)\fP
