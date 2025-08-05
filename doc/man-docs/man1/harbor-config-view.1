@@ -1,0 +1,43 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-config-view - View Harbor configurations
+
+
+.SH SYNOPSIS
+\fBharbor config view [flags]\fP
+
+
+.SH DESCRIPTION
+View Harbor system configurations. You can filter by category:
+- authentication: User and service authentication settings
+- security: Security policies and certificate settings
+.br
+- system: General system behavior and storage settings
+
+
+.SH OPTIONS
+\fB--category\fP=""
+	Filter by category (authentication, security, system)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for view
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-config(1)\fP
