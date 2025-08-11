@@ -17,7 +17,7 @@
 The project's first goal is to reach WebUI parity.
 
 ```shell
-✅ project       Mange projects  
+✅ project       Manage projects  
 ✅ repo          Manage repositories  
 ✅ artifact      Manage artifacts  
 ✅ label         Manage labels  
