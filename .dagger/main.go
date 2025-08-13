@@ -330,10 +330,6 @@ func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 		log.Printf("Error occurred during release: %s", err)
 		return
 	}
-	if len(error) > 0 {
-		log.Printf("Error occured while release: %s", err)
-		return
-	}
 	log.Println("Release tasks completed successfully 🎉")
 }
 
