@@ -43,10 +43,14 @@ harbor help
 * [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
 * [harbor label](harbor-label.md)	 - Manage labels in Harbor
 * [harbor login](harbor-login.md)	 - Log in to Harbor registry
+* [harbor logs](harbor-logs.md)	 - Get recent logs of the projects which the user is a member of
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
 * [harbor quota](harbor-quota.md)	 - Manage quotas
 * [harbor registry](harbor-registry.md)	 - Manage registries
+* [harbor replication](harbor-replication.md)	 - Manage replications
 * [harbor repo](harbor-repo.md)	 - Manage repositories
+* [harbor robot](harbor-robot.md)	 - Manage robot accounts
+* [harbor scan-all](harbor-scan-all.md)	 - Scan all artifacts
 * [harbor scanner](harbor-scanner.md)	 - scanner commands
 * [harbor schedule](harbor-schedule.md)	 - Schedule jobs in Harbor
 * [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry

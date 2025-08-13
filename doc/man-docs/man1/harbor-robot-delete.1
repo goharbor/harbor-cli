@@ -1,0 +1,61 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-robot-delete - delete robot by id
+
+
+.SH SYNOPSIS
+\fBharbor robot delete [robotID] [flags]\fP
+
+
+.SH DESCRIPTION
+Delete a robot account from Harbor.
+
+.PP
+This command permanently removes a robot account from Harbor. Once deleted,
+the robot's credentials will no longer be valid, and any automated processes
+using those credentials will fail.
+
+.PP
+The command supports multiple ways to identify the robot account to delete:
+- By providing the robot ID directly as an argument
+- Without any arguments, which will prompt for robot selection
+
+.PP
+Important considerations:
+- Deletion is permanent and cannot be undone
+- All access tokens for the robot will be invalidated immediately
+- Any systems using the robot's credentials will need to be updated
+- For system robots, access across all projects will be revoked
+
+.PP
+Examples:
+  # Delete robot by ID
+  harbor-cli robot delete 123
+
+.PP
+# Interactive deletion (will prompt for robot selection)
+  harbor-cli robot delete
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for delete
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-robot(1)\fP

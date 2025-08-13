@@ -25,7 +25,6 @@ import (
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
 	GO_VERSION           = "1.24.4"
-	SYFT_VERSION         = "v1.9.0"
 	GORELEASER_VERSION   = "v2.8.2"
 )
 
@@ -329,6 +328,10 @@ func (m *HarborCli) Release(ctx context.Context, githubToken *dagger.Secret) {
 	_, err := distDir.Entries(ctx)
 	if err != nil {
 		log.Printf("Error occurred during release: %s", err)
+		return
+	}
+	if len(error) > 0 {
+		log.Printf("Error occured while release: %s", err)
 		return
 	}
 	log.Println("Release tasks completed successfully 🎉")

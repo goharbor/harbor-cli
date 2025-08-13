@@ -1,0 +1,109 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-robot-update - update robot by id
+
+
+.SH SYNOPSIS
+\fBharbor robot update [robotID] [flags]\fP
+
+
+.SH DESCRIPTION
+Update an existing robot account within Harbor.
+
+.PP
+Robot accounts are non-human users that can be used for automation purposes
+such as CI/CD pipelines, scripts, or other automated processes that need
+to interact with Harbor. This command allows you to modify an existing robot's
+properties including its name, description, duration, and permissions.
+
+.PP
+This command supports both interactive and non-interactive modes:
+- With robot ID: directly updates the specified robot
+- Without ID: walks through robot selection interactively
+
+.PP
+The update process will:
+1. Identify the robot account to be updated
+2. Load its current configuration
+3. Apply the requested changes
+4. Save the updated configuration
+
+.PP
+This command can update both system and project-specific permissions:
+- System permissions apply across the entire Harbor instance
+- Project permissions apply to specific projects
+
+.PP
+Configuration can be loaded from:
+- Interactive prompts (default)
+- Command line flags
+- YAML/JSON configuration file
+
+.PP
+Note: Updating a robot does not regenerate its secret. If you need a new
+secret, consider deleting the robot and creating a new one instead.
+
+.PP
+Examples:
+  # Update robot by ID with a new description
+  harbor-cli robot update 123 --description "Updated CI/CD pipeline robot"
+
+.PP
+# Update robot's duration (extend lifetime)
+  harbor-cli robot update 123 --duration 180
+
+.PP
+# Update with all permissions
+  harbor-cli robot update 123 --all-permission
+
+.PP
+# Update from configuration file
+  harbor-cli robot update 123 --robot-config-file ./robot-config.yaml
+
+.PP
+# Interactive update (will prompt for robot selection and changes)
+  harbor-cli robot update
+
+
+.SH OPTIONS
+\fB-a\fP, \fB--all-permission\fP[=false]
+	Select all permissions for the robot account
+
+.PP
+\fB--description\fP=""
+	description of the robot account
+
+.PP
+\fB--duration\fP=0
+	set expiration of robot account in days
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--name\fP=""
+	name of the robot account
+
+.PP
+\fB-r\fP, \fB--robot-config-file\fP=""
+	YAML/JSON file with robot configuration
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-robot(1)\fP

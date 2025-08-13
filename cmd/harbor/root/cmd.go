@@ -18,16 +18,18 @@ import (
 	"io"
 	"time"
 
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
-
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/repository"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/robot"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
@@ -136,6 +138,10 @@ harbor help
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 
+	cmd = robot.Robot()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
 	// Access
 	cmd = LoginCommand()
 	cmd.GroupID = "access"
@@ -162,7 +168,15 @@ harbor help
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
+	cmd = replication.Replication()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
 	cmd = scanner.Scanner()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = scan_all.ScanAll()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
@@ -172,6 +186,10 @@ harbor help
 
 	// Utils
 	cmd = versionCommand()
+	cmd.GroupID = "utils"
+	root.AddCommand(cmd)
+
+	cmd = Logs()
 	cmd.GroupID = "utils"
 	root.AddCommand(cmd)
 

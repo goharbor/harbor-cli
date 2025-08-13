@@ -17,11 +17,14 @@ import (
 	"errors"
 	"fmt"
 
+	"strconv"
+
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/constants"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -30,7 +33,11 @@ import (
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
+	rexecutions "github.com/goharbor/harbor-cli/pkg/views/replication/execution/select"
+	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
+
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
@@ -81,6 +88,16 @@ func GetProjectNameFromUser() (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+func GetProjectIDFromUser() int64 {
+	projectID := make(chan int64)
+	go func() {
+		response, _ := api.ListProject()
+		pview.ProjectListID(response.Payload, projectID)
+	}()
+
+	return <-projectID
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -200,7 +217,6 @@ func GetLabelIdFromUser(labelList []*models.Label) int64 {
 
 	return <-labelId
 }
-
 func GetInstanceFromUser() string {
 	instanceName := make(chan string)
 
@@ -243,4 +259,58 @@ func GetActiveContextFromUser() (string, error) {
 	}
 
 	return res, nil
+}
+
+func GetRobotPermissionsFromUser(kind string) []models.Permission {
+	permissions := make(chan []models.Permission)
+	go func() {
+		response, _ := api.GetPermissions()
+		robotView.ListPermissions(response.Payload, kind, permissions)
+	}()
+	return <-permissions
+}
+
+func GetRobotIDFromUser(projectID int64) int64 {
+	robotID := make(chan int64)
+	var opts api.ListFlags
+	if projectID != -1 {
+		opts.Q = constants.ProjectQString + strconv.FormatInt(projectID, 10)
+	}
+
+	go func() {
+		response, _ := api.ListRobot(opts)
+		robotView.ListRobot(response.Payload, robotID)
+	}()
+	return <-robotID
+}
+
+func GetReplicationPolicyFromUser() int64 {
+	replicationPolicyID := make(chan int64)
+
+	go func() {
+		response, err := api.ListReplicationPolicies()
+		if err != nil {
+			log.Fatal(err)
+		}
+		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
+	}()
+
+	return <-replicationPolicyID
+}
+
+func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
+	executionID := make(chan int64)
+
+	go func() {
+		response, err := api.GetReplicationExecutions(rpolicyID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(response.Payload) == 0 {
+			log.Fatal("no replication executions found")
+		}
+		rexecutions.ReplicationExecutionList(response.Payload, executionID)
+	}()
+
+	return <-executionID
 }

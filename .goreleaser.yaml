@@ -1,5 +1,5 @@
 version: 2
-project_name: harbor
+project_name: harbor-cli
 
 before:
   hooks:
@@ -65,6 +65,22 @@ release:
   github:
     owner: goharbor           # Your GitHub repository owner
     name: harbor-cli          # Your GitHub repository name
+
+# https://goreleaser.com/customization/homebrew/
+brews:
+  - repository:
+      owner: goharbor                           # GitHub user/org who owns the tap repo
+      name: homebrew-tap                    # Tap repo name (i.e., goharbor/homebrew-tap)
+      branch: main
+    name: harbor-cli                        # Name of the CLI, becomes harbor-cli.rb
+    commit_author:                          # Who commits to the tap repo
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://goharbor.io"
+    description: "Harbor CLI for interacting with Harbor registry"  # Formula description
+    test: |
+      system "#{bin}/harbor-cli", "version"            # Formula test (after install)
 
 changelog:
   use: github

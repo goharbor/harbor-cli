@@ -1,0 +1,48 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-scan-all-stop - Stop scanning all artifacts
+
+
+.SH SYNOPSIS
+\fBharbor scan-all stop [flags]\fP
+
+
+.SH DESCRIPTION
+Stop an ongoing vulnerability scan of all artifacts in Harbor.
+
+.PP
+This command halts the current scan-all operation that was either manually triggered
+or scheduled. When stopped, scans that are already in progress will complete, but no new artifacts will be scanned. The scan can be restarted later using the 'scan-all run' command.
+
+.PP
+Examples:
+  # Stop the current scan-all operation
+  harbor-cli scan-all stop
+
+.PP
+# Stop and then check metrics to confirm
+  harbor-cli scan-all stop && harbor-cli scan-all metrics
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for stop
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-scan-all(1)\fP

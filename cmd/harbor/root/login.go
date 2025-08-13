@@ -79,6 +79,7 @@ func LoginCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&Username, "username", "u", "", "Username")
+	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 
@@ -87,8 +88,10 @@ func LoginCommand() *cobra.Command {
 
 // ProcessLogin applies a simplified decision logic to run login or launch an interactive view.
 func ProcessLogin(loginView login.LoginView, config *utils.HarborConfig) error {
-	// Auto-generate the name
-	loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	// Auto-generate the name if not provided.
+	if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+		loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	}
 
 	// If complete credentials are provided (overrides), run login using them directly.
 	if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {
@@ -124,11 +127,15 @@ func RunLogin(opts login.LoginView) error {
 		Username: opts.Username,
 		Password: opts.Password,
 	}
+	err := utils.ValidateURL(opts.Server)
+	if err != nil {
+		return fmt.Errorf("invalid server URL: %s", err)
+	}
 	client := utils.GetClientByConfig(clientConfig)
 	ctx := context.Background()
-	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
+	_, err = client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
-		return fmt.Errorf("login failed, please check your credentials: %s", err)
+		return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
 	}
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
@@ -163,12 +170,14 @@ func RunLogin(opts login.LoginView) error {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
 			if existingCred.Password == encryptedPassword {
 				log.Warn("Credentials already exist in the config file. They were not added again.")
+				fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 				return nil
 			} else {
 				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
 				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 					log.Fatalf("failed to update the credential: %s", err)
 				}
+				fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 				return nil
 			}
 		} else {
@@ -176,6 +185,7 @@ func RunLogin(opts login.LoginView) error {
 			if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 				log.Fatalf("failed to update the credential: %s", err)
 			}
+			fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 			return nil
 		}
 	}
@@ -184,5 +194,6 @@ func RunLogin(opts login.LoginView) error {
 		return fmt.Errorf("failed to store the credential: %s", err)
 	}
 	log.Debugf("Credentials successfully added to the config file.")
+	fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 	return nil
 }

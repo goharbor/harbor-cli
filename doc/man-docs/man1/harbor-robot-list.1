@@ -1,0 +1,89 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-robot-list - list robot
+
+
+.SH SYNOPSIS
+\fBharbor robot list [projectName] [flags]\fP
+
+
+.SH DESCRIPTION
+List robot accounts in Harbor.
+
+.PP
+This command displays a list of system-level robot accounts. The list includes basic
+information about each robot account, such as ID, name, creation time, and
+expiration status.
+
+.PP
+System-level robots have permissions that can span across multiple projects, making
+them suitable for CI/CD pipelines and automation tasks that require access to
+multiple projects in Harbor.
+
+.PP
+You can control the output using pagination flags and format options:
+- Use --page and --page-size to navigate through results
+- Use --sort to order the results by name, creation time, etc.
+- Use -q/--query to filter robots by specific criteria
+- Set output-format in your configuration for JSON, YAML, or other formats
+
+.PP
+Examples:
+  # List all system robots
+  harbor-cli robot list
+
+.PP
+# List system robots with pagination
+  harbor-cli robot list --page 2 --page-size 20
+
+.PP
+# List system robots with custom sorting
+  harbor-cli robot list --sort name
+
+.PP
+# Filter system robots by name
+  harbor-cli robot list -q name=ci-robot
+
+.PP
+# Get robot details in JSON format
+  harbor-cli robot list --output-format json
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=10
+	Size of per page
+
+.PP
+\fB-q\fP, \fB--query\fP=""
+	Query string to query resources
+
+.PP
+\fB--sort\fP=""
+	Sort the resource list in ascending or descending order
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-robot(1)\fP

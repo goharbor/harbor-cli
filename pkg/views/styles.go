@@ -24,8 +24,6 @@ var (
 	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	PaginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	HelpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
-	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575"))
 )
 
 var BaseStyle = lipgloss.NewStyle().
@@ -34,5 +32,6 @@ var BaseStyle = lipgloss.NewStyle().
 const (
 	GreenANSI = "\033[32m"
 	RedANSI   = "\033[31m"
+	BoldANSI  = "\033[1m"
 	ResetANSI = "\033[0m"
 )

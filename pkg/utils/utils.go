@@ -17,12 +17,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 
 	log "github.com/sirupsen/logrus"
-	"sigs.k8s.io/yaml"
+	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 )
 
 // Returns Harbor v2 client for given clientConfig
@@ -146,4 +149,42 @@ func StorageStringToBytes(storage string) (int64, error) {
 	}
 
 	return bytes, nil
+}
+
+func SavePayloadJSON(filename string, payload any) {
+	// Marshal the payload into a JSON string with indentation
+	jsonStr, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	// Define the filename
+	filename = filename + ".json"
+	err = os.WriteFile(filename, jsonStr, 0600)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("JSON data has been written to %s\n", filename)
+}
+
+// Get Password as Stdin
+func GetSecretStdin(prompt string) (string, error) {
+	fmt.Print(prompt)
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return "", err
+	}
+	fmt.Println() // move to the next line after input
+	return strings.TrimSpace(string(bytePassword)), nil
+}
+
+func ToKebabCase(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}
+
+func Capitalize(s string) string {
+	if s == "" {
+		return ""
+	}
+	return s
+	// trings.ToUpper(s[:1]) + s[1:]
 }

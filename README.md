@@ -6,6 +6,7 @@
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/harbor-cli)](https://artifacthub.io/packages/search?repo=harbor-cli)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_shield)
 [![codecov](https://codecov.io/gh/goharbor/harbor-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/goharbor/harbor-cli)
+[![Go Report Card](https://goreportcard.com/badge/github.com/goharbor/harbor-cli)](https://goreportcard.com/report/github.com/goharbor/harbor-cli)
 
 # Scope 🧪
 
@@ -16,14 +17,14 @@
 The project's first goal is to reach WebUI parity.
 
 ```shell
-✅ project       Mange projects  
+✅ project       Manage projects  
 ✅ repo          Manage repositories  
 ✅ artifact      Manage artifacts  
 ✅ label         Manage labels  
 ✅ tag           Manage tags   
 ✅ quota         Manage quotas  
 ✅ webhook       Manage webhook policies 
-❌ robot         Robot Account 
+✅ robot         Robot Account 
 
 ✅ login         Log in to Harbor registry  
 ✅ user          Manage users  
@@ -61,7 +62,7 @@ docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor
 ```
 Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
-I you intend
+If you intend
 to run the CLI as a container,it is advised
 to set the following environment variables and to create an alias
 and append the alias to your .zshrc or .bashrc file
