@@ -17,6 +17,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 
 	log "github.com/sirupsen/logrus"
@@ -117,4 +118,25 @@ func GetUsersIdByName(userName string) (int64, error) {
 	}
 
 	return 0, err
+}
+
+func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	response, err := client.User.UpdateUserPassword(ctx, &user.UpdateUserPasswordParams{
+		Password: &models.PasswordReq{
+			NewPassword: opts.NewPassword,
+		},
+		UserID: userId,
+	})
+	if err != nil {
+		return err
+	}
+	if response != nil {
+		log.Infof("User password changed for userId %d", userId)
+	}
+	return nil
 }
