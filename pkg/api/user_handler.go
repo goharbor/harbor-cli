@@ -120,7 +120,7 @@ func GetUsersIdByName(userName string) (int64, error) {
 	return 0, err
 }
 
-func ResetPassword(userId int64, opts *reset.PasswordChangeView) error {
+func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err

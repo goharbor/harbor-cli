@@ -17,14 +17,14 @@ func PasswordCommand() *cobra.Command {
 		Use:   "password",
 		Short: "Change your password",
 		Args:  cobra.MinimumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			change.ChangePasswordView(&opts)
 
 			err := UpdatePassword(&opts)
 			if err != nil {
-				fmt.Printf("Error changing password: %v\n", err)
-				return
+				return fmt.Errorf("error changing password:%v", err)
 			}
+			return nil
 		},
 	}
 
@@ -90,6 +90,5 @@ func UpdatePassword(opts *change.PasswordChangeView) error {
 	if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 		return fmt.Errorf("failed to update credentials: %s", err)
 	}
-	fmt.Printf("Password updated successfully for username %s", existingCred.Username)
 	return nil
 }
