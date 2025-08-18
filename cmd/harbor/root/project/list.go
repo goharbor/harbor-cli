@@ -15,7 +15,6 @@ package project
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -76,7 +75,6 @@ func ListProjectCommand() *cobra.Command {
 					return qErr
 				}
 
-				fmt.Println(q)
 				opts.Q = q
 			}
 
@@ -112,11 +110,10 @@ func ListProjectCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.BoolVarP(&private, "private", "", false, "Show only private projects")
 	flags.BoolVarP(&public, "public", "", false, "Show only public projects")
-	// flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
 	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
-	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min:max)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }
@@ -204,18 +201,13 @@ func buildQuery(fuzzy, match, ranges []string) (string, error) {
 			return "", err
 		}
 
+		// Validating that range is in format min~max
 		rng := strings.Split(kv[1], "~")
 		if len(rng) != 2 {
 			return "", fmt.Errorf("invalid range arg: %s ", v)
 		}
 
-		_, err := strconv.Atoi(rng[0])
-		_, err2 := strconv.Atoi(rng[0])
-		if err != nil || err2 != nil {
-			return "", fmt.Errorf("invalid range arg: %s ", v)
-		}
-
-		parts = append(parts, fmt.Sprintf("%s=[%s~%s]", kv[0], rng[0], rng[0]))
+		parts = append(parts, fmt.Sprintf("%s=[%s~%s]", kv[0], rng[0], rng[1]))
 	}
 
 	return strings.Join(parts, ","), nil
@@ -223,5 +215,18 @@ func buildQuery(fuzzy, match, ranges []string) (string, error) {
 
 // Validates Key provided by user for ListFlags.Q
 func validKey(key string) error {
+	keys := []string{"name", "project_id", "public", "creation_time"}
+
+	found := false
+	for _, v := range keys {
+		if v == key {
+			found = true
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("invalid key for query: %s, supported keys are 'name', 'project_id', 'public', 'creation_time'", key)
+	}
+
 	return nil
 }
