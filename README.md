@@ -30,7 +30,7 @@ The project's first goal is to reach WebUI parity.
 ✅ user          Manage users  
 
 ✅ registry      Manage registries
-❌ replication   Manage replication
+✅ replication   Manage replication
 
 ✅ config        Manage the config of the Harbor CLI
 ✅ cve-allowlist Manage system CVE allowlist
