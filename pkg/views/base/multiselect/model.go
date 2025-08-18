@@ -115,7 +115,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Choice = make([]string, 0)
 			for i, isSelected := range m.Selected {
 				if isSelected && i < len(m.List.Items()) {
-					if item, ok := m.List.Items()[i].(Item); ok {
+			for i, listItem := range m.List.Items() {
+				if m.Selected[i] {
+					if item, ok := listItem.(Item); ok {
 						m.Choice = append(m.Choice, string(item))
 					}
 				}
