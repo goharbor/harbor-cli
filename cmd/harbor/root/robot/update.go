@@ -20,7 +20,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
@@ -165,7 +164,7 @@ Examples:
 			}
 
 			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
+			opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
@@ -174,65 +173,6 @@ Examples:
 
 	addUpdateFlags(cmd, &opts, &all, &configFile)
 	return cmd
-}
-
-func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
-	fmt.Println("Loading configuration from: ", configFile)
-
-	loadedOpts, err := config.LoadRobotConfigFromFile(configFile)
-	if err != nil {
-		return fmt.Errorf("failed to load robot config from file: %v", err)
-	}
-
-	logrus.Info("Successfully loaded robot configuration")
-
-	// Only update fields that should be updated from the config file
-	// IMPORTANT: Do not update name or level as the Harbor API doesn't allow this
-	// if loadedOpts.Name != "" {
-	//     opts.Name = loadedOpts.Name
-	// }
-	if loadedOpts.Description != "" {
-		opts.Description = loadedOpts.Description
-	}
-	if loadedOpts.Duration != 0 {
-		opts.Duration = loadedOpts.Duration
-	}
-
-	var systemPermFound bool
-	for _, perm := range loadedOpts.Permissions {
-		if perm.Kind == "system" && perm.Namespace == "/" {
-			systemPermFound = true
-			for _, access := range perm.Access {
-				*permissions = append(*permissions, models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				})
-			}
-		} else if perm.Kind == "project" {
-			var projectPerms []models.Permission
-			for _, access := range perm.Access {
-				projectPerms = append(projectPerms, models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				})
-			}
-			// Validate project permissions before adding
-			validProjectPerms, err := validateProjectPermissions(projectPerms)
-			if err != nil {
-				return err
-			}
-			projectPermissionsMap[perm.Namespace] = validProjectPerms
-		}
-	}
-
-	if !systemPermFound {
-		return fmt.Errorf("robot configuration must include system-level permissions")
-	}
-
-	logrus.Infof("Loaded robot update with %d system permissions and %d project-specific permissions",
-		len(*permissions), len(projectPermissionsMap))
-
-	return nil
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
@@ -370,7 +310,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 		}
 	}
 
-	selectedProjects, err := getMultipleProjectsFromUser()
+	selectedProjects, err := prompt.GetProjectNamesFromUser()
 	if err != nil {
 		return fmt.Errorf("error selecting projects: %v", err)
 	}
@@ -378,15 +318,8 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 	if len(selectedProjects) > 0 {
 		fmt.Println("Select permissions to apply to all selected projects:")
 		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
-
-		// Validate project permissions
-		validProjectPerms, err := validateProjectPermissions(projectPermissions)
-		if err != nil {
-			return err
-		}
-
 		for _, projectName := range selectedProjects {
-			projectPermissionsMap[projectName] = validProjectPerms
+			projectPermissionsMap[projectName] = projectPermissions
 		}
 	}
 
@@ -449,15 +382,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 			// Update permissions for selected projects
 			for _, project := range selectedProjects {
 				fmt.Printf("Updating permissions for project: %s\n", project)
-				projectPerms := prompt.GetRobotPermissionsFromUser("project")
-
-				// Validate project permissions
-				validProjectPerms, err := validateProjectPermissions(projectPerms)
-				if err != nil {
-					return err
-				}
-
-				projectPermissionsMap[project] = validProjectPerms
+				projectPermissionsMap[project] = prompt.GetRobotPermissionsFromUser("project")
 			}
 
 			return nil
@@ -474,15 +399,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 			return fmt.Errorf("project name cannot be empty")
 		}
 
-		projectPerms := prompt.GetRobotPermissionsFromUser("project")
-
-		// Validate project permissions
-		validProjectPerms, err := validateProjectPermissions(projectPerms)
-		if err != nil {
-			return err
-		}
-
-		projectPermissionsMap[projectName] = validProjectPerms
+		projectPermissionsMap[projectName] = prompt.GetRobotPermissionsFromUser("project")
 
 		moreProjects, err := promptMoreProjects()
 		if err != nil {
@@ -494,74 +411,6 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 	}
 
 	return nil
-}
-
-// validateProjectPermissions filters out permissions that are not valid for projects
-func validateProjectPermissions(permissions []models.Permission) ([]models.Permission, error) {
-	perms, err := api.GetPermissions()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get valid permissions: %v", err)
-	}
-
-	// Create a map of valid project permissions
-	validProjectPerms := make(map[string]bool)
-	for _, perm := range perms.Payload.Project {
-		key := fmt.Sprintf("%s:%s", perm.Resource, perm.Action)
-		validProjectPerms[key] = true
-	}
-
-	// Filter the permissions
-	var validPerms []models.Permission
-	var invalidPerms []string
-
-	for _, perm := range permissions {
-		key := fmt.Sprintf("%s:%s", perm.Resource, perm.Action)
-		if validProjectPerms[key] {
-			validPerms = append(validPerms, perm)
-		} else {
-			invalidPerms = append(invalidPerms, key)
-		}
-	}
-
-	// Warn about invalid permissions
-	if len(invalidPerms) > 0 {
-		logrus.Warnf("Removed %d invalid project permissions: %v", len(invalidPerms), invalidPerms)
-	}
-
-	return validPerms, nil
-}
-
-func buildMergedPermissionsForUpdate(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*update.RobotPermission {
-	var mergedPermissions []*update.RobotPermission
-
-	// Add project permissions
-	for projectName, projectPermissions := range projectPermissionsMap {
-		var accessesProject []*models.Access
-		for _, perm := range projectPermissions {
-			accessesProject = append(accessesProject, &models.Access{
-				Resource: perm.Resource,
-				Action:   perm.Action,
-			})
-		}
-		if len(accessesProject) > 0 {
-			mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-				Namespace: projectName,
-				Access:    accessesProject,
-				Kind:      "project",
-			})
-		}
-	}
-
-	if len(accessesSystem) > 0 {
-		// Add system permissions only if there are any
-		mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-			Namespace: "/",
-			Access:    accessesSystem,
-			Kind:      "system",
-		})
-	}
-
-	return mergedPermissions
 }
 
 func updateRobotAndHandleResponse(opts *update.UpdateView) error {

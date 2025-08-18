@@ -91,7 +91,7 @@ Examples:
 
 			// Handle config file or interactive input
 			if configFile != "" {
-				if err := loadFromConfigFile(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+				if err := loadFromConfigFileForCreate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			} else {
@@ -119,51 +119,6 @@ Examples:
 
 	addFlags(cmd, &opts, &all, &exportToFile, &configFile)
 	return cmd
-}
-
-func loadFromConfigFile(opts *create.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
-	fmt.Println("Loading configuration from: ", configFile)
-
-	loadedOpts, err := config.LoadRobotConfigFromFile(configFile)
-	if err != nil {
-		return fmt.Errorf("failed to load robot config from file: %v", err)
-	}
-
-	logrus.Info("Successfully loaded robot configuration")
-	*opts = *loadedOpts
-
-	// Extract system-level and project permissions
-	var systemPermFound bool
-	for _, perm := range opts.Permissions {
-		if perm.Kind == "system" && perm.Namespace == "/" {
-			systemPermFound = true
-			*permissions = make([]models.Permission, len(perm.Access))
-			for i, access := range perm.Access {
-				(*permissions)[i] = models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				}
-			}
-		} else if perm.Kind == "project" {
-			var projectPerms []models.Permission
-			for _, access := range perm.Access {
-				projectPerms = append(projectPerms, models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				})
-			}
-			projectPermissionsMap[perm.Namespace] = projectPerms
-		}
-	}
-
-	if !systemPermFound {
-		return fmt.Errorf("system robot configuration must include system-level permissions")
-	}
-
-	logrus.Infof("Loaded system robot with %d system permissions and %d project-specific permissions",
-		len(*permissions), len(projectPermissionsMap))
-
-	return nil
 }
 
 func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
@@ -224,7 +179,7 @@ func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[st
 }
 
 func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models.Permission) error {
-	selectedProjects, err := getMultipleProjectsFromUser()
+	selectedProjects, err := prompt.GetProjectNamesFromUser()
 	if err != nil {
 		return fmt.Errorf("error selecting projects: %v", err)
 	}
@@ -267,35 +222,6 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 	}
 
 	return nil
-}
-
-func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*create.RobotPermission {
-	var mergedPermissions []*create.RobotPermission
-
-	// Add project permissions
-	for projectName, projectPermissions := range projectPermissionsMap {
-		var accessesProject []*models.Access
-		for _, perm := range projectPermissions {
-			accessesProject = append(accessesProject, &models.Access{
-				Resource: perm.Resource,
-				Action:   perm.Action,
-			})
-		}
-		mergedPermissions = append(mergedPermissions, &create.RobotPermission{
-			Namespace: projectName,
-			Access:    accessesProject,
-			Kind:      "project",
-		})
-	}
-
-	// Add system permissions
-	mergedPermissions = append(mergedPermissions, &create.RobotPermission{
-		Namespace: "/",
-		Access:    accessesSystem,
-		Kind:      "system",
-	})
-
-	return mergedPermissions
 }
 
 func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) error {
@@ -365,34 +291,6 @@ func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
 	}
 
 	fmt.Printf("Secret saved to %s\n", filename)
-}
-
-func getMultipleProjectsFromUser() ([]string, error) {
-	allProjects, err := api.ListAllProjects()
-	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %v", err)
-	}
-
-	var selectedProjects []string
-	var projectOptions []huh.Option[string]
-
-	for _, p := range allProjects.Payload {
-		projectOptions = append(projectOptions, huh.NewOption(p.Name, p.Name))
-	}
-
-	err = huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Multiple Project Selection").
-				Description("Select the projects to assign the same permissions to this robot account."),
-			huh.NewMultiSelect[string]().
-				Title("Select projects").
-				Options(projectOptions...).
-				Value(&selectedProjects),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
-
-	return selectedProjects, err
 }
 
 func promptMoreProjects() (bool, error) {

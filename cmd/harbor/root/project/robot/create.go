@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
+	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
@@ -166,12 +167,12 @@ Examples:
 					accesses = append(accesses, access)
 				}
 				// convert []models.permission to []*model.Access
-				perm := &create.RobotPermission{
+				perm := &rmodel.RobotPermission{
 					Namespace: opts.ProjectName,
 					Access:    accesses,
 					Kind:      "project", // Default to project level
 				}
-				opts.Permissions = []*create.RobotPermission{perm}
+				opts.Permissions = []*rmodel.RobotPermission{perm}
 			}
 			getProjectID, err := api.GetProject(opts.ProjectName, false)
 			if err != nil {

@@ -90,6 +90,42 @@ func GetProjectNameFromUser() (string, error) {
 	return res.name, res.err
 }
 
+func GetProjectNamesFromUser() ([]string, error) {
+	type result struct {
+		name []string
+		err  error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListAllProjects()
+		if err != nil {
+			resultChan <- result{nil, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{nil, errors.New("no projects found")}
+			return
+		}
+
+		name, err := pview.ProjectsList(response.Payload)
+		if err != nil {
+			if err == pview.ErrUserAborted {
+				resultChan <- result{nil, errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{nil, fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{name, nil}
+	}()
+
+	res := <-resultChan
+	return res.name, res.err
+}
+
 func GetProjectIDFromUser() int64 {
 	projectID := make(chan int64)
 	go func() {
