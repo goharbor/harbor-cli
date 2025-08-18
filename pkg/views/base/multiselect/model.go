@@ -44,7 +44,10 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	checkbox := "☐"
 	if d.Selected != nil && (*d.Selected)[index] {
-		checkbox = "☒"
+	if d.Selected != nil {
+		if selected, ok := (*d.Selected)[index]; ok && selected {
+			checkbox = "☒"
+		}
 	}
 
 	str := fmt.Sprintf("%s %d. %s", checkbox, index+1, i)
