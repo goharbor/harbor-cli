@@ -215,7 +215,7 @@ func buildQuery(fuzzy, match, ranges []string) (string, error) {
 
 // Validates Key provided by user for ListFlags.Q
 func validKey(key string) error {
-	keys := []string{"name", "project_id", "public", "creation_time"}
+	keys := []string{"name", "project_id", "public", "creation_time", "owner_id"}
 
 	found := false
 	for _, v := range keys {
@@ -225,7 +225,7 @@ func validKey(key string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("invalid key for query: %s, supported keys are 'name', 'project_id', 'public', 'creation_time'", key)
+		return fmt.Errorf("invalid key for query: %s, supported keys are 'name', 'project_id', 'public', 'creation_time', 'owner_id'", key)
 	}
 
 	return nil
