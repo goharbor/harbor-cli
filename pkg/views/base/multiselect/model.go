@@ -43,7 +43,6 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	checkbox := "☐"
-	if d.Selected != nil && (*d.Selected)[index] {
 	if d.Selected != nil {
 		if selected, ok := (*d.Selected)[index]; ok && selected {
 			checkbox = "☒"
@@ -115,9 +114,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Choice = make([]string, 0)
 			for i, isSelected := range m.Selected {
 				if isSelected && i < len(m.List.Items()) {
-			for i, listItem := range m.List.Items() {
-				if m.Selected[i] {
-					if item, ok := listItem.(Item); ok {
+					if item, ok := m.List.Items()[i].(Item); ok {
 						m.Choice = append(m.Choice, string(item))
 					}
 				}
