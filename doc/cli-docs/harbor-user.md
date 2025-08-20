@@ -39,4 +39,5 @@ Manage users in Harbor
 * [harbor user delete](harbor-user-delete.md)	 - delete user by name or id
 * [harbor user elevate](harbor-user-elevate.md)	 - elevate user
 * [harbor user list](harbor-user-list.md)	 - List users
+* [harbor user password](harbor-user-password.md)	 - Reset user password by name or id
 
