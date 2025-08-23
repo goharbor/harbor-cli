@@ -47,7 +47,7 @@ dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 ..
 ├── cmd/harbor/           # Entry point (main.go) and all CLI commands (Cobra-based)
 ├── pkg/                  # Shared utilities and internal packages used across commands
-├── docs/                 # Project documentation
+├── doc/                 # Project documentation
 ├── test/                 # CLI tests and test data
 ├── .github/              # GitHub workflows and issue templates
 ├── go.mod / go.sum       # Go module dependencies
@@ -91,13 +91,21 @@ go build -o ./bin/harbor-cli cmd/harbor/main.go
 ./bin/harbor-cli --help
 ```
 
-### 5. Commit with a clear message
+### 5. Update Documentation 
+
+Before committing, **always regenerate the documentation** if you've made any code changes or added new commands:
+
+```bash
+dagger call run-doc export --path=./doc
+```
+
+### 6. Commit with a clear message
 
 ```bash
 git commit -s -m "feat(project): add delete command for project resources"
 ```
 
-### 6. Push and Open a PR
+### 7. Push and Open a PR
 
 ```bash
 git push origin feat/<your-feature-name>
