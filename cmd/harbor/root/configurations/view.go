@@ -27,15 +27,34 @@ func ViewConfigCmd() *cobra.Command {
 		Use:   "view",
 		Short: "View Harbor configurations",
 		Long: `View Harbor system configurations. You can filter by category:
-- authentication: User and service authentication settings
-- security: Security policies and certificate settings  
-- system: General system behavior and storage settings`,
+- authentication (auth): User and service authentication settings
+- security (sec): Security policies and certificate settings  
+- system (sys): General system behavior and storage settings
+
+Examples:
+  # View all configurations
+  harbor config view
+  
+  # View only authentication configurations
+  harbor config view --category authentication
+  harbor config view --category auth
+  
+  # View only security configurations  
+  harbor config view --category security
+  harbor config view --category sec
+  
+  # View only system configurations
+  harbor config view --category system
+  harbor config view --category sys`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetConfigurations()
 			if err != nil {
 				return err
 			}
+
+			normalizedCategory := normalizeCategory(category)
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(response.Payload, FormatFlag)
@@ -43,13 +62,26 @@ func ViewConfigCmd() *cobra.Command {
 					return err
 				}
 			} else {
-				view.ViewConfigurations(response.Payload, category)
+				view.ViewConfigurations(response.Payload, normalizedCategory)
 			}
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&category, "category", "", "Filter by category (authentication, security, system)")
+	cmd.Flags().StringVar(&category, "category", "", "Filter by category (authentication/auth, security/sec, system/sys)")
 
 	return cmd
+}
+
+func normalizeCategory(category string) string {
+	switch category {
+	case "auth":
+		return "authentication"
+	case "sec":
+		return "security"
+	case "sys":
+		return "system"
+	default:
+		return category
+	}
 }

@@ -51,10 +51,11 @@ var ConfigurationCategories = map[string]string{
 	"UaaClientSecret":                  "authentication",
 	"UaaEndpoint":                      "authentication",
 	"PrimaryAuthMode":                  "authentication",
+	"LdapVerifyCert":                   "authentication",
+	"OIDCVerifyCert":                   "authentication",
+	"OIDCLogout":                       "authentication",
 
 	// Security - Security policies, certificates, permissions
-	"LdapVerifyCert":             "security",
-	"OIDCVerifyCert":             "security",
 	"UaaVerifyCert":              "security",
 	"HTTPAuthproxyVerifyCert":    "security",
 	"SelfRegistration":           "security",
@@ -62,9 +63,9 @@ var ConfigurationCategories = map[string]string{
 	"RobotTokenDuration":         "security",
 	"TokenExpiration":            "security",
 	"SessionTimeout":             "security",
-	"RobotNamePrefix":            "security",
 
 	// System - General system behavior, storage, auditing
+	"RobotNamePrefix":            "system",
 	"ReadOnly":                   "system",
 	"QuotaPerProjectEnable":      "system",
 	"StoragePerProject":          "system",
@@ -74,7 +75,6 @@ var ConfigurationCategories = map[string]string{
 	"AuditLogForwardEndpoint":    "system",
 	"BannerMessage":              "system",
 	"DisabledAuditLogEventTypes": "system",
-	"OIDCLogout":                 "system",
 }
 
 func IsCategory(fieldName string, category string) bool {

@@ -27,7 +27,7 @@ func GetConfigCmd() *cobra.Command {
 		Short: "Get Harbor configurations",
 		Long: `Get Harbor system configurations.
 		
-		This command retrieves the current configurations from Harbor and stores them in your local config file.`,
+This command retrieves the current configurations from Harbor and stores them in your local config file.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetConfigurations()
@@ -37,6 +37,9 @@ func GetConfigCmd() *cobra.Command {
 			if err := utils.AddConfigurationsToConfigFile(response.Payload); err != nil {
 				return fmt.Errorf("failed to update config file: %v", err)
 			}
+			data, err := utils.GetCurrentHarborData()
+			fmt.Printf("✓ Configurations have been added to the config file.\n")
+			fmt.Printf("Config file location: %s\n", data.ConfigPath)
 			return nil
 		},
 	}
