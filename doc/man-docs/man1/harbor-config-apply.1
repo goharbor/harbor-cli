@@ -1,0 +1,47 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-config-apply - Update system configurations from local config file
+
+
+.SH SYNOPSIS
+\fBharbor config apply [flags]\fP
+
+
+.SH DESCRIPTION
+Update Harbor system configurations using the values stored in your local config file.
+This will push the configurations from your local config file to the Harbor server.
+Make sure to run 'harbor config get' first to populate the local config file with current configurations. Alternatively, you can specify a custom configuration file using the --configurations-file flag. This does not have to be a complete configuration file, only the fields you want to update need to be present under the 'configurations' key. Credentials for the Harbor server can be configured in the local config file or through environment variables or global config flags.
+
+
+.SH OPTIONS
+\fB-f\fP, \fB--configurations-file\fP=""
+	Harbor configurations file to apply (default is $HOME/.harbor/config.yaml). This file should contain the 'configurations' key with the fields you want to update. If not specified, it will use the default Harbor config file.
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for apply
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor config apply
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-config(1)\fP
