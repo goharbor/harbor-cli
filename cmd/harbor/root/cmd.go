@@ -19,10 +19,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
-<<<<<<< HEAD
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
-=======
->>>>>>> 3c8e623 (Add Support for System-Level Robot Accounts (#507))
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
