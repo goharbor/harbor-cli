@@ -15,13 +15,15 @@ harbor project list [flags]
 ### Options
 
 ```sh
+      --fuzzy strings   Fuzzy match filter (key=value)
   -h, --help            help for list
+      --match strings   exact match filter (key=value)
       --name string     Name of the project
       --page int        Page number (default 1)
       --page-size int   Size of per page (0 to fetch all)
       --private         Show only private projects
       --public          Show only public projects
-  -q, --query string    Query string to query resources
+      --range strings   range filter (key=min~max)
       --sort string     Sort the resource list in ascending or descending order
 ```
 

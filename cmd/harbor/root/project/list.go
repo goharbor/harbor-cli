@@ -15,6 +15,7 @@ package project
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -27,11 +28,17 @@ import (
 )
 
 func ListProjectCommand() *cobra.Command {
-	var opts api.ListFlags
-	var private bool
-	var public bool
-	var allProjects []*models.Project
-	var err error
+	var (
+		opts        api.ListFlags
+		private     bool
+		public      bool
+		allProjects []*models.Project
+		err         error
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List projects",
@@ -59,6 +66,16 @@ func ListProjectCommand() *cobra.Command {
 			} else {
 				log.Debug("Using list all projects function")
 				listFunc = api.ListAllProjects
+			}
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
+				log.Debug("Building Query...")
+				q, qErr := buildQuery(fuzzy, match, ranges)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
 			}
 
 			log.Debug("Fetching projects...")
@@ -93,8 +110,10 @@ func ListProjectCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.BoolVarP(&private, "private", "", false, "Show only private projects")
 	flags.BoolVarP(&public, "public", "", false, "Show only public projects")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }
@@ -141,4 +160,73 @@ func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, erro
 	}
 
 	return allProjects, nil
+}
+
+func buildQuery(fuzzy, match, ranges []string) (string, error) {
+	var parts []string
+
+	for _, v := range fuzzy {
+		kv := strings.Split(v, "=")
+		if len(kv) != 2 {
+			return "", fmt.Errorf("invalid fuzzy arg: %s ", v)
+		}
+
+		if err := validKey(kv[0]); err != nil {
+			return "", err
+		}
+
+		parts = append(parts, fmt.Sprintf("%s=~%s", kv[0], kv[1]))
+	}
+
+	for _, v := range match {
+		kv := strings.Split(v, "=")
+		if len(kv) != 2 {
+			return "", fmt.Errorf("invalid match arg: %s ", v)
+		}
+
+		if err := validKey(kv[0]); err != nil {
+			return "", err
+		}
+
+		parts = append(parts, fmt.Sprintf("%s=%s", kv[0], kv[1]))
+	}
+
+	for _, v := range ranges {
+		kv := strings.Split(v, "=")
+		if len(kv) != 2 {
+			return "", fmt.Errorf("invalid range arg: %s ", v)
+		}
+
+		if err := validKey(kv[0]); err != nil {
+			return "", err
+		}
+
+		// Validating that range is in format min~max
+		rng := strings.Split(kv[1], "~")
+		if len(rng) != 2 {
+			return "", fmt.Errorf("invalid range arg: %s ", v)
+		}
+
+		parts = append(parts, fmt.Sprintf("%s=[%s~%s]", kv[0], rng[0], rng[1]))
+	}
+
+	return strings.Join(parts, ","), nil
+}
+
+// Validates Key provided by user for ListFlags.Q
+func validKey(key string) error {
+	keys := []string{"name", "project_id", "public", "creation_time", "owner_id"}
+
+	found := false
+	for _, v := range keys {
+		if v == key {
+			found = true
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("invalid key for query: %s, supported keys are 'name', 'project_id', 'public', 'creation_time', 'owner_id'", key)
+	}
+
+	return nil
 }
