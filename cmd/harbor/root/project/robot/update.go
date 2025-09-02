@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	log "github.com/sirupsen/logrus"
@@ -147,12 +148,12 @@ Examples:
 				accesses = append(accesses, access)
 			}
 			// convert []models.permission to []*model.Access
-			perm := &update.RobotPermission{
+			perm := &rmodel.RobotPermission{
 				Kind:      bot.Permissions[0].Kind,
 				Namespace: bot.Permissions[0].Namespace,
 				Access:    accesses,
 			}
-			opts.Permissions = []*update.RobotPermission{perm}
+			opts.Permissions = []*rmodel.RobotPermission{perm}
 
 			err = updateRobotView(&opts)
 			if err != nil {
