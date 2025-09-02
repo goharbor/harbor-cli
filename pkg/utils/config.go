@@ -554,38 +554,3 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	log.Infof("Switched to context '%s'", updatedCredential.Name)
 	return nil
 }
-
-func AddConfigurationsToConfigFile(config *models.ConfigurationsResponse) error {
-	currentConfig, err := GetCurrentHarborConfig()
-	if err != nil {
-		return fmt.Errorf("failed to get current Harbor configuration: %w", err)
-	}
-
-	currentData, err := GetCurrentHarborData()
-	if err != nil {
-		return fmt.Errorf("failed to get current Harbor data: %w", err)
-	}
-
-	v := viper.New()
-	v.SetConfigFile(currentData.ConfigPath)
-	v.SetConfigType("yaml")
-
-	if err := v.ReadInConfig(); err != nil {
-		return fmt.Errorf("failed to read config file: %v", err)
-	}
-
-	if err := v.Unmarshal(&currentConfig); err != nil {
-		return fmt.Errorf("failed to unmarshal config file: %v", err)
-	}
-
-	configurations := ConvertToConfigurations(config)
-	currentConfig.Configurations = *configurations
-	v.Set("current-credential-name", currentConfig.CurrentCredentialName)
-	v.Set("credentials", currentConfig.Credentials)
-	v.Set("configurations", currentConfig.Configurations)
-	err = v.WriteConfig()
-	if err != nil {
-		return err
-	}
-	return nil
-}
