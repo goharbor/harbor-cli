@@ -11,6 +11,7 @@ weight: 85
 ### Synopsis
 
 Update Harbor system configurations using the values stored in your local config file.
+		
 This will push the configurations from your local config file to the Harbor server.
 Make sure to run 'harbor config get' first to populate the local config file with current configurations. Alternatively, you can specify a custom configuration file using the --configurations-file flag. This does not have to be a complete configuration file, only the fields you want to update need to be present under the 'configurations' key. Credentials for the Harbor server can be configured in the local config file or through environment variables or global config flags.
 
@@ -21,7 +22,7 @@ harbor config apply [flags]
 ### Examples
 
 ```sh
-harbor config apply
+harbor config apply -f <config_file>
 ```
 
 ### Options
