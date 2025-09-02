@@ -14,6 +14,9 @@
 package configurations
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/configurations/view"
@@ -26,30 +29,77 @@ func ViewConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "view",
 		Short: "View Harbor configurations",
-		Long: `View Harbor system configurations. You can filter by category:
-- authentication: User and service authentication settings
-- security: Security policies and certificate settings  
-- system: General system behavior and storage settings`,
+		Long: `View Harbor system configurations. You can filter by category using full names or shorthand:
+
+Categories:
+- authentication (auth): User and service authentication settings (LDAP, OIDC, UAA)
+- security (sec): Security policies and certificate settings
+- system (sys): General system behavior and storage settings
+
+Examples:
+  harbor config view                        # View all configurations
+  harbor config view --category auth        # View authentication configs
+  harbor config view --cat sec              # View security configs (shorthand)
+  harbor config view --cat sys              # View system configs
+
+  # Export configurations to files
+  harbor config view -o json > config.json                    # Save all configs as JSON
+  harbor config view --cat auth -o yaml | tee auth-config.yaml   # Save auth configs as YAML and display
+  harbor config view --cat sec -o json > security-config.json   # Save security configs as JSON`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Expand shorthand category names
+			expandedCategory := expandCategoryShorthand(category)
+
+			// Validate category if provided
+			if expandedCategory != "" {
+				validCategories := []string{"authentication", "security", "system"}
+				isValid := false
+				for _, valid := range validCategories {
+					if expandedCategory == valid {
+						isValid = true
+						break
+					}
+				}
+				if !isValid {
+					return fmt.Errorf("invalid category '%s'. Valid options: authentication (auth), security (sec), system (sys)", category)
+				}
+			}
+
 			response, err := api.GetConfigurations()
 			if err != nil {
 				return err
 			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				err = utils.PrintFormat(response.Payload, FormatFlag)
+				configurations := utils.ExtractConfigurationsByCategory(response.Payload, expandedCategory)
+				err = utils.PrintFormat(configurations, FormatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				view.ViewConfigurations(response.Payload, category)
+				view.ViewConfigurations(response.Payload, expandedCategory)
 			}
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&category, "category", "", "Filter by category (authentication, security, system)")
+	cmd.Flags().StringVar(&category, "category", "", "Filter by category: authentication (auth), security (sec), system (sys)")
+	cmd.Flags().StringVar(&category, "cat", "", "Filter by category (shorthand for --category)")
 
 	return cmd
+}
+
+func expandCategoryShorthand(category string) string {
+	switch strings.ToLower(category) {
+	case "auth":
+		return "authentication"
+	case "sec":
+		return "security"
+	case "sys":
+		return "system"
+	default:
+		return category
+	}
 }

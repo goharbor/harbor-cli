@@ -27,7 +27,7 @@ harbor config apply
 ### Options
 
 ```sh
-  -f, --configurations-file string   Harbor configurations file to apply (default is $HOME/.harbor/config.yaml). This file should contain the 'configurations' key with the fields you want to update. If not specified, it will use the default Harbor config file.
+  -f, --configurations-file string   Harbor configurations file to apply.
   -h, --help                         help for apply
 ```
 

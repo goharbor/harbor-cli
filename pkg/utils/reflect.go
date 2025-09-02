@@ -33,10 +33,7 @@ func ConvertToConfigurations(resp *models.ConfigurationsResponse) *models.Config
 		targetConfigurationsField := targetConfigurationsObject.FieldByName(responseObjFieldName)
 
 		if targetConfigurationsField.IsValid() && targetConfigurationsField.CanSet() {
-			isSecretField := false
-			if responseObjFieldName == "OIDCClientSecret" || responseObjFieldName == "UaaClientSecret" || responseObjFieldName == "LdapSearchPassword" {
-				isSecretField = true
-			}
+			isSecretField := isSecretConfigurationField(responseObjFieldName)
 			convertAndSetField(responseObjField, targetConfigurationsField, isSecretField)
 		}
 	}
@@ -81,4 +78,42 @@ func encrypt(originalSecretValue string) (string, error) {
 		return "", fmt.Errorf("failed to encrypt secret: %w", err)
 	}
 	return string(encryptedSecret), nil
+}
+
+func ExtractConfigurationsByCategory(resp *models.ConfigurationsResponse, category string) *models.Configurations {
+	if resp == nil {
+		return &models.Configurations{}
+	}
+	targetConfigurationsPointer := &models.Configurations{}
+	targetConfigurationsObject := reflect.ValueOf(targetConfigurationsPointer).Elem()
+	apiConfigurationsResponseObject := reflect.ValueOf(resp).Elem()
+	apiConfigurationsResponseType := apiConfigurationsResponseObject.Type()
+
+	for i := 0; i < apiConfigurationsResponseObject.NumField(); i++ {
+		responseObjField := apiConfigurationsResponseObject.Field(i)
+		responseObjFieldName := apiConfigurationsResponseType.Field(i).Name
+
+		// Check if this field belongs to the requested category
+		if !IsCategory(responseObjFieldName, category) {
+			continue // Skip fields that don't match the category
+		}
+
+		targetConfigurationsField := targetConfigurationsObject.FieldByName(responseObjFieldName)
+
+		if targetConfigurationsField.IsValid() && targetConfigurationsField.CanSet() {
+			isSecretField := isSecretConfigurationField(responseObjFieldName)
+			convertAndSetField(responseObjField, targetConfigurationsField, isSecretField)
+		}
+	}
+
+	return targetConfigurationsPointer
+}
+
+func isSecretConfigurationField(fieldName string) bool {
+	secretFields := map[string]bool{
+		"OIDCClientSecret":   true,
+		"UaaClientSecret":    true,
+		"LdapSearchPassword": true,
+	}
+	return secretFields[fieldName]
 }

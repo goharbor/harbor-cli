@@ -10,16 +10,35 @@ harbor-config-view - View Harbor configurations
 
 
 .SH DESCRIPTION
-View Harbor system configurations. You can filter by category:
-- authentication: User and service authentication settings
-- security: Security policies and certificate settings
-.br
-- system: General system behavior and storage settings
+View Harbor system configurations. You can filter by category using full names or shorthand:
+
+.PP
+Categories:
+- authentication (auth): User and service authentication settings (LDAP, OIDC, UAA)
+- security (sec): Security policies and certificate settings
+- system (sys): General system behavior and storage settings
+
+.PP
+Examples:
+  harbor config view                        # View all configurations
+  harbor config view --category auth        # View authentication configs
+  harbor config view --cat sec              # View security configs (shorthand)
+  harbor config view --cat sys              # View system configs
+
+.PP
+# Export configurations to files
+  harbor config view -o json > config.json                    # Save all configs as JSON
+  harbor config view --cat auth -o yaml | tee auth-config.yaml   # Save auth configs as YAML and display
+  harbor config view --cat sec -o json > security-config.json   # Save security configs as JSON
 
 
 .SH OPTIONS
+\fB--cat\fP=""
+	Filter by category (shorthand for --category)
+
+.PP
 \fB--category\fP=""
-	Filter by category (authentication, security, system)
+	Filter by category: authentication (auth), security (sec), system (sys)
 
 .PP
 \fB-h\fP, \fB--help\fP[=false]

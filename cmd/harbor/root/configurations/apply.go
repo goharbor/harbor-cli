@@ -21,8 +21,6 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -38,7 +36,7 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 		Args:    cobra.NoArgs,
 		Example: `harbor config apply`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var harborConfig *utils.HarborConfig
+			var configurations *models.Configurations
 			var err error
 			if cfgFile != "" {
 				data, err := os.ReadFile(cfgFile)
@@ -48,38 +46,31 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				fileType := filepath.Ext(cfgFile)
 				switch fileType {
 				case ".yaml", ".yml":
-					if err := yaml.Unmarshal(data, &harborConfig); err != nil {
+					if err := yaml.Unmarshal(data, &configurations); err != nil {
 						return fmt.Errorf("failed to parse YAML: %v", err)
 					}
 				case ".json":
-					if err := json.Unmarshal(data, &harborConfig); err != nil {
+					if err := json.Unmarshal(data, &configurations); err != nil {
 						return fmt.Errorf("failed to parse JSON: %v", err)
 					}
 				default:
 					return fmt.Errorf("unsupported file type: %s, expected '.yaml/.yml' or '.json'", fileType)
 				}
 			} else {
-				harborConfig, err = utils.GetCurrentHarborConfig()
-				if err != nil {
-					return fmt.Errorf("failed to get config from file: %v", err)
-				}
+				return fmt.Errorf("no config file specified")
 			}
 
-			if harborConfig.Configurations == (models.Configurations{}) {
-				return fmt.Errorf("no configurations found in config file. Run 'harbor config get' first to populate configurations")
-			}
-
-			err = api.UpdateConfigurations(harborConfig)
+			err = api.UpdateConfigurations(configurations)
 			if err != nil {
 				return fmt.Errorf("failed to update Harbor configurations: %v", err)
 			}
 
-			log.Infof("Harbor configurations updated successfully from local config file.")
+			fmt.Printf("harbor configurations updated successfully from %s.", cfgFile)
 			return nil
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&cfgFile, "configurations-file", "f", "", "Harbor configurations file to apply (default is $HOME/.harbor/config.yaml). This file should contain the 'configurations' key with the fields you want to update. If not specified, it will use the default Harbor config file.")
+	flags.StringVarP(&cfgFile, "configurations-file", "f", "", "Harbor configurations file to apply.")
 
 	return cmd
 }
