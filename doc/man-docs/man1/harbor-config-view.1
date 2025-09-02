@@ -1,0 +1,62 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-config-view - View Harbor configurations
+
+
+.SH SYNOPSIS
+\fBharbor config view [flags]\fP
+
+
+.SH DESCRIPTION
+View Harbor system configurations. You can filter by category using full names or shorthand:
+
+.PP
+Categories:
+- authentication (auth): User and service authentication settings (LDAP, OIDC, UAA)
+- security (sec): Security policies and certificate settings
+- system (sys): General system behavior and storage settings
+
+.PP
+Examples:
+  harbor config view                        # View all configurations
+  harbor config view --category auth        # View authentication configs
+  harbor config view --cat sec              # View security configs (shorthand)
+  harbor config view --cat sys              # View system configs
+
+.PP
+# Export configurations to files
+  harbor config view -o json > config.json                    # Save all configs as JSON
+  harbor config view --cat auth -o yaml | tee auth-config.yaml   # Save auth configs as YAML and display
+  harbor config view --cat sec -o json > security-config.json   # Save security configs as JSON
+
+
+.SH OPTIONS
+\fB--cat\fP=""
+	Filter by category (shorthand for --category)
+
+.PP
+\fB--category\fP=""
+	Filter by category: authentication (auth), security (sec), system (sys)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for view
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-config(1)\fP

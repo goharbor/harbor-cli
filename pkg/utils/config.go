@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
@@ -33,8 +34,9 @@ type Credential struct {
 }
 
 type HarborConfig struct {
-	CurrentCredentialName string       `mapstructure:"current-credential-name" yaml:"current-credential-name"`
-	Credentials           []Credential `mapstructure:"credentials" yaml:"credentials"`
+	CurrentCredentialName string                `mapstructure:"current-credential-name" yaml:"current-credential-name"`
+	Credentials           []Credential          `mapstructure:"credentials" yaml:"credentials"`
+	Configurations        models.Configurations `mapstructure:"configurations" yaml:"configurations"`
 }
 
 type HarborData struct {
@@ -194,7 +196,7 @@ func ReadConfig(harborConfigPath string) error {
 	viper.SetConfigFile(harborConfigPath)
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists.", err)
+		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists", err)
 	}
 	return nil
 }
