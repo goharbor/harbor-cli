@@ -2,32 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-list - List projects
+harbor-replication-executions-list - List replication executions
 
 
 .SH SYNOPSIS
-\fBharbor project list [flags]\fP
+\fBharbor replication executions list [flags]\fP
 
 
 .SH DESCRIPTION
-List projects
+List all replication executions for a given replication policy. If no policy ID is provided, it will prompt the user to select one interactively.
 
 
 .SH OPTIONS
-\fB--fuzzy\fP=[]
-	Fuzzy match filter (key=value)
-
-.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for list
-
-.PP
-\fB--match\fP=[]
-	exact match filter (key=value)
-
-.PP
-\fB--name\fP=""
-	Name of the project
 
 .PP
 \fB--page\fP=1
@@ -38,16 +26,8 @@ List projects
 	Size of per page (0 to fetch all)
 
 .PP
-\fB--private\fP[=false]
-	Show only private projects
-
-.PP
-\fB--public\fP[=false]
-	Show only public projects
-
-.PP
-\fB--range\fP=[]
-	range filter (key=min~max)
+\fB-q\fP, \fB--query\fP=""
+	Query string to query resources
 
 .PP
 \fB--sort\fP=""
@@ -67,5 +47,12 @@ List projects
 	verbose output
 
 
+.SH EXAMPLE
+.EX
+  harbor replication executions list 12345
+  harbor replication executions list
+.EE
+
+
 .SH SEE ALSO
-\fBharbor-project(1)\fP
+\fBharbor-replication-executions(1)\fP

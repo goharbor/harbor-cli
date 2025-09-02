@@ -17,20 +17,20 @@
 The project's first goal is to reach WebUI parity.
 
 ```shell
-✅ project       Mange projects  
+✅ project       Manage projects  
 ✅ repo          Manage repositories  
 ✅ artifact      Manage artifacts  
 ✅ label         Manage labels  
 ✅ tag           Manage tags   
 ✅ quota         Manage quotas  
 ✅ webhook       Manage webhook policies 
-❌ robot         Robot Account 
+✅ robot         Robot Account 
 
 ✅ login         Log in to Harbor registry  
 ✅ user          Manage users  
 
 ✅ registry      Manage registries
-❌ replication   Manage replication
+✅ replication   Manage replication
 
 ✅ config        Manage the config of the Harbor CLI
 ✅ cve-allowlist Manage system CVE allowlist
@@ -62,7 +62,7 @@ docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor
 ```
 Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
-I you intend
+If you intend
 to run the CLI as a container,it is advised
 to set the following environment variables and to create an alias
 and append the alias to your .zshrc or .bashrc file

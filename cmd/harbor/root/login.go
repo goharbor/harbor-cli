@@ -79,6 +79,7 @@ func LoginCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&Username, "username", "u", "", "Username")
+	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 
@@ -87,8 +88,10 @@ func LoginCommand() *cobra.Command {
 
 // ProcessLogin applies a simplified decision logic to run login or launch an interactive view.
 func ProcessLogin(loginView login.LoginView, config *utils.HarborConfig) error {
-	// Auto-generate the name
-	loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	// Auto-generate the name if not provided.
+	if loginView.Name == "" && loginView.Server != "" && loginView.Username != "" {
+		loginView.Name = fmt.Sprintf("%s@%s", loginView.Username, utils.SanitizeServerAddress(loginView.Server))
+	}
 
 	// If complete credentials are provided (overrides), run login using them directly.
 	if loginView.Server != "" && loginView.Username != "" && loginView.Password != "" {

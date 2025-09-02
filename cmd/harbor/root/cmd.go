@@ -152,6 +152,10 @@ harbor help
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)
 
+	cmd = PasswordCommand()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
 	// System
 	cmd = context.Context()
 	cmd.GroupID = "system"
