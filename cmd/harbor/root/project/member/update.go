@@ -1,12 +1,12 @@
 package member
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +21,7 @@ func UpdateMemberCommand() *cobra.Command {
 		Long:    "update member in a project by MemberID",
 		Example: "  harbor project member update my-project [memberID] --roleid 2",
 		Args:    cobra.MaximumNArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if len(args) == 1 {
 				opts.ProjectNameOrID = args[0]
@@ -32,7 +32,7 @@ func UpdateMemberCommand() *cobra.Command {
 				if opts.ProjectNameOrID == "" {
 					opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
 					if err != nil {
-						log.Fatalf("failed to get project name: %v", err)
+						return fmt.Errorf("failed to get project name: %v", err)
 					}
 				}
 				if opts.ID == 0 {
@@ -49,8 +49,10 @@ func UpdateMemberCommand() *cobra.Command {
 
 			err = api.UpdateMember(opts)
 			if err != nil {
-				log.Fatalf("failed to get members list: %v", err)
+				return fmt.Errorf("failed to get members list: %v", err)
 			}
+
+			return nil
 		},
 	}
 
