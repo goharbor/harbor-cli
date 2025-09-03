@@ -63,7 +63,7 @@ func NewModel(items []list.Item, construct string) Model {
 	l := list.New(items, ItemDelegate{}, defaultWidth, listHeight)
 	l.Title = "Select a " + construct
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true)
 	l.Styles.Title = views.TitleStyle
 	l.Styles.PaginationStyle = views.PaginationStyle
 	l.Styles.HelpStyle = views.HelpStyle
