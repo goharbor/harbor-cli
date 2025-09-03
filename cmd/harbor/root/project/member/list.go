@@ -1,11 +1,12 @@
 package member
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/member/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -20,29 +21,29 @@ func ListMemberCommand() *cobra.Command {
 		Long:    "list members in a project by projectName",
 		Example: "  harbor project member list my-project",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if len(args) > 0 {
 				opts.ProjectNameOrID = args[0]
 			} else {
 				opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Fatalf("failed to get project name: %v", err)
+					return fmt.Errorf("failed to get project name: %v", err)
 				}
 			}
 
 			members, err := api.ListMember(opts)
 			if err != nil {
-				log.Fatalf("failed to get members list: %v", err)
+				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(members)
-				return
+				return nil
 			} else if FormatFlag == "yaml" {
 				utils.PrintPayloadInYAMLFormat(members)
-				return
+				return nil
 			}
 
 			VerboseFlag := viper.GetBool("verbose")
@@ -52,6 +53,7 @@ func ListMemberCommand() *cobra.Command {
 			} else {
 				list.ListMembers(members.Payload, false)
 			}
+			return nil
 		},
 	}
 

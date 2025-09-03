@@ -1,13 +1,13 @@
 package member
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	view "github.com/goharbor/harbor-cli/pkg/views/member/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -22,7 +22,7 @@ func ViewMemberCommand() *cobra.Command {
 		Long:    "get member details by MemberID",
 		Example: "  harbor project member view my-project [memberID]",
 		Args:    cobra.MaximumNArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if len(args) == 1 {
 				opts.ProjectNameOrID = args[0]
@@ -33,7 +33,7 @@ func ViewMemberCommand() *cobra.Command {
 				if opts.ProjectNameOrID == "" {
 					opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
 					if err != nil {
-						log.Fatalf("failed to get project name: %v", err)
+						return fmt.Errorf("failed to get project name: %v", err)
 					}
 				}
 				if opts.ID == 0 {
@@ -43,19 +43,21 @@ func ViewMemberCommand() *cobra.Command {
 
 			member, err := api.GetMember(opts)
 			if err != nil {
-				log.Fatalf("failed to get members list: %v", err)
+				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			VerboseFlag := viper.GetBool("verbose")
 			if FormatFlag == "json" {
 				utils.PrintPayloadInJSONFormat(member)
-				return
+				return nil
 			} else if VerboseFlag {
 				view.ViewMember(member.Payload, true)
 			} else {
 				view.ViewMember(member.Payload, false)
 			}
+
+			return nil
 		},
 	}
 
