@@ -34,7 +34,7 @@ func ProjectList(projects []*models.Project) (string, error) {
 
 	m := selection.NewModel(items, "Project")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
