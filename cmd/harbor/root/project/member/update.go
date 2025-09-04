@@ -17,7 +17,7 @@ func UpdateMemberCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "update [ProjectName Or ID] [member ID]",
-		Short:   "update member by ID",
+		Short:   "update member by ID or name",
 		Long:    "update member in a project by MemberID",
 		Example: "  harbor project member update my-project [memberID] --roleid 2",
 		Args:    cobra.MaximumNArgs(2),

@@ -18,7 +18,7 @@ func ViewMemberCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "view [ProjectName Or ID] [member ID]",
-		Short:   "get project member by ID",
+		Short:   "get project member by ID or name",
 		Long:    "get member details by MemberID",
 		Example: "  harbor project member view my-project [memberID]",
 		Args:    cobra.MaximumNArgs(2),
