@@ -60,13 +60,6 @@ func CreateMemberCommand() *cobra.Command {
 				},
 			}
 
-			if opts.RoleName == "" && opts.RoleID == 0 {
-				opts.RoleID = int(prompt.GetRoleNameFromUser())
-			}
-			if opts.RoleName != "" && opts.RoleID == 0 {
-				setRoleIDFromRoleName(&opts)
-			}
-
 			// check if role and member is valid
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
 				err = api.CreateMember(*createView)
