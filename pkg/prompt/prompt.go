@@ -348,15 +348,15 @@ func GetReplicationTaskIDFromUser(execID int64) int64 {
 // Get GetMemberIDFromUser choosing from list of members
 func GetMemberIDFromUser(projectName string) int64 {
 	memberId := make(chan int64)
-	var length int
+	length := make(chan int)
 	go func() {
 		response, _ := api.ListMembers(projectName)
-		length = len(response.Payload)
+		length <- len(response.Payload)
 		mview.MemberList(response.Payload, memberId)
 	}()
 
 	// if no members found, return 0
-	if length == 0 {
+	if <-length == 0 {
 		return 0
 	}
 

@@ -65,14 +65,17 @@ func CreateMemberView(createView *CreateView) {
 				Title("Role").
 				Value(&createView.RoleID).
 				Options(roleSelectOptions...),
-
+		),
+		huh.NewGroup(
 			huh.NewInput().
-				Title("User ID").
+				Title("User ID (optional)").
 				Value(&userID).
 				Validate(func(str string) error {
 					createView.MemberUser.UserID, _ = strconv.ParseInt(str, 10, 64)
 					return nil
 				}),
+		),
+		huh.NewGroup(
 			huh.NewInput().
 				Title("Username").
 				Value(&createView.MemberUser.Username).
@@ -82,30 +85,37 @@ func CreateMemberView(createView *CreateView) {
 					}
 					return nil
 				}),
+		),
+		huh.NewGroup(
 			huh.NewInput().
-				Title("Group ID").
+				Title("Group ID (optional)").
 				Value(&groupID).
 				Validate(func(str string) error {
 					createView.MemberGroup.ID, _ = strconv.ParseInt(str, 10, 64)
 					return nil
 				}),
+		),
+		huh.NewGroup(
 			huh.NewInput().
-				Title("Group Name").
+				Title("Group Name (optional)").
 				Value(&createView.MemberGroup.GroupName).
 				Validate(func(str string) error {
 					return nil
 				}),
+		),
+		huh.NewGroup(
 			huh.NewSelect[int]().
-				Title("Group Type").
+				Title("Group Type (optional)").
 				Value(&groupType).
 				Validate(func(str int) error {
 					createView.MemberGroup.GroupType = int64(str)
 					return nil
 				}).
 				Options(groupSelectOptions...),
-
+		),
+		huh.NewGroup(
 			huh.NewInput().
-				Title("DN of LDAP group").
+				Title("DN of LDAP group (optional)").
 				Value(&createView.MemberGroup.GroupName).
 				Validate(func(str string) error {
 					return nil
