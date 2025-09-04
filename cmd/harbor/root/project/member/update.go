@@ -28,16 +28,17 @@ func UpdateMemberCommand() *cobra.Command {
 			} else if len(args) == 2 {
 				opts.ProjectNameOrID = args[0]
 				opts.ID, _ = strconv.ParseInt(args[1], 0, 64)
-			} else if opts.ProjectNameOrID == "" || opts.ID == 0 {
-				if opts.ProjectNameOrID == "" {
-					opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
-					if err != nil {
-						return fmt.Errorf("failed to get project name: %v", err)
-					}
+			}
+
+			if opts.ProjectNameOrID == "" {
+				opts.ProjectNameOrID, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get project name: %v", err)
 				}
-				if opts.ID == 0 {
-					opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
-				}
+			}
+
+			if opts.ID == 0 {
+				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
 			}
 
 			if roleID == 0 {
