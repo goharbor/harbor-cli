@@ -71,6 +71,7 @@ func CreateMemberCommand() *cobra.Command {
 				logrus.Errorf("failed to create user: %v", err)
 			}
 
+			fmt.Printf("successfully added user with ID %d to project %s\n", createView.MemberUser.UserID, opts.ProjectName)
 			return nil
 		},
 	}
