@@ -3,7 +3,6 @@ package create
 import (
 	"errors"
 	"log"
-	"strconv"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -51,77 +50,66 @@ func CreateMemberView(createView *CreateView) {
 		groupSelectOptions = append(groupSelectOptions, huh.NewOption(name, id))
 	}
 
-	var (
-		groupType int
-		userID    string
-		groupID   string
-	)
+	groups := []*huh.Group{}
 
-	theme := huh.ThemeCharm()
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[int]().
-				Description("Select a Role").
-				Title("Role").
-				Value(&createView.RoleID).
-				Options(roleSelectOptions...),
-		),
-		huh.NewGroup(
-			huh.NewInput().
-				Title("User ID (optional)").
-				Value(&userID).
-				Validate(func(str string) error {
-					createView.MemberUser.UserID, _ = strconv.ParseInt(str, 10, 64)
-					return nil
-				}),
-		),
-		huh.NewGroup(
+	// Show role select only if not already given
+	if createView.RoleID == 0 && createView.RoleName == "" {
+		groups = append(groups,
+			huh.NewGroup(
+				huh.NewSelect[int]().
+					Description("Select a Role").
+					Title("Role").
+					Value(&createView.RoleID).
+					Options(roleSelectOptions...),
+			))
+	}
+
+	if createView.MemberUser.UserID == 0 && createView.MemberUser.Username == "" {
+		groups = append(groups, huh.NewGroup(
 			huh.NewInput().
 				Title("Username").
 				Value(&createView.MemberUser.Username).
-				Validate(func(str string) error {
-					if userID == "" && str == "" {
+				Validate(func(str string) error { // TODO: Add username checking
+					if str == "" {
 						return errors.New("Username and UserID cannot both be empty.")
 					}
+
 					return nil
 				}),
-		),
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Group ID (optional)").
-				Value(&groupID).
-				Validate(func(str string) error {
-					createView.MemberGroup.ID, _ = strconv.ParseInt(str, 10, 64)
-					return nil
-				}),
-		),
-		huh.NewGroup(
+		))
+	}
+
+	// always show optioal group name
+	groups = append(groups, huh.NewGroup(
+		huh.NewInput().
+			Title("Group Name (optional)").
+			Value(&createView.MemberGroup.GroupName).
+			Validate(func(str string) error {
+				return nil
+			}),
+	))
+
+	// if groupname is populated, show groupType
+	if createView.MemberGroup.GroupName != "" {
+		groups = append(groups, huh.NewGroup(
 			huh.NewInput().
 				Title("Group Name (optional)").
 				Value(&createView.MemberGroup.GroupName).
 				Validate(func(str string) error {
 					return nil
 				}),
-		),
-		huh.NewGroup(
-			huh.NewSelect[int]().
-				Title("Group Type (optional)").
-				Value(&groupType).
-				Validate(func(str int) error {
-					createView.MemberGroup.GroupType = int64(str)
-					return nil
-				}).
-				Options(groupSelectOptions...),
-		),
-		huh.NewGroup(
+		), huh.NewGroup(
 			huh.NewInput().
 				Title("DN of LDAP group (optional)").
 				Value(&createView.MemberGroup.GroupName).
 				Validate(func(str string) error {
 					return nil
 				}),
-		),
-	).WithTheme(theme).Run()
+		))
+	}
+
+	theme := huh.ThemeCharm()
+	err := huh.NewForm(groups...).WithTheme(theme).Run()
 	if err != nil {
 		log.Fatal(err)
 	}
