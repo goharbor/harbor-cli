@@ -21,7 +21,7 @@ func RoleList(roles []string, choice chan<- int64) {
 
 	m := selection.NewModel(items, "Role")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
@@ -47,7 +47,7 @@ func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 
 	m := selection.NewModel(items, "Member")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
