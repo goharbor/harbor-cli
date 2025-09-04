@@ -52,6 +52,7 @@ func UpdateMemberCommand() *cobra.Command {
 				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
+			fmt.Printf("succesfully updated user with ID %d with role ID %d for project %s\n", opts.ID, opts.RoleID, opts.ProjectNameOrID)
 			return nil
 		},
 	}
@@ -59,6 +60,5 @@ func UpdateMemberCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.ID, "id", "", 0, "Member ID")
 	flags.Int64VarP(&roleID, "roleid", "", 0, "Role to be updated")
-	flags.StringVarP(&opts.ProjectNameOrID, "projectname", "p", "", "Project Name")
 	return cmd
 }

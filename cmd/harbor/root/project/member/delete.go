@@ -70,6 +70,7 @@ func DeleteMemberCommand() *cobra.Command {
 				return fmt.Errorf("failed to delete member: %v", err)
 			}
 
+			fmt.Printf("successfully deleted user with ID %d from project %s\n", memID, project)
 			return nil
 		},
 	}
