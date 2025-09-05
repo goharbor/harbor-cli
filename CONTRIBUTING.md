@@ -26,7 +26,7 @@ source ~/.zshrc
 
 ### Build from Source
 
-Make sure [Go](https://go.dev/) is installed (≥ v1.20).
+Make sure [Go](https://go.dev/) is installed (≥ v1.24).
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
