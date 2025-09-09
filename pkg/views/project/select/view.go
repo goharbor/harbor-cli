@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/views/base/multiselect"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
@@ -73,4 +74,33 @@ func ProjectListID(project []*models.Project, choice chan<- int64) {
 	if p, ok := p.(selection.Model); ok {
 		choice <- int64(items[p.Choice])
 	}
+}
+
+func ProjectsList(projects []*models.Project) ([]string, error) {
+	items := make([]list.Item, len(projects))
+	for i, p := range projects {
+		if p == nil {
+			continue
+		}
+		items[i] = multiselect.Item(p.Name)
+	}
+
+	m := multiselect.NewModel(items, "Projects")
+
+	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	if err != nil {
+		return nil, fmt.Errorf("error running selection program: %w", err)
+	}
+
+	if model, ok := p.(multiselect.Model); ok {
+		if model.Aborted {
+			return nil, ErrUserAborted
+		}
+		if len(model.Choice) == 0 {
+			return nil, errors.New("no project selected")
+		}
+		return model.Choice, nil
+	}
+
+	return nil, errors.New("unexpected program result")
 }
