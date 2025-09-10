@@ -31,6 +31,7 @@ func CreateMemberCommand() *cobra.Command {
 	var opts create.CreateView
 	opts.MemberUser = &models.UserEntity{} // Initialize MemberUser
 	opts.MemberGroup = &models.UserGroup{} // Initialize MemberGroup
+	var isID bool
 
 	cmd := &cobra.Command{
 		Use:     "create",
@@ -60,8 +61,9 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			createView := &create.CreateView{
-				ProjectName: opts.ProjectName,
-				RoleID:      opts.RoleID,
+				XIsResourceID: !isID,
+				ProjectName:   opts.ProjectName,
+				RoleID:        opts.RoleID,
 				MemberUser: &models.UserEntity{
 					UserID:   opts.MemberUser.UserID,
 					Username: opts.MemberUser.Username,
@@ -91,6 +93,7 @@ func CreateMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	flags.BoolVarP(&isID, "id", "", false, "parses projectName as an ID")
 	flags.StringVarP(&opts.RoleName, "role", "", "", "Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]")
 	flags.IntVarP(&opts.RoleID, "roleid", "", 0, "Role ID")
 	flags.StringVarP(&opts.MemberUser.Username, "username", "", "", "Username")

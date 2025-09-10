@@ -28,6 +28,7 @@ import (
 // ListMemberCommand creates a new `harbor member list` command
 func ListMemberCommand() *cobra.Command {
 	var opts api.ListMemberOptions
+	var isID bool
 
 	cmd := &cobra.Command{
 		Use:     "list [projectName]",
@@ -46,18 +47,21 @@ func ListMemberCommand() *cobra.Command {
 				}
 			}
 
+			// when set true parses projectNameOrID as projectName
+			// else it parses as an integer ID
+			opts.XIsResourceName = !isID
+
 			members, err := api.ListMember(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
-			if FormatFlag == "json" {
-				utils.PrintPayloadInJSONFormat(members)
-				return nil
-			} else if FormatFlag == "yaml" {
-				utils.PrintPayloadInYAMLFormat(members)
-				return nil
+			if FormatFlag != "" {
+				err = utils.PrintFormat(members, FormatFlag)
+				if err != nil {
+					return err
+				}
 			}
 
 			VerboseFlag := viper.GetBool("verbose")
@@ -72,6 +76,7 @@ func ListMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	flags.BoolVarP(&isID, "id", "", false, "Parses projectName as an ID")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.EntityName, "name", "n", "", "Member Name to search")

@@ -59,6 +59,7 @@ type ListQuotaFlags struct {
 
 // Provides type for List member
 type ListMemberOptions struct {
+	XIsResourceName bool
 	ProjectNameOrID string
 	Page            int64
 	PageSize        int64
@@ -68,6 +69,7 @@ type ListMemberOptions struct {
 
 // Provides type for Update member
 type UpdateMemberOptions struct {
+	XIsResourceName bool
 	ID              int64
 	ProjectNameOrID string
 	RoleID          *models.RoleRequest
@@ -75,6 +77,7 @@ type UpdateMemberOptions struct {
 
 // Provides Params for getting the Member
 type GetMemberOptions struct {
+	XIsResourceName bool
 	ID              int64
 	ProjectNameOrID string
 }

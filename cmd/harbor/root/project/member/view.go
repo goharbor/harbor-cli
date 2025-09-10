@@ -29,10 +29,11 @@ import (
 // NewGetRegistryCommand creates a new `harbor get registry` command
 func ViewMemberCommand() *cobra.Command {
 	var opts api.GetMemberOptions
+	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "view [ProjectName Or ID] [member ID]",
-		Short:   "get project member by ID or name",
+		Use:     "view [ProjectName] [member ID]",
+		Short:   "get project member details",
 		Long:    "get member details by MemberID",
 		Example: "  harbor project member view my-project [memberID]",
 		Args:    cobra.MaximumNArgs(2),
@@ -55,6 +56,10 @@ func ViewMemberCommand() *cobra.Command {
 				}
 			}
 
+			// when set true parses projectNameOrID as projectName
+			// else it parses as an integer ID
+			opts.XIsResourceName = !isID
+
 			member, err := api.GetMember(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get members list: %v", err)
@@ -63,8 +68,8 @@ func ViewMemberCommand() *cobra.Command {
 			FormatFlag := viper.GetString("output-format")
 			VerboseFlag := viper.GetBool("verbose")
 			if FormatFlag == "json" {
-				utils.PrintPayloadInJSONFormat(member)
-				return nil
+				err = utils.PrintFormat(member, FormatFlag)
+				return err
 			} else if VerboseFlag {
 				view.ViewMember(member.Payload, true)
 			} else {
@@ -76,7 +81,8 @@ func ViewMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Int64VarP(&opts.ID, "id", "", 0, "Member ID")
+	flags.BoolVarP(&isID, "id", "", false, "Parses projectName as an ID")
+	flags.Int64VarP(&opts.ID, "member-id", "", 0, "Member ID")
 	flags.StringVarP(&opts.ProjectNameOrID, "projectname", "p", "", "Project Name")
 	return cmd
 }
