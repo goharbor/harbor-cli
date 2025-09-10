@@ -350,7 +350,7 @@ func GetMemberIDFromUser(projectName string) int64 {
 	memberId := make(chan int64)
 	length := make(chan int)
 	go func() {
-		response, _ := api.ListMembers(projectName)
+		response, _ := api.ListMembers(projectName, true)
 		length <- len(response.Payload)
 		mview.MemberList(response.Payload, memberId)
 	}()

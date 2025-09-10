@@ -35,11 +35,12 @@ type MemberGroup struct {
 }
 
 type CreateView struct {
-	ProjectName string
-	RoleID      int
-	RoleName    string
-	MemberUser  *models.UserEntity
-	MemberGroup *models.UserGroup
+	XIsResourceID bool
+	ProjectName   string
+	RoleID        int
+	RoleName      string
+	MemberUser    *models.UserEntity
+	MemberGroup   *models.UserGroup
 }
 
 // map role names to role ids

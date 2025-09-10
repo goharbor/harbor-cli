@@ -28,6 +28,7 @@ func DeleteMemberCommand() *cobra.Command {
 	var memID int64
 	var project string
 	var username string
+	var isID bool
 
 	cmd := &cobra.Command{
 		Use:     "delete",
@@ -57,13 +58,13 @@ func DeleteMemberCommand() *cobra.Command {
 			}
 
 			if delAllFlag {
-				api.DeleteAllMember(project)
+				api.DeleteAllMember(project, !isID)
 				fmt.Println("All members deleted successfully")
 				return nil
 			}
 
 			if username != "" {
-				err = api.DeleteMemberByUsername(project, username)
+				err = api.DeleteMemberByUsername(project, username, !isID) // when set true parses projectNameOrID as projectName else it parses as an integer ID
 				if err != nil {
 					return fmt.Errorf("failed to delete member: %v", err)
 				}
@@ -78,7 +79,7 @@ func DeleteMemberCommand() *cobra.Command {
 			}
 
 			// normal deletion process
-			err = api.DeleteMember(project, memID)
+			err = api.DeleteMember(project, memID, !isID) // when set true parses projectNameOrID as projectName else it parses as an integer ID
 			if err != nil {
 				return fmt.Errorf("failed to delete member: %v", err)
 			}
@@ -89,6 +90,7 @@ func DeleteMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	flags.BoolVarP(&isID, "id", "", false, "parses projectName as an ID")
 	flags.StringVarP(&username, "username", "u", "", "Username of the member")
 	flags.BoolVarP(&delAllFlag, "all", "a", false, "Deletes all members of the project")
 

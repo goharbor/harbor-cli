@@ -35,6 +35,7 @@ func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 	response, err := client.Member.ListProjectMembers(
 		ctx,
 		&member.ListProjectMembersParams{
+			XIsResourceName: &opts.XIsResourceName,
 			ProjectNameOrID: opts.ProjectNameOrID,
 			Entityname:      &opts.EntityName,
 			Page:            &opts.Page,
@@ -48,14 +49,14 @@ func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 }
 
 // List Members in project
-func ListMembers(projectName string) (*member.ListProjectMembersOK, error) {
+func ListMembers(projectNameOrID string, isName bool) (*member.ListProjectMembersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 	response, err := client.Member.ListProjectMembers(
 		ctx,
-		&member.ListProjectMembersParams{ProjectNameOrID: projectName},
+		&member.ListProjectMembersParams{ProjectNameOrID: projectNameOrID, XIsResourceName: &isName},
 	)
 	if err != nil {
 		return nil, err
@@ -71,6 +72,7 @@ func CreateMember(opts create.CreateView) error {
 	}
 	response, err := client.Member.CreateProjectMember(
 		ctx, &member.CreateProjectMemberParams{
+			XIsResourceName: &opts.XIsResourceID,
 			ProjectMember: &models.ProjectMember{
 				RoleID:      int64(opts.RoleID + 1),
 				MemberUser:  opts.MemberUser,
@@ -90,9 +92,9 @@ func CreateMember(opts create.CreateView) error {
 	return nil
 }
 
-func DeleteAllMember(projectName string) {
+func DeleteAllMember(projectName string, xIsResourceName bool) {
 	var wg sync.WaitGroup
-	response, _ := ListMembers(projectName)
+	response, _ := ListMembers(projectName, true)
 	length := len(response.Payload)
 	errChan := make(chan error, length)
 
@@ -105,7 +107,7 @@ func DeleteAllMember(projectName string) {
 		wg.Add(1)
 		go func(memberID int64) {
 			defer wg.Done()
-			err := DeleteMember(projectName, memberID)
+			err := DeleteMember(projectName, memberID, xIsResourceName)
 			if err != nil {
 				errChan <- err
 			}
@@ -126,14 +128,14 @@ func DeleteAllMember(projectName string) {
 	}
 }
 
-func DeleteMember(projectName string, memberID int64) error {
+func DeleteMember(projectName string, memberID int64, xIsResourceName bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.Member.DeleteProjectMember(
 		ctx,
-		&member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID},
+		&member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID, XIsResourceName: &xIsResourceName},
 	)
 	if err != nil {
 		return err
@@ -143,13 +145,13 @@ func DeleteMember(projectName string, memberID int64) error {
 	return nil
 }
 
-func DeleteMemberByUsername(projectName string, username string) error {
+func DeleteMemberByUsername(projectName string, username string, xIsResourceName bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
-	members, err := ListMembers(projectName)
+	members, err := ListMembers(projectName, true)
 	if err != nil {
 		return err
 	}
@@ -166,7 +168,7 @@ func DeleteMemberByUsername(projectName string, username string) error {
 		return fmt.Errorf("member with username '%s' not found in project '%s'", username, projectName)
 	}
 
-	_, err = client.Member.DeleteProjectMember(ctx, &member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID})
+	_, err = client.Member.DeleteProjectMember(ctx, &member.DeleteProjectMemberParams{ProjectNameOrID: projectName, Mid: memberID, XIsResourceName: &xIsResourceName})
 	if err != nil {
 		return err
 	}
@@ -183,6 +185,7 @@ func UpdateMember(opts UpdateMemberOptions) error {
 	_, err = client.Member.UpdateProjectMember(
 		ctx,
 		&member.UpdateProjectMemberParams{
+			XIsResourceName: &opts.XIsResourceName,
 			ProjectNameOrID: opts.ProjectNameOrID,
 			Mid:             opts.ID,
 			Role:            opts.RoleID,
@@ -204,7 +207,7 @@ func GetMember(opts GetMemberOptions) (*member.GetProjectMemberOK, error) {
 	}
 	response, err := client.Member.GetProjectMember(
 		ctx,
-		&member.GetProjectMemberParams{ProjectNameOrID: opts.ProjectNameOrID, Mid: opts.ID},
+		&member.GetProjectMemberParams{ProjectNameOrID: opts.ProjectNameOrID, Mid: opts.ID, XIsResourceName: &opts.XIsResourceName},
 	)
 	if err != nil {
 		return nil, err

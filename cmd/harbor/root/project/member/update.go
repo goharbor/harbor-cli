@@ -28,9 +28,10 @@ import (
 func UpdateMemberCommand() *cobra.Command {
 	var opts api.UpdateMemberOptions
 	var roleID int64
+	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "update [ProjectName Or ID] [member ID]",
+		Use:     "update [ProjectName] [member ID]",
 		Short:   "update member by ID or name",
 		Long:    "update member in a project by MemberID",
 		Example: "  harbor project member update my-project [memberID] --roleid 2",
@@ -62,6 +63,10 @@ func UpdateMemberCommand() *cobra.Command {
 				RoleID: roleID,
 			}
 
+			// when set true parses projectNameOrID as projectName
+			// else it parses as an integer ID
+			opts.XIsResourceName = !isID
+
 			err = api.UpdateMember(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get members list: %v", err)
@@ -73,7 +78,8 @@ func UpdateMemberCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Int64VarP(&opts.ID, "id", "", 0, "Member ID")
+	flags.BoolVarP(&isID, "id", "", false, "parses projectName as an ID")
+	flags.Int64VarP(&opts.ID, "member-id", "", 0, "Member ID")
 	flags.Int64VarP(&roleID, "roleid", "", 0, "Role to be updated")
 	return cmd
 }
