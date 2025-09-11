@@ -60,7 +60,13 @@ func CreateMemberCommand() *cobra.Command {
 				}
 			}
 
+			sysInfo, err := api.GetSystemInfo()
+			if err != nil {
+				fmt.Println("could not access server info")
+			}
+
 			createView := &create.CreateView{
+				AuthMode:      *sysInfo.Payload.AuthMode,
 				XIsResourceID: !isID,
 				ProjectName:   opts.ProjectName,
 				RoleID:        opts.RoleID,
