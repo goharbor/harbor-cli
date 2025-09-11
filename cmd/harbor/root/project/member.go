@@ -30,7 +30,6 @@ func Member() *cobra.Command {
 		member.ListMemberCommand(),
 		member.CreateMemberCommand(),
 		member.DeleteMemberCommand(),
-		member.ViewMemberCommand(),
 		member.UpdateMemberCommand(),
 	)
 
