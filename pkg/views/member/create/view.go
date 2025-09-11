@@ -35,6 +35,7 @@ type MemberGroup struct {
 }
 
 type CreateView struct {
+	AuthMode      string
 	XIsResourceID bool
 	ProjectName   string
 	RoleID        int
@@ -94,15 +95,17 @@ func CreateMemberView(createView *CreateView) {
 		))
 	}
 
-	// always show optioal group name
-	groups = append(groups, huh.NewGroup(
-		huh.NewInput().
-			Title("Group Name (optional)").
-			Value(&createView.MemberGroup.GroupName).
-			Validate(func(str string) error {
-				return nil
-			}),
-	))
+	// show group info only if LDAP
+	if createView.AuthMode == "ldap" {
+		groups = append(groups, huh.NewGroup(
+			huh.NewInput().
+				Title("Group Name (optional)").
+				Value(&createView.MemberGroup.GroupName).
+				Validate(func(str string) error {
+					return nil
+				}),
+		))
+	}
 
 	// if groupname is populated, show groupType
 	if createView.MemberGroup.GroupName != "" {
