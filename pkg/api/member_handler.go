@@ -49,14 +49,14 @@ func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 }
 
 // List Members in project
-func ListMembers(projectNameOrID string, isName bool) (*member.ListProjectMembersOK, error) {
+func ListMembers(projectNameOrID, memberName string, isName bool) (*member.ListProjectMembersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 	response, err := client.Member.ListProjectMembers(
 		ctx,
-		&member.ListProjectMembersParams{ProjectNameOrID: projectNameOrID, XIsResourceName: &isName},
+		&member.ListProjectMembersParams{ProjectNameOrID: projectNameOrID, XIsResourceName: &isName, Entityname: &memberName},
 	)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func CreateMember(opts create.CreateView) error {
 
 func DeleteAllMember(projectName string, xIsResourceName bool) {
 	var wg sync.WaitGroup
-	response, _ := ListMembers(projectName, true)
+	response, _ := ListMembers(projectName, "", true)
 	length := len(response.Payload)
 	errChan := make(chan error, length)
 
@@ -151,7 +151,7 @@ func DeleteMemberByUsername(projectName string, username string, xIsResourceName
 		return err
 	}
 
-	members, err := ListMembers(projectName, true)
+	members, err := ListMembers(projectName, username, true)
 	if err != nil {
 		return err
 	}

@@ -32,10 +32,10 @@ func UpdateMemberCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "update [ProjectName] [member ID]",
-		Short:   "update member by ID or name",
-		Long:    "update member in a project by MemberID",
-		Example: "  harbor project member update my-project [memberID] --roleid 2",
+		Use:     "update [ProjectName] [memberName]",
+		Short:   "update member by name",
+		Long:    "update member in a project by MemberName",
+		Example: "  harbor project member update my-project [memberName] --roleid 2",
 		Args:    cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
@@ -54,7 +54,7 @@ func UpdateMemberCommand() *cobra.Command {
 			}
 
 			if memberName == "" {
-				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
+				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
 
 				if opts.ID == 0 {
 					return fmt.Errorf("No members found in project")
