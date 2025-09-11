@@ -27,6 +27,7 @@ import (
 // NewGetRegistryCommand creates a new `harbor get registry` command
 func UpdateMemberCommand() *cobra.Command {
 	var opts api.UpdateMemberOptions
+	var memberName string
 	var roleID int64
 	var isID bool
 
@@ -52,11 +53,16 @@ func UpdateMemberCommand() *cobra.Command {
 				}
 			}
 
-			if opts.ID == 0 {
+			if memberName == "" {
 				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID)
 
 				if opts.ID == 0 {
 					return fmt.Errorf("No members found in project")
+				}
+			} else {
+				opts.ID, err = api.GetUsersIdByName(memberName)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -83,7 +89,7 @@ func UpdateMemberCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&isID, "id", "", false, "parses projectName as an ID")
-	flags.Int64VarP(&opts.ID, "member-id", "", 0, "Member ID")
+	flags.StringVarP(&memberName, "member", "", "", "Member Name")
 	flags.Int64VarP(&roleID, "roleid", "", 0, "Role to be updated")
 	return cmd
 }
