@@ -2,15 +2,15 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-member-update - update member by ID or name
+harbor-project-member-update - update member by name
 
 
 .SH SYNOPSIS
-\fBharbor project member update [ProjectName Or ID] [member ID] [flags]\fP
+\fBharbor project member update [ProjectName] [memberName] [flags]\fP
 
 
 .SH DESCRIPTION
-update member in a project by MemberID
+update member in a project by MemberName
 
 
 .SH OPTIONS
@@ -18,8 +18,12 @@ update member in a project by MemberID
 	help for update
 
 .PP
-\fB--id\fP=0
-	Member ID
+\fB--id\fP[=false]
+	parses projectName as an ID
+
+.PP
+\fB--member\fP=""
+	Member Name
 
 .PP
 \fB--roleid\fP=0
@@ -41,7 +45,7 @@ update member in a project by MemberID
 
 .SH EXAMPLE
 .EX
-  harbor project member update my-project [memberID] --roleid 2
+  harbor project member update my-project [memberName] --roleid 2
 .EE
 
 
