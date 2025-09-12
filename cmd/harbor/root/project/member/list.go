@@ -79,7 +79,7 @@ func ListMemberCommand() *cobra.Command {
 	flags.BoolVarP(&isID, "id", "", false, "Parses projectName as an ID")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&opts.EntityName, "name", "n", "", "Member Name to search")
+	flags.StringVarP(&opts.EntityName, "search", "s", "", "Search for member with name")
 
 	return cmd
 }
