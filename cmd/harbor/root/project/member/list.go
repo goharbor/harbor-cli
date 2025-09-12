@@ -17,10 +17,12 @@ package member
 import (
 	"fmt"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/member/list"
+	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,6 +31,7 @@ import (
 func ListMemberCommand() *cobra.Command {
 	var opts api.ListMemberOptions
 	var isID bool
+	var searchQuery string
 
 	cmd := &cobra.Command{
 		Use:     "list [projectName]",
@@ -56,6 +59,22 @@ func ListMemberCommand() *cobra.Command {
 				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
+			if searchQuery != "" && opts.EntityName == "" {
+				set := make([]string, 0, len(members.Payload))
+				for _, v := range members.Payload {
+					set = append(set, v.EntityName)
+				}
+
+				matches := fuzzy.Find(searchQuery, set)
+
+				results := make([]*models.ProjectMemberEntity, 0)
+				for _, v := range matches {
+					results = append(results, members.Payload[v.Index])
+				}
+
+				members.Payload = results
+			}
+
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(members, FormatFlag)
@@ -79,6 +98,7 @@ func ListMemberCommand() *cobra.Command {
 	flags.BoolVarP(&isID, "id", "", false, "Parses projectName as an ID")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
+	flags.StringVarP(&searchQuery, "fuzzy", "f", "", "Fuzzy search for member with name")
 	flags.StringVarP(&opts.EntityName, "search", "s", "", "Search for member with name")
 
 	return cmd
