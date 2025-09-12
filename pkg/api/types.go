@@ -13,6 +13,8 @@
 // limitations under the License.
 package api
 
+import "github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+
 type ListFlags struct {
 	ProjectID int64
 	Scope     string
@@ -53,4 +55,29 @@ type ListQuotaFlags struct {
 	Sort        string
 	Reference   string
 	ReferenceID string
+}
+
+// Provides type for List member
+type ListMemberOptions struct {
+	XIsResourceName bool
+	ProjectNameOrID string
+	Page            int64
+	PageSize        int64
+	EntityName      string
+	WithDetail      bool
+}
+
+// Provides type for Update member
+type UpdateMemberOptions struct {
+	XIsResourceName bool
+	ID              int64
+	ProjectNameOrID string
+	RoleID          *models.RoleRequest
+}
+
+// Provides Params for getting the Member
+type GetMemberOptions struct {
+	XIsResourceName bool
+	ID              int64
+	ProjectNameOrID string
 }

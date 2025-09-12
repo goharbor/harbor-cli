@@ -1,0 +1,77 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-member-create - create project member
+
+
+.SH SYNOPSIS
+\fBharbor project member create [flags]\fP
+
+
+.SH DESCRIPTION
+create project member by Name
+
+
+.SH OPTIONS
+\fB--groupid\fP=0
+	Group ID
+
+.PP
+\fB--groupname\fP=""
+	Group Name
+
+.PP
+\fB--grouptype\fP=0
+	Group Type
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB--id\fP[=false]
+	parses projectName as an ID
+
+.PP
+\fB--ldapdn\fP=""
+	DN of LDAP Group
+
+.PP
+\fB--role\fP=""
+	Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]
+
+.PP
+\fB--roleid\fP=0
+	Role ID
+
+.PP
+\fB--userid\fP=0
+	User ID
+
+.PP
+\fB--username\fP=""
+	Username
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor project member create my-project --username user --role Developer
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project-member(1)\fP
