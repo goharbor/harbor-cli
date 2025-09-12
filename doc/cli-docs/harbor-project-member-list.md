@@ -25,10 +25,12 @@ harbor project member list [projectName] [flags]
 ### Options
 
 ```sh
+  -f, --fuzzy string    Fuzzy search for member with name
   -h, --help            help for list
-  -n, --name string     Member Name to search
+      --id              Parses projectName as an ID
       --page int        Page number (default 1)
       --page-size int   Size of per page (default 10)
+  -s, --search string   Search for member with name
 ```
 
 ### Options inherited from parent commands

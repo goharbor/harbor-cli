@@ -6,28 +6,29 @@ weight: 20
 
 ### Description
 
-##### update member by ID or name
+##### update member by name
 
 ### Synopsis
 
-update member in a project by MemberID
+update member in a project by MemberName
 
 ```sh
-harbor project member update [ProjectName Or ID] [member ID] [flags]
+harbor project member update [ProjectName] [memberName] [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor project member update my-project [memberID] --roleid 2
+  harbor project member update my-project [memberName] --roleid 2
 ```
 
 ### Options
 
 ```sh
-  -h, --help         help for update
-      --id int       Member ID
-      --roleid int   Role to be updated
+  -h, --help            help for update
+      --id              parses projectName as an ID
+      --member string   Member Name
+      --roleid int      Role to be updated
 ```
 
 ### Options inherited from parent commands

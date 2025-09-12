@@ -29,6 +29,7 @@ harbor project member create [flags]
       --groupname string   Group Name
       --grouptype int      Group Type
   -h, --help               help for create
+      --id                 parses projectName as an ID
       --ldapdn string      DN of LDAP Group
       --role string        Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]
       --roleid int         Role ID

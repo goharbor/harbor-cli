@@ -27,6 +27,7 @@ harbor project member delete [flags]
 ```sh
   -a, --all               Deletes all members of the project
   -h, --help              help for delete
+      --id                parses projectName as an ID
   -u, --username string   Username of the member
 ```
 
