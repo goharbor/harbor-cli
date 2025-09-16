@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
 	"dagger/harbor-cli/internal/dagger"
+	"dagger/harbor-cli/pipeline"
 )
 
 const (
@@ -11,12 +15,43 @@ const (
 )
 
 type HarborCli struct {
-	Source *dagger.Directory
+	Source     *dagger.Directory
+	AppVersion string
 }
 
 // +dagger.function
-func (m *HarborCli) Init(ctx context.Context, source *dagger.Directory) (*HarborCli, error) {
-	return &HarborCli{
-		Source: source,
-	}, nil
+func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory) (*dagger.Directory, error) {
+	err := m.Init(ctx, source)
+	if err != nil {
+		return nil, err
+	}
+
+	dist := dag.Directory()
+	pipe := pipeline.InitPipeline(source, dag, m.AppVersion)
+
+	// Building Binaries
+	pipe.Build(ctx, dist, GO_VERSION)
+
+	// Archiving Binaries
+	pipe.Archive(ctx, dist)
+
+	return dist, nil
+}
+
+func (m *HarborCli) Init(ctx context.Context, source *dagger.Directory) error {
+	out, err := dag.Container().
+		From("alpine:latest").
+		WithExec([]string{"apk", "add", "--no-cache", "git"}).
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src").
+		WithExec([]string{"git", "describe", "--tags", "--abbrev=0"}).
+		Stdout(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get version: %w", err)
+	}
+
+	m.Source = source
+	m.AppVersion = strings.TrimSpace(out)
+
+	return nil
 }
