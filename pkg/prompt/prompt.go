@@ -359,8 +359,6 @@ func GetMemberIDFromUser(projectName, memberName string) int64 {
 	l := <-length
 	if l == 0 {
 		return 0
-	} else {
-		fmt.Println(l)
 	}
 
 	return <-memberId
