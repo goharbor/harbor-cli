@@ -81,6 +81,8 @@ func ListMemberCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
+
+				return nil
 			}
 
 			VerboseFlag := viper.GetBool("verbose")
