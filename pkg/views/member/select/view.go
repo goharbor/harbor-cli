@@ -11,10 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+
+package member
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -24,15 +24,16 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-var ErrUserAborted = errors.New("user aborted selection")
+func RoleList(roles []string, choice chan<- int64) {
+	items := make([]list.Item, len(roles))
+	entityMap := make(map[string]int64, len(roles))
 
-func ProjectList(projects []*models.Project) (string, error) {
-	items := make([]list.Item, len(projects))
-	for i, p := range projects {
-		items[i] = selection.Item(p.Name)
+	for i, p := range roles {
+		items[i] = selection.Item(p)
+		entityMap[p] = int64(i)
 	}
 
-	m := selection.NewModel(items, "Project")
+	m := selection.NewModel(items, "Role")
 
 	p, err := tea.NewProgram(m).Run()
 	if err != nil {
@@ -40,38 +41,37 @@ func ProjectList(projects []*models.Project) (string, error) {
 		os.Exit(1)
 	}
 
-	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
-			return "", ErrUserAborted
+	if p, ok := p.(selection.Model); ok {
+		if id, exists := entityMap[p.Choice]; exists {
+			id = id + 1
+			choice <- id
+		} else {
+			os.Exit(1)
 		}
-		if model.Choice == "" {
-			return "", errors.New("no project selected")
-		}
-		return model.Choice, nil
 	}
-
-	return "", errors.New("unexpected program result")
 }
 
-func ProjectListID(project []*models.Project, choice chan<- int64) {
-	itemList := make([]list.Item, len(project))
-
-	items := map[string]int32{}
-
-	for i, p := range project {
-		itemList[i] = selection.Item(p.Name)
-		items[p.Name] = p.ProjectID
+func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
+	items := make([]list.Item, len(member))
+	entityMap := make(map[string]int64, len(member))
+	for i, p := range member {
+		items[i] = selection.Item(p.EntityName)
+		entityMap[p.EntityName] = p.ID
 	}
 
-	m := selection.NewModel(itemList, "Project")
+	m := selection.NewModel(items, "Member")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
 
 	if p, ok := p.(selection.Model); ok {
-		choice <- int64(items[p.Choice])
+		if id, exists := entityMap[p.Choice]; exists {
+			choice <- id
+		} else {
+			os.Exit(1)
+		}
 	}
 }

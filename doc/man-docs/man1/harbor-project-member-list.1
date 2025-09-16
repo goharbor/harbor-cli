@@ -1,0 +1,61 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-member-list - list members in a project
+
+
+.SH SYNOPSIS
+\fBharbor project member list [projectName] [flags]\fP
+
+
+.SH DESCRIPTION
+list members in a project by projectName
+
+
+.SH OPTIONS
+\fB-f\fP, \fB--fuzzy\fP=""
+	Fuzzy search for member with name
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--id\fP[=false]
+	Parses projectName as an ID
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=10
+	Size of per page
+
+.PP
+\fB-s\fP, \fB--search\fP=""
+	Search for member with name
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor project member list my-project
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project-member(1)\fP

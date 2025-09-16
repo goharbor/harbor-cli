@@ -11,30 +11,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package project
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/member"
 	"github.com/spf13/cobra"
 )
 
-func Project() *cobra.Command {
+func Member() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "project",
-		Short:   "Manage projects and assign resources to them",
-		Long:    `Manage projects in Harbor`,
-		Example: `  harbor project list`,
+		Use:     "member",
+		Short:   `Manage members in a Project`,
+		Long:    "Manage members and assign roles to them",
+		Example: `  harbor member list`,
 	}
 	cmd.AddCommand(
-		CreateProjectCommand(),
-		DeleteProjectCommand(),
-		ListProjectCommand(),
-		ViewCommand(),
-		LogsProjectCommmand(),
-		config.ProjectConfigCommand(),
-		SearchProjectCommand(),
-		Robot(),
-		Member(),
+		member.ListMemberCommand(),
+		member.CreateMemberCommand(),
+		member.DeleteMemberCommand(),
+		member.UpdateMemberCommand(),
 	)
 
 	return cmd

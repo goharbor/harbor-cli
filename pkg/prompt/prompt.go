@@ -16,7 +16,6 @@ package prompt
 import (
 	"errors"
 	"fmt"
-
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -30,6 +29,7 @@ import (
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
+	mview "github.com/goharbor/harbor-cli/pkg/views/member/select"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
@@ -89,6 +89,17 @@ func GetProjectNameFromUser() (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+// GetRoleNameFromUser prompts the user to select a role and returns it.
+func GetRoleNameFromUser() int64 {
+	roleChan := make(chan int64)
+	Roles := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
+	go func() {
+		mview.RoleList(Roles, roleChan)
+	}()
+
+	return <-roleChan
 }
 
 func GetProjectIDFromUser() int64 {
@@ -218,6 +229,7 @@ func GetLabelIdFromUser(labelList []*models.Label) int64 {
 
 	return <-labelId
 }
+
 func GetInstanceFromUser() string {
 	instanceName := make(chan string)
 
@@ -331,4 +343,34 @@ func GetReplicationTaskIDFromUser(execID int64) int64 {
 	}()
 
 	return <-executionID
+}
+
+// Get GetMemberIDFromUser choosing from list of members
+func GetMemberIDFromUser(projectName, memberName string) int64 {
+	memberId := make(chan int64)
+	length := make(chan int)
+	go func() {
+		response, _ := api.ListMembers(projectName, memberName, true)
+		length <- len(response.Payload)
+		mview.MemberList(response.Payload, memberId)
+	}()
+
+	// if no members found, return 0
+	l := <-length
+	if l == 0 {
+		return 0
+	}
+
+	return <-memberId
+}
+
+// Get Member Role ID selection from user
+func GetRoleIDFromUser() int64 {
+	roleID := make(chan int64)
+	go func() {
+		roles := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
+		mview.RoleList(roles, roleID)
+	}()
+
+	return <-roleID
 }
