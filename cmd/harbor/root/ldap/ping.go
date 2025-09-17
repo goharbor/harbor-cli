@@ -1,6 +1,8 @@
 package ldap
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
@@ -14,16 +16,19 @@ func LdapPingCmd() *cobra.Command {
 		Use:   "ping",
 		Short: "ping ldap server",
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.LdapPingServer(opts)
 			if err != nil {
-				log.Fatalf("failed to ping ldap server: %v", err)
+				return err
 			}
+
 			if response.Payload.Success {
 				log.Info("Connection to LDAP Server Success")
 			} else {
-				log.Fatalf("connection to ldap server failed: %v", response.Payload.Message)
+				return fmt.Errorf("connection to ldap server failed: %v", response.Payload.Message)
 			}
+
+			return nil
 		},
 	}
 

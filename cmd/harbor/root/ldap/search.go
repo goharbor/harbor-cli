@@ -1,9 +1,10 @@
 package ldap
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -13,13 +14,14 @@ func LdapSearchUserCmd() *cobra.Command {
 		Use:   "search [userID]",
 		Short: "search ldap user by registered userid",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.LdapSearchUser(args[0])
 			if err != nil {
-				log.Fatalf("failed to search ldap user: %v", err)
+				return fmt.Errorf("failed to search ldap user: %v", err)
 			}
 
 			utils.PrintPayloadInJSONFormat(response.Payload)
+			return nil
 		},
 	}
 
