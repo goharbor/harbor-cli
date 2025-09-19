@@ -5,7 +5,6 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +21,12 @@ func LdapPingCmd() *cobra.Command {
 				return err
 			}
 
+			if response.Payload.Message != "" {
+				fmt.Println(response.Payload.Message)
+			}
+
 			if response.Payload.Success {
-				log.Info("Connection to LDAP Server Success")
+				fmt.Println("Connection to LDAP Server Success")
 			} else {
 				return fmt.Errorf("connection to ldap server failed: %v", response.Payload.Message)
 			}

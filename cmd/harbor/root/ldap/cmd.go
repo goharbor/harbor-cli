@@ -13,6 +13,7 @@ func Ldap() *cobra.Command {
 	cmd.AddCommand(
 		LdapSearchUserCmd(),
 		LdapPingCmd(),
+		LdapImportUserCmd(),
 	)
 
 	return cmd

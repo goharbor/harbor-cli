@@ -37,3 +37,21 @@ func LdapPingServer(ldapConf *models.LdapConf) (*ldap.PingLdapOK, error) {
 
 	return res, nil
 }
+
+func LdapImportUser(uids []string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Ldap.ImportLdapUser(ctx, &ldap.ImportLdapUserParams{
+		UIDList: &models.LdapImportUsers{
+			LdapUIDList: uids,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
