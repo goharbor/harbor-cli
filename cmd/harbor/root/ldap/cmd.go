@@ -14,6 +14,7 @@ func Ldap() *cobra.Command {
 		LdapSearchUserCmd(),
 		LdapPingCmd(),
 		LdapImportUserCmd(),
+		LdapSearchGroupCmd(),
 	)
 
 	return cmd

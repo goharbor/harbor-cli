@@ -55,3 +55,20 @@ func LdapImportUser(uids []string) error {
 
 	return nil
 }
+
+func LdapSearchGroup(groupName, groupDN string) (*ldap.SearchLdapGroupOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.Ldap.SearchLdapGroup(ctx, &ldap.SearchLdapGroupParams{
+		Groupdn:   &groupDN,
+		Groupname: &groupName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
