@@ -30,10 +30,22 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory) (*da
 	pipe := pipeline.InitPipeline(source, dag, m.AppVersion)
 
 	// Building Binaries
-	pipe.Build(ctx, dist, GO_VERSION)
+	dist, err = pipe.Build(ctx, dist, GO_VERSION)
+	if err != nil {
+		return nil, err
+	}
 
 	// Archiving Binaries
-	pipe.Archive(ctx, dist)
+	dist, err = pipe.Archive(ctx, dist)
+	if err != nil {
+		return nil, err
+	}
+
+	// Building deb/rpm Binaries
+	dist, err = pipe.NFPMBuild(ctx, dist)
+	if err != nil {
+		return nil, err
+	}
 
 	return dist, nil
 }
