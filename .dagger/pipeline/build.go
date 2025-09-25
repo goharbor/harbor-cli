@@ -30,7 +30,8 @@ func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory, GO_VERSION
 				WithEnvVariable("GOOS", os).
 				WithEnvVariable("GOARCH", arch).
 				WithExec([]string{
-					"go", "build", "-o", "/bin/" + binName, "./cmd/harbor",
+					"go", "build", "-ldflags", "github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=" + s.appVersion,
+					"-o", "/bin/" + binName, "./cmd/harbor",
 				})
 
 			file := builder.File("/bin/" + binName)                       // Taking file from container
