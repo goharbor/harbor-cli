@@ -1,6 +1,8 @@
 package pipeline
 
-import "dagger/harbor-cli/internal/dagger"
+import (
+	"dagger/harbor-cli/internal/dagger"
+)
 
 type Pipeline struct {
 	source     *dagger.Directory
