@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
@@ -17,6 +18,7 @@ const (
 type HarborCli struct {
 	Source     *dagger.Directory
 	AppVersion string
+	GoVersion  string
 }
 
 // +dagger.function
@@ -66,6 +68,17 @@ func (m *HarborCli) Init(ctx context.Context, source *dagger.Directory) error {
 		Stdout(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get version: %w", err)
+	}
+
+	goVersion, err := source.File("go.mod").Contents(ctx)
+	if err != nil {
+		return err
+	}
+
+	re := regexp.MustCompile(`(?m)^go (\d+\.\d+(\.\d+)?)`)
+	match := re.FindStringSubmatch(goVersion)
+	if len(match) > 1 {
+		m.GoVersion = match[1]
 	}
 
 	m.Source = source
