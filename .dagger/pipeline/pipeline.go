@@ -5,15 +5,17 @@ import (
 )
 
 type Pipeline struct {
-	source     *dagger.Directory
-	dag        *dagger.Client
-	appVersion string
+	source      *dagger.Directory
+	dag         *dagger.Client
+	appVersion  string
+	GithubToken *dagger.Secret
 }
 
 func InitPipeline(source *dagger.Directory, dag *dagger.Client, appVersion string) *Pipeline {
 	return &Pipeline{
-		source:     source,
-		dag:        dag,
-		appVersion: appVersion,
+		source:      source,
+		dag:         dag,
+		appVersion:  appVersion,
+		GithubToken: dag.Secret("GH_TOKEN"),
 	}
 }
