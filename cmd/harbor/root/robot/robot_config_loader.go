@@ -18,7 +18,6 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
-	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	"github.com/sirupsen/logrus"
@@ -99,33 +98,4 @@ func loadFromConfigFileForCreate(opts *create.CreateView, configFile string, per
 
 func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	return loadRobotConfigFromFile(configFile, permissions, projectPermissionsMap, true, nil, opts)
-}
-
-func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*rmodel.RobotPermission {
-	var mergedPermissions []*rmodel.RobotPermission
-
-	// Add project permissions
-	for projectName, projectPermissions := range projectPermissionsMap {
-		var accessesProject []*models.Access
-		for _, perm := range projectPermissions {
-			accessesProject = append(accessesProject, &models.Access{
-				Resource: perm.Resource,
-				Action:   perm.Action,
-			})
-		}
-		mergedPermissions = append(mergedPermissions, &rmodel.RobotPermission{
-			Namespace: projectName,
-			Access:    accessesProject,
-			Kind:      "project",
-		})
-	}
-
-	// Add system permissions
-	mergedPermissions = append(mergedPermissions, &rmodel.RobotPermission{
-		Namespace: "/",
-		Access:    accessesSystem,
-		Kind:      "system",
-	})
-
-	return mergedPermissions
 }
