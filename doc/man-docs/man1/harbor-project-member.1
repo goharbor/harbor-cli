@@ -1,0 +1,41 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-member - Manage members in a Project
+
+
+.SH SYNOPSIS
+\fBharbor project member [flags]\fP
+
+
+.SH DESCRIPTION
+Manage members and assign roles to them
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for member
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor member list
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project(1)\fP, \fBharbor-project-member-create(1)\fP, \fBharbor-project-member-delete(1)\fP, \fBharbor-project-member-list(1)\fP, \fBharbor-project-member-update(1)\fP

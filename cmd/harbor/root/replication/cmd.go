@@ -27,8 +27,10 @@ func Replication() *cobra.Command {
 	}
 	replicationCmd.AddCommand(
 		ReplicationPoliciesCommand(),
+		ReplicationExecutionsCommand(),
 		StartCommand(),
 		StopCommand(),
+		LogsCommand(),
 	)
 
 	return replicationCmd

@@ -26,31 +26,38 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthL},
-	{Title: "Status", Width: tablelist.Width3XL},
+	{Title: "Execution ID", Width: tablelist.WidthM},
+	{Title: "Status", Width: tablelist.WidthL},
 	{Title: "Trigger", Width: tablelist.WidthL},
+	{Title: "Succed", Width: tablelist.WidthM},
+	{Title: "Stopped", Width: tablelist.WidthM},
+	{Title: "Total", Width: tablelist.WidthM},
 	{Title: "Start Time", Width: tablelist.WidthL},
-	{Title: "Succed", Width: tablelist.WidthL},
-	{Title: "Total", Width: tablelist.WidthL},
+	{Title: "End Time", Width: tablelist.WidthL},
 }
 
-func ViewExecutions(executions []*models.ReplicationExecution) {
+func ViewExecution(exec *models.ReplicationExecution) {
 	var rows []table.Row
-	for _, exec := range executions {
-		startTime, err := utils.FormatCreatedTime(exec.StartTime.String())
-		if err != nil {
-			fmt.Println("Error formatting start time:", err)
-			startTime = exec.StartTime.String()
-		}
-		rows = append(rows, table.Row{
-			strconv.FormatInt(exec.ID, 10),
-			exec.Status,
-			exec.Trigger,
-			startTime,
-			strconv.FormatInt(exec.Succeed, 10),
-			strconv.FormatInt(exec.Total, 10),
-		})
+	startTime, err := utils.FormatCreatedTime(exec.StartTime.String())
+	if err != nil {
+		fmt.Println("Error formatting start time:", err)
+		startTime = exec.StartTime.String()
 	}
+	endTime, err := utils.FormatCreatedTime(exec.EndTime.String())
+	if err != nil {
+		fmt.Println("Error formatting end time:", err)
+		endTime = exec.EndTime.String()
+	}
+	rows = append(rows, table.Row{
+		strconv.FormatInt(exec.ID, 10),
+		exec.Status,
+		exec.Trigger,
+		strconv.FormatInt(exec.Succeed, 10),
+		strconv.FormatInt(exec.Stopped, 10),
+		strconv.FormatInt(exec.Total, 10),
+		startTime,
+		endTime,
+	})
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 	if _, err := tea.NewProgram(m).Run(); err != nil {

@@ -40,6 +40,7 @@ Manage projects in Harbor
 * [harbor project delete](harbor-project-delete.md)	 - Delete project by name or ID
 * [harbor project list](harbor-project-list.md)	 - List projects
 * [harbor project logs](harbor-project-logs.md)	 - get project logs
+* [harbor project member](harbor-project-member.md)	 - Manage members in a Project
 * [harbor project robot](harbor-project-robot.md)	 - Manage robot accounts
 * [harbor project search](harbor-project-search.md)	 - search project based on their names
 * [harbor project view](harbor-project-view.md)	 - get project by name or id

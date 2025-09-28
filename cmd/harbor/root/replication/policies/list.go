@@ -37,13 +37,13 @@ func ListCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			log.Debug("Fetching projects...")
+			log.Debug("Fetching policies...")
 			allPolicies, err := api.ListReplicationPolicies(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.WithField("count", len(allPolicies.Payload)).Debug("Number of projects fetched")
+			log.WithField("count", len(allPolicies.Payload)).Debug("Number of policies fetched")
 			if len(allPolicies.Payload) == 0 {
 				log.Info("No policies found")
 				return nil

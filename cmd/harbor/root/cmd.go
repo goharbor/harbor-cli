@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
@@ -151,8 +152,16 @@ harbor help
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)
 
+	cmd = PasswordCommand()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
 	// System
 	cmd = context.Context()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = configurations.ConfigurationsCommand()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 

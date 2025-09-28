@@ -29,6 +29,8 @@ Manage replications in Harbor context
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor replication executions](harbor-replication-executions.md)	 - Manage replication executions
+* [harbor replication log](harbor-replication-log.md)	 - get replication execution logs by execution and task id
 * [harbor replication policies](harbor-replication-policies.md)	 - Manage replication policies
 * [harbor replication start](harbor-replication-start.md)	 - start replication
 * [harbor replication stop](harbor-replication-stop.md)	 - stop replication

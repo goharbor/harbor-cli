@@ -1,0 +1,53 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-member-delete - delete member by username
+
+
+.SH SYNOPSIS
+\fBharbor project member delete [flags]\fP
+
+
+.SH DESCRIPTION
+delete members in a project by username of the member
+
+
+.SH OPTIONS
+\fB-a\fP, \fB--all\fP[=false]
+	Deletes all members of the project
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for delete
+
+.PP
+\fB--id\fP[=false]
+	parses projectName as an ID
+
+.PP
+\fB-u\fP, \fB--username\fP=""
+	Username of the member
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor project member delete my-project --username user
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project-member(1)\fP
