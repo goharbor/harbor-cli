@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -22,7 +23,7 @@ type HarborCli struct {
 }
 
 // +dagger.function
-func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory) (*dagger.Directory, error) {
+func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, githubToken *dagger.Secret) (*dagger.Directory, error) {
 	err := m.Init(ctx, source)
 	if err != nil {
 		return nil, err
@@ -55,7 +56,15 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory) (*da
 		return nil, err
 	}
 
-	return dist, nil
+	fmt.Println(os.Getenv("GITHUB_TOKEN"))
+	// Publishing Release
+	out, err := pipe.PublishRelease(ctx, dist, githubToken)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(out)
+
+	return dist, err
 }
 
 func (m *HarborCli) Init(ctx context.Context, source *dagger.Directory) error {

@@ -27,7 +27,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: run-doc export --path=doc
+          args: run-doc --source=. export --path=doc
 
       - name: Check for changes
         run: |
@@ -50,7 +50,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint-report export --path=golangci-lint.report
+          args: lint-report --source=. export --path=golangci-lint.report
 
       - name: Generate lint summary
         run: |
@@ -86,7 +86,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: vulnerability-check-report export --path=vulnerability-check.report
+          args: vulnerability-check-report --source=. export --path=vulnerability-check.report
 
       - name: Generate vulnerability summary
         run: |
@@ -99,23 +99,24 @@ jobs:
               exit 1
           fi
 
-  test-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Dagger Version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
-
-      - name: Test Release
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: snapshot-release
+  # TODO: Add Dry-run support 
+  # test-release:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #
+  #     - name: Dagger Version
+  #       uses: sagikazarmark/dagger-version-action@v0.0.1
+  #
+  #     - name: Test Release
+  #       uses: dagger/dagger-for-github@v7
+  #       with:
+  #         version: ${{ steps.dagger_version.outputs.version }}
+  #         verb: call
+  #         args: snapshot-release
 
   test-code:
     runs-on: ubuntu-latest
@@ -130,7 +131,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-report export --path=TestReport.json
+          args: test-report --source=. export --path=TestReport.json
 
       - name: Summarize Tests
         uses: robherley/go-test-action@v0.6.0
@@ -143,7 +144,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-coverage-report export --path=coverage-report.md
+          args: test-coverage-report --source=. export --path=coverage-report.md
 
       - name: Add coverage to step summary
         if: github.event_name == 'pull_request'
@@ -155,7 +156,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-coverage export --path=coverage.out
+          args: test-coverage --source=. export --path=coverage.out
 
       - uses: codecov/codecov-action@v5
         if: github.event_name == 'pull_request'
@@ -164,42 +165,42 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Build Binary
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: build-dev --platform linux/amd64 export --path=./harbor-dev
+      # - name: Build Binary
+      #   uses: dagger/dagger-for-github@v7
+      #   with:
+      #     version: ${{ steps.dagger_version.outputs.version }}
+      #     verb: call
+      #     args: build-dev --platform linux/amd64 export --path=./harbor-dev
 
-  push-latest-images:
-    needs:
-      - lint
-      - test-code
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Print GitHub ref for debugging
-        run: |
-          echo "GitHub ref: $GITHUB_REF"
-
-      - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Publish and Sign Snapshot Image
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: latest
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+  # push-latest-images:
+  #   needs:
+  #     - lint
+  #     - test-code
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Print GitHub ref for debugging
+  #       run: |
+  #         echo "GitHub ref: $GITHUB_REF"
+  #
+  #     - name: Checkout repo
+  #       if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #
+  #     - name: Publish and Sign Snapshot Image
+  #       if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+  #       uses: ./.github/actions/publish-and-sign
+  #       with:
+  #         IMAGE_TAGS: latest
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  #         REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+  #         REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
   publish-release:
     needs:
@@ -224,15 +225,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push images
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: latest, ${{ github.ref_name }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+      # - name: Push images
+      #   if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+      #   uses: ./.github/actions/publish-and-sign
+      #   with:
+      #     IMAGE_TAGS: latest, ${{ github.ref_name }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      #     REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+      #     REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
 
       - name: Create Release
         if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
@@ -242,14 +243,14 @@ jobs:
         with:
           version: "latest"
           verb: call
-          args: "release --github-token=env:GITHUB_TOKEN"
+          args: "pipeline --source=. --github-token=env://GITHUB_TOKEN"
 
-      - name: Publish and Sign Tagged Image
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: ./.github/actions/publish-and-sign
-        with:
-          IMAGE_TAGS: "latest, ${{ github.ref_name }}"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+      # - name: Publish and Sign Tagged Image
+      #   if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+      #   uses: ./.github/actions/publish-and-sign
+      #   with:
+      #     IMAGE_TAGS: "latest, ${{ github.ref_name }}"
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      #     REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+      #     REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}

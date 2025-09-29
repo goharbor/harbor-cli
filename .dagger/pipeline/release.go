@@ -2,42 +2,64 @@ package pipeline
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
+	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
 )
 
-func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory) (string, error) {
-	bins, err := DistBinaries(ctx, dist)
+func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, token *dagger.Secret) (string, error) {
+	bins, err := DistBinaries(ctx, s.dag, dist)
 	if err != nil {
 		return "", err
 	}
 
-	cmd := []string{
-		"gh", "release", "upload", s.appVersion,
-	}
+	cmd := []string{"gh", "release", "upload", s.appVersion}
 	cmd = append(cmd, bins...)
 	cmd = append(cmd, "--clobber")
 
-	return s.dag.Container().
-		From("ghcr.io/cli/cli:latest").
+	ctr := s.dag.Container().
+		From("debian:bookworm-slim").
+		WithMountedDirectory("/src", s.source).
 		WithMountedDirectory("/dist", dist).
-		WithSecretVariable("GH_TOKEN", s.GithubToken).
-		WithExec(cmd).Stderr(ctx)
+		WithSecretVariable("GH_TOKEN", token).
+		WithExec([]string{"apt-get", "update"}).
+		WithExec([]string{"apt-get", "install", "-y", "curl", "git"}).
+		WithExec([]string{"curl", "-fsSL", "https://cli.github.com/packages/githubcli-archive-keyring.gpg", "-o", "/usr/share/keyrings/githubcli-archive-keyring.gpg"}).
+		WithExec([]string{"sh", "-c", `echo "deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list`}).
+		WithExec([]string{"apt-get", "update"}).
+		WithExec([]string{"apt-get", "install", "-y", "gh"})
+
+	return ctr.
+		WithWorkdir("/src").
+		// Creating Release
+		WithExec([]string{"gh", "release", "create", s.appVersion, "--title", fmt.Sprintf("'Release %s'", s.appVersion)}).
+		WithExec(cmd).
+		Stdout(ctx)
 }
 
-func DistBinaries(ctx context.Context, dist *dagger.Directory) ([]string, error) {
+func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory) ([]string, error) {
 	dirs := []string{"archive", "linux", "windows", "darwin", "deb", "rpm"}
 	var files []string
 
-	for _, d := range dirs {
-		subdir := dist.Directory(d)
-		entries, err := subdir.Entries(ctx)
+	ctr := s.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/dist", dist).
+		WithWorkdir("/dist")
+
+	for _, v := range dirs {
+		out, err := ctr.WithExec([]string{"ls", v}).Stdout(ctx)
 		if err != nil {
-			// skip missing directories or return error
-			continue
+			return nil, err
 		}
 
-		files = append(files, entries...)
+		bins := strings.Split(out, "\n")
+		for _, bin := range bins {
+			if bin != "" && bin != "nfpm.yml" {
+				files = append(files, filepath.Join("/", "dist", v, bin))
+			}
+		}
 	}
 
 	return files, nil
