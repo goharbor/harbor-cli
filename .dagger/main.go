@@ -55,6 +55,13 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory) (*da
 		return nil, err
 	}
 
+	// Publishing Release
+	out, err := pipe.PublishRelease(ctx, dist)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(out)
+
 	return dist, nil
 }
 
