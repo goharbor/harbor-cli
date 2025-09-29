@@ -21,7 +21,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory) (
 	return s.dag.Container().
 		From("ghcr.io/cli/cli:latest").
 		WithMountedDirectory("/dist", dist).
-		WithSecretVariable("GH_TOKEN", s.GithubToken).
+		WithSecretVariable("GITHUB_TOKEN", s.GithubToken).
 		WithExec(cmd).Stderr(ctx)
 }
 
