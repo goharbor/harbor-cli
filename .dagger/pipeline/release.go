@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"fmt"
 
 	"dagger/harbor-cli/internal/dagger"
 )
@@ -21,7 +22,11 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory) (
 	return s.dag.Container().
 		From("ghcr.io/cli/cli:latest").
 		WithMountedDirectory("/dist", dist).
-		WithSecretVariable("GITHUB_TOKEN", s.GithubToken).
+		WithSecretVariable("GH_TOKEN", s.GithubToken).
+		WithExec([]string{
+			"gh", "release", "create", s.appVersion, "--title", fmt.Sprintf("Release %s", s.appVersion),
+		}).
+		WithExec([]string{"sh", "-c", "echo $GITHUB_TOKEN"}).
 		WithExec(cmd).Stderr(ctx)
 }
 
