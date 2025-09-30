@@ -53,7 +53,9 @@ func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory)
 
 		bins := strings.Split(out, "\n")
 		for _, bin := range bins {
-			files = append(files, filepath.Join("/", "dist", v, bin))
+			if bin != "" {
+				files = append(files, filepath.Join("/", "dist", v, bin))
+			}
 		}
 	}
 
