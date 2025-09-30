@@ -56,7 +56,7 @@ func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory)
 
 		bins := strings.Split(out, "\n")
 		for _, bin := range bins {
-			if bin != "" {
+			if bin != "" && bin != "nfpm.yml" {
 				files = append(files, filepath.Join("/", "dist", v, bin))
 			}
 		}
