@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Search ldap users command
+// Import ldap users command
 func LdapImportUserCmd() *cobra.Command {
 	var uids []string
 
