@@ -32,7 +32,7 @@ func LdapImportUserCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := api.LdapImportUser(append(uids, args[0]))
 			if err != nil {
-				return fmt.Errorf("failed to search ldap user: %v", err)
+				return fmt.Errorf("failed to import ldap user: %v", err)
 			}
 
 			fmt.Println("Added users with ID: " + strings.Join(append(uids, args[0]), " "))
