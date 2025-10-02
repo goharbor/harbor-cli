@@ -40,7 +40,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 }
 
 func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory) ([]string, error) {
-	dirs := []string{"archive", "linux", "windows", "darwin", "deb", "rpm"}
+	dirs := []string{"archive", "linux", "windows", "darwin", "deb", "rpm", "brew"}
 	var files []string
 
 	ctr := s.Container().
