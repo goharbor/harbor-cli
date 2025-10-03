@@ -31,7 +31,7 @@ func (s *Pipeline) BrewFormula(ctx context.Context, dist *dagger.Directory) (*da
 	formulaContent := FormulaTemplate(s.appVersion, shaMap)
 
 	// Creating Formula.rb
-	dir := s.dag.Directory().WithNewFile("Formula.rb", formulaContent)
+	dir := s.dag.Directory().WithNewFile("harbor-cli.rb", formulaContent)
 
 	dist = dist.WithDirectory("brew", dir)
 
