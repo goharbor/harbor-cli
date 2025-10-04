@@ -55,12 +55,12 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 		return nil, err
 	}
 
-	// // Publishing Release
-	// out, err := pipe.PublishRelease(ctx, dist, githubToken)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println(out)
+	// Publishing Release
+	out, err := pipe.PublishRelease(ctx, dist, githubToken)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(out)
 
 	// Publishing repo
 	err = pipe.AptRepoBuild(ctx, dist, githubToken)
