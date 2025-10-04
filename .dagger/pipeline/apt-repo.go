@@ -54,7 +54,7 @@ EOF`,
         cd /repo
 
         git init
-        git remote add origin https://$GH_TOKEN@github.com/<ORG>/<REPO>.git
+        git remote add origin https://$GH_TOKEN@github.com/nucleofusion/harbor-cli.git
         git checkout -B gh-pages || git checkout --orphan gh-pages
 
         git config user.name "github-actions[bot]"
@@ -66,6 +66,11 @@ EOF`,
         git push origin gh-pages -f
         `, s.appVersion),
 		})
+
+	_, err := container.Sync(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to run container: %w", err)
+	}
 
 	return nil
 }
