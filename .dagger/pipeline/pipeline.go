@@ -16,7 +16,5 @@ func InitPipeline(source *dagger.Directory, dag *dagger.Client, appVersion strin
 		source:     source,
 		dag:        dag,
 		appVersion: appVersion,
-		// GithubToken: dag.Secret("GITHUB_TOKEN"),
-		// GithubToken: dag.Secret("GITHUB_TOKEN"),
 	}
 }

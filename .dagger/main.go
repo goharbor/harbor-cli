@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -56,13 +55,18 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 		return nil, err
 	}
 
-	fmt.Println(os.Getenv("GITHUB_TOKEN"))
 	// Publishing Release
 	out, err := pipe.PublishRelease(ctx, dist, githubToken)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(out)
+
+	// Publishing repo
+	err = pipe.AptRepoBuild(ctx, dist, githubToken)
+	if err != nil {
+		return nil, err
+	}
 
 	return dist, err
 }
