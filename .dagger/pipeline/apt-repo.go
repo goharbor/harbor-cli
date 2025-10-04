@@ -71,7 +71,7 @@ EOF`,
         `, s.appVersion),
 		})
 
-	_, err := container.Sync(ctx)
+	_, err = container.Sync(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to run container: %w", err)
 	}
