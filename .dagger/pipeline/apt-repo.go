@@ -11,13 +11,17 @@ func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, tok
 	archs := []string{"amd64", "arm64"}
 	root := s.dag.Directory()
 	root = root.WithDirectory("pool/main/m", dist.Directory("deb"))
+	githubToken, err := token.Plaintext(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Base container
 	container := s.dag.Container().
 		From("debian:bookworm-slim").
 		WithExec([]string{"apt-get", "update"}).
 		WithExec([]string{"apt-get", "install", "-y", "dpkg-dev", "gzip", "git"}).
-		WithSecretVariable("GH_TOKEN", token).
+		WithEnvVariable("GH_TOKEN", githubToken).
 		WithMountedDirectory("/repo", root)
 
 	// Building `Package` file for each arch
@@ -54,7 +58,7 @@ EOF`,
         cd /repo
 
         git init
-        git remote add origin https://$GH_TOKEN@github.com/nucleofusion/harbor-cli.git
+        git remote add origin https://x-access-token:$GH_TOKEN@github.com/nucleofusion/harbor-cli.git
         git checkout -B gh-pages || git checkout --orphan gh-pages
 
         git config user.name "github-actions[bot]"
