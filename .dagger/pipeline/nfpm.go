@@ -54,7 +54,7 @@ description: "Harbor CLI — a command-line interface for interacting with your 
 license: Apache 2.0 
 contents:
   - src: ./linux/%s
-    dst: /usr/local/bin/harbor-cl
+    dst: /usr/local/bin/harbor-cli
 `, arch, appV, filename))
 
 	return out

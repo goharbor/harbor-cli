@@ -34,7 +34,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 	return ctr.
 		WithWorkdir("/src").
 		// Creating Release
-		WithExec([]string{"gh", "release", "create", s.appVersion, "--title", fmt.Sprintf("'Release %s'", s.appVersion)}).
+		WithExec([]string{"gh", "release", "create", s.appVersion, "--title", fmt.Sprintf("Release %s", s.appVersion)}).
 		WithExec(cmd).
 		Stdout(ctx)
 }

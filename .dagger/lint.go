@@ -7,9 +7,9 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 )
 
-// +dagger.function
+// Runs golangci-lint and generates outputs the report as a file
 func (m *HarborCli) LintReport(ctx context.Context, source *dagger.Directory) (*dagger.File, error) {
-	err := m.Init(ctx, source)
+	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -22,9 +22,9 @@ func (m *HarborCli) LintReport(ctx context.Context, source *dagger.Directory) (*
 	}).File(report), nil
 }
 
-// +dagger.function
+// Runs golangci-lint and generates outputs the report as a string to stdout
 func (m *HarborCli) Lint(ctx context.Context, source *dagger.Directory) (string, error) {
-	err := m.Init(ctx, source)
+	err := m.init(ctx, source)
 	if err != nil {
 		return "", err
 	}
