@@ -22,12 +22,13 @@ func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, tok
 		WithExec([]string{"apt-get", "update"}).
 		WithExec([]string{"apt-get", "install", "-y", "dpkg-dev", "gzip", "git"}).
 		WithEnvVariable("GH_TOKEN", githubToken).
-		WithMountedDirectory("/repo", root)
+		WithMountedDirectory("/repo", root).
+		WithWorkdir("/repo")
 
 	// Building `Package` file for each arch
 	for _, arch := range archs {
-		pkgDir := fmt.Sprintf("/repo/dists/stable/main/binary-%s", arch)
-		poolDir := "/repo/pool/main/m"
+		pkgDir := fmt.Sprintf("dists/stable/main/binary-%s", arch)
+		poolDir := "pool/main/m"
 
 		container = container.WithExec([]string{
 			"bash", "-c",
@@ -36,6 +37,7 @@ func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, tok
 		})
 	}
 
+	// Release File
 	container = container.WithExec([]string{
 		"bash", "-c",
 		`cat <<EOF > /repo/dists/stable/Release
