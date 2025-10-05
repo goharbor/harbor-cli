@@ -41,7 +41,7 @@ func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, tok
 	container = container.WithExec([]string{
 		"bash", "-c",
 		`cat <<EOF > /repo/dists/stable/Release
-Origin: https://github.com/nucleofusion/harbor-cli  
+Origin: https://github.com/goharbor/harbor-cli  
 Label: HarborCLI 
 Suite: stable
 Codename: stable
@@ -60,7 +60,7 @@ EOF`,
         cd /repo
 
         git init
-        git remote add origin https://x-access-token:$GH_TOKEN@github.com/nucleofusion/harbor-cli.git
+        git remote add origin https://x-access-token:$GH_TOKEN@github.com/goharbor/harbor-cli.git
         git checkout -B gh-pages || git checkout --orphan gh-pages
 
         git config user.name "github-actions[bot]"
