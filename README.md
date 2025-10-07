@@ -16,7 +16,7 @@
 # Features
 The project's first goal is to reach WebUI parity.
 
-```shell
+```
 ✅ project       Manage projects  
 ✅ repo          Manage repositories  
 ✅ artifact      Manage artifacts  
@@ -35,14 +35,23 @@ The project's first goal is to reach WebUI parity.
 ✅ config        Manage the config of the Harbor CLI
 ✅ cve-allowlist Manage system CVE allowlist
 ✅ health        Get the health status of Harbor components
-✅ instance      Manage preheat provider instances in Harbor
+✅ preheat       Manage preheat provider instances
 ✅ info          Display detailed Harbor system, statistics, and CLI environment information
 
-
-✅ scanner       scanner commands
+✅ Scanner       scanner commands CRUD
 ✅ schedule      Schedule jobs in Harbor
 
-✅ completion    Generate the autocompletion script for the specified shell\
+❌ Vulnerability Dashboard
+
+❌ Distribution
+
+❌ GC
+
+❌ Job Service   Dashbaord
+
+❌ Auditlog      Auditlogs dashboard
+
+✅ completion    Generate the autocompletion script for the specified shell
 ✅ help          Help about any command
 ✅ version       Version of Harbor CLI
 
