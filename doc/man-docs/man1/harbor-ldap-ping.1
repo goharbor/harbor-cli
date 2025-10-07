@@ -1,0 +1,67 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-ldap-ping - ping ldap server
+
+
+.SH SYNOPSIS
+\fBharbor ldap ping [flags]\fP
+
+
+.SH DESCRIPTION
+ping ldap server
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for ping
+
+.PP
+\fB--ldap-base-dn\fP=""
+	The base dn from which to lookup the user
+
+.PP
+\fB--ldap-filter\fP=""
+	Search Filter of ldap service
+
+.PP
+\fB--ldap-password\fP=""
+	search password of the ldap service
+
+.PP
+\fB--ldap-scope\fP=0
+	search scope of ldap service default 0 base, 1 OneLevel, 2 Subtree.
+
+.PP
+\fB--ldap-search-dn\fP=""
+	User's dn who has the permission to search the ldap server
+
+.PP
+\fB--ldap-uid\fP=""
+	attribute used in search to match the user. It could be cn, uid based on your LDAP/AD.
+
+.PP
+\fB--ldap-url\fP=""
+	URL of the ldap service
+
+.PP
+\fB--ldap-verify\fP[=false]
+	Verify Ldap server certificate
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-ldap(1)\fP
