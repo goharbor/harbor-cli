@@ -43,6 +43,7 @@ harbor help
 * [harbor info](harbor-info.md)	 - Display detailed Harbor system, statistics, and CLI environment information
 * [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
 * [harbor label](harbor-label.md)	 - Manage labels in Harbor
+* [harbor ldap](harbor-ldap.md)	 - Manage ldap users and groups
 * [harbor login](harbor-login.md)	 - Log in to Harbor registry
 * [harbor logs](harbor-logs.md)	 - Get recent logs of the projects which the user is a member of
 * [harbor password](harbor-password.md)	 - Change your password
