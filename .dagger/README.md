@@ -49,8 +49,6 @@ This command prepares the environment for pipeline development and local testing
 
 Below are some common commands to run specific Dagger functions locally:
 
-### 🧼 Lint Your Code
-
 ```bash
 # Print report to stdout
 dagger call lint
