@@ -10,11 +10,6 @@ import (
 	"dagger/harbor-cli/pipeline"
 )
 
-const (
-	GO_VERSION           = "1.24.2"
-	GOLANGCILINT_VERSION = "1.24.2"
-)
-
 type HarborCli struct {
 	Source     *dagger.Directory // Source Directory where code resides
 	AppVersion string            // Current Version of the app, acquired from git tags
@@ -34,7 +29,7 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 	pipe := pipeline.InitPipeline(source, dag, m.AppVersion)
 
 	// Building Binaries
-	dist, err = pipe.Build(ctx, dist, GO_VERSION)
+	dist, err = pipe.Build(ctx, dist, m.GoVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +48,6 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 
 	// Building Checksum file
 	dist, err = pipe.Checksum(ctx, dist)
-	if err != nil {
-		return nil, err
-	}
-
-	// Building Brew Formula
-	dist, err = pipe.BrewFormula(ctx, dist)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 
 	cmd := []string{"gh", "release", "upload", s.appVersion}
 	cmd = append(cmd, bins...)
-	cmd = append(cmd, "checksum.txt")
+	cmd = append(cmd, "/dist/checksums.txt")
 	cmd = append(cmd, "--clobber")
 
 	ctr := s.dag.Container().

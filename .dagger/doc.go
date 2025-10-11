@@ -13,10 +13,10 @@ func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) (*dagg
 		return nil, err
 	}
 	return dag.Container().
-		From("golang:"+GO_VERSION+"-alpine").
-		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+GO_VERSION)).
+		From("golang:"+m.GoVersion+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+m.GoVersion)).
 		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+GO_VERSION)).
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+m.GoVersion)).
 		WithEnvVariable("GOCACHE", "/go/build-cache").
 		WithMountedDirectory("/src", m.Source).
 		WithWorkdir("/src/doc").
