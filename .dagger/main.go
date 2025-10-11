@@ -51,6 +51,12 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 		return nil, err
 	}
 
+	// Building Checksum file
+	dist, err = pipe.Checksum(ctx, dist)
+	if err != nil {
+		return nil, err
+	}
+
 	// Building Brew Formula
 	dist, err = pipe.BrewFormula(ctx, dist)
 	if err != nil {
