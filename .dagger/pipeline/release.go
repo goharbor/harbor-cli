@@ -3,8 +3,6 @@ package pipeline
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
 )
@@ -17,6 +15,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 
 	cmd := []string{"gh", "release", "upload", s.appVersion}
 	cmd = append(cmd, bins...)
+	cmd = append(cmd, "checksum.txt")
 	cmd = append(cmd, "--clobber")
 
 	ctr := s.dag.Container().
@@ -37,30 +36,4 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 		WithExec([]string{"gh", "release", "create", s.appVersion, "--title", fmt.Sprintf("Release %s", s.appVersion)}).
 		WithExec(cmd).
 		Stdout(ctx)
-}
-
-func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory) ([]string, error) {
-	dirs := []string{"archive", "linux", "windows", "darwin", "deb", "rpm", "brew"}
-	var files []string
-
-	ctr := s.Container().
-		From("alpine:latest").
-		WithMountedDirectory("/dist", dist).
-		WithWorkdir("/dist")
-
-	for _, v := range dirs {
-		out, err := ctr.WithExec([]string{"ls", v}).Stdout(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		bins := strings.Split(out, "\n")
-		for _, bin := range bins {
-			if bin != "" && bin != "nfpm.yml" {
-				files = append(files, filepath.Join("/", "dist", v, bin))
-			}
-		}
-	}
-
-	return files, nil
 }
