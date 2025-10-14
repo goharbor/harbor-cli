@@ -26,10 +26,10 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 	}
 
 	dist := dag.Directory()
-	pipe := pipeline.InitPipeline(source, dag, m.AppVersion)
+	pipe := pipeline.InitPipeline(source, dag, m.AppVersion, m.GoVersion)
 
 	// Building Binaries
-	dist, err = pipe.Build(ctx, dist, m.GoVersion)
+	dist, err = pipe.Build(ctx, dist)
 	if err != nil {
 		return nil, err
 	}

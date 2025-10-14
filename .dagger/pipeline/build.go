@@ -3,11 +3,13 @@ package pipeline
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"dagger/harbor-cli/internal/dagger"
+	"dagger/harbor-cli/utils"
 )
 
-func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory, GO_VERSION string) (*dagger.Directory, error) {
+func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory) (*dagger.Directory, error) {
 	goos := []string{"linux", "darwin", "windows"}
 	goarch := []string{"amd64", "arm64"}
 
@@ -20,19 +22,25 @@ func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory, GO_VERSION
 			}
 
 			builder := s.dag.Container().
-				From("golang:"+GO_VERSION).
-				WithMountedCache("/go/pkg/mod", s.dag.CacheVolume("go-mod-"+GO_VERSION)).
+				From("golang:"+s.goVersion).
+				WithMountedCache("/go/pkg/mod", s.dag.CacheVolume("go-mod-"+s.goVersion)).
 				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
-				WithMountedCache("/go/build-cache", s.dag.CacheVolume("go-build-"+GO_VERSION)).
+				WithMountedCache("/go/build-cache", s.dag.CacheVolume("go-build-"+s.goVersion)).
 				WithEnvVariable("GOCACHE", "/go/build-cache").
 				WithMountedDirectory("/src", s.source).
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", os).
-				WithEnvVariable("GOARCH", arch).
-				WithExec([]string{
-					"go", "build", "-ldflags", "github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=" + s.appVersion,
-					"-o", "/bin/" + binName, "./cmd/harbor",
-				})
+				WithEnvVariable("GOARCH", arch)
+
+			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
+			buildTime := time.Now().UTC().Format(time.RFC3339)
+
+			ldflagsArgs := utils.LDFlags(ctx, s.appVersion, s.goVersion, buildTime, gitCommit)
+
+			builder = builder.WithExec([]string{
+				"bash", "-c",
+				fmt.Sprintf(`set -ex && go env && go build -v -ldflags "%s" -o /bin/%s /src/cmd/harbor/main.go`, ldflagsArgs, binName),
+			})
 
 			file := builder.File("/bin/" + binName)                       // Taking file from container
 			dist = dist.WithFile(fmt.Sprintf("%s/%s", os, binName), file) // Adding file(bin) to dist directory

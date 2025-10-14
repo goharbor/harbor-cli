@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
+	"dagger/harbor-cli/utils"
 )
 
 func (s *Pipeline) Checksum(ctx context.Context, dist *dagger.Directory) (*dagger.Directory, error) {
 	sums := map[string]string{}
-	bins, err := DistBinaries(ctx, s.dag, dist)
+	bins, err := utils.DistBinaries(ctx, s.dag, dist)
 	if err != nil {
 		return nil, err
 	}

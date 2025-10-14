@@ -42,6 +42,7 @@ This command prepares the environment for pipeline development and local testing
 | `test-coverage-report`         | Processes coverage data and returns a formatted Markdown report.                               |
 | `vulnerability-check`          | Runs `govulncheck` to detect known vulnerabilities in dependencies.                            |
 | `vulnerability-check-report`   | Runs `govulncheck` and saves results to a file (`vulnerability-check.report`).                  |
+| `build-dev`                    | Create build of Harbor CLI for local testing and development|
 
 ---
 
@@ -50,6 +51,10 @@ This command prepares the environment for pipeline development and local testing
 Below are some common commands to run specific Dagger functions locally:
 
 ```bash
+# Development build for binaries
+
+dagger call build-dev --source=. --platform="linux/amd64" export --path=bin/harbor-dev
+
 # Print report to stdout
 dagger call lint
 
