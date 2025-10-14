@@ -5,10 +5,11 @@ import (
 	"fmt"
 
 	"dagger/harbor-cli/internal/dagger"
+	"dagger/harbor-cli/utils"
 )
 
 func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, token *dagger.Secret) (string, error) {
-	bins, err := DistBinaries(ctx, s.dag, dist)
+	bins, err := utils.DistBinaries(ctx, s.dag, dist)
 	if err != nil {
 		return "", err
 	}
