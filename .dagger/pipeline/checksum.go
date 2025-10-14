@@ -38,6 +38,6 @@ func (s *Pipeline) Checksum(ctx context.Context, dist *dagger.Directory) (*dagge
 		content += fmt.Sprintf("%s %s\n", strings.TrimSuffix(k, "\n"), v)
 	}
 
-	dist = dist.WithFile("checksum.txt", s.dag.File("checksum.txt", content))
+	dist = dist.WithFile("checksums.txt", s.dag.File("checksums.txt", content))
 	return dist, err
 }
