@@ -38,7 +38,8 @@ func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory) (*dagger.D
 			ldflagsArgs := utils.LDFlags(ctx, s.appVersion, s.goVersion, buildTime, gitCommit)
 
 			builder = builder.WithExec([]string{
-				"go", "build", "-ldflags", ldflagsArgs, "-o", "/bin/harbor-cli", "/src/cmd/harbor/main.go",
+				"bash", "-c",
+				fmt.Sprintf(`set -ex && go env && go build -v -ldflags "%s" -o /bin/%s /src/cmd/harbor/main.go`, ldflagsArgs, binName),
 			})
 
 			file := builder.File("/bin/" + binName)                       // Taking file from container

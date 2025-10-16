@@ -8,6 +8,7 @@ import (
 
 	"dagger/harbor-cli/internal/dagger"
 	"dagger/harbor-cli/pipeline"
+	"dagger/harbor-cli/utils"
 )
 
 type HarborCli struct {
@@ -19,10 +20,10 @@ type HarborCli struct {
 // The _full_ pipeline for CI/CD
 // Build Binaries -> Generate zip/tar.gz -> Building .deb & .rpm -> Building Brew Formula
 // -> Publishing to release page -> Publishing to apt
-func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, githubToken *dagger.Secret) (*dagger.Directory, error) {
+func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, githubToken *dagger.Secret) (string, error) {
 	err := m.init(ctx, source)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	dist := dag.Directory()
@@ -31,41 +32,46 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 	// Building Binaries
 	dist, err = pipe.Build(ctx, dist)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Archiving Binaries
 	dist, err = pipe.Archive(ctx, dist)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Building deb/rpm Binaries
 	dist, err = pipe.NFPMBuild(ctx, dist)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	// Building Checksum file
-	dist, err = pipe.Checksum(ctx, dist)
+	out, err := utils.DistBinaries(ctx, dag, dist)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	// Publishing Release
-	out, err := pipe.PublishRelease(ctx, dist, githubToken)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(out)
-
-	// Publishing repo
-	err = pipe.AptRepoBuild(ctx, dist, githubToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return dist, err
+	// // Building Checksum file
+	// dist, err = pipe.Checksum(ctx, dist)
+	// if err != nil {
+	// 	return "",err
+	// }
+	//
+	// // Publishing Release
+	// out, err := pipe.PublishRelease(ctx, dist, githubToken)
+	// if err != nil {
+	// 	return "",err
+	// }
+	// fmt.Println(out)
+	//
+	// // Publishing repo
+	// err = pipe.AptRepoBuild(ctx, dist, githubToken)
+	// if err != nil {
+	// 	return "",err
+	// }
+	//
+	return strings.Join(out, "\n"), err
 }
 
 func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {

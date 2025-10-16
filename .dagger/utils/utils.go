@@ -36,10 +36,10 @@ func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory)
 }
 
 func LDFlags(ctx context.Context, version, goVersion, buildTime, commit string) string {
-	return fmt.Sprintf(`-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s
-		-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s
-		-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s
-		-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s`,
+	return fmt.Sprintf("-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s "+
+		"-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s "+
+		"-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=%s "+
+		"-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=%s",
 		version, goVersion, buildTime, commit,
 	)
 }
