@@ -82,7 +82,7 @@ func loadRobotConfigFromFile(configFile string, permissions *[]models.Permission
 		}
 	}
 
-	if !systemPermFound {
+	if !systemPermFound && loadedOpts.Level == "system" {
 		return fmt.Errorf("robot configuration must include system-level permissions")
 	}
 
@@ -92,10 +92,10 @@ func loadRobotConfigFromFile(configFile string, permissions *[]models.Permission
 	return nil
 }
 
-func loadFromConfigFileForCreate(opts *create.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+func LoadFromConfigFileForCreate(opts *create.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	return loadRobotConfigFromFile(configFile, permissions, projectPermissionsMap, false, opts, nil)
 }
 
-func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+func LoadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	return loadRobotConfigFromFile(configFile, permissions, projectPermissionsMap, true, nil, opts)
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
+	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/sirupsen/logrus"
@@ -89,19 +90,21 @@ Examples:
 
 			// Handle config file or interactive input
 			if configFile != "" {
-				if err := loadFromConfigFileForCreate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
-					return err
+				if err := robotpkg.LoadFromConfigFileForCreate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+					return fmt.Errorf("failed to load robot config from file: %v", err)
 				}
+				logrus.Info("Successfully loaded robot configuration")
+
 			} else {
 				if err := handleInteractiveInput(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			}
 
-			accessesSystem = buildSystemAccesses(permissions)
+			accessesSystem = robotpkg.PermissionsToAccess(permissions)
 
 			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
+			opts.Permissions = robotpkg.BuildMergedPermissions(projectPermissionsMap, accessesSystem)
 			opts.Level = "system"
 
 			// Create robot and handle response
@@ -125,11 +128,11 @@ func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]mo
 	}
 
 	// Get system permissions (create flow: no update confirmation)
-	if err := getSystemPermissions(false, true, all, permissions); err != nil {
+	if err := robotpkg.GetSystemPermissions(false, true, all, permissions); err != nil {
 		return err
 	}
 
-	return getProjectPermissions(false, opts, projectPermissionsMap)
+	return robotpkg.GetProjectPermissions(false, opts, projectPermissionsMap)
 }
 
 func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) error {

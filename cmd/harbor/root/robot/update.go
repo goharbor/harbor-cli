@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	"github.com/sirupsen/logrus"
@@ -145,7 +146,7 @@ Examples:
 
 			// Handle configuration from file or interactive input
 			if configFile != "" {
-				if err := loadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+				if err := robotpkg.LoadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			} else {
@@ -164,7 +165,7 @@ Examples:
 			}
 
 			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
+			opts.Permissions = robotpkg.BuildMergedPermissions(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
@@ -208,11 +209,11 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 	}
 
 	// Get system permissions (update flow: ask for confirmation to change)
-	if err := getSystemPermissions(true, false, all, permissions); err != nil {
+	if err := robotpkg.GetSystemPermissions(true, false, all, permissions); err != nil {
 		return err
 	}
 
-	return getProjectPermissions(true, nil, projectPermissionsMap)
+	return robotpkg.GetProjectPermissions(true, nil, projectPermissionsMap)
 }
 
 func updateRobotAndHandleResponse(opts *update.UpdateView) error {

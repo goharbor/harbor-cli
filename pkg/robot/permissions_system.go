@@ -24,13 +24,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// getSystemPermissions consolidates system-permission selection for both create and update flows.
+// GetSystemPermissions consolidates system-permission selection for both create and update flows.
 // Behavior:
 //   - When isUpdate is true and skipConfirm is false, asks the user whether to update system permissions.
 //     If the user chooses No, it keeps existing permissions and returns nil.
 //   - When all is true, selects all system permissions from the API and replaces the current slice.
 //   - Otherwise, prompts the user to select system permissions; requires at least one.
-func getSystemPermissions(isUpdate bool, skipConfirm bool, all bool, permissions *[]models.Permission) error {
+func GetSystemPermissions(isUpdate bool, skipConfirm bool, all bool, permissions *[]models.Permission) error {
 	// Optional confirmation in update flows
 	if isUpdate && !skipConfirm {
 		updateSystem, err := robotprompt.AskUpdateSystemPerms()
@@ -67,7 +67,7 @@ func getSystemPermissions(isUpdate bool, skipConfirm bool, all bool, permissions
 	return nil
 }
 
-func buildSystemAccesses(permissions []models.Permission) []*models.Access {
+func PermissionsToAccess(permissions []models.Permission) []*models.Access {
 	var accessesSystem []*models.Access
 	for _, perm := range permissions {
 		accessesSystem = append(accessesSystem, &models.Access{

@@ -18,7 +18,7 @@ import (
 	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 )
 
-func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*rmodel.RobotPermission {
+func BuildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*rmodel.RobotPermission {
 	var mergedPermissions []*rmodel.RobotPermission
 
 	// Add project permissions

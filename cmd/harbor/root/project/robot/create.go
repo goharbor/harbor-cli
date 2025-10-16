@@ -24,6 +24,7 @@ import (
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/sirupsen/logrus"
@@ -96,15 +97,14 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var permissions []models.Permission
+			var projectPermissionsMap = make(map[string][]models.Permission)
 
 			if configFile != "" {
-				fmt.Println("Loading configuration from: ", configFile)
-				loadedOpts, loadErr := config.LoadRobotConfigFromFile(configFile)
-				if loadErr != nil {
-					return fmt.Errorf("failed to load robot config from file: %v", loadErr)
+				if err := robotpkg.LoadFromConfigFileForCreate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+					return fmt.Errorf("failed to load robot config from file: %v", err)
 				}
+
 				logrus.Info("Successfully loaded robot configuration")
-				opts = *loadedOpts
 				if opts.ProjectName == "" {
 					opts.ProjectName = opts.Permissions[0].Namespace
 				}
@@ -156,20 +156,9 @@ Examples:
 						}
 					}
 				}
-
-				// []Permission to []*Access
-				var accesses []*models.Access
-				for _, perm := range permissions {
-					access := &models.Access{
-						Action:   perm.Action,
-						Resource: perm.Resource,
-					}
-					accesses = append(accesses, access)
-				}
-				// convert []models.permission to []*model.Access
 				perm := &rmodel.RobotPermission{
 					Namespace: opts.ProjectName,
-					Access:    accesses,
+					Access:    robotpkg.PermissionsToAccess(permissions),
 					Kind:      "project", // Default to project level
 				}
 				opts.Permissions = []*rmodel.RobotPermission{perm}
@@ -227,7 +216,7 @@ Examples:
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
-	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML/JSON file with robot configuration")
+	flags.StringVarP(&configFile, "robot-config-file", "f", "", "YAML/JSON file with robot configuration")
 	return cmd
 }
 

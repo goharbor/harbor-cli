@@ -21,64 +21,14 @@ import (
 	robotprompt "github.com/goharbor/harbor-cli/pkg/prompt/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	"github.com/sirupsen/logrus"
 )
 
-// getProjectPermissions orchestrates project permission selection for create or update flows.
-func getProjectPermissions(isUpdate bool, createOpts *create.CreateView, projectPermissionsMap map[string][]models.Permission) error {
+// GetProjectPermissions orchestrates project permission selection for create or update flows.
+func GetProjectPermissions(isUpdate bool, createOpts *create.CreateView, projectPermissionsMap map[string][]models.Permission) error {
 	if isUpdate {
 		return handleProjectPermissionsUpdate(projectPermissionsMap)
 	}
 	return handleProjectPermissionsCreate(createOpts, projectPermissionsMap)
-}
-
-// handleProjectPermissionsCreate handles the create mode flow.
-func handleProjectPermissionsCreate(createOpts *create.CreateView, projectPermissionsMap map[string][]models.Permission) error {
-	if createOpts == nil {
-		return fmt.Errorf("create options must be provided for create flow")
-	}
-
-	permissionMode, err := robotprompt.ChooseProjectPermissionMode(false)
-	if err != nil {
-		return fmt.Errorf("error selecting permission mode: %v", err)
-	}
-
-	switch permissionMode {
-	case "list":
-		return assignCommonPermissionsToSelectedProjects(projectPermissionsMap)
-	case "per_project":
-		return assignPerProjectPermissionsInteractive(createOpts, projectPermissionsMap)
-	case "none", "clear":
-		fmt.Println("Creating robot with system-level permissions only (no project-specific permissions)")
-		return nil
-	default:
-		return fmt.Errorf("unknown permission mode: %s", permissionMode)
-	}
-}
-
-// handleProjectPermissionsUpdate handles the update mode flow.
-func handleProjectPermissionsUpdate(projectPermissionsMap map[string][]models.Permission) error {
-	hasExisting := len(projectPermissionsMap) > 0
-	permissionMode, err := robotprompt.ChooseProjectPermissionMode(hasExisting)
-	if err != nil {
-		return fmt.Errorf("error selecting permission mode: %v", err)
-	}
-
-	switch permissionMode {
-	case "keep":
-		logrus.Info("Keeping existing project permissions")
-		return nil
-	case "clear":
-		logrus.Info("Clearing all project permissions")
-		clearProjectPermissions(projectPermissionsMap)
-		return nil
-	case "list":
-		return assignCommonPermissionsToSelectedProjectsForUpdate(projectPermissionsMap)
-	case "per_project":
-		return modifyPerProjectPermissionsInteractive(projectPermissionsMap)
-	default:
-		return fmt.Errorf("unknown permission mode: %s", permissionMode)
-	}
 }
 
 // assignCommonPermissionsToSelectedProjects prompts for projects, then one permission set to apply to all.
@@ -144,10 +94,6 @@ func modifyPerProjectPermissionsInteractive(projectPermissionsMap map[string][]m
 		}
 	}
 	return addProjectsInteractively(projectPermissionsMap)
-}
-
-func promptCommonProjectPermissions() []models.Permission {
-	return baseprompt.GetRobotPermissionsFromUser("project")
 }
 
 func setPermissionsForProjects(projects []string, perms []models.Permission, projectPermissionsMap map[string][]models.Permission) {
