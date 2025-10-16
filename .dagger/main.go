@@ -25,8 +25,8 @@ import (
 
 const (
 	GOLANGCILINT_VERSION = "v2.1.2"
-	GO_VERSION           = "1.24.6"
-	GORELEASER_VERSION   = "v2.8.2"
+	GO_VERSION           = "1.25"
+	GORELEASER_VERSION   = "v2.12.2"
 )
 
 func New(
