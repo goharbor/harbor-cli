@@ -1,101 +1,103 @@
-# 🛠️ Harbor CLI Dagger Pipeline
+# 🛠️ Harbor CLI — Dagger Pipeline
 
-We use [Dagger](https://dagger.io) to define a CI/CD pipeline for building, linting, and publishing the [Harbor CLI](https://github.com/goharbor/harbor-cli). 
-This README will help beginners understand how to use Dagger in local development and CI workflows.
+We use [Dagger](https://dagger.io) to define a **modular and reproducible CI/CD pipeline** for building, linting, testing, and publishing the [Harbor CLI](https://github.com/goharbor/harbor-cli).  
+This README provides a clear reference for contributors and maintainers to understand, run, and extend the pipeline locally or in CI.
 
-## Prerequisites
+---
 
-Before you start, ensure you have the following:
+## 🚧 Prerequisites
 
-1. Dagger: Install the latest version of Dagger. You can check the official documentation for installation steps: [Dagger Installation Guide](https://docs.dagger.io/install).
+Before using the pipeline, make sure you have:
 
-## Dagger Setup and Development Mode
+1. **Dagger CLI** — Install the latest version from the official docs:  
+   👉 [Dagger Installation Guide](https://docs.dagger.io/install)
+2. **Go** — Installed according to the version specified in the project’s `go.mod`.
+3. **Docker** — Required if you’re publishing images.
 
-### Run Dagger Develop
+---
+
+## ⚙️ Setup and Development Mode
+
+### Run Dagger in Development Mode
+
+To start the Dagger session and enable live code reloads:
 
 ```bash
 dagger develop
 ```
 
-This command will generate the necessary files and configuration for building and running Dagger.
+This command prepares the environment for pipeline development and local testing.
 
+## 📦 Dagger Functions Overview
 
-## 📦 Dagger Functions Explained
+| **Name**                       | **Description**                                                                                 |
+|--------------------------------|-------------------------------------------------------------------------------------------------|
+| `lint`                         | Runs `golangci-lint` and prints the report as a string to stdout.                              |
+| `lint-report`                  | Runs `golangci-lint` and writes the lint report to a file.                                     |
+| `pipeline`                     | Executes the **full CI/CD pipeline** including build, test, lint, and publish stages.          |
+| `run-doc`                      | Generates CLI documentation and returns the directory containing generated files.              |
+| `test`                         | Runs all Go tests in the repository.                                                           |
+| `test-report`                  | Executes Go tests and outputs a structured JSON test report.                                   |
+| `test-coverage`                | Runs Go tests with coverage tracking.                                                          |
+| `test-coverage-report`         | Processes coverage data and returns a formatted Markdown report.                               |
+| `vulnerability-check`          | Runs `govulncheck` to detect known vulnerabilities in dependencies.                            |
+| `vulnerability-check-report`   | Runs `govulncheck` and saves results to a file (`vulnerability-check.report`).                  |
+| `build-dev`                    | Create build of Harbor CLI for local testing and development|
 
-### 🔧 `BuildDev(platform)`
+---
 
-Builds a development binary for your target platform.
+## 🧩 Example Usage
+
+Below are some common commands to run specific Dagger functions locally:
 
 ```bash
-dagger call build-dev --platform="linux/amd64" export --path=bin/harbor-dev
-```
+# Development build for binaries
 
-### 🧼 `LintReport()`
+dagger call build-dev --source=. --platform="linux/amd64" export --path=bin/harbor-dev
 
-Runs `golangci-lint` on your code and saves the report to a file.
+# Print report to stdout
+dagger call lint
 
-```bash
-dagger call lint-report export --path=./LintReport.json
-```
+# Save report to a file
+dagger call lint-report export --path=LintReport.json
 
-### 📝 `TestCoverageReport()`
+# Run Tests
+dagger call test
 
-Runs go test coverage tools and creates a report.
-```bash
+# Generate a JSON Report
+dagger call test-report export --path=TestReport.json
+
+# Test Coverage
+dagger call test-coverage
+
+# Generate a Markdown Report
 dagger call test-coverage-report export --path=coverage-report.md
+
+# Vulnerability Check 
+dagger call vulnerability-check 
+
+# Generate a Report
+dagger call vulnerability-check-report export --path=vuln.report
+
+# Generate CLI docs 
+dagger call run-doc export --path=docs/cli 
 ```
 
-### ✅ `CheckCoverageThreshold(context, threshold)`
 
-Runs go test coverage tools and creates a report. The total coverage is compared to a threshold that can be set to e.g. 80%.
-```bash
-dagger call check-coverage-threshold --threshold 80.0 
-```
+## 💡 Tips for Contributors
 
-### 🚀 `PublishImage(registry, imageTags)`
-
-Builds and publishes the Harbor CLI image to the given container registry with proper OCI metadata labels.
-
-Before running the command you have to export you registry password
-
-```shell
-export REGPASS=Harbor12345
-```
-
-```bash
-dagger call publish-image \
-  --registry=demo.goharbor.io \
-  --registry-username=harbor-cli \
-  --registry-password=env:REGPASS \
-  --imageTags=v0.1.0,latest
-```
-
----
-
-## ⚙️ Configuration Constants
-
-Dagger uses these constant versions (you can modify them as needed):
-
-```go
-const (
-  GO_VERSION           = "1.24.2"
-  GOLANGCILINT_VERSION = "v2.1.2"
-  SYFT_VERSION         = "v1.9.0"
-  GORELEASER_VERSION   = "v2.3.2"
-)
-```
-
----
-
-## 💡 Tips for Beginners
-
-- Every container step is **reproducible** you can build locally or in GitHub Actions without changes.
-- Use Dagger to cache Go builds and lint output, speeding up re-runs.
+- Every step in Dagger is **deterministic and reproducible** — what you run locally is identical to CI.
+- Use Dagger’s built-in caching to accelerate Go builds, lint runs, and dependency installs.
+- Modular functions let you run only what you need, improving iteration speed and debugging efficiency.
+- Prefer using `dagger develop` for fast iteration and testing new steps before committing.
+- Store output reports (lint, test, coverage) under a consistent `/reports` directory for easier CI integration.
+- If you modify or add new pipeline steps, document them under **Dagger Functions Overview** to maintain clarity.
+- Always validate pipelines with `dagger call pipeline` locally before merging into main.
 
 ---
 
 ## 📚 References
 
-- [Dagger Go SDK Docs](https://pkg.go.dev/dagger.io/dagger)
-- [golangci-lint](https://golangci-lint.run/)
-- [Goreleaser](https://goreleaser.com/)
+- [Dagger Go SDK](https://pkg.go.dev/dagger.io/dagger)
+- [golangci-lint Docs](https://golangci-lint.run/)
+- [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
