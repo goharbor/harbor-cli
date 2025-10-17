@@ -14,7 +14,12 @@
 package utils_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -144,4 +149,92 @@ func TestStorageStringToBytes(t *testing.T) {
 	// Exceeding maximum value
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
+}
+
+func TestDefaultCredentialName(t *testing.T) {
+	name := utils.DefaultCredentialName("john", "https://harbor.example.com:8080")
+	assert.Equal(t, "john@https-harbor-example-com-8080", name)
+}
+
+func TestToKebabCase(t *testing.T) {
+	assert.Equal(t, "hello-world", utils.ToKebabCase("Hello World"))
+	assert.Equal(t, "multi-space-string", utils.ToKebabCase("Multi Space String"))
+	assert.Equal(t, "already-kebab", utils.ToKebabCase("already-kebab"))
+}
+
+func TestCapitalize(t *testing.T) {
+	// current behavior returns the string unchanged, ensure we lock that in
+	assert.Equal(t, "", utils.Capitalize(""))
+	assert.Equal(t, "harbor", utils.Capitalize("harbor"))
+}
+
+func captureStdout(f func()) string {
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	defer func() { os.Stdout = old }()
+
+	f()
+	_ = w.Close()
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+	return buf.String()
+}
+
+func TestPrintPayloadInJSONFormat(t *testing.T) {
+	type payloadT struct {
+		Name string `json:"name" yaml:"name"`
+		ID   int    `json:"id" yaml:"id"`
+	}
+	p := payloadT{Name: "harbor", ID: 1}
+
+	expectedBytes, _ := json.MarshalIndent(p, "", "  ")
+	expected := string(expectedBytes) + "\n" // Println adds a newline
+	out := captureStdout(func() { utils.PrintPayloadInJSONFormat(p) })
+	assert.Equal(t, expected, out)
+
+	// nil should print nothing
+	out = captureStdout(func() { utils.PrintPayloadInJSONFormat(nil) })
+	assert.Equal(t, "", out)
+}
+
+func TestPrintPayloadInYAMLFormat(t *testing.T) {
+	type payloadT struct {
+		Name string `json:"name" yaml:"name"`
+		ID   int    `json:"id" yaml:"id"`
+	}
+	p := payloadT{Name: "harbor", ID: 1}
+
+	// YAML marshaling is deterministic for a struct; replicate function behavior
+	out := captureStdout(func() { utils.PrintPayloadInYAMLFormat(p) })
+	assert.Contains(t, out, "name: harbor")
+	assert.Contains(t, out, "id: 1")
+
+	// nil should print nothing
+	out = captureStdout(func() { utils.PrintPayloadInYAMLFormat(nil) })
+	assert.Equal(t, "", out)
+}
+
+func TestSavePayloadJSON(t *testing.T) {
+	type payloadT struct {
+		Name string `json:"name"`
+		ID   int    `json:"id"`
+	}
+	p := payloadT{Name: "harbor", ID: 1}
+
+	dir := t.TempDir()
+	base := filepath.Join(dir, "out")
+	utils.SavePayloadJSON(base, p)
+
+	path := base + ".json"
+	b, err := os.ReadFile(path)
+	assert.NoError(t, err)
+
+	expected, _ := json.MarshalIndent(p, "", "  ")
+	assert.Equal(t, string(expected), string(b))
+
+	fi, err := os.Stat(path)
+	assert.NoError(t, err)
+	// File mode should be 0600
+	assert.Equal(t, os.FileMode(0o600), fi.Mode().Perm())
 }
