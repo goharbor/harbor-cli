@@ -94,7 +94,6 @@ Examples:
 					return fmt.Errorf("failed to load robot config from file: %v", err)
 				}
 				logrus.Info("Successfully loaded robot configuration")
-
 			} else {
 				if err := handleInteractiveInput(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
