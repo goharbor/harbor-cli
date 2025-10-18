@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
-	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -98,25 +97,12 @@ Examples:
 			var err error
 			var permissions []models.Permission
 			var projectPermissionsMap = make(map[string][]models.Permission)
-
 			if configFile != "" {
 				if err := robotpkg.LoadFromConfigFileForCreate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return fmt.Errorf("failed to load robot config from file: %v", err)
 				}
-
 				logrus.Info("Successfully loaded robot configuration")
-				if opts.ProjectName == "" {
-					opts.ProjectName = opts.Permissions[0].Namespace
-				}
-				permissions = make([]models.Permission, len(opts.Permissions[0].Access))
-				for i, access := range opts.Permissions[0].Access {
-					permissions[i] = models.Permission{
-						Resource: access.Resource,
-						Action:   access.Action,
-					}
-				}
 			}
-
 			if opts.ProjectName == "" && configFile == "" {
 				opts.ProjectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
@@ -126,43 +112,35 @@ Examples:
 					return fmt.Errorf("project name cannot be empty")
 				}
 			}
-
 			if len(args) == 0 {
-				if (opts.Name == "" || opts.Duration == 0) && configFile == "" {
+				if (opts.Name == "" || opts.Duration == -1) && configFile == "" {
 					fmt.Println("Opening interactive form for robot creation")
 					create.CreateRobotView(&opts)
 				}
-
-				if opts.Duration == 0 {
-					msg := fmt.Errorf("duration cannot be 0")
-					return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
-				}
-
-				if len(permissions) == 0 {
-					if all {
-						perms, _ := api.GetPermissions()
-						permission := perms.Payload.Project
-
-						choices := []models.Permission{}
-						for _, perm := range permission {
-							choices = append(choices, *perm)
-						}
-						permissions = choices
-					} else {
-						permissions = prompt.GetRobotPermissionsFromUser("project")
-						if len(permissions) == 0 {
-							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
-							return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
-						}
+				if all {
+					perms, _ := api.GetPermissions()
+					permission := perms.Payload.Project
+					choices := []models.Permission{}
+					for _, perm := range permission {
+						choices = append(choices, *perm)
+					}
+					permissions = choices
+				} else {
+					permissions = prompt.GetRobotPermissionsFromUser("project")
+					if len(permissions) == 0 {
+						msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
+						return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
 					}
 				}
-				perm := &rmodel.RobotPermission{
-					Namespace: opts.ProjectName,
-					Access:    robotpkg.PermissionsToAccess(permissions),
-					Kind:      "project", // Default to project level
-				}
-				opts.Permissions = []*rmodel.RobotPermission{perm}
 			}
+
+			builder := robotpkg.NewRobotBuilder().
+				WithName(opts.Name).
+				WithDescription(opts.Description).
+				WithDuration(opts.Duration).
+				SetProjectPermissions(opts.ProjectName, permissions)
+			opts.Permissions = builder.MergePermissions()
+
 			getProjectID, err := api.GetProject(opts.ProjectName, false)
 			if err != nil {
 				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
@@ -179,10 +157,8 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}
-
 			logrus.Infof("Successfully created robot account '%s' (ID: %d)",
 				response.Payload.Name, response.Payload.ID)
-
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				name := response.Payload.Name
@@ -191,7 +167,6 @@ Examples:
 				return nil
 			}
 			name, secret := response.Payload.Name, response.Payload.Secret
-
 			if exportToFile {
 				logrus.Info("Exporting robot credentials to file")
 				exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
@@ -211,11 +186,10 @@ Examples:
 	flags := cmd.Flags()
 	flags.BoolVarP(&all, "all-permission", "a", false, "Select all permissions for the robot account")
 	flags.BoolVarP(&exportToFile, "export-to-file", "e", false, "Choose to export robot account to file")
-
 	flags.StringVarP(&opts.ProjectName, "project", "", "", "set project name")
 	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
-	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
+	flags.Int64VarP(&opts.Duration, "duration", "", -1, "set expiration of robot account in days")
 	flags.StringVarP(&configFile, "robot-config-file", "f", "", "YAML/JSON file with robot configuration")
 	return cmd
 }

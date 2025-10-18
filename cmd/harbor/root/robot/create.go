@@ -103,7 +103,7 @@ Examples:
 			accessesSystem = robotpkg.PermissionsToAccess(permissions)
 
 			// Build merged permissions structure
-			opts.Permissions = robotpkg.BuildMergedPermissions(projectPermissionsMap, accessesSystem)
+			opts.Permissions = robotpkg.BuildPermissions(projectPermissionsMap, accessesSystem)
 			opts.Level = "system"
 
 			// Create robot and handle response

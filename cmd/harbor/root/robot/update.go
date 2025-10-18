@@ -165,7 +165,7 @@ Examples:
 			}
 
 			// Build merged permissions structure
-			opts.Permissions = robotpkg.BuildMergedPermissions(projectPermissionsMap, accessesSystem)
+			opts.Permissions = robotpkg.BuildPermissions(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
