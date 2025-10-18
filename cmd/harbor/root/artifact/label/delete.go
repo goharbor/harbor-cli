@@ -66,22 +66,15 @@ Examples:
 
 			if len(args) == 2 {
 				labelName := args[1]
-				labelID, err = api.GetLabelIdByName(labelName)
+				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{})
 				if err != nil {
 					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
 			} else {
-				artifact, err := api.ViewArtifact(projectName, repoName, reference, true)
-				if err != nil || artifact == nil {
-					return fmt.Errorf("failed to get artifact info: %v", utils.ParseHarborErrorMsg(err))
+				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{})
+				if err != nil {
+					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
-
-				labels := artifact.Payload.Labels
-				if len(labels) == 0 {
-					fmt.Printf("No labels found for artifact %s/%s@%s\n", projectName, repoName, reference)
-					return nil
-				}
-				labelID = prompt.GetLabelIdFromUser(labels)
 			}
 
 			if _, err := api.RemoveLabelArtifact(projectName, repoName, reference, labelID); err != nil {
