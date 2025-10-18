@@ -65,16 +65,15 @@ Examples:
 
 			if len(args) == 2 {
 				labelName = args[1]
-				labelID, err = api.GetLabelIdByName(labelName)
+				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{})
 				if err != nil {
 					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
 			} else {
-				labels, err := api.ListLabel()
+				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{})
 				if err != nil {
-					return fmt.Errorf("failed to list labels: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
-				labelID = prompt.GetLabelIdFromUser(labels.Payload)
 			}
 
 			label := api.GetLabel(labelID)
