@@ -48,47 +48,18 @@ func BuildPermissions(projectPermissionsMap map[string][]models.Permission, acce
 	return mergedPermissions
 }
 
-// RobotBuilder accumulates fields and permissions for building robot requests.
 type RobotBuilder struct {
-	name        string
-	description string
-	duration    int64
-	disable     bool
-
-	// Permissions
 	projects map[string][]models.Permission
 	system   []models.Permission
 }
 
-// NewRobotBuilder creates a fresh builder.
 func NewRobotBuilder() *RobotBuilder {
 	return &RobotBuilder{
-		duration: -1, // default aligns with existing CLI UX for "no expiration"
 		projects: make(map[string][]models.Permission),
+		system:   make([]models.Permission, 0),
 	}
 }
 
-func (b *RobotBuilder) WithName(name string) *RobotBuilder {
-	b.name = name
-	return b
-}
-
-func (b *RobotBuilder) WithDescription(desc string) *RobotBuilder {
-	b.description = desc
-	return b
-}
-
-func (b *RobotBuilder) WithDuration(days int64) *RobotBuilder {
-	b.duration = days
-	return b
-}
-
-func (b *RobotBuilder) WithDisable(disable bool) *RobotBuilder {
-	b.disable = disable
-	return b
-}
-
-// Permission setters
 func (b *RobotBuilder) AddProjectPermissions(project string, perms ...models.Permission) *RobotBuilder {
 	if _, ok := b.projects[project]; !ok {
 		b.projects[project] = make([]models.Permission, 0, len(perms))
@@ -98,7 +69,6 @@ func (b *RobotBuilder) AddProjectPermissions(project string, perms ...models.Per
 }
 
 func (b *RobotBuilder) SetProjectPermissions(project string, perms []models.Permission) *RobotBuilder {
-	// overwrite
 	cp := slices.Clone(perms)
 	b.projects[project] = cp
 	return b

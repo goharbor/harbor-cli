@@ -135,9 +135,6 @@ Examples:
 			}
 
 			builder := robotpkg.NewRobotBuilder().
-				WithName(opts.Name).
-				WithDescription(opts.Description).
-				WithDuration(opts.Duration).
 				SetProjectPermissions(opts.ProjectName, permissions)
 			opts.Permissions = builder.MergePermissions()
 
