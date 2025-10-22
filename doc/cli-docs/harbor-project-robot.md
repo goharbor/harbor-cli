@@ -32,7 +32,7 @@ weight: 40
 
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
 * [harbor project robot create](harbor-project-robot-create.md)	 - create robot
-* [harbor project robot delete](harbor-project-robot-delete.md)	 - delete robot by id
+* [harbor project robot delete](harbor-project-robot-delete.md)	 - delete robot by name
 * [harbor project robot list](harbor-project-robot-list.md)	 - list robot
 * [harbor project robot refresh](harbor-project-robot-refresh.md)	 - refresh robot secret by id
 * [harbor project robot update](harbor-project-robot-update.md)	 - update robot by id

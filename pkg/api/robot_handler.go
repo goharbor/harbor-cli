@@ -18,6 +18,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/permissions"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/constants"
@@ -53,6 +54,50 @@ func GetRobot(robotID int64) (*robot.GetRobotByIDOK, error) {
 	if err != nil {
 		return nil, err
 	}
+	response, err := client.Robot.GetRobotByID(ctx, &robot.GetRobotByIDParams{RobotID: robotID})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRobotByIDOK, error) {
+	var listResponse *robot.ListRobotOK
+	var err error
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+	if len(projectName) > 0 {
+		var project *project.GetProjectOK
+		project, err = GetProject(projectName[0], false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+		}
+		listResponse, err = ListRobot(ListFlags{
+			Q: constants.ProjectQString + strconv.FormatInt(int64(project.Payload.ProjectID), 10),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+		}
+	} else {
+		listResponse, err = ListRobot(ListFlags{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+		}
+	}
+
+	robotID := int64(-1)
+	for _, robotItem := range listResponse.Payload {
+		if robotItem.Name == targetRobotName {
+			robotID = robotItem.ID
+		}
+	}
+	if robotID == -1 {
+		return nil, fmt.Errorf("failed to find robot with name: %v, does it exist?", targetRobotName)
+	}
+
 	response, err := client.Robot.GetRobotByID(ctx, &robot.GetRobotByIDParams{RobotID: robotID})
 	if err != nil {
 		return nil, err
@@ -104,7 +149,6 @@ func DeleteRobot(robotID int64) error {
 	}
 
 	log.Info("robot deleted successfully")
-
 	return nil
 }
 

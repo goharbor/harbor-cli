@@ -15,7 +15,6 @@ package robot
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -28,8 +27,8 @@ import (
 // to-do improve DeleteRobotCommand and multi select & delete
 func DeleteRobotCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete [robotID]",
-		Short: "delete robot by id",
+		Use:   "delete [robotName]",
+		Short: "delete robot by name",
 		Long: `Delete a robot account from Harbor.
 
 This command permanently removes a robot account from Harbor. Once deleted,
@@ -37,7 +36,7 @@ the robot's credentials will no longer be valid, and any automated processes
 using those credentials will fail.
 
 The command supports multiple ways to identify the robot account to delete:
-- By providing the robot ID directly as an argument
+- By providing the robot name directly as an argument
 - Without any arguments, which will prompt for robot selection
 
 Important considerations:
@@ -47,8 +46,8 @@ Important considerations:
 - For system robots, access across all projects will be revoked
 
 Examples:
-  # Delete robot by ID
-  harbor-cli robot delete 123
+  # Delete robot by name
+  harbor-cli robot delete robot_robotname
 
   # Interactive deletion (will prompt for robot selection)
   harbor-cli robot delete`,
@@ -58,11 +57,14 @@ Examples:
 				robotID int64
 				err     error
 			)
+
 			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
+				robotName := args[0]
+				robot, err := api.GetRobotByName(robotName)
 				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", err)
+					log.Fatalf("failed to get robot with name: %v, does it exist?", robotName)
 				}
+				robotID = robot.Payload.ID
 			} else {
 				robotID = prompt.GetRobotIDFromUser(-1)
 			}

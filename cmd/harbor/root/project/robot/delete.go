@@ -29,8 +29,8 @@ import (
 func DeleteRobotCommand() *cobra.Command {
 	var ProjectName string
 	cmd := &cobra.Command{
-		Use:   "delete [robotID]",
-		Short: "delete robot by id",
+		Use:   "delete [robotName]",
+		Short: "delete robot by name",
 		Long: `Delete a robot account from a Harbor project.
 
 This command permanently removes a robot account from Harbor. Once deleted,
@@ -48,8 +48,11 @@ Important considerations:
 - Any systems using the robot's credentials will need to be updated
 
 Examples:
-  # Delete robot by ID
-  harbor-cli project robot delete 123
+  # Delete robot by Name, choose project
+  harbor-cli project robot delete robot_projectname+robotname
+
+  # Delete robot by Name and project name
+  harbor-cli project robot delete robot_projectname+robotname --project projectname
 
   # Delete robot by selecting from a specific project
   harbor-cli project robot delete --project myproject
@@ -63,10 +66,20 @@ Examples:
 				err     error
 			)
 			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", utils.ParseHarborErrorMsg(err))
+				if ProjectName == "" {
+					projectID := prompt.GetProjectIDFromUser()
+					project, err := api.GetProject(strconv.FormatInt(projectID, 10), true)
+					if err != nil {
+						log.Fatalf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
+					}
+					ProjectName = project.Payload.Name
 				}
+				robotName := args[0]
+				robot, err := api.GetRobotByName(robotName, ProjectName)
+				if err != nil {
+					log.Fatalf("failed to get robot with name: %v, does it exist?", robotName)
+				}
+				robotID = robot.Payload.ID
 			} else if ProjectName != "" {
 				project, err := api.GetProject(ProjectName, false)
 				if err != nil {
