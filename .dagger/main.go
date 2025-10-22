@@ -19,7 +19,11 @@ type HarborCli struct {
 // The _full_ pipeline for CI/CD
 // Build Binaries -> Generate zip/tar.gz -> Building .deb & .rpm -> Building Brew Formula
 // -> Publishing to release page -> Publishing to apt
-func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, githubToken *dagger.Secret) (*dagger.Directory, error) {
+func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory,
+	// Secrets
+	githubToken *dagger.Secret, registryPassword *dagger.Secret,
+	registryAddr string, registryUsername string,
+) (*dagger.Directory, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
@@ -58,6 +62,13 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, gith
 		return nil, err
 	}
 	fmt.Println(out)
+
+	// Publishing Image
+	res := pipe.PublishImage(ctx, dist, registryAddr, registryUsername, []string{"latest", m.AppVersion}, registryPassword)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(strings.Join(res, "\n"))
 
 	// Publishing repo
 	err = pipe.AptRepoBuild(ctx, dist, githubToken)

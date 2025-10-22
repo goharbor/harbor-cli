@@ -30,7 +30,8 @@ func (s *Pipeline) Build(ctx context.Context, dist *dagger.Directory) (*dagger.D
 				WithMountedDirectory("/src", s.source).
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", os).
-				WithEnvVariable("GOARCH", arch)
+				WithEnvVariable("GOARCH", arch).
+				WithEnvVariable("CGO_ENABLED", "0")
 
 			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
 			buildTime := time.Now().UTC().Format(time.RFC3339)
