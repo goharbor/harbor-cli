@@ -242,4 +242,16 @@ jobs:
           version: "latest"
           verb: call
           # Using a single large line since, dagger parsing with folded/piped command fails due to improper formatting error
-          args: pipeline --source=. --github-token=env://GITHUB_TOKEN --registry-password=env://REGISTRY_PASSWORD --registry-username=${{ vars.REGISTRY_USERNAME }} --registry-addr=${{ vars.REGISTRY_ADDRESS }}
+          args: pipeline --source=. --github-token=env://GITHUB_TOKEN 
+  
+      - name: Publish and Sign Snapshot Image
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        uses: ./.github/actions/publish-and-sign
+        with:
+          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}

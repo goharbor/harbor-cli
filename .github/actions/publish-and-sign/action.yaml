@@ -2,20 +2,11 @@ name: Publish and Sign Snapshot Image
 description: Publishes and signs a snapshot image using Dagger.
 
 inputs:
-  IMAGE_TAGS:
-    description: 'Tags for the image, e.g. "latest, v1.0.0"'
-    required: true
-  GITHUB_TOKEN:
-    description: 'GitHub token'
-    required: true
-  REGISTRY_PASSWORD:
-    description: 'Registry password'
-    required: true
   REGISTRY_ADDRESS:
-    description: 'Registry address'
+    description: 'Registry address (e.g., ghcr.io)'
     required: true
   REGISTRY_USERNAME:
-    description: 'Registry username'
+    description: 'Registry username (e.g., nucleocode)'
     required: true
 
 runs:
@@ -24,31 +15,30 @@ runs:
     - name: Dagger Version
       uses: sagikazarmark/dagger-version-action@v0.0.1
 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.7.0
 
-    - name: Check Env Variables
+    - name: Debug OIDC Environment
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      run: cosign env
+      run: |
+        echo $REGISTRY_PASSWORD
+        echo "ACTIONS_ID_TOKEN_REQUEST_URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
+        echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN present: $([[ -n \"$ACTIONS_ID_TOKEN_REQUEST_TOKEN\" ]] && echo yes || echo no)"
+        cosign version
 
-    - name: Publish and Sign Snapshot Image
+    - name: Publish and Sign Image
       uses: dagger/dagger-for-github@v7
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
         REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
-        REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
-        IMAGE_TAGS: ${{ inputs.IMAGE_TAGS }}
+        REGISTRY_PASSWORD: ${{ env.REGISTRY_PASSWORD }}
+        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
       with:
         version: ${{ steps.dagger_version.outputs.version }}
         verb: call
-        args: "publish-image-and-sign \
-          --registry='${{ env.REGISTRY_ADDRESS }}' \
-          --registry-username='${{ env.REGISTRY_USERNAME }}' \
-          --registry-password=env:REGISTRY_PASSWORD \
-          --image-tags='${{ env.IMAGE_TAGS}}' \
-          --github-token=env:GITHUB_TOKEN \
-          --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+        args: "publish-and-sign-image --source=. --registry-address=${{ inputs.REGISTRY_ADDRESS }} --registry-username=${{ inputs.REGISTRY_USERNAME }} --registry-password=env://REGISTRY_PASSWORD --github-token=env://GITHUB_TOKEN --actions-idtoken-request-url=env://ACTIONS_ID_TOKEN_REQUEST_URL --actions-idtoken-request-token=env://ACTIONS_ID_TOKEN_REQUEST_TOKEN"

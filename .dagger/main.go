@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"dagger/harbor-cli/image"
 	"dagger/harbor-cli/internal/dagger"
 	"dagger/harbor-cli/pipeline"
 )
@@ -21,8 +22,7 @@ type HarborCli struct {
 // -> Publishing to release page -> Publishing to apt
 func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory,
 	// Secrets
-	githubToken *dagger.Secret, registryPassword *dagger.Secret,
-	registryAddr string, registryUsername string,
+	githubToken *dagger.Secret,
 ) (*dagger.Directory, error) {
 	err := m.init(ctx, source)
 	if err != nil {
@@ -63,20 +63,45 @@ func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory,
 	}
 	fmt.Println(out)
 
-	// Publishing Image
-	res := pipe.PublishImage(ctx, dist, registryAddr, registryUsername, []string{"latest", m.AppVersion}, registryPassword)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(strings.Join(res, "\n"))
-
-	// Publishing repo
-	err = pipe.AptRepoBuild(ctx, dist, githubToken)
-	if err != nil {
-		return nil, err
-	}
+	// // Publishing repo
+	// err = pipe.AptRepoBuild(ctx, dist, githubToken)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return dist, err
+}
+
+func (m *HarborCli) PublishAndSignImage(ctx context.Context, source *dagger.Directory,
+	registryPassword, githubToken, actionsIDTokenRequestURL, actionsIDTokenRequestToken *dagger.Secret,
+	registryAddress, registryUsername string,
+) (*dagger.Directory, error) {
+	err := m.init(ctx, source)
+	if err != nil {
+		return nil, err
+	}
+
+	pipe := image.InitImagePipeline(dag, source, registryPassword, githubToken, actionsIDTokenRequestURL, actionsIDTokenRequestToken,
+		registryAddress, registryUsername, m.AppVersion, m.GoVersion)
+
+	dist := dag.Directory()
+
+	// Building Binaries
+	dist, err = pipe.Build(ctx, dist)
+	if err != nil {
+		return nil, err
+	}
+
+	// Publishing Image
+	imageAddr := pipe.PublishImage(ctx, dist)
+
+	_, err = pipe.Sign(ctx, imageAddr[0])
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(strings.Join(imageAddr, "\n"))
+
+	return dist, nil
 }
 
 func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {
@@ -100,6 +125,10 @@ func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {
 	match := re.FindStringSubmatch(goVersion)
 	if len(match) > 1 {
 		m.GoVersion = match[1]
+	}
+
+	if m.GoVersion == "" {
+		m.GoVersion = "latest"
 	}
 
 	m.Source = source
