@@ -107,7 +107,7 @@ func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRo
 	return response, nil
 }
 
-func CheckRoboWithNameExists(projectID int32, name string) (bool, error) {
+func CheckRobotWithNameExists(projectID int32, name string) (bool, error) {
 	var exists bool = false
 
 	response, err := ListRobot(ListFlags{
