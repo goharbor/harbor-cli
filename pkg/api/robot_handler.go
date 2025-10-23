@@ -98,7 +98,6 @@ func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRo
 	if robotID == -1 {
 		return nil, fmt.Errorf("failed to find robot with name: %v, does it exist?", targetRobotName)
 	}
-
 	response, err := client.Robot.GetRobotByID(ctx, &robot.GetRobotByIDParams{RobotID: robotID})
 	if err != nil {
 		return nil, err
