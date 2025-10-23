@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 	"github.com/zalando/go-keyring"
@@ -35,10 +36,12 @@ type KeyringProvider interface {
 }
 
 var keyringProvider KeyringProvider
+var keyringProviderOnce sync.Once
 
-func init() {
-	// Initialize with the appropriate provider
-	keyringProvider = GetKeyringProvider()
+func ensureKeyringProvider() {
+	keyringProviderOnce.Do(func() {
+		keyringProvider = GetKeyringProvider()
+	})
 }
 
 type SystemKeyring struct{}
@@ -162,6 +165,7 @@ const KeyringService = "harbor-cli"
 const KeyringUser = "harbor-cli-encryption-key"
 
 func GenerateEncryptionKey() error {
+	ensureKeyringProvider()
 	existingKey, err := keyringProvider.Get(KeyringService, KeyringUser)
 	if err == nil && existingKey != "" {
 		return nil
@@ -175,6 +179,7 @@ func GenerateEncryptionKey() error {
 }
 
 func GetEncryptionKey() ([]byte, error) {
+	ensureKeyringProvider()
 	keyBase64, err := keyringProvider.Get(KeyringService, KeyringUser)
 	if err != nil || keyBase64 == "" {
 		// Attempt to generate a new key if not found
