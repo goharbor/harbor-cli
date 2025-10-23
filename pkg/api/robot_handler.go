@@ -92,6 +92,7 @@ func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRo
 	for _, robotItem := range listResponse.Payload {
 		if robotItem.Name == targetRobotName {
 			robotID = robotItem.ID
+			break
 		}
 	}
 	if robotID == -1 {

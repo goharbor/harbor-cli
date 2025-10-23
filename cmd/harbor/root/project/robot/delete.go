@@ -70,7 +70,7 @@ Examples:
 					projectID := prompt.GetProjectIDFromUser()
 					project, err := api.GetProject(strconv.FormatInt(projectID, 10), true)
 					if err != nil {
-						log.Fatalf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
+						log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 					}
 					ProjectName = project.Payload.Name
 				}
