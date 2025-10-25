@@ -24,12 +24,29 @@ import (
 
 func DeleteLabelCommand() *cobra.Command {
 	var opts models.Label
+	var projectName string
+
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Short:   "delete label",
 		Example: "harbor label delete [labelname]",
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Defining ProjectID & Scope based on user inputs
+			if projectName != "" {
+				id, err := api.GetProjectIDFromName(projectName)
+				if err != nil {
+					return err
+				}
+
+				opts.ProjectID = id
+				opts.Scope = "p"
+			} else if opts.ProjectID != 0 {
+				opts.Scope = "p"
+			} else {
+				opts.Scope = "g"
+			}
+
 			deleteView := &api.ListFlags{
 				Scope:     opts.Scope,
 				ProjectID: opts.ProjectID,
@@ -55,8 +72,8 @@ func DeleteLabelCommand() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
-	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "Id of the project when scope is p")
+	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 
 	return cmd
 }

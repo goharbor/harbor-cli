@@ -25,6 +25,7 @@ import (
 
 func UpdateLableCommand() *cobra.Command {
 	opts := &models.Label{}
+	var projectName string
 
 	cmd := &cobra.Command{
 		Use:     "update",
@@ -34,6 +35,22 @@ func UpdateLableCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var labelId int64
+
+			// Defining ProjectID & Scope based on user inputs
+			if projectName != "" {
+				id, err := api.GetProjectIDFromName(projectName)
+				if err != nil {
+					return err
+				}
+
+				opts.ProjectID = id
+				opts.Scope = "p"
+			} else if opts.ProjectID != 0 {
+				opts.Scope = "p"
+			} else {
+				opts.Scope = "g"
+			}
+
 			updateflags := api.ListFlags{
 				Scope:     opts.Scope,
 				ProjectID: opts.ProjectID,
@@ -84,9 +101,9 @@ func UpdateLableCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the label")
 	flags.StringVarP(&opts.Color, "color", "", "", "Color of the label.color is in hex value")
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
+	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
-	flags.Int64VarP(&opts.ProjectID, "project", "i", 1, "Description of the label")
 
 	return cmd
 }

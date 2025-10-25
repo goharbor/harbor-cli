@@ -28,7 +28,6 @@ func CreateLabel(opts create.CreateView) error {
 		return err
 	}
 	_, err = client.Label.CreateLabel(ctx, &label.CreateLabelParams{Label: &models.Label{Name: opts.Name, Color: opts.Color, Description: opts.Description, Scope: opts.Scope, ProjectID: opts.ProjectID}})
-
 	if err != nil {
 		return err
 	}
@@ -43,7 +42,6 @@ func DeleteLabel(Labelid int64) error {
 		return err
 	}
 	_, err = client.Label.DeleteLabel(ctx, &label.DeleteLabelParams{LabelID: Labelid})
-
 	if err != nil {
 		return err
 	}
@@ -73,9 +71,12 @@ func ListLabel(opts ...ListFlags) (*label.ListLabelsOK, error) {
 		Scope:     &listFlags.Scope,
 		ProjectID: &listFlags.ProjectID,
 	})
-
 	if err != nil {
 		return nil, err
+	}
+
+	if len(response.Payload) == 0 {
+		return nil, fmt.Errorf("no labels found")
 	}
 
 	return response, nil
