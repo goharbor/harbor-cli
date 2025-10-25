@@ -74,7 +74,10 @@ Examples:
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
+				projectID, err := prompt.GetProjectIDFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project by id %s: %v", projectID, utils.ParseHarborErrorMsg(err))
+				}
 				robotID = prompt.GetRobotIDFromUser(projectID)
 			}
 			err = api.DeleteRobot(robotID)

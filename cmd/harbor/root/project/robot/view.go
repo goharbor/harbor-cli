@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/view"
 	log "github.com/sirupsen/logrus"
 
@@ -26,9 +27,7 @@ import (
 )
 
 func ViewRobotCommand() *cobra.Command {
-	var (
-		ProjectName string
-	)
+	var ProjectName string
 	cmd := &cobra.Command{
 		Use:   "view [robotID]",
 		Short: "get robot by id",
@@ -78,7 +77,10 @@ Examples:
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
+				projectID, err := prompt.GetProjectIDFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project by id %s: %v", projectID, utils.ParseHarborErrorMsg(err))
+				}
 				robotID = prompt.GetRobotIDFromUser(projectID)
 			}
 

@@ -26,6 +26,8 @@ import (
 
 func ListLabelCommand() *cobra.Command {
 	var opts api.ListFlags
+	var projectName string
+	var isGlobal bool
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -34,6 +36,23 @@ func ListLabelCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
+			// Defining ProjectID & Scope based on user inputs
+			if isGlobal {
+				opts.Scope = "g"
+			} else if projectName != "" {
+				id, err := api.GetProjectIDFromName(projectName)
+				if err != nil {
+					return err
+				}
+
+				opts.ProjectID = id
+				opts.Scope = "p"
+			} else if opts.ProjectID != 0 {
+				opts.Scope = "p"
+			} else {
+				opts.Scope = "g"
 			}
 
 			label, err := api.ListLabel(opts)
@@ -61,8 +80,9 @@ func ListLabelCommand() *cobra.Command {
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 20, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
-	flags.Int64VarP(&opts.ProjectID, "projectid", "i", 1, "project ID when query project labels")
+	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
 
 	return cmd
