@@ -26,6 +26,7 @@ import (
 func UpdateLableCommand() *cobra.Command {
 	opts := &models.Label{}
 	var projectName string
+	var isGlobal bool
 
 	cmd := &cobra.Command{
 		Use:     "update",
@@ -37,7 +38,9 @@ func UpdateLableCommand() *cobra.Command {
 			var labelId int64
 
 			// Defining ProjectID & Scope based on user inputs
-			if projectName != "" {
+			if isGlobal {
+				opts.Scope = "g"
+			} else if projectName != "" {
 				id, err := api.GetProjectIDFromName(projectName)
 				if err != nil {
 					return err
@@ -102,6 +105,7 @@ func UpdateLableCommand() *cobra.Command {
 	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the label")
 	flags.StringVarP(&opts.Color, "color", "", "", "Color of the label.color is in hex value")
 	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
 

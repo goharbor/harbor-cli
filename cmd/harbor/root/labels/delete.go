@@ -25,6 +25,7 @@ import (
 func DeleteLabelCommand() *cobra.Command {
 	var opts models.Label
 	var projectName string
+	var isGlobal bool
 
 	cmd := &cobra.Command{
 		Use:     "delete",
@@ -33,7 +34,9 @@ func DeleteLabelCommand() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Defining ProjectID & Scope based on user inputs
-			if projectName != "" {
+			if isGlobal {
+				opts.Scope = "g"
+			} else if projectName != "" {
 				id, err := api.GetProjectIDFromName(projectName)
 				if err != nil {
 					return err
@@ -73,6 +76,7 @@ func DeleteLabelCommand() *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 
 	return cmd
