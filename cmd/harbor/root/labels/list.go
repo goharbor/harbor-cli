@@ -82,7 +82,7 @@ func ListLabelCommand() *cobra.Command {
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
-	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
 
 	return cmd

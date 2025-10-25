@@ -76,7 +76,7 @@ func DeleteLabelCommand() *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
-	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 
 	return cmd
