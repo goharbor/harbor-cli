@@ -14,9 +14,6 @@
 package labels
 
 import (
-	"fmt"
-
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -33,12 +30,4 @@ func Labels() *cobra.Command {
 	)
 
 	return cmd
-}
-
-func validateOpts(opts api.ListFlags) error {
-	if opts.Scope == "p" && opts.ProjectID == 0 {
-		return fmt.Errorf("project-id not provided when scope is project")
-	}
-
-	return nil
 }

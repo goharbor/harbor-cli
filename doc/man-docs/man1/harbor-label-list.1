@@ -14,6 +14,10 @@ list labels
 
 
 .SH OPTIONS
+\fB--global\fP[=false]
+	whether to list global or project scope labels. (default scope is global)
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for list
 
@@ -26,16 +30,16 @@ list labels
 	Size of per page
 
 .PP
-\fB-i\fP, \fB--project\fP=1
+\fB-p\fP, \fB--project\fP=""
+	project name when query project labels
+
+.PP
+\fB-i\fP, \fB--project-id\fP=0
 	project ID when query project labels
 
 .PP
 \fB-q\fP, \fB--query\fP=""
 	Query string to query resources
-
-.PP
-\fB-s\fP, \fB--scope\fP="g"
-	default(global).'p' for project labels.Query scope of the label
 
 .PP
 \fB--sort\fP=""
