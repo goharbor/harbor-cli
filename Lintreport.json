@@ -1,3 +1,0 @@
-cmd/harbor/root/project/robot/delete.go:79:6   govet  printf: github.com/sirupsen/logrus.Fatalf format %s has arg projectID of wrong type int64
-cmd/harbor/root/project/robot/list.go:86:6     govet  printf: github.com/sirupsen/logrus.Fatalf format %s has arg projectID of wrong type int64
-cmd/harbor/root/project/robot/refresh.go:86:6  govet  printf: github.com/sirupsen/logrus.Fatalf format %s has arg projectID of wrong type int64
