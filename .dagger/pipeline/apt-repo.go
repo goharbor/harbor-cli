@@ -60,7 +60,7 @@ EOF`,
         cd /repo
 
         git init
-        git remote add origin https://x-access-token:$GH_TOKEN@github.com/goharbor/harbor-cli.git
+        git remote add origin https://x-access-token:$GH_TOKEN@github.com/nucleofusion/harbor-cli.git
         git checkout -B gh-pages || git checkout --orphan gh-pages
 
         git config user.name "github-actions[bot]"
