@@ -75,7 +75,7 @@ harbor project robot create [flags]
   -h, --help                       help for create
       --name string                name of the robot account
       --project string             set project name
-  -r, --robot-config-file string   YAML/JSON file with robot configuration
+  -f, --robot-config-file string   YAML/JSON file with robot configuration
 ```
 
 ### Options inherited from parent commands
