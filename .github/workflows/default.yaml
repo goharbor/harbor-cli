@@ -102,25 +102,6 @@ jobs:
               exit 1
           fi
 
-  # TODO: Add Dry-run support 
-  # test-release:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #
-  #     - name: Dagger Version
-  #       uses: sagikazarmark/dagger-version-action@v0.0.1
-  #
-  #     - name: Test Release
-  #       uses: dagger/dagger-for-github@v7
-  #       with:
-  #         version: ${{ steps.dagger_version.outputs.version }}
-  #         verb: call
-  #         args: snapshot-release
-
   test-code:
     runs-on: ubuntu-latest
     steps:

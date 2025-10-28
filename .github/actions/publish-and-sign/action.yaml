@@ -31,9 +31,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      run: |
-        echo $REGISTRY_PASSWORD
-        cosign env
+      run: cosign env
 
     - name: Publish and Sign Snapshot Image
       uses: dagger/dagger-for-github@v7
