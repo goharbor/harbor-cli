@@ -49,7 +49,10 @@ A user can create up to 15 tag retention rules per project.`,
 			}
 
 			if projectID == -1 && projectName == "" {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
 			}
 
 			projectIDorName := ""

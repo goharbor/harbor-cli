@@ -76,7 +76,6 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 			Rules:     []*models.RetentionRule{newRule},
 		},
 	})
-
 	if err != nil {
 		return err
 	}

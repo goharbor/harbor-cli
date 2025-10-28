@@ -50,7 +50,12 @@ Examples:
 			}
 
 			if projectID == -1 && projectName == "" {
-				projectName = prompt.GetProjectNameFromUser()
+				name, err := prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
+
+				projectName = name
 			}
 
 			projectIDStr := ""
@@ -73,7 +78,6 @@ Examples:
 			}
 			retentionIndex := prompt.GetRetentionTagRule(retentionID)
 			err = api.DeleteRetention(projectName, int(retentionIndex))
-
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
