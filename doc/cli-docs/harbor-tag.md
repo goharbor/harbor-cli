@@ -1,6 +1,10 @@
 ---
 title: harbor tag
+<<<<<<< HEAD
 weight: 80
+=======
+weight: 95
+>>>>>>> f2c75e7 (add documentation)
 ---
 ## harbor tag
 
@@ -10,7 +14,7 @@ weight: 80
 
 ### Synopsis
 
-Manage tags in the Harbor registry, including creating, listing, and deleting rules.
+Manage tags in the Harbor registry, including creating, listing, and deleting retention policies.
 
 ### Options
 
@@ -30,4 +34,5 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor tag immutable](harbor-tag-immutable.md)	 - Manage Immutability rules in the project
+* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention policies in the project
 
