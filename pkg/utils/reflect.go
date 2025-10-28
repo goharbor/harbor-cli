@@ -109,6 +109,35 @@ func ExtractConfigurationsByCategory(resp *models.ConfigurationsResponse, catego
 	return targetConfigurationsPointer
 }
 
+func ExtractNonNullConfigurations(resp *models.ConfigurationsResponse) *models.Configurations {
+	if resp == nil {
+		return &models.Configurations{}
+	}
+	targetConfigurationsPointer := &models.Configurations{}
+	targetConfigurationsObject := reflect.ValueOf(targetConfigurationsPointer).Elem()
+	apiConfigurationsResponseObject := reflect.ValueOf(resp).Elem()
+	apiConfigurationsResponseType := apiConfigurationsResponseObject.Type()
+
+	for i := 0; i < apiConfigurationsResponseObject.NumField(); i++ {
+		responseObjField := apiConfigurationsResponseObject.Field(i)
+		responseObjFieldName := apiConfigurationsResponseType.Field(i).Name
+
+		// Check if this field belongs to the requested category
+		if !IsCategory(responseObjFieldName, category) {
+			continue // Skip fields that don't match the category
+		}
+
+		targetConfigurationsField := targetConfigurationsObject.FieldByName(responseObjFieldName)
+
+		if targetConfigurationsField.IsValid() && targetConfigurationsField.CanSet() {
+			isSecretField := isSecretConfigurationField(responseObjFieldName)
+			convertAndSetField(responseObjField, targetConfigurationsField, isSecretField)
+		}
+	}
+
+	return targetConfigurationsPointer
+}
+
 func isSecretConfigurationField(fieldName string) bool {
 	secretFields := map[string]bool{
 		"OIDCClientSecret":   true,
