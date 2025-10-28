@@ -78,15 +78,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Dagger Version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
 
       - name: Run Vulnerability Check
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: vulnerability-check-report export --path=vulnerability-check.report
+        run: |
+          go build -o ./tmp/harbor ./cmd/harbor || true
+
+          go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
+
+          $(go env GOPATH)/bin/govulncheck -mode=binary ./tmp/harbor | tee vulnerability-check.report || true
 
       - name: Generate vulnerability summary
         run: |
@@ -94,8 +97,7 @@ jobs:
           cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
           # Check if the lint report contains any content (error or issues)
           if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
-              # If the file contains content, output an error message and exit with code 1
-              echo "⚠️ Linting issues found!" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ Vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
               exit 1
           fi
 
