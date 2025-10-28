@@ -59,7 +59,12 @@ Examples:
 			}
 
 			if projectID == -1 && projectName == "" {
-				projectName = prompt.GetProjectNameFromUser()
+				name, err := prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
+
+				projectName = name
 			}
 
 			projectIDStr := ""
@@ -75,10 +80,12 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
+
 			resp, err := api.ListRetention(retentionID)
 			if err != nil {
 				return fmt.Errorf("failed to list retention rules: %w", err)
 			}
+
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				utils.PrintPayloadInJSONFormat(resp)

@@ -49,7 +49,10 @@ A user can create up to 15 tag retention rules per project.`,
 			}
 
 			if projectID == -1 && projectName == "" {
-				projectName = prompt.GetProjectNameFromUser()
+				projectName, err = prompt.GetProjectNameFromUser()
+				if err != nil {
+					return err
+				}
 			}
 
 			projectIDorName := ""
@@ -82,7 +85,6 @@ A user can create up to 15 tag retention rules per project.`,
 			}
 
 			err = createRetentionView(createView, projectIDorName, isName)
-
 			if err != nil {
 				log.Errorf("Failed to create tag retention rule: %v", err)
 			}
