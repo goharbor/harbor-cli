@@ -20,7 +20,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -60,7 +59,7 @@ Examples:
   # Interactive deletion (will prompt for project and robot selection)
   harbor-cli project robot delete`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				robotID int64
 				err     error
@@ -70,20 +69,20 @@ Examples:
 					projectID := prompt.GetProjectIDFromUser()
 					project, err := api.GetProject(strconv.FormatInt(projectID, 10), true)
 					if err != nil {
-						log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+						return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 					}
 					ProjectName = project.Payload.Name
 				}
 				robotName := args[0]
 				robot, err := api.GetRobotByName(robotName, ProjectName)
 				if err != nil {
-					log.Fatalf("failed to get robot with name: %v, does it exist?", robotName)
+					fmt.Print(utils.ParseHarborErrorMsg(err))
 				}
 				robotID = robot.Payload.ID
 			} else if ProjectName != "" {
 				project, err := api.GetProject(ProjectName, false)
 				if err != nil {
-					log.Fatalf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
@@ -92,11 +91,10 @@ Examples:
 			}
 			err = api.DeleteRobot(robotID)
 			if err != nil {
-				fmt.Printf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
-				return
+				return fmt.Errorf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
 			}
-			log.Infof("Successfully deleted robot with ID: %d", robotID)
 			fmt.Printf("Robot account (ID: %d) was successfully deleted\n", robotID)
+			return nil
 		},
 	}
 

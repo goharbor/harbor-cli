@@ -63,11 +63,28 @@ func GetRobot(robotID int64) (*robot.GetRobotByIDOK, error) {
 }
 
 func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRobotByIDOK, error) {
+	if len(projectName) > 1 {
+		return nil, fmt.Errorf("only one project name can be provided")
+	}
 	var listResponse *robot.ListRobotOK
 	var err error
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
+	}
+	configurations, err := GetConfigurations()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get configurations: %v", utils.ParseHarborErrorMsg(err))
+	}
+	robotNamePrefix := configurations.Payload.RobotNamePrefix.Value
+	queryName := ""
+	// Remove prefix from targetRobotName if it exists in the name
+	// Otherwise, use the targetRobotName as is
+	// If there is an error in the targetRobotName, it will be caught later when no robots are found
+	if len(targetRobotName) >= len(robotNamePrefix) && targetRobotName[:len(robotNamePrefix)] == robotNamePrefix {
+		queryName = targetRobotName[len(robotNamePrefix):]
+	} else {
+		queryName = targetRobotName
 	}
 	if len(projectName) > 0 {
 		var project *project.GetProjectOK
@@ -76,33 +93,28 @@ func GetRobotByName(targetRobotName string, projectName ...string) (*robot.GetRo
 			return nil, fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
 		}
 		listResponse, err = ListRobot(ListFlags{
-			Q: constants.ProjectQString + strconv.FormatInt(int64(project.Payload.ProjectID), 10),
+			Q: constants.ProjectQString + strconv.FormatInt(int64(project.Payload.ProjectID), 10) + "name=" + queryName,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
 		}
 	} else {
-		listResponse, err = ListRobot(ListFlags{})
+		listResponse, err = ListRobot(ListFlags{
+			Q: "name=" + queryName,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
 		}
 	}
-
-	robotID := int64(-1)
-	for _, robotItem := range listResponse.Payload {
-		if robotItem.Name == targetRobotName {
-			robotID = robotItem.ID
-			break
-		}
+	if len(listResponse.Payload) > 1 {
+		return nil, fmt.Errorf("multiple robots found with name: %v", targetRobotName)
+	} else if len(listResponse.Payload) == 0 {
+		return nil, fmt.Errorf("no robot found with name: %v, does it exist?", targetRobotName)
 	}
-	if robotID == -1 {
-		return nil, fmt.Errorf("failed to find robot with name: %v, does it exist?", targetRobotName)
-	}
-	response, err := client.Robot.GetRobotByID(ctx, &robot.GetRobotByIDParams{RobotID: robotID})
+	response, err := client.Robot.GetRobotByID(ctx, &robot.GetRobotByIDParams{RobotID: listResponse.Payload[0].ID})
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }
 
