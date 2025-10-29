@@ -2,11 +2,11 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-robot-delete - delete robot by id
+harbor-project-robot-delete - delete robot by name
 
 
 .SH SYNOPSIS
-\fBharbor project robot delete [robotID] [flags]\fP
+\fBharbor project robot delete [robotName] [flags]\fP
 
 
 .SH DESCRIPTION
@@ -31,8 +31,12 @@ Important considerations:
 
 .PP
 Examples:
-  # Delete robot by ID
-  harbor-cli project robot delete 123
+  # Delete robot by Name, choose project
+  harbor-cli project robot delete robot_projectname+robotname
+
+.PP
+# Delete robot by Name and project name
+  harbor-cli project robot delete robot_projectname+robotname --project projectname
 
 .PP
 # Delete robot by selecting from a specific project

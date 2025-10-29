@@ -6,7 +6,7 @@ weight: 10
 
 ### Description
 
-##### delete robot by id
+##### delete robot by name
 
 ### Synopsis
 
@@ -17,7 +17,7 @@ the robot's credentials will no longer be valid, and any automated processes
 using those credentials will fail.
 
 The command supports multiple ways to identify the robot account to delete:
-- By providing the robot ID directly as an argument
+- By providing the robot name directly as an argument
 - Without any arguments, which will prompt for robot selection
 
 Important considerations:
@@ -27,14 +27,14 @@ Important considerations:
 - For system robots, access across all projects will be revoked
 
 Examples:
-  # Delete robot by ID
-  harbor-cli robot delete 123
+  # Delete robot by name
+  harbor-cli robot delete robot_robotname
 
   # Interactive deletion (will prompt for robot selection)
   harbor-cli robot delete
 
 ```sh
-harbor robot delete [robotID] [flags]
+harbor robot delete [robotName] [flags]
 ```
 
 ### Options

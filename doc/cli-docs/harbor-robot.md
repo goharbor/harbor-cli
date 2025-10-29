@@ -32,7 +32,7 @@ weight: 75
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor robot create](harbor-robot-create.md)	 - create robot
-* [harbor robot delete](harbor-robot-delete.md)	 - delete robot by id
+* [harbor robot delete](harbor-robot-delete.md)	 - delete robot by name
 * [harbor robot list](harbor-robot-list.md)	 - list robot
 * [harbor robot refresh](harbor-robot-refresh.md)	 - refresh robot secret by id
 * [harbor robot update](harbor-robot-update.md)	 - update robot by id
