@@ -62,7 +62,7 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
 				}
-				robotID = robot.Payload.ID
+				robotID = robot.ID
 			} else {
 				robotID = prompt.GetRobotIDFromUser(-1)
 			}

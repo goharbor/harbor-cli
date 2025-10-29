@@ -78,7 +78,7 @@ Examples:
 				if err != nil {
 					fmt.Print(utils.ParseHarborErrorMsg(err))
 				}
-				robotID = robot.Payload.ID
+				robotID = robot.ID
 			} else if ProjectName != "" {
 				project, err := api.GetProject(ProjectName, false)
 				if err != nil {
