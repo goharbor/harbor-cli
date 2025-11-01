@@ -25,10 +25,15 @@ import (
 )
 
 func ListLabelCommand() *cobra.Command {
-	var opts api.ListFlags
-	var projectName string
-	var isGlobal bool
-
+	var (
+		opts        api.ListFlags
+		projectName string
+		isGlobal    bool
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list labels",
@@ -55,14 +60,22 @@ func ListLabelCommand() *cobra.Command {
 				opts.Scope = "g"
 			}
 
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"name", "id", "label_id", "creation_time", "owner_id", "color", "description"},
+				)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
+			}
+
 			label, err := api.ListLabel(opts)
 			if err != nil {
 				log.Fatalf("failed to get label list: %v", err)
 			}
-			if len(label.Payload) == 0 {
-				log.Info("No labels found")
-				return nil
-			}
+
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				err = utils.PrintFormat(label, formatFlag)
@@ -72,6 +85,7 @@ func ListLabelCommand() *cobra.Command {
 			} else {
 				list.ListLabels(label.Payload)
 			}
+
 			return nil
 		},
 	}
@@ -84,6 +98,9 @@ func ListLabelCommand() *cobra.Command {
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }
