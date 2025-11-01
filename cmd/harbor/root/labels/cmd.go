@@ -13,7 +13,9 @@
 // limitations under the License.
 package labels
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
 func Labels() *cobra.Command {
 	cmd := &cobra.Command{

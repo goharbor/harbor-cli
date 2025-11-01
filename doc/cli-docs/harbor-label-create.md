@@ -29,6 +29,7 @@ harbor label create
   -d, --description string   Description of the label
   -h, --help                 help for create
   -n, --name string          Name of the label
+  -i, --project int          Id of the project when scope is p
   -s, --scope string         Scope of the label. eg- g(global), p(specific project) (default "g")
 ```
 
