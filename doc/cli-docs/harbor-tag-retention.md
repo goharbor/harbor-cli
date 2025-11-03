@@ -42,7 +42,7 @@ A user can only create up to 15 tag retention rules per project.
 
 ### SEE ALSO
 
-* [harbor tag](harbor-tag.md)	 - Manage tag rules in Harbor registry
+* [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry
 * [harbor tag retention create](harbor-tag-retention-create.md)	 - Create a tag retention rule in a project
 * [harbor tag retention delete](harbor-tag-retention-delete.md)	 - Delete a tag retention rule for a project
 * [harbor tag retention list](harbor-tag-retention-list.md)	 - List tag retention rules of a project
