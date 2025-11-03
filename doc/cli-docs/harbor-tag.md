@@ -1,10 +1,6 @@
 ---
 title: harbor tag
-<<<<<<< HEAD
-weight: 80
-=======
-weight: 95
->>>>>>> f2c75e7 (add documentation)
+weight: 95 
 ---
 ## harbor tag
 
