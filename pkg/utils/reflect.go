@@ -109,35 +109,6 @@ func ExtractConfigurationsByCategory(resp *models.ConfigurationsResponse, catego
 	return targetConfigurationsPointer
 }
 
-func ExtractNonNullConfigurations(resp *models.ConfigurationsResponse) *models.Configurations {
-	if resp == nil {
-		return &models.Configurations{}
-	}
-	targetConfigurationsPointer := &models.Configurations{}
-	targetConfigurationsObject := reflect.ValueOf(targetConfigurationsPointer).Elem()
-	apiConfigurationsResponseObject := reflect.ValueOf(resp).Elem()
-	apiConfigurationsResponseType := apiConfigurationsResponseObject.Type()
-
-	for i := 0; i < apiConfigurationsResponseObject.NumField(); i++ {
-		responseObjField := apiConfigurationsResponseObject.Field(i)
-		responseObjFieldName := apiConfigurationsResponseType.Field(i).Name
-
-		// Check if this field belongs to the requested category
-		if !IsCategory(responseObjFieldName, category) {
-			continue // Skip fields that don't match the category
-		}
-
-		targetConfigurationsField := targetConfigurationsObject.FieldByName(responseObjFieldName)
-
-		if targetConfigurationsField.IsValid() && targetConfigurationsField.CanSet() {
-			isSecretField := isSecretConfigurationField(responseObjFieldName)
-			convertAndSetField(responseObjField, targetConfigurationsField, isSecretField)
-		}
-	}
-
-	return targetConfigurationsPointer
-}
-
 func isSecretConfigurationField(fieldName string) bool {
 	secretFields := map[string]bool{
 		"OIDCClientSecret":   true,
@@ -145,4 +116,52 @@ func isSecretConfigurationField(fieldName string) bool {
 		"LdapSearchPassword": true,
 	}
 	return secretFields[fieldName]
+}
+
+type ConfigType interface {
+	*models.Configurations | *models.ConfigurationsResponse
+}
+
+func ExtractConfigValues[T ConfigType](cfg T) map[string]any {
+	result := make(map[string]any)
+	if cfg == nil {
+		return result
+	}
+	v := reflect.ValueOf(cfg).Elem()
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := t.Field(i).Name
+		// Skip nil pointers
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			continue
+		}
+		configItem := field.Interface()
+		// Use type switch to extract the correct Value
+		switch v := configItem.(type) {
+		case *models.StringConfigItem:
+			if v.Value != "" {
+				result[fieldName] = v.Value
+			}
+		case *models.BoolConfigItem:
+			result[fieldName] = v.Value
+		case *models.IntegerConfigItem:
+			result[fieldName] = v.Value
+		case *string:
+			if v != nil && *v != "" {
+				result[fieldName] = *v
+			}
+		default:
+			// Handle generic pointer types using reflection
+			val := reflect.ValueOf(configItem)
+			if val.Kind() == reflect.Ptr && !val.IsNil() {
+				deref := val.Elem()
+				// Only include non-zero values
+				if deref.IsValid() && !deref.IsZero() {
+					result[fieldName] = deref.Interface()
+				}
+			}
+		}
+	}
+	return result
 }

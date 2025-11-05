@@ -14,19 +14,26 @@
 package configurations
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	view "github.com/goharbor/harbor-cli/pkg/views/configurations/diff"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
 func ApplyConfigCmd() *cobra.Command {
 	var cfgFile string
+	var skipConfirm bool
+
 	cmd := &cobra.Command{
 		Use:   "apply",
 		Short: "Update system configurations from local config file",
@@ -59,6 +66,48 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				}
 			} else {
 				return fmt.Errorf("no config file specified")
+			}
+
+			response, err := api.GetConfigurations()
+			if err != nil {
+				return err
+			}
+			upstreamConfigs := utils.ExtractConfigValues(response.Payload) // *models.ConfigurationsResponse
+			localConfigs := utils.ExtractConfigValues(configurations)      // *models.Configurations
+
+			hasChanges := false
+			for field, localVal := range localConfigs {
+				upstreamVal, exists := upstreamConfigs[field]
+				if !exists || fmt.Sprintf("%v", upstreamVal) != fmt.Sprintf("%v", localVal) {
+					hasChanges = true
+					break
+				}
+			}
+			if !hasChanges {
+				successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true)
+				fmt.Println(successStyle.Render("✓ No changes detected."))
+				return nil
+			}
+			// Show diff
+			view.DiffConfigurations(upstreamConfigs, localConfigs)
+
+			// Confirmation prompt
+			if !skipConfirm {
+				promptStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("3"))
+				fmt.Print(promptStyle.Render("Do you want to apply these changes? (y/N): "))
+
+				reader := bufio.NewReader(os.Stdin)
+				userResponse, err := reader.ReadString('\n')
+				if err != nil {
+					return fmt.Errorf("failed to read user input: %v", err)
+				}
+
+				userResponse = strings.TrimSpace(strings.ToLower(userResponse))
+				if userResponse != "y" && userResponse != "yes" {
+					cancelStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+					fmt.Println(cancelStyle.Render("✗ Configuration update cancelled."))
+					return nil
+				}
 			}
 
 			err = api.UpdateConfigurations(configurations)

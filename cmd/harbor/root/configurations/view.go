@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/configure"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/configurations/view"
@@ -72,19 +71,15 @@ Examples:
 				return err
 			}
 
-			var configurationsResponse *configure.GetConfigurationsOK
-
-			configurations := utils.ExtractNonNullConfigurations(response.Payload)
-
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				configurations := utils.ExtractConfigurationsByCategory(configurations, expandedCategory)
+				configurations := utils.ExtractConfigurationsByCategory(response.Payload, expandedCategory)
 				err = utils.PrintFormat(configurations, FormatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				view.ViewConfigurations(configurations, expandedCategory)
+				view.ViewConfigurations(response.Payload, expandedCategory)
 			}
 			return nil
 		},
