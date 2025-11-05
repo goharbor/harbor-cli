@@ -121,6 +121,7 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&cfgFile, "configurations-file", "f", "", "Harbor configurations file to apply.")
+	flags.BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation prompt before applying changes.")
 
 	return cmd
 }
