@@ -77,9 +77,12 @@ func DiffConfigurations(upstreamConfigs, localConfigs map[string]interface{}) {
 	oldValueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 	newValueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
 	grayStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	infoStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 
 	// Header
 	fmt.Println(headerStyle.Render("Configuration changes to be applied:"))
+	fmt.Println(infoStyle.Render("(For available configuration fields, see: https://github.com/goharbor/go-client/blob/main/pkg/sdk/v2.0/models/configurations.go)"))
+
 	fmt.Println()
 
 	// Summary
