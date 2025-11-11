@@ -37,6 +37,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	rmodel "github.com/goharbor/harbor-cli/pkg/models/robot"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"gopkg.in/yaml.v2"
 )
@@ -131,8 +132,8 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 }
 
 // Process permission scopes
-func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*create.RobotPermission, error) {
-	var result []*create.RobotPermission
+func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*rmodel.RobotPermission, error) {
+	var result []*rmodel.RobotPermission
 
 	// Get available permissions for validation
 	availablePerms, err := GetAllAvailablePermissions()
@@ -153,7 +154,7 @@ func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*cr
 			return nil, fmt.Errorf("project robots can only have project permission scopes, found %s", scopeKind)
 		}
 
-		robotPerm := &create.RobotPermission{
+		robotPerm := &rmodel.RobotPermission{
 			Kind:      scopeKind,
 			Namespace: scope.Namespace,
 			Access:    []*models.Access{},

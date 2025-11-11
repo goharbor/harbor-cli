@@ -20,8 +20,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	"github.com/sirupsen/logrus"
@@ -146,7 +146,7 @@ Examples:
 
 			// Handle configuration from file or interactive input
 			if configFile != "" {
-				if err := loadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
+				if err := robotpkg.LoadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			} else {
@@ -165,7 +165,7 @@ Examples:
 			}
 
 			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
+			opts.Permissions = robotpkg.BuildPermissions(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
@@ -174,65 +174,6 @@ Examples:
 
 	addUpdateFlags(cmd, &opts, &all, &configFile)
 	return cmd
-}
-
-func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
-	fmt.Println("Loading configuration from: ", configFile)
-
-	loadedOpts, err := config.LoadRobotConfigFromFile(configFile)
-	if err != nil {
-		return fmt.Errorf("failed to load robot config from file: %v", err)
-	}
-
-	logrus.Info("Successfully loaded robot configuration")
-
-	// Only update fields that should be updated from the config file
-	// IMPORTANT: Do not update name or level as the Harbor API doesn't allow this
-	// if loadedOpts.Name != "" {
-	//     opts.Name = loadedOpts.Name
-	// }
-	if loadedOpts.Description != "" {
-		opts.Description = loadedOpts.Description
-	}
-	if loadedOpts.Duration != 0 {
-		opts.Duration = loadedOpts.Duration
-	}
-
-	var systemPermFound bool
-	for _, perm := range loadedOpts.Permissions {
-		if perm.Kind == "system" && perm.Namespace == "/" {
-			systemPermFound = true
-			for _, access := range perm.Access {
-				*permissions = append(*permissions, models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				})
-			}
-		} else if perm.Kind == "project" {
-			var projectPerms []models.Permission
-			for _, access := range perm.Access {
-				projectPerms = append(projectPerms, models.Permission{
-					Resource: access.Resource,
-					Action:   access.Action,
-				})
-			}
-			// Validate project permissions before adding
-			validProjectPerms, err := validateProjectPermissions(projectPerms)
-			if err != nil {
-				return err
-			}
-			projectPermissionsMap[perm.Namespace] = validProjectPerms
-		}
-	}
-
-	if !systemPermFound {
-		return fmt.Errorf("robot configuration must include system-level permissions")
-	}
-
-	logrus.Infof("Loaded robot update with %d system permissions and %d project-specific permissions",
-		len(*permissions), len(projectPermissionsMap))
-
-	return nil
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
@@ -267,301 +208,12 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 		return nil
 	}
 
-	// Get system permissions
-	if err := getSystemPermissionsForUpdate(all, permissions); err != nil {
+	// Get system permissions (update flow: ask for confirmation to change)
+	if err := robotpkg.GetSystemPermissions(true, false, all, permissions); err != nil {
 		return err
 	}
 
-	// Get project permissions
-	return getProjectPermissionsForUpdate(opts, projectPermissionsMap)
-}
-
-func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) error {
-	var updateSystem bool
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[bool]().
-				Title("Do you want to update system permissions?").
-				Options(
-					huh.NewOption("No", false),
-					huh.NewOption("Yes", true),
-				).
-				Value(&updateSystem),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
-
-	if err != nil {
-		return fmt.Errorf("error asking about system permission updates: %v", err)
-	}
-
-	if !updateSystem {
-		logrus.Info("Keeping existing system permissions")
-		return nil
-	}
-
-	if all {
-		perms, _ := api.GetPermissions()
-		*permissions = nil // Clear existing permissions
-		for _, perm := range perms.Payload.System {
-			*permissions = append(*permissions, *perm)
-		}
-	} else {
-		newPermissions := prompt.GetRobotPermissionsFromUser("system")
-		if len(newPermissions) == 0 {
-			return fmt.Errorf("failed to update robot: %v",
-				utils.ParseHarborErrorMsg(fmt.Errorf("no permissions selected, robot account needs at least one permission")))
-		}
-		*permissions = newPermissions
-	}
-	return nil
-}
-
-func getProjectPermissionsForUpdate(opts *update.UpdateView, projectPermissionsMap map[string][]models.Permission) error {
-	permissionMode, err := promptPermissionModeForUpdate(len(projectPermissionsMap) > 0)
-	if err != nil {
-		return fmt.Errorf("error selecting permission mode: %v", err)
-	}
-
-	switch permissionMode {
-	case "keep":
-		logrus.Info("Keeping existing project permissions")
-		return nil
-	case "clear":
-		logrus.Info("Clearing all project permissions")
-		// Clear the map to remove all project permissions
-		for k := range projectPermissionsMap {
-			delete(projectPermissionsMap, k)
-		}
-		return nil
-	case "list":
-		return handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap)
-	case "per_project":
-		return handlePerProjectPermissionsForUpdate(projectPermissionsMap)
-	default:
-		return fmt.Errorf("unknown permission mode: %s", permissionMode)
-	}
-}
-
-func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string][]models.Permission) error {
-	// First, decide whether to replace or keep existing project permissions
-	if len(projectPermissionsMap) > 0 {
-		var replaceExisting bool
-		err := huh.NewForm(
-			huh.NewGroup(
-				huh.NewSelect[bool]().
-					Title("What do you want to do with existing project permissions?").
-					Options(
-						huh.NewOption("Keep existing and add new", false),
-						huh.NewOption("Replace all existing with new selection", true),
-					).
-					Value(&replaceExisting),
-			),
-		).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
-
-		if err != nil {
-			return fmt.Errorf("error asking about existing permissions: %v", err)
-		}
-
-		if replaceExisting {
-			// Clear the map to remove all project permissions
-			for k := range projectPermissionsMap {
-				delete(projectPermissionsMap, k)
-			}
-		}
-	}
-
-	selectedProjects, err := getMultipleProjectsFromUser()
-	if err != nil {
-		return fmt.Errorf("error selecting projects: %v", err)
-	}
-
-	if len(selectedProjects) > 0 {
-		fmt.Println("Select permissions to apply to all selected projects:")
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
-
-		// Validate project permissions
-		validProjectPerms, err := validateProjectPermissions(projectPermissions)
-		if err != nil {
-			return err
-		}
-
-		for _, projectName := range selectedProjects {
-			projectPermissionsMap[projectName] = validProjectPerms
-		}
-	}
-
-	return nil
-}
-
-func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]models.Permission) error {
-	// First, decide whether to replace or keep existing project permissions
-	if len(projectPermissionsMap) > 0 {
-		var modifyMode string
-		err := huh.NewForm(
-			huh.NewGroup(
-				huh.NewSelect[string]().
-					Title("How do you want to modify project permissions?").
-					Options(
-						huh.NewOption("Add new projects only", "add"),
-						huh.NewOption("Modify existing projects", "modify"),
-						huh.NewOption("Replace all existing with new projects", "replace"),
-					).
-					Value(&modifyMode),
-			),
-		).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
-
-		if err != nil {
-			return fmt.Errorf("error asking about permission modification: %v", err)
-		}
-
-		if modifyMode == "replace" {
-			// Clear the map to remove all project permissions
-			for k := range projectPermissionsMap {
-				delete(projectPermissionsMap, k)
-			}
-		} else if modifyMode == "modify" {
-			// Show existing projects and let user select which to modify
-			var existingProjects []string
-			for project := range projectPermissionsMap {
-				existingProjects = append(existingProjects, project)
-			}
-
-			var selectedProjects []string
-			var projectOptions []huh.Option[string]
-
-			for _, p := range existingProjects {
-				projectOptions = append(projectOptions, huh.NewOption(p, p))
-			}
-
-			err = huh.NewForm(
-				huh.NewGroup(
-					huh.NewMultiSelect[string]().
-						Title("Select projects to modify").
-						Options(projectOptions...).
-						Value(&selectedProjects),
-				),
-			).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
-
-			if err != nil {
-				return fmt.Errorf("error selecting projects to modify: %v", err)
-			}
-
-			// Update permissions for selected projects
-			for _, project := range selectedProjects {
-				fmt.Printf("Updating permissions for project: %s\n", project)
-				projectPerms := prompt.GetRobotPermissionsFromUser("project")
-
-				// Validate project permissions
-				validProjectPerms, err := validateProjectPermissions(projectPerms)
-				if err != nil {
-					return err
-				}
-
-				projectPermissionsMap[project] = validProjectPerms
-			}
-
-			return nil
-		}
-	}
-
-	// Add new projects
-	for {
-		projectName, err := prompt.GetProjectNameFromUser()
-		if err != nil {
-			return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
-		}
-		if projectName == "" {
-			return fmt.Errorf("project name cannot be empty")
-		}
-
-		projectPerms := prompt.GetRobotPermissionsFromUser("project")
-
-		// Validate project permissions
-		validProjectPerms, err := validateProjectPermissions(projectPerms)
-		if err != nil {
-			return err
-		}
-
-		projectPermissionsMap[projectName] = validProjectPerms
-
-		moreProjects, err := promptMoreProjects()
-		if err != nil {
-			return fmt.Errorf("error asking for more projects: %v", err)
-		}
-		if !moreProjects {
-			break
-		}
-	}
-
-	return nil
-}
-
-// validateProjectPermissions filters out permissions that are not valid for projects
-func validateProjectPermissions(permissions []models.Permission) ([]models.Permission, error) {
-	perms, err := api.GetPermissions()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get valid permissions: %v", err)
-	}
-
-	// Create a map of valid project permissions
-	validProjectPerms := make(map[string]bool)
-	for _, perm := range perms.Payload.Project {
-		key := fmt.Sprintf("%s:%s", perm.Resource, perm.Action)
-		validProjectPerms[key] = true
-	}
-
-	// Filter the permissions
-	var validPerms []models.Permission
-	var invalidPerms []string
-
-	for _, perm := range permissions {
-		key := fmt.Sprintf("%s:%s", perm.Resource, perm.Action)
-		if validProjectPerms[key] {
-			validPerms = append(validPerms, perm)
-		} else {
-			invalidPerms = append(invalidPerms, key)
-		}
-	}
-
-	// Warn about invalid permissions
-	if len(invalidPerms) > 0 {
-		logrus.Warnf("Removed %d invalid project permissions: %v", len(invalidPerms), invalidPerms)
-	}
-
-	return validPerms, nil
-}
-
-func buildMergedPermissionsForUpdate(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*update.RobotPermission {
-	var mergedPermissions []*update.RobotPermission
-
-	// Add project permissions
-	for projectName, projectPermissions := range projectPermissionsMap {
-		var accessesProject []*models.Access
-		for _, perm := range projectPermissions {
-			accessesProject = append(accessesProject, &models.Access{
-				Resource: perm.Resource,
-				Action:   perm.Action,
-			})
-		}
-		if len(accessesProject) > 0 {
-			mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-				Namespace: projectName,
-				Access:    accessesProject,
-				Kind:      "project",
-			})
-		}
-	}
-
-	if len(accessesSystem) > 0 {
-		// Add system permissions only if there are any
-		mergedPermissions = append(mergedPermissions, &update.RobotPermission{
-			Namespace: "/",
-			Access:    accessesSystem,
-			Kind:      "system",
-		})
-	}
-
-	return mergedPermissions
+	return robotpkg.GetProjectPermissions(true, nil, projectPermissionsMap)
 }
 
 func updateRobotAndHandleResponse(opts *update.UpdateView) error {
@@ -588,38 +240,4 @@ func addUpdateFlags(cmd *cobra.Command, opts *update.UpdateView, all *bool, conf
 	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
 	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
 	flags.StringVarP(configFile, "robot-config-file", "r", "", "YAML/JSON file with robot configuration")
-}
-
-func promptPermissionModeForUpdate(hasExistingProjectPerms bool) (string, error) {
-	var permissionMode string
-	var options []huh.Option[string]
-
-	if hasExistingProjectPerms {
-		options = []huh.Option[string]{
-			huh.NewOption("Keep existing project permissions", "keep"),
-			huh.NewOption("Clear all project permissions", "clear"),
-			huh.NewOption("Per Project (individual permissions)", "per_project"),
-			huh.NewOption("List (same permissions for multiple projects)", "list"),
-		}
-	} else {
-		options = []huh.Option[string]{
-			huh.NewOption("No project permissions (system-level only)", "clear"),
-			huh.NewOption("Per Project (individual permissions)", "per_project"),
-			huh.NewOption("List (same permissions for multiple projects)", "list"),
-		}
-	}
-
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Project Permission Mode").
-				Description("Select how you want to handle project permissions:"),
-			huh.NewSelect[string]().
-				Title("Permission Mode").
-				Options(options...).
-				Value(&permissionMode),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
-
-	return permissionMode, err
 }

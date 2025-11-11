@@ -18,6 +18,8 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	robotpkg "github.com/goharbor/harbor-cli/pkg/robot"
+
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	log "github.com/sirupsen/logrus"
@@ -137,22 +139,26 @@ Examples:
 				permissions = prompt.GetRobotPermissionsFromUser("project")
 			}
 
-			// []Permission to []*Access
-			var accesses []*models.Access
-			for _, perm := range permissions {
-				access := &models.Access{
-					Action:   perm.Action,
-					Resource: perm.Resource,
-				}
-				accesses = append(accesses, access)
-			}
-			// convert []models.permission to []*model.Access
-			perm := &update.RobotPermission{
-				Kind:      bot.Permissions[0].Kind,
-				Namespace: bot.Permissions[0].Namespace,
-				Access:    accesses,
-			}
-			opts.Permissions = []*update.RobotPermission{perm}
+			// // []Permission to []*Access
+			// var accesses []*models.Access
+			// for _, perm := range permissions {
+			// 	access := &models.Access{
+			// 		Action:   perm.Action,
+			// 		Resource: perm.Resource,
+			// 	}
+			// 	accesses = append(accesses, access)
+			// }
+			// // convert []models.permission to []*model.Access
+			// perm := &rmodel.RobotPermission{
+			// 	Kind:      bot.Permissions[0].Kind,
+			// 	Namespace: bot.Permissions[0].Namespace,
+			// 	Access:    accesses,
+			// }
+			// opts.Permissions = []*rmodel.RobotPermission{perm}
+
+			builder := robotpkg.NewRobotBuilder().
+				SetProjectPermissions(bot.Permissions[0].Namespace, permissions)
+			opts.Permissions = builder.MergePermissions()
 
 			err = updateRobotView(&opts)
 			if err != nil {
