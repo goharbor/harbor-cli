@@ -22,6 +22,10 @@ update label
 	Description of the label
 
 .PP
+\fB--global\fP[=false]
+	whether to list global or project scope labels. (default scope is global)
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for update
 
@@ -30,8 +34,12 @@ update label
 	Name of the label
 
 .PP
-\fB-s\fP, \fB--scope\fP="g"
-	Scope of the label. eg- g(global), p(specific project)
+\fB-p\fP, \fB--project\fP=""
+	project name when query project labels
+
+.PP
+\fB-i\fP, \fB--project-id\fP=0
+	project ID when query project labels
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS

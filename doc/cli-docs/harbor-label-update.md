@@ -23,9 +23,11 @@ harbor label update [labelname]
 ```sh
       --color string         Color of the label.color is in hex value
   -d, --description string   Description of the label
+      --global               whether to list global or project scope labels. (default scope is global)
   -h, --help                 help for update
   -n, --name string          Name of the label
-  -s, --scope string         Scope of the label. eg- g(global), p(specific project) (default "g")
+  -p, --project string       project name when query project labels
+  -i, --project-id int       project ID when query project labels
 ```
 
 ### Options inherited from parent commands

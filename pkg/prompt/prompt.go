@@ -55,6 +55,43 @@ func GetRegistryNameFromUser() int64 {
 	return <-registryId
 }
 
+func GetProjectIDFromUser() (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListAllProjects()
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{0, errors.New("no projects found")}
+			return
+		}
+
+		id, err := pview.ProjectListWithId(response.Payload)
+		if err != nil {
+			if err == pview.ErrUserAborted {
+				resultChan <- result{0, errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{0, fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{id, nil}
+	}()
+
+	res := <-resultChan
+
+	return res.id, res.err
+}
+
 func GetProjectNameFromUser() (string, error) {
 	type result struct {
 		name string
@@ -100,16 +137,6 @@ func GetRoleNameFromUser() int64 {
 	}()
 
 	return <-roleChan
-}
-
-func GetProjectIDFromUser() int64 {
-	projectID := make(chan int64)
-	go func() {
-		response, _ := api.ListProject()
-		pview.ProjectListID(response.Payload, projectID)
-	}()
-
-	return <-projectID
 }
 
 func GetRepoNameFromUser(projectName string) string {
@@ -221,13 +248,28 @@ func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
 	return res.webhook, res.err
 }
 
-func GetLabelIdFromUser(labelList []*models.Label) int64 {
-	labelId := make(chan int64)
+func GetLabelIdFromUser(opts api.ListFlags) (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	labelId := make(chan result)
 	go func() {
-		lview.LabelList(labelList, labelId)
+		response, err := api.ListLabel(opts)
+		if err != nil {
+			labelId <- result{0, err}
+			return
+		}
+		choice, err := lview.LabelList(response.Payload)
+		if err != nil {
+			labelId <- result{0, err}
+			return
+		}
+		labelId <- result{choice, nil}
 	}()
 
-	return <-labelId
+	res := <-labelId
+	return res.id, res.err
 }
 
 func GetInstanceFromUser() string {

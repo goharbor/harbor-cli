@@ -81,7 +81,10 @@ Examples:
 			} else if opts.ProjectID > 0 {
 				opts.Q = projectQString + strconv.FormatInt(opts.ProjectID, 10)
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
+				projectID, err := prompt.GetProjectIDFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+				}
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}
 

@@ -81,7 +81,10 @@ Examples:
 					log.Fatalf("failed to parse robot ID: %v", err)
 				}
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
+				projectID, err := prompt.GetProjectIDFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+				}
 				robotID = prompt.GetRobotIDFromUser(projectID)
 			}
 

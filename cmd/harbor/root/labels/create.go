@@ -14,10 +14,14 @@
 package labels
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/label/create"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func CreateLabelCommand() *cobra.Command {
@@ -36,11 +40,13 @@ func CreateLabelCommand() *cobra.Command {
 				Color:       opts.Color,
 				Scope:       opts.Scope,
 				Description: opts.Description,
+				ProjectID:   opts.ProjectID,
 			}
 			if opts.Name != "" && opts.Scope != "" {
 				err = api.CreateLabel(opts)
 			} else {
-				err = createLabelView(createView)
+				flags := cmd.Flags()
+				err = createLabelView(createView, flags)
 			}
 
 			if err != nil {
@@ -53,16 +59,26 @@ func CreateLabelCommand() *cobra.Command {
 	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the label")
 	flags.StringVarP(&opts.Color, "color", "", "#FFFFFF", "Color of the label.color is in hex value")
 	flags.StringVarP(&opts.Scope, "scope", "s", "g", "Scope of the label. eg- g(global), p(specific project)")
+	flags.Int64VarP(&opts.ProjectID, "project", "i", 0, "Id of the project when scope is p")
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
 
 	return cmd
 }
 
-func createLabelView(createView *create.CreateView) error {
+func createLabelView(createView *create.CreateView, flags *pflag.FlagSet) error {
 	if createView == nil {
 		createView = &create.CreateView{}
 	}
 
 	create.CreateLabelView(createView)
+
+	if createView.Scope == "p" && !flags.Changed("project") {
+		projectID, err := prompt.GetProjectIDFromUser()
+		if err != nil {
+			return fmt.Errorf("failed to get project id: %v", err)
+		}
+
+		createView.ProjectID = projectID
+	}
 	return api.CreateLabel(*createView)
 }
