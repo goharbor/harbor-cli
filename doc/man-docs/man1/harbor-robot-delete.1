@@ -2,11 +2,11 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-robot-delete - delete robot by id
+harbor-robot-delete - delete robot by name
 
 
 .SH SYNOPSIS
-\fBharbor robot delete [robotID] [flags]\fP
+\fBharbor robot delete [robotName] [flags]\fP
 
 
 .SH DESCRIPTION
@@ -19,7 +19,7 @@ using those credentials will fail.
 
 .PP
 The command supports multiple ways to identify the robot account to delete:
-- By providing the robot ID directly as an argument
+- By providing the robot name directly as an argument
 - Without any arguments, which will prompt for robot selection
 
 .PP
@@ -31,8 +31,8 @@ Important considerations:
 
 .PP
 Examples:
-  # Delete robot by ID
-  harbor-cli robot delete 123
+  # Delete robot by name
+  harbor-cli robot delete robot_robotname
 
 .PP
 # Interactive deletion (will prompt for robot selection)
