@@ -36,3 +36,19 @@ func ListGCs(opts *ListFlags) (gc.GetGCHistoryOK, error) {
 
 	return *response, nil
 }
+
+func StopGC(id int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GC.StopGC(ctx, &gc.StopGCParams{
+		GCID: id,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

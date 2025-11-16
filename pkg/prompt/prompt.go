@@ -20,6 +20,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
+	gc "github.com/goharbor/harbor-cli/pkg/views/gc/select"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -415,4 +416,26 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+// Get GC Job ID from User
+func GetGCJobIDFromUser() (int64, error) {
+	idChan := make(chan int64)
+	go func() {
+		ok, err := api.ListGCs(&api.ListFlags{})
+		if err != nil {
+			idChan <- -1
+		}
+
+		jobs := ok.Payload
+
+		gc.GCList(jobs, idChan)
+	}()
+
+	id := <-idChan
+	if id == -1 {
+		return -1, fmt.Errorf("could not get job from user")
+	}
+
+	return id, nil
 }
