@@ -21,18 +21,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GCStopCommand() *cobra.Command {
+func GCLogsCommand() *cobra.Command {
 	var jobID int64
 
 	cmd := &cobra.Command{
-		Use:   "stop",
-		Short: "Stop a GC Job by id or jobName",
-		Long: `Stop a GC Job by id or jobName 
+		Use:   "logs",
+		Short: "Get logs of a GC Job by id or jobName",
+		Long: `Get logs of a GC Job by id or jobName 
 Displays key metadata including job kind, schedule, creation time and more.
 
 Examples:
-  harbor-cli gc stop      # Interactive prompt for selection
-  harbor-cli gc stop abcd 
+  harbor-cli gc logs # Interactive prompt for GC selection
+  harbor-cli gc logs abcd 
 `,
 
 		Args: cobra.MaximumNArgs(1),
@@ -58,12 +58,13 @@ Examples:
 				return fmt.Errorf("no valid id/name specifier found for gc job")
 			}
 
-			err = api.StopGC(id)
+			logs, err := api.LogsGC(id)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("Successfully stopped job with ID: %d \n", id)
+			fmt.Println(logs.GetPayload())
+
 			return nil
 		},
 	}

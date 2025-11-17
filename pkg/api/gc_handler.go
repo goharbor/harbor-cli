@@ -14,7 +14,10 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/gc"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -51,4 +54,41 @@ func StopGC(id int64) error {
 	}
 
 	return nil
+}
+
+func LogsGC(id int64) (*gc.GetGCLogOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.GC.GetGCLog(ctx, &gc.GetGCLogParams{
+		GCID: id,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func GetGCFromName(name string) (*models.GCHistory, error) {
+	items, err := ListGCs(&ListFlags{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, job := range items.Payload {
+		if job.JobName == name {
+			return job, nil
+		}
+	}
+
+	return nil, fmt.Errorf("job with name: %s, not found", name)
+}
+
+func GetGCIDFromName(name string) (int64, error) {
+	job, err := GetGCFromName(name)
+
+	return job.ID, err
 }
