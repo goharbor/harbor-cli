@@ -11,25 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gc
+package gcschedule
 
 import (
-	gcschedule "github.com/goharbor/harbor-cli/cmd/harbor/root/gc/schedule"
 	"github.com/spf13/cobra"
 )
 
-func GC() *cobra.Command {
+func GCSchedule() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "gc",
-		Short:   "Manage garbage collector",
-		Long:    `Manage garbage collector schedules and jobs`,
-		Example: `  harbor gc history`,
+		Use:   "schedule",
+		Short: "schedule garbage collector jobs",
+		Long:  `Manage garbage collector schedules`,
+		// TODO: Change
+		Example: `  harbor gc schedule get`,
 	}
 
 	cmd.AddCommand(
-		GCHistoryCommand(),
-		GCLogsCommand(),
-		gcschedule.GCSchedule(),
+		GetGCScheduleCmd(),
 	)
 
 	return cmd

@@ -18,7 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	historyView "github.com/goharbor/harbor-cli/pkg/views/gc/history"
+	view "github.com/goharbor/harbor-cli/pkg/views/gc/jobs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -72,7 +72,7 @@ Supports pagination, search queries, and sorting using flags.`,
 					return err
 				}
 			} else {
-				historyView.GCHistory(resp.Payload)
+				view.GCJobs(resp.Payload)
 			}
 
 			return nil

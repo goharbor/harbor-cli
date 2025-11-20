@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package history
+package gcjobs
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ var columns = []table.Column{
 	{Title: "Next Schedule", Width: tablelist.WidthXL},
 }
 
-func GCHistory(history []*models.GCHistory) {
+func GCJobs(history []*models.GCHistory) {
 	var rows []table.Row
 
 	for _, item := range history {

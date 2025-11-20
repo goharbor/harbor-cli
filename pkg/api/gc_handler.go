@@ -72,6 +72,20 @@ func LogsGC(id int64) (*gc.GetGCLogOK, error) {
 	return res, nil
 }
 
+func GetGCSchedule() (*gc.GetGCScheduleOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.GC.GetGCSchedule(ctx, &gc.GetGCScheduleParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func GetGCFromName(name string) (*models.GCHistory, error) {
 	items, err := ListGCs(&ListFlags{})
 	if err != nil {
