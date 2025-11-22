@@ -29,12 +29,12 @@ func UserGroupsListCommand() *cobra.Command {
 
 				userGroups = []*models.UserGroup{resp.Payload}
 			} else if searchq != "" {
-				_, err := api.SearchUserGroups(searchq)
+				resp, err := api.SearchUserGroups(searchq)
 				if err != nil {
 					return err
 				}
 
-				// userGroups = []*models.UserGroup{&resp.Payload}
+				userGroups = SearchItemToModel(resp.Payload)
 			} else {
 				resp, err := api.ListUserGroups()
 				if err != nil {
@@ -50,8 +50,25 @@ func UserGroupsListCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&searchq, "search", "-s", "", "use to search for a specific groupname")
-	flags.Int64VarP(&searchID, "id", "-i", -1, "use to search for a specific groupid")
+	flags.StringVarP(&searchq, "search", "s", "", "use to search for a specific groupname")
+	flags.Int64VarP(&searchID, "id", "i", -1, "use to search for a specific groupid")
 
 	return cmd
+}
+
+func SearchItemToModel(items []*models.UserGroupSearchItem) []*models.UserGroup {
+	grps := make([]*models.UserGroup, len(items))
+
+	for k, item := range items {
+		grp := &models.UserGroup{
+			LdapGroupDn: "N/A",
+			GroupType:   item.GroupType,
+			GroupName:   item.GroupName,
+			ID:          item.ID,
+		}
+
+		grps[k] = grp
+	}
+
+	return grps
 }
