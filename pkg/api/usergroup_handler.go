@@ -1,35 +1,48 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/usergroup"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-"fmt"
 	log "github.com/sirupsen/logrus"
-	"encoding/json"
 )
 
-
 func CreateUserGroup(groupName string, groupType int64, ldapGroupDn string) error {
-    ctx, client, err := utils.ContextWithClient()
-    if err != nil {
-        return fmt.Errorf("failed to create client: %v", err)
-    }
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return fmt.Errorf("failed to create client: %v", err)
+	}
 
-    userGroup := &models.UserGroup{
-        GroupName: groupName,
-        GroupType: groupType,
-    }
+	userGroup := &models.UserGroup{
+		GroupName: groupName,
+		GroupType: groupType,
+	}
 
-    if groupType == 1 {
-        userGroup.LdapGroupDn = ldapGroupDn
-    }
+	if groupType == 1 {
+		userGroup.LdapGroupDn = ldapGroupDn
+	}
 
-    _, err = client.Usergroup.CreateUserGroup(ctx, &usergroup.CreateUserGroupParams{
-        Usergroup: userGroup,
-    })
-	
-    if err != nil {
+	_, err = client.Usergroup.CreateUserGroup(ctx, &usergroup.CreateUserGroupParams{
+		Usergroup: userGroup,
+	})
+	if err != nil {
 		switch e := err.(type) {
 		case *usergroup.CreateUserGroupBadRequest:
 			payload, _ := json.MarshalIndent(e.Payload, "", "  ")
@@ -40,10 +53,9 @@ func CreateUserGroup(groupName string, groupType int64, ldapGroupDn string) erro
 		default:
 			return fmt.Errorf("failed to create user group: %v", err)
 		}
-		}
+	}
 
-    return nil
-
+	return nil
 }
 
 func DeleteUserGroup(groupId int64) error {
@@ -115,7 +127,6 @@ func UpdateUserGroup(groupId int64, groupName string, groupType int64) error {
 			GroupType: groupType,
 		},
 	})
-
 	if err != nil {
 		return err
 	}
