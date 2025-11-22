@@ -84,12 +84,7 @@ A user can create up to 15 tag retention rules per project.`,
 				Algorithm: opts.Algorithm,
 			}
 
-			projectId, err := prompt.GetProjectIDFromUser()
-			if err != nil {
-				return err
-			}
-
-			err = createRetentionView(createView, int32(projectId))
+			err = createRetentionView(createView, projectIDorName, isName)
 			if err != nil {
 				log.Errorf("Failed to create tag retention rule: %v", err)
 			}

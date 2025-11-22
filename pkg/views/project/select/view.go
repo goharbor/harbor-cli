@@ -101,9 +101,6 @@ func ProjectListWithId(projects []*models.Project) (int64, error) {
 		}
 		return itemsMap[model.Choice], nil
 	}
-<<<<<<< HEAD
 
 	return 0, errors.New("unexpected program result")
-=======
->>>>>>> 7c61c8c (fix lint issues)
 }
