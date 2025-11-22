@@ -1,5 +1,5 @@
 package usergroup
- 
+
 import (
 	"github.com/spf13/cobra"
 )
@@ -16,10 +16,7 @@ func Usergroup() *cobra.Command {
 		UserGroupCreateCommand(),
 		UserGroupsListCommand(),
 		UserGroupDeleteCommand(),
-		UserGroupsSearchCommand(),
 		UserGroupUpdateCommand(),
-		UserGroupGetCommand(),
-
 	)
 
 	return cmd
