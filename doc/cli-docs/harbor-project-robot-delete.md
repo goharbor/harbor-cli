@@ -6,7 +6,7 @@ weight: 5
 
 ### Description
 
-##### delete robot by id
+##### delete robot by name
 
 ### Synopsis
 
@@ -27,8 +27,11 @@ Important considerations:
 - Any systems using the robot's credentials will need to be updated
 
 Examples:
-  # Delete robot by ID
-  harbor-cli project robot delete 123
+  # Delete robot by Name, choose project
+  harbor-cli project robot delete robot_projectname+robotname
+
+  # Delete robot by Name and project name
+  harbor-cli project robot delete robot_projectname+robotname --project projectname
 
   # Delete robot by selecting from a specific project
   harbor-cli project robot delete --project myproject
@@ -37,7 +40,7 @@ Examples:
   harbor-cli project robot delete
 
 ```sh
-harbor project robot delete [robotID] [flags]
+harbor project robot delete [robotName] [flags]
 ```
 
 ### Options

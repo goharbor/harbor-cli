@@ -18,6 +18,7 @@ import (
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/permissions"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/constants"
@@ -61,7 +62,53 @@ func GetRobot(robotID int64) (*robot.GetRobotByIDOK, error) {
 	return response, nil
 }
 
-func CheckRoboWithNameExists(projectID int32, name string) (bool, error) {
+func GetRobotByName(targetRobotName string, projectName ...string) (*models.Robot, error) {
+	if len(projectName) > 1 {
+		return nil, fmt.Errorf("only one project name can be provided")
+	}
+	var listResponse *robot.ListRobotOK
+	var err error
+	configurations, err := GetConfigurations()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get configurations: %v", utils.ParseHarborErrorMsg(err))
+	}
+	robotNamePrefix := configurations.Payload.RobotNamePrefix.Value
+	queryName := ""
+	filter := ""
+	// Remove prefix from targetRobotName if it exists in the name
+	// Otherwise, use the targetRobotName as is
+	// If there is an error in the targetRobotName, it will be caught later when no robots are found
+	if len(targetRobotName) >= len(robotNamePrefix) && targetRobotName[:len(robotNamePrefix)] == robotNamePrefix {
+		queryName = targetRobotName[len(robotNamePrefix):]
+	} else {
+		queryName = targetRobotName
+	}
+	if len(projectName) > 0 {
+		var project *project.GetProjectOK
+		project, err = GetProject(projectName[0], false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+		}
+		filter = constants.ProjectQString + strconv.FormatInt(int64(project.Payload.ProjectID), 10) + "%2Cname=" + projectName[0] + "%2B" + queryName
+	} else {
+		filter = "name=" + queryName
+	}
+
+	listResponse, err = ListRobot(ListFlags{
+		Q: filter,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+	}
+	if len(listResponse.Payload) > 1 {
+		return nil, fmt.Errorf("multiple robots found with name: %v", targetRobotName)
+	} else if len(listResponse.Payload) == 0 {
+		return nil, fmt.Errorf("no robot found with name: %v, does it exist?", targetRobotName)
+	}
+	return listResponse.Payload[0], nil
+}
+
+func CheckRobotWithNameExists(projectID int32, name string) (bool, error) {
 	var exists bool = false
 
 	response, err := ListRobot(ListFlags{
@@ -104,7 +151,6 @@ func DeleteRobot(robotID int64) error {
 	}
 
 	log.Info("robot deleted successfully")
-
 	return nil
 }
 

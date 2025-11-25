@@ -177,7 +177,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
 			}
-			exists, err := api.CheckRoboWithNameExists(getProjectID.Payload.ProjectID, opts.Name)
+			exists, err := api.CheckRobotWithNameExists(getProjectID.Payload.ProjectID, opts.Name)
 			if err != nil {
 				return fmt.Errorf("failed to get robot by name: %v", utils.ParseHarborErrorMsg(err))
 			}
