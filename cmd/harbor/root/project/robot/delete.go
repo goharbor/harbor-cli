@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -66,7 +67,10 @@ Examples:
 			)
 			if len(args) == 1 {
 				if ProjectName == "" {
-					projectID := prompt.GetProjectIDFromUser()
+					projectID, err := prompt.GetProjectIDFromUser()
+					if err != nil {
+						return fmt.Errorf("failed to get project from user: %v", utils.ParseHarborErrorMsg(err))
+					}
 					project, err := api.GetProject(strconv.FormatInt(projectID, 10), true)
 					if err != nil {
 						return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
