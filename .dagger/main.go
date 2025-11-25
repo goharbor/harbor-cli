@@ -477,3 +477,95 @@ func (m *HarborCli) Sign(ctx context.Context,
 			"--timeout", "1m",
 		}).Stdout(ctx)
 }
+
+// PublishToWingetDryRun shows what commands would be executed for WinGet publishing
+// This is useful for testing and validation without requiring Windows containers
+func (m *HarborCli) PublishToWingetDryRun(
+	ctx context.Context,
+	packageId string,
+	version string,
+	// +optional
+	// URL(s) to the installer(s) - multiple URLs can be provided for different architectures
+	installerUrls []string,
+) string {
+	// Construct installer URLs from GitHub release if not provided
+	if len(installerUrls) == 0 {
+		baseUrl := fmt.Sprintf("https://github.com/goharbor/harbor-cli/releases/download/v%s", version)
+		installerUrls = []string{
+			fmt.Sprintf("%s/harbor-cli_%s_windows_amd64.zip", baseUrl, version),
+			fmt.Sprintf("%s/harbor-cli_%s_windows_arm64.zip", baseUrl, version),
+		}
+	}
+
+	urlsParam := strings.Join(installerUrls, " ")
+
+	output := fmt.Sprintf(` WinGet Publishing Dry Run
+========================================
+Package ID: %s
+Version: %s
+Installer URLs:
+%s
+
+Command that would be executed:
+wingetcreate.exe update %s --version %s --urls "%s" --submit --token $env:GITHUB_TOKEN
+
+Note: This is a dry run. To actually publish, use publish-to-winget on a Windows host.
+`, packageId, version, strings.Join(installerUrls, "\n"), packageId, version, urlsParam)
+
+	return output
+}
+
+// PublishToWinget updates the WinGet package manifest and submits a PR to microsoft/winget-pkgs
+// This automates the process of keeping the Harbor CLI package up-to-date in the Windows Package Manager
+// NOTE: Requires Windows containers - must run on Windows host or GitHub Actions windows-latest runner
+func (m *HarborCli) PublishToWinget(
+	ctx context.Context,
+	packageId string,
+	version string,
+	githubToken *dagger.Secret,
+	// +optional
+	// URL(s) to the installer(s) - multiple URLs can be provided for different architectures
+	// If not provided, will attempt to construct from GitHub release
+	installerUrls []string,
+) (string, error) {
+	fmt.Println(" Publishing to WinGet...")
+
+	// Construct installer URLs from GitHub release if not provided
+	if len(installerUrls) == 0 {
+		// Default to common Windows installer patterns
+		baseUrl := fmt.Sprintf("https://github.com/goharbor/harbor-cli/releases/download/v%s", version)
+		installerUrls = []string{
+			fmt.Sprintf("%s/harbor-cli_%s_windows_amd64.zip", baseUrl, version),
+			fmt.Sprintf("%s/harbor-cli_%s_windows_arm64.zip", baseUrl, version),
+		}
+		fmt.Printf("Using default installer URLs: %v\n", installerUrls)
+	}
+
+	urlsParam := strings.Join(installerUrls, " ")
+
+	// Use a Windows container with PowerShell to run wingetcreate
+	container := dag.Container().
+		From("mcr.microsoft.com/windows/servercore:ltsc2022").
+		WithSecretVariable("GITHUB_TOKEN", githubToken).
+		WithExec([]string{
+			"powershell", "-Command",
+			"Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe",
+		}).
+		// Run wingetcreate update with submit flag
+		WithExec([]string{
+			"powershell", "-Command",
+			fmt.Sprintf(
+				"./wingetcreate.exe update %s --version %s --urls \"%s\" --submit --token $env:GITHUB_TOKEN",
+				packageId, version, urlsParam,
+			),
+		})
+
+	output, err := container.Stdout(ctx)
+	if err != nil {
+		stderr, _ := container.Stderr(ctx)
+		return "", fmt.Errorf("failed to publish to WinGet: %v\nStderr: %s", err, stderr)
+	}
+
+	fmt.Printf("WinGet publication completed:\n%s\n", output)
+	return output, nil
+}
