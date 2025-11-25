@@ -101,6 +101,20 @@ func GetGCFromName(name string) (*models.GCHistory, error) {
 	return nil, fmt.Errorf("job with name: %s, not found", name)
 }
 
+func CreateGCSchedule() error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GC.CreateGCSchedule(ctx, &gc.CreateGCScheduleParams{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetGCIDFromName(name string) (int64, error) {
 	job, err := GetGCFromName(name)
 
