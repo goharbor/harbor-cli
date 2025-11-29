@@ -1,4 +1,4 @@
-package pipeline
+package main
 
 import (
 	"context"
@@ -6,19 +6,24 @@ import (
 	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
-	"dagger/harbor-cli/utils"
 )
 
-func (s *Pipeline) Checksum(ctx context.Context, dist *dagger.Directory) (*dagger.Directory, error) {
+func (m *HarborCli) Checksum(ctx context.Context,
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	// +optional
+	source *dagger.Directory,
+) (*dagger.Directory, error) {
 	sums := map[string]string{}
-	bins, err := utils.DistBinaries(ctx, s.dag, dist)
+	bins, err := DistBinaries(ctx, dag, buildDir)
 	if err != nil {
 		return nil, err
 	}
 
-	shasum := s.dag.Container().
+	shasum := dag.Container().
 		From("alpine").
-		WithMountedDirectory("/dist", dist).
+		WithMountedDirectory("/dist", buildDir).
 		WithWorkdir("/dist")
 
 	for _, v := range bins {
@@ -39,6 +44,6 @@ func (s *Pipeline) Checksum(ctx context.Context, dist *dagger.Directory) (*dagge
 		content += fmt.Sprintf("%s %s\n", strings.TrimSuffix(k, "\n"), v)
 	}
 
-	dist = dist.WithFile("checksums.txt", s.dag.File("checksums.txt", content))
-	return dist, err
+	buildDir = buildDir.WithFile("checksums.txt", dag.File("checksums.txt", content))
+	return buildDir, err
 }

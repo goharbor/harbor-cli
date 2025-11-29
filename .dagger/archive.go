@@ -1,4 +1,4 @@
-package pipeline
+package main
 
 import (
 	"context"
@@ -7,8 +7,20 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 )
 
-func (s *Pipeline) Archive(ctx context.Context, dist *dagger.Directory) (*dagger.Directory, error) {
-	entries, err := dist.Entries(ctx)
+func (m *HarborCli) Archive(ctx context.Context,
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory,
+) (*dagger.Directory, error) {
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	entries, err := buildDir.Entries(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not read dist directory: %w", err)
 	}
@@ -19,18 +31,18 @@ func (s *Pipeline) Archive(ctx context.Context, dist *dagger.Directory) (*dagger
 	goos := []string{"linux", "darwin", "windows"}
 	goarch := []string{"amd64", "arm64"}
 
-	archives := s.dag.Directory()
+	archives := dag.Directory()
 
 	for _, os := range goos {
 		for _, arch := range goarch {
-			binName := fmt.Sprintf("harbor-cli_%s_%s_%s", s.appVersion, os, arch)
+			binName := fmt.Sprintf("harbor-cli_%s_%s_%s", m.AppVersion, os, arch)
 			if os == "windows" {
 				binName += ".exe"
 			}
 
-			binPath := fmt.Sprintf("%s/%s", os, binName)
+			binPath := fmt.Sprintf("bin/%s", binName)
 
-			archiveName := fmt.Sprintf("harbor-cli_%s_%s_%s", s.appVersion, os, arch)
+			archiveName := fmt.Sprintf("harbor-cli_%s_%s_%s", m.AppVersion, os, arch)
 
 			var (
 				archiveFile string
@@ -40,22 +52,22 @@ func (s *Pipeline) Archive(ctx context.Context, dist *dagger.Directory) (*dagger
 			if os == "windows" {
 				// Handle Windows .zip
 				archiveFile = archiveName + ".zip"
-				container = s.dag.Container().
+				container = dag.Container().
 					From("alpine:latest").
 					WithExec([]string{"apk", "add", "--no-cache", "zip"}).
-					WithMountedDirectory("/input", dist).
+					WithMountedDirectory("/input", buildDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
 					WithExec([]string{"zip", "-j", "/out/" + archiveFile, binPath})
 			} else {
 				archiveFile = archiveName + ".tar.gz"
-				container = s.dag.Container().
+				container = dag.Container().
 					From("alpine:latest").
-					WithMountedDirectory("/input", dist).
+					WithMountedDirectory("/input", buildDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
 					WithExec([]string{
-						"tar", "-czf", "/out/" + archiveFile, "-C", os + "/", binName,
+						"tar", "-czf", "/out/" + archiveFile, "-C", "/input/bin", binName,
 					})
 			}
 
@@ -63,7 +75,7 @@ func (s *Pipeline) Archive(ctx context.Context, dist *dagger.Directory) (*dagger
 		}
 	}
 
-	dist = dist.WithDirectory("archive", archives)
+	buildDir = buildDir.WithDirectory("archive", archives)
 
-	return dist, nil
+	return buildDir, nil
 }

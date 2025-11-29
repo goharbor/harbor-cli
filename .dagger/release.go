@@ -1,27 +1,39 @@
-package pipeline
+package main
 
 import (
 	"context"
 
 	"dagger/harbor-cli/internal/dagger"
-	"dagger/harbor-cli/utils"
 )
 
-func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, token *dagger.Secret) (string, error) {
-	bins, err := utils.DistBinaries(ctx, s.dag, dist)
+func (m *HarborCli) PublishRelease(ctx context.Context,
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory,
+	token *dagger.Secret,
+) (string, error) {
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	bins, err := DistBinaries(ctx, dag, buildDir)
 	if err != nil {
 		return "", err
 	}
 
-	cmd := []string{"gh", "release", "upload", s.appVersion}
+	cmd := []string{"gh", "release", "upload", m.AppVersion}
 	cmd = append(cmd, bins...)
 	cmd = append(cmd, "/dist/checksums.txt")
 	cmd = append(cmd, "--clobber")
 
-	ctr := s.dag.Container().
+	ctr := dag.Container().
 		From("debian:bookworm-slim").
-		WithMountedDirectory("/src", s.source).
-		WithMountedDirectory("/dist", dist).
+		WithMountedDirectory("/src", source).
+		WithMountedDirectory("/dist", buildDir).
 		WithSecretVariable("GH_TOKEN", token).
 		WithExec([]string{"apt-get", "update"}).
 		WithExec([]string{"apt-get", "install", "-y", "curl", "git"}).
@@ -33,7 +45,7 @@ func (s *Pipeline) PublishRelease(ctx context.Context, dist *dagger.Directory, t
 	return ctr.
 		WithWorkdir("/src").
 		// Creating Release
-		WithExec([]string{"gh", "release", "create", s.appVersion, "--generate-notes"}).
+		WithExec([]string{"gh", "release", "create", m.AppVersion, "--generate-notes"}).
 		WithExec(cmd).
 		Stdout(ctx)
 }

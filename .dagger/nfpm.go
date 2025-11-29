@@ -1,4 +1,4 @@
-package pipeline
+package main
 
 import (
 	"context"
@@ -7,21 +7,34 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 )
 
-func (s *Pipeline) NFPMBuild(ctx context.Context, dist *dagger.Directory) (*dagger.Directory, error) {
+func (m *HarborCli) NfpmBuild(ctx context.Context,
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	// +optional
+	source *dagger.Directory,
+) (*dagger.Directory, error) {
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	archs := []string{"amd64", "arm64"}
 	pkgs := []string{"deb", "rpm"}
 
 	for _, pkg := range pkgs {
-		out := s.dag.Directory()
+		out := dag.Directory()
 		for _, arch := range archs {
-			fileName := fmt.Sprintf("harbor-cli_%s_%s.%s", s.appVersion, arch, pkg)
+			fileName := fmt.Sprintf("harbor-cli_%s_%s.%s", m.AppVersion, arch, pkg)
 
-			out = TemplatedYML(out, arch, s.appVersion, fmt.Sprintf("harbor-cli_%s_%s_%s", s.appVersion, "linux", arch))
+			out = TemplatedYML(out, arch, m.AppVersion, fmt.Sprintf("harbor-cli_%s_%s_%s", m.AppVersion, "linux", arch))
 
-			pkgFile := s.dag.Container().
+			pkgFile := dag.Container().
 				From("goreleaser/nfpm").
 				WithMountedFile("/nfpm.yml", out.File("/nfpm.yml")).
-				WithMountedDirectory("/input", dist).
+				WithMountedDirectory("/input", buildDir).
 				WithWorkdir("/input").
 				WithExec([]string{
 					"nfpm",
@@ -35,10 +48,10 @@ func (s *Pipeline) NFPMBuild(ctx context.Context, dist *dagger.Directory) (*dagg
 			out = out.WithFile(fileName, pkgFile)
 		}
 
-		dist = dist.WithDirectory(fmt.Sprintf("/%s", pkg), out)
+		buildDir = buildDir.WithDirectory(fmt.Sprintf("/%s", pkg), out)
 	}
 
-	return dist, nil
+	return buildDir, nil
 }
 
 func TemplatedYML(out *dagger.Directory, arch string, appV string, filename string) *dagger.Directory {
@@ -53,7 +66,7 @@ maintainer: "NucleoFusion <lakshit.singh.mail@gmail.com>"
 description: "Harbor CLI — a command-line interface for interacting with your Harbor container registry."
 license: Apache 2.0 
 contents:
-  - src: ./linux/%s
+  - src: ./bin/%s
     dst: /usr/local/bin/harbor-cli
 `, arch, appV, filename))
 
