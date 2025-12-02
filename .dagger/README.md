@@ -74,7 +74,27 @@ dagger call publish-image \
 
 Automates the submission of Harbor CLI updates to the Windows Package Manager (WinGet) repository. This function uses `wingetcreate` to update the package manifest and automatically submit a pull request to `microsoft/winget-pkgs`.
 
-Before running the command, export your GitHub Personal Access Token (with `public_repo` scope):
+#### GitHub App Setup 
+
+For automated workflows, we use a GitHub App instead of Personal Access Tokens for better security and maintainability:
+
+1. **Create a GitHub App** for your organization with permissions:
+   - `Contents: write`
+   - `Pull requests: write`
+
+2. **Fork `microsoft/winget-pkgs`** to your organization
+
+3. **Install the GitHub App** on the fork
+
+4. **Configure secrets/variables:**
+   - `vars.WINGET_APP_ID` - GitHub App ID
+   - `secrets.WINGET_APP_PRIVATE_KEY` - GitHub App private key
+
+The workflow uses `actions/create-github-app-token@v2` to generate short-lived tokens (1 hour) at runtime.
+
+#### Local Development
+
+For local testing, export a GitHub token with `public_repo` scope:
 
 ```shell
 export GITHUB_TOKEN=ghp_yourTokenHere
@@ -106,7 +126,7 @@ This will:
 3. Automatically submit a PR to the `microsoft/winget-pkgs` repository
 
 **Requirements:**
-- GitHub Personal Access Token with `public_repo` scope
+- GitHub App (for CI/CD) or Personal Access Token with `public_repo` scope (for local dev)
 - Valid installer URLs (must be publicly accessible)
 - Existing package in the WinGet repository
 - **Windows Docker host** or Windows container support (for CI/CD, use `runs-on: windows-latest` in GitHub Actions)

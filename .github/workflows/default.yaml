@@ -265,6 +265,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.WINGET_APP_ID }}
+          private-key: ${{ secrets.WINGET_APP_PRIVATE_KEY }}
+          owner: goharbor
+          repositories: winget-pkgs
+
       - name: Extract version from tag
         id: extract_version
         shell: bash
@@ -276,7 +285,7 @@ jobs:
       - name: Publish to WinGet
         uses: dagger/dagger-for-github@v7
         env:
-          GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           version: "latest"
           verb: call
