@@ -29,8 +29,8 @@ import (
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"golang.org/x/term"
 	"go.yaml.in/yaml/v4"
+	"golang.org/x/term"
 )
 
 // Returns Harbor v2 client for given clientConfig
