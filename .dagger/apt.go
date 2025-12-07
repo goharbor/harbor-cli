@@ -1,4 +1,4 @@
-package pipeline
+package main
 
 import (
 	"context"
@@ -7,17 +7,30 @@ import (
 	"dagger/harbor-cli/internal/dagger"
 )
 
-func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, token *dagger.Secret) error {
+func (m *HarborCli) AptBuild(ctx context.Context,
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory,
+	token *dagger.Secret,
+) error {
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return err
+		}
+	}
+
 	archs := []string{"amd64", "arm64"}
-	root := s.dag.Directory()
-	root = root.WithDirectory("pool/main/m", dist.Directory("deb"))
+	root := dag.Directory()
+	root = root.WithDirectory("pool/main/m", buildDir.Directory("deb"))
 	githubToken, err := token.Plaintext(ctx)
 	if err != nil {
 		return err
 	}
 
 	// Base container
-	container := s.dag.Container().
+	container := dag.Container().
 		From("debian:bookworm-slim").
 		WithExec([]string{"apt-get", "update"}).
 		WithExec([]string{"apt-get", "install", "-y", "dpkg-dev", "gzip", "git"}).
@@ -27,20 +40,20 @@ func (s *Pipeline) AptRepoBuild(ctx context.Context, dist *dagger.Directory, tok
 
 	// Building `Package` file for each arch
 	for _, arch := range archs {
-		pkgDir := fmt.Sprintf("dists/stable/main/binary-%s", arch)
+		pkgDir := fmt.Sprintf("buildDirs/stable/main/binary-%s", arch)
 		poolDir := "pool/main/m"
 
 		container = container.WithExec([]string{
 			"bash", "-c",
-			fmt.Sprintf("mkdir -p %s && dpkg-scanpackages -a %s %s /dev/null > %s/Packages && gzip -9c %s/Packages > %s/Packages.gz",
-				pkgDir, arch, poolDir, pkgDir, pkgDir, pkgDir),
+			fmt.Sprintf("mkdir -p %s && dpkg-scanpackages -a %s %s /dev/null > %s/Packages && gzip -9c %s/Packages > %s/Packages.gz && rm -rf %s/Packages",
+				pkgDir, arch, poolDir, pkgDir, pkgDir, pkgDir, pkgDir),
 		})
 	}
 
 	// Release File
 	container = container.WithExec([]string{
 		"bash", "-c",
-		`cat <<EOF > /repo/dists/stable/Release
+		`cat <<EOF > /repo/buildDirs/stable/Release
 Origin: https://github.com/goharbor/harbor-cli  
 Label: HarborCLI 
 Suite: stable
@@ -66,11 +79,11 @@ EOF`,
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        git add dists pool 
+        git add buildDirs pool 
 
         git commit -m "Update APT repo for %s" || echo "No changes to commit"
         git push origin gh-pages -f
-        `, s.appVersion),
+        `, m.AppVersion),
 		})
 
 	_, err = container.Sync(ctx)
@@ -84,15 +97,13 @@ EOF`,
 // GH-PAGES Structure
 //
 // /
-// ├── dists/
+// ├── dist/
 // │   └── stable/
 // │       ├── Release
 // │       └── main/
 // │           ├── binary-amd64/
-// │           │   ├── Packages
 // │           │   └── Packages.gz
 // │           └── binary-arm64/
-// │               ├── Packages
 // │               └── Packages.gz
 // └── pool/
 //     └── main/

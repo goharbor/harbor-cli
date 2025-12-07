@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"dagger/harbor-cli/internal/dagger"
-	"dagger/harbor-cli/utils"
 )
 
 func (m *HarborCli) Build(ctx context.Context,
@@ -34,7 +33,7 @@ func (m *HarborCli) Build(ctx context.Context,
 			}
 
 			builder := dag.Container().
-				From("golang:"+m.GoVersion).
+				From("golang:"+m.GoVersion+"-alpine").
 				WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+m.GoVersion)).
 				WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
 				WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+m.GoVersion)).
@@ -47,11 +46,11 @@ func (m *HarborCli) Build(ctx context.Context,
 			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
 			buildTime := time.Now().UTC().Format(time.RFC3339)
 
-			ldflagsArgs := utils.LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
+			ldflagsArgs := LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
 
 			builder = builder.WithExec([]string{
-				"bash", "-c",
-				fmt.Sprintf(`set -ex && go env && go build -v -ldflags "%s" -o /bin/%s /src/cmd/harbor/main.go`, ldflagsArgs, binName),
+				"sh", "-c",
+				fmt.Sprintf(`go build -v -ldflags "%s" -o /bin/%s /src/cmd/harbor/main.go`, ldflagsArgs, binName),
 			})
 
 			file := builder.File("/bin/" + binName)                             // Taking file from container

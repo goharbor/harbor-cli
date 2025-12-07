@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"dagger/harbor-cli/internal/dagger"
-	"dagger/harbor-cli/utils"
 )
 
 // Create build of Harbor CLI for local testing and development
@@ -39,7 +38,7 @@ func (m *HarborCli) BuildDev(ctx context.Context, platform string, source *dagge
 	gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
 	buildTime := time.Now().UTC().Format(time.RFC3339)
 
-	ldflagsArgs := utils.LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
+	ldflagsArgs := LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
 
 	builder = builder.WithExec([]string{
 		"go", "build", "-ldflags", ldflagsArgs, "-o", "/bin/harbor-cli", "/src/cmd/harbor/main.go",

@@ -11,23 +11,35 @@ import (
 
 func (m *HarborCli) PublishImageAndSign(
 	ctx context.Context,
+	// +optional
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
 	source *dagger.Directory,
 	registry string,
 	registryUsername string,
 	registryPassword *dagger.Secret,
-	imageTags []string,
+	imageTags string,
 	// +optional
 	githubToken *dagger.Secret,
 	// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
 	// +optional
-	actionsIdTokenRequestUrl string,
+	actionsIdTokenRequestUrl *dagger.Secret,
 ) (string, error) {
-	m.init(ctx, source)
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return "", err
+		}
+	}
 
-	imageAddrs := m.PublishImage(ctx, registry, registryUsername, imageTags, registryPassword)
+	imageAddrs, err := m.PublishImage(ctx, registry, registryUsername, strings.Split(imageTags, ","), buildDir, source, registryPassword)
+	if err != nil {
+		return "", err
+	}
 
-	_, err := m.Sign(
+	_, err = m.Sign(
 		ctx,
 		githubToken,
 		actionsIdTokenRequestUrl,
@@ -50,10 +62,21 @@ func (m *HarborCli) PublishImage(
 	// +optional
 	// +default=["latest"]
 	imageTags []string,
+	// +optional
+	buildDir *dagger.Directory,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory,
 	registryPassword *dagger.Secret,
-) []string {
+) ([]string, error) {
+	if !m.IsInitialized {
+		err := m.init(ctx, source)
+		if err != nil {
+			return []string{}, err
+		}
+	}
+
 	version := getVersion(imageTags)
-	builders := m.build(ctx, version)
 	releaseImages := []*dagger.Container{}
 
 	for i, tag := range imageTags {
@@ -67,29 +90,62 @@ func (m *HarborCli) PublishImage(
 	// Get current time for image creation timestamp
 	creationTime := time.Now().UTC().Format(time.RFC3339)
 
-	for _, builder := range builders {
-		os, _ := builder.EnvVariable(ctx, "GOOS")
-		arch, _ := builder.EnvVariable(ctx, "GOARCH")
+	// If the buildDir is not provided, build new binaries ones
+	if buildDir == nil {
+		buildDir = dag.Directory()
 
-		if os != "linux" {
-			continue
+		builders := m.build(ctx, version)
+
+		for _, builder := range builders {
+			os, _ := builder.EnvVariable(ctx, "GOOS")
+			arch, _ := builder.EnvVariable(ctx, "GOARCH")
+
+			if os != "linux" {
+				continue
+			}
+
+			ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
+				From("alpine:latest").
+				WithWorkdir("/").
+				WithFile("/harbor", builder.File("./harbor")).
+				WithExec([]string{"ls", "-al"}).
+				WithExec([]string{"./harbor", "version"}).
+				// Add required metadata labels for ArtifactHub
+				WithLabel("org.opencontainers.image.created", creationTime).
+				WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
+				WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
+				WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
+				WithLabel("org.opencontainers.image.version", version).
+				WithLabel("io.artifacthub.package.license", "Apache-2.0").
+				WithEntrypoint([]string{"/harbor"})
+
+			releaseImages = append(releaseImages, ctr)
 		}
+	} else { // If buildDir is provided, use existing binaries
+		archs := []string{"amd64", "arm64"}
 
-		ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform(os + "/" + arch)}).
-			From("alpine:latest").
-			WithWorkdir("/").
-			WithFile("/harbor", builder.File("./harbor")).
-			WithExec([]string{"ls", "-al"}).
-			WithExec([]string{"./harbor", "version"}).
-			// Add required metadata labels for ArtifactHub
-			WithLabel("org.opencontainers.image.created", creationTime).
-			WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
-			WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
-			WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
-			WithLabel("org.opencontainers.image.version", version).
-			WithLabel("io.artifacthub.package.license", "Apache-2.0").
-			WithEntrypoint([]string{"/harbor"})
-		releaseImages = append(releaseImages, ctr)
+		for _, arch := range archs {
+			filepath := fmt.Sprintf("bin/harbor-cli_%s_linux_%s", m.AppVersion, arch)
+
+			ctr := dag.Container(dagger.ContainerOpts{Platform: dagger.Platform("linux/" + arch)}).
+				From("alpine:latest").
+				WithWorkdir("/").
+				WithFile("/harbor", buildDir.File(filepath)).
+				WithExec([]string{"ls", "-al"}).
+				WithExec([]string{"chmod", "+x", "/harbor"}).
+				WithExec([]string{"uname", "-m"}).
+				WithExec([]string{"./harbor", "version"}).
+				// Add required metadata labels for ArtifactHub
+				WithLabel("org.opencontainers.image.created", creationTime).
+				WithLabel("org.opencontainers.image.description", "Harbor CLI - A command-line interface for CNCF Harbor, the cloud native registry!").
+				WithLabel("io.artifacthub.package.readme-url", "https://raw.githubusercontent.com/goharbor/harbor-cli/main/README.md").
+				WithLabel("org.opencontainers.image.source", "https://github.com/goharbor/harbor-cli").
+				WithLabel("org.opencontainers.image.version", version).
+				WithLabel("io.artifacthub.package.license", "Apache-2.0").
+				WithEntrypoint([]string{"/harbor"})
+
+			releaseImages = append(releaseImages, ctr)
+		}
 	}
 
 	imageAddrs := []string{}
@@ -100,12 +156,14 @@ func (m *HarborCli) PublishImage(
 				dagger.ContainerPublishOpts{PlatformVariants: releaseImages},
 			)
 		if err != nil {
-			panic(err)
+			return []string{}, err
 		}
+
 		fmt.Printf("Published image address: %s\n", addr)
 		imageAddrs = append(imageAddrs, addr)
 	}
-	return imageAddrs
+
+	return imageAddrs, nil
 }
 
 func (m *HarborCli) build(
@@ -163,7 +221,7 @@ func (m *HarborCli) Sign(ctx context.Context,
 	// +optional
 	githubToken *dagger.Secret,
 	// +optional
-	actionsIdTokenRequestUrl string,
+	actionsIdTokenRequestUrl *dagger.Secret,
 	// +optional
 	actionsIdTokenRequestToken *dagger.Secret,
 	registryUsername string,
@@ -176,12 +234,12 @@ func (m *HarborCli) Sign(ctx context.Context,
 
 	// If githubToken is provided, use it to sign the image
 	if githubToken != nil {
-		if actionsIdTokenRequestUrl == "" || actionsIdTokenRequestToken == nil {
+		if actionsIdTokenRequestUrl == nil || actionsIdTokenRequestToken == nil {
 			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
 		}
 		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
 		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
-			WithEnvVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
+			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
