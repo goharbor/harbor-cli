@@ -104,7 +104,6 @@ func TestGetClientByCredentialName_Failure(t *testing.T) {
 	assert.Error(t, clientErr)
 }
 
-    // new test
 func TestGetClient_EmptyCredentialName(t *testing.T) {
 	tempDir := t.TempDir()
 	helpers.SetMockKeyring(t)
@@ -119,7 +118,7 @@ func TestGetClient_EmptyCredentialName(t *testing.T) {
 	err := utils.SetCurrentHarborConfig(testConfig)
 	assert.NoError(t, err)
 
-	// Reset Client Once to allow re-initialization
+	// Reset ClientOnce to allow re-initialization
 	utils.ClientOnce = sync.Once{}
 	utils.ClientInstance = nil
 	utils.ClientErr = nil
