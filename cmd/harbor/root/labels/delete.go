@@ -19,42 +19,65 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
 func DeleteLabelCommand() *cobra.Command {
 	var opts models.Label
+	var projectName string
+	var isGlobal bool
+
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Short:   "delete label",
 		Example: "harbor label delete [labelname]",
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var labelId int64
-			deleteView := &api.ListFlags{
-				Scope: opts.Scope,
+			// Defining ProjectID & Scope based on user inputs
+			if isGlobal {
+				opts.Scope = "g"
+			} else if projectName != "" {
+				id, err := api.GetProjectIDFromName(projectName)
+				if err != nil {
+					return err
+				}
+
+				opts.ProjectID = id
+				opts.Scope = "p"
+			} else if opts.ProjectID != 0 {
+				opts.Scope = "p"
+			} else {
+				opts.Scope = "g"
 			}
 
-			if len(args) > 0 {
-				labelId, _ = api.GetLabelIdByName(args[0])
-			} else {
-				labelList, err := api.ListLabel(*deleteView)
-				if err != nil {
-					return fmt.Errorf("failed to get label list: %v", utils.ParseHarborErrorMsg(err))
-				}
-				labelId = prompt.GetLabelIdFromUser(labelList.Payload)
+			deleteView := &api.ListFlags{
+				Scope:     opts.Scope,
+				ProjectID: opts.ProjectID,
 			}
+
+			var err error
+			var labelId int64
+			if len(args) > 0 {
+				labelId, err = api.GetLabelIdByName(args[0], *deleteView)
+			} else {
+				labelId, err = prompt.GetLabelIdFromUser(*deleteView)
+			}
+			if err != nil {
+				return fmt.Errorf("failed to get label id: %v", err)
+			}
+
 			err = api.DeleteLabel(labelId)
 			if err != nil {
-				return fmt.Errorf("failed to delete label: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to delete label: %v", err)
 			}
+
 			return nil
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.Scope, "scope", "s", "g", "default(global).'p' for project labels.Query scope of the label")
+	flags.StringVarP(&projectName, "project", "p", "", "project name when query project labels")
+	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
+	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 
 	return cmd
 }

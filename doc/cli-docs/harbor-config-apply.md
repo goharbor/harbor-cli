@@ -30,6 +30,7 @@ harbor config apply -f <config_file>
 ```sh
   -f, --configurations-file string   Harbor configurations file to apply.
   -h, --help                         help for apply
+  -y, --yes                          Skip confirmation prompt before applying changes.
 ```
 
 ### Options inherited from parent commands

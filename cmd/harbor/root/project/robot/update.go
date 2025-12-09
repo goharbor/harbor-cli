@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	log "github.com/sirupsen/logrus"
 
@@ -93,7 +94,10 @@ Examples:
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
-				projectID := prompt.GetProjectIDFromUser()
+				projectID, err := prompt.GetProjectIDFromUser()
+				if err != nil {
+					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+				}
 				robotID = prompt.GetRobotIDFromUser(projectID)
 			}
 

@@ -6,34 +6,34 @@ before:
     - go mod tidy
 
 builds:
-- main: ./cmd/harbor/main.go
-  env:
-    - CGO_ENABLED=0
-  ldflags:
-    - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
-    - -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version={{.Tag}}
-  goos:
-    - linux
-    - windows
-    - darwin
-  goarch:
-    - amd64
-    - arm64
-  ignore:
-    - goos: windows
-      goarch: arm
-    - goos: windows
-      goarch: arm64
-  mod_timestamp: "{{ .CommitTimestamp }}"
+  - main: ./cmd/harbor/main.go
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -w -s -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit={{.FullCommit}}
+      - -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version={{.Tag}}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
-  - format: tar.gz
+  - formats: ["tar.gz"]
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ["zip"]
+
 nfpms:
-  -
-    homepage: https://github.com/goharbor/harbor-cli/
+  - homepage: https://github.com/goharbor/harbor-cli/
     maintainer: Harbor Community
     description: |-
       CLI for Harbor Container Registry
@@ -47,37 +47,35 @@ sboms:
   - artifacts: archive
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 release:
   name_template: "HarborCLI {{.Tag}}"
-  draft: true                 # Set to false to ensure that releases are published, not kept as drafts
-  prerelease: auto            # Auto-detect prereleases based on tag
+  draft: true # Set to false to ensure that releases are published, not kept as drafts
+  prerelease: auto # Auto-detect prereleases based on tag
   replace_existing_draft: true
   replace_existing_artifacts: true
-  disable: false              # Ensure release publishing is enabled
+  disable: false # Ensure release publishing is enabled
   github:
-    owner: goharbor           # Your GitHub repository owner
-    name: harbor-cli          # Your GitHub repository name
+    owner: goharbor # Your GitHub repository owner
+    name: harbor-cli # Your GitHub repository name
 
-# https://goreleaser.com/customization/homebrew/
-brews:
-  - repository:
-      owner: goharbor                           # GitHub user/org who owns the tap repo
-      name: homebrew-tap                    # Tap repo name (i.e., goharbor/homebrew-tap)
+# https://goreleaser.com/customization/homebrew_casks/
+homebrew_casks:
+  - name: harbor-cli # Name of the CLI, becomes harbor-cli.rb
+    description: "Harbor CLI for interacting with Harbor registry" # Formula description
+    homepage: "https://goharbor.io"
+    repository:
+      owner: goharbor # GitHub user/org who owns the tap repo
+      name: homebrew-tap # Tap repo name (i.e., goharbor/homebrew-tap)
       branch: main
-    name: harbor-cli                        # Name of the CLI, becomes harbor-cli.rb
-    commit_author:                          # Who commits to the tap repo
+    commit_author: # Who commits to the tap repo
       name: goreleaserbot
       email: bot@goreleaser.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
-    homepage: "https://goharbor.io"
-    description: "Harbor CLI for interacting with Harbor registry"  # Formula description
-    test: |
-      system "#{bin}/harbor-cli", "version"            # Formula test (after install)
 
 changelog:
   use: github

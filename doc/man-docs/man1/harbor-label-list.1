@@ -14,8 +14,20 @@ list labels
 
 
 .SH OPTIONS
+\fB--fuzzy\fP=[]
+	Fuzzy match filter (key=value)
+
+.PP
+\fB--global\fP[=false]
+	whether to list global or project scope labels. (default scope is global)
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for list
+
+.PP
+\fB--match\fP=[]
+	exact match filter (key=value)
 
 .PP
 \fB--page\fP=1
@@ -26,7 +38,11 @@ list labels
 	Size of per page
 
 .PP
-\fB-i\fP, \fB--projectid\fP=1
+\fB-p\fP, \fB--project\fP=""
+	project name when query project labels
+
+.PP
+\fB-i\fP, \fB--project-id\fP=0
 	project ID when query project labels
 
 .PP
@@ -34,8 +50,8 @@ list labels
 	Query string to query resources
 
 .PP
-\fB-s\fP, \fB--scope\fP="g"
-	default(global).'p' for project labels.Query scope of the label
+\fB--range\fP=[]
+	range filter (key=min~max)
 
 .PP
 \fB--sort\fP=""

@@ -42,7 +42,6 @@ func CreateProject(opts create.CreateView) error {
 	public := strconv.FormatBool(opts.Public)
 
 	response, err := client.Project.CreateProject(ctx, &project.CreateProjectParams{Project: &models.ProjectReq{ProjectName: opts.ProjectName, RegistryID: registryID, StorageLimit: &storageLimit, Public: &opts.Public, Metadata: &models.ProjectMetadata{Public: public}}})
-
 	if err != nil {
 		return err
 	}
@@ -55,7 +54,7 @@ func CreateProject(opts create.CreateView) error {
 
 func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
-	var response = &project.GetProjectOK{}
+	response := &project.GetProjectOK{}
 
 	if err != nil {
 		return response, err
@@ -66,12 +65,20 @@ func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectO
 		ProjectNameOrID: projectNameOrID,
 		XIsResourceName: &useResourceName,
 	})
-
 	if err != nil {
 		return response, err
 	}
 
 	return response, nil
+}
+
+func GetProjectIDFromName(projectName string) (int64, error) {
+	proj, err := GetProject(projectName, false)
+	if err != nil {
+		return 0, err
+	}
+
+	return int64(proj.Payload.ProjectID), nil
 }
 
 func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) error {
@@ -104,7 +111,6 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		}
 
 		resp, err = ListRepository(projectNameOrID, useProjectID)
-
 		if err != nil {
 			log.Errorf("failed to list repositories: %v", err)
 			return err
@@ -117,7 +123,6 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 				return err
 			}
 			err = RepoDelete(projectNameOrID, repoName, useProjectID)
-
 			if err != nil {
 				log.Errorf("failed to delete repository: %v", err)
 				return err
@@ -129,7 +134,6 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		ProjectNameOrID: projectNameOrID,
 		XIsResourceName: &useProjectName,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -193,7 +197,6 @@ func LogsProject(projectName string) (*project.GetLogsOK, error) {
 		ProjectName: projectName,
 		Context:     ctx,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +214,6 @@ func CheckProject(projectName string) (bool, error) {
 		ProjectName: projectName,
 		Context:     ctx,
 	})
-
 	if err != nil {
 		if utils.ParseHarborErrorCode(err) == "404" {
 			return false, nil
