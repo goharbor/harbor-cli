@@ -88,7 +88,6 @@ func (m *HarborCli) startRedis(ctx context.Context) error {
 	return err
 }
 
-
 func (m *HarborCli) startCore(ctx context.Context) (*dagger.Service, error) {
 
 	coreConfig := m.Source.File(configDirPath + "core/app.conf")
@@ -109,9 +108,7 @@ func (m *HarborCli) startCore(ctx context.Context) (*dagger.Service, error) {
 		AsService().
 		WithHostname("core").
 		Start(ctx)
-
 }
-
 
 func requireNoExecError(err error, step string) {
 	var e *dagger.ExecError
