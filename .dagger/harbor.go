@@ -19,9 +19,9 @@ const (
 	harborAdminPassword = "Harbor12345"
 
 	harborImageTag = "satellite"
-	postgresImage = "registry.goharbor.io/dockerhub/goharbor/harbor-db:dev"
-	redisImage    = "registry.goharbor.io/dockerhub/goharbor/redis-photon:dev"
-	coreImage     = "registry.goharbor.io/harbor-next/harbor-core:" + harborImageTag
+	postgresImage  = "registry.goharbor.io/dockerhub/goharbor/harbor-db:dev"
+	redisImage     = "registry.goharbor.io/dockerhub/goharbor/redis-photon:dev"
+	coreImage      = "registry.goharbor.io/harbor-next/harbor-core:" + harborImageTag
 
 	configDirPath = "./test/e2e/testconfig/config/"
 
@@ -67,7 +67,7 @@ func (m *HarborCli) setupHarborRegistry(ctx context.Context) *dagger.Service {
 		requireNoExecError(err, "start core service")
 	}
 	log.Println("core service started")
-	
+
 	if err := waitForCoreServiceHealth(ctx); err != nil {
 		requireNoExecError(err, "core service health check")
 	}
@@ -129,7 +129,6 @@ func requireNoExecError(err error, step string) {
 	}
 }
 
-
 func waitForCoreServiceHealth(ctx context.Context) error {
 	timeout := time.After(15 * time.Minute)
 	ticker := time.NewTicker(15 * time.Second)
@@ -148,7 +147,6 @@ func waitForCoreServiceHealth(ctx context.Context) error {
 		}
 	}
 }
-
 
 func executeHTTPRequest(ctx context.Context, method, endpoint, data string) (string, error) {
 	args := []string{"curl", "-s", "-X", method}
