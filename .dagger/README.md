@@ -70,6 +70,14 @@ dagger call publish-image \
   --imageTags=v0.1.0,latest
 ```
 
+### `HarborTest(context)`
+
+Runs all Go tests inside Dagger containers, executing them against a Harbor service running as a Dagger service. Test output is streamed to the console.
+
+```bash
+dagger call harbor-test
+```
+
 ---
 
 ## ⚙️ Configuration Constants
