@@ -47,7 +47,7 @@ func Test_Login_Success(t *testing.T) {
 			"https://" + harborURL,
 		}
 	}
-	
+
 	for _, serverAddress := range validServerAddresses {
 		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
 			args := []string{serverAddress}

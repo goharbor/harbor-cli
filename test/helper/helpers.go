@@ -102,17 +102,16 @@ func GetTestHarborURL() string {
 	return "demo.goharbor.io"
 }
 
-
 func GetTestHarborCredentials() (username, password string) {
 	username = os.Getenv("TEST_HARBOR_USERNAME")
 	password = os.Getenv("TEST_HARBOR_PASSWORD")
-	
+
 	if username == "" {
 		username = "harbor-cli"
 	}
 	if password == "" {
 		password = "Harbor12345"
 	}
-	
+
 	return username, password
 }
