@@ -12,11 +12,11 @@ const (
 	harborAdminUser     = "admin"
 	harborAdminPassword = "Harbor12345"
 
-	harborImageTag   = "satellite"
+	harborImageTag = "satellite"
 
-	postgresImage    = "registry.goharbor.io/dockerhub/goharbor/harbor-db:dev"
-	redisImage       = "registry.goharbor.io/dockerhub/goharbor/redis-photon:dev"
-	coreImage        = "registry.goharbor.io/harbor-next/harbor-core:" + harborImageTag
+	postgresImage = "registry.goharbor.io/dockerhub/goharbor/harbor-db:dev"
+	redisImage    = "registry.goharbor.io/dockerhub/goharbor/redis-photon:dev"
+	coreImage     = "registry.goharbor.io/harbor-next/harbor-core:" + harborImageTag
 
 	configDirPath = "./test/e2e/testconfig/config/"
 
@@ -26,7 +26,7 @@ const (
 	coreDebugPort = 4001
 )
 
-func (m* HarborCli) HarborTest(ctx context.Context) (string, error) {
+func (m *HarborCli) HarborTest(ctx context.Context) (string, error) {
 	core := m.setupHarborRegistry(ctx)
 
 	// Create instance for the HarborCLI to run tests in
@@ -57,7 +57,7 @@ func (m *HarborCli) setupHarborRegistry(ctx context.Context) *dagger.Service {
 	}
 	log.Println("redis service started")
 
-		core, err := m.startCore(ctx)
+	core, err := m.startCore(ctx)
 	if err != nil {
 		requireNoExecError(err, "start core service")
 	}
