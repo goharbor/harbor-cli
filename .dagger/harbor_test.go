@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	harborAdminUser     = "admin"
+	harborAdminPassword = "Harbor12345"
 
 	harborImageTag   = "satellite"
 
@@ -24,8 +26,25 @@ const (
 	coreDebugPort = 4001
 )
 
+func (m* HarborCli) HarborTest(ctx context.Context) (string, error) {
+	core := m.setupHarborRegistry(ctx)
+
+	// Create instance for the HarborCLI to run tests in
+	test := dag.Container().
+		From("golang:"+GO_VERSION+"-alpine").
+		WithServiceBinding("core", core).
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithEnvVariable("TEST_HARBOR_URL", "core:8080").
+		WithEnvVariable("TEST_HARBOR_USERNAME", harborAdminUser).
+		WithEnvVariable("TEST_HARBOR_PASSWORD", harborAdminPassword).
+		WithExec([]string{"go", "test", "-v", "./..."})
+
+	return test.Stdout(ctx)
+}
+
 // Returns container running harbor registry with all services running
-func (m *HarborCli) setupHarborRegistry(ctx context.Context) {
+func (m *HarborCli) setupHarborRegistry(ctx context.Context) *dagger.Service {
 	log.Println("setting up harbor registry environment...")
 
 	if err := m.startPostgresql(ctx); err != nil {
@@ -38,11 +57,13 @@ func (m *HarborCli) setupHarborRegistry(ctx context.Context) {
 	}
 	log.Println("redis service started")
 
-		_, err := m.startCore(ctx)
+		core, err := m.startCore(ctx)
 	if err != nil {
 		requireNoExecError(err, "start core service")
 	}
 	log.Println("core service started")
+
+	return core
 }
 
 func (m *HarborCli) startPostgresql(ctx context.Context) error {
