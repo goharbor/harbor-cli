@@ -17,6 +17,10 @@ inputs:
   REGISTRY_USERNAME:
     description: 'Registry username'
     required: true
+  BUILD_DIR:
+    description: 'Build Directory path'
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -27,14 +31,22 @@ runs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.7.0
 
+    - name: Get Build Artifact
+      if: ${{ inputs.BUILD_DIR != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: build-dir
+        path: ${{ inputs.BUILD_DIR }}
+
     - name: Check Env Variables
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       run: cosign env
-
-    - name: Publish and Sign Snapshot Image
+ 
+    - name: Publish and Sign Snapshot Image (Build Dir not present)
       uses: dagger/dagger-for-github@v7
+      if: ${{ inputs.BUILD_DIR == '' }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
@@ -44,11 +56,37 @@ runs:
       with:
         version: ${{ steps.dagger_version.outputs.version }}
         verb: call
-        args: "publish-image-and-sign \
-          --registry='${{ env.REGISTRY_ADDRESS }}' \
-          --registry-username='${{ env.REGISTRY_USERNAME }}' \
-          --registry-password=env:REGISTRY_PASSWORD \
-          --image-tags='${{ env.IMAGE_TAGS}}' \
-          --github-token=env:GITHUB_TOKEN \
-          --actions-id-token-request-url=$ACTIONS_ID_TOKEN_REQUEST_URL \
-          --actions-id-token-request-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+        args: | 
+          publish-image-and-sign \
+          --progress=plain \
+          --registry=${{ env.REGISTRY_ADDRESS }} \
+          --registry-username=${{ env.REGISTRY_USERNAME }} \
+          --registry-password=env://REGISTRY_PASSWORD \
+          --image-tags=${{ env.IMAGE_TAGS }} \
+          --github-token=env://GITHUB_TOKEN \
+          --actions-id-token-request-url=env://ACTIONS_ID_TOKEN_REQUEST_URL \
+          --actions-id-token-request-token=env://ACTIONS_ID_TOKEN_REQUEST_TOKEN \
+
+    - name: Publish and Sign Snapshot Image (Build Dir present)
+      uses: dagger/dagger-for-github@v7
+      if: ${{ inputs.BUILD_DIR != '' }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        REGISTRY_ADDRESS: ${{ inputs.REGISTRY_ADDRESS }}
+        REGISTRY_USERNAME: ${{ inputs.REGISTRY_USERNAME }}
+        REGISTRY_PASSWORD: ${{ inputs.REGISTRY_PASSWORD }}
+        IMAGE_TAGS: ${{ inputs.IMAGE_TAGS }}
+      with:
+        version: ${{ steps.dagger_version.outputs.version }}
+        verb: call
+        args: | 
+          publish-image-and-sign \
+          --progress=plain \
+          --registry=${{ env.REGISTRY_ADDRESS }} \
+          --registry-username=${{ env.REGISTRY_USERNAME }} \
+          --registry-password=env://REGISTRY_PASSWORD \
+          --image-tags=${{ env.IMAGE_TAGS }} \
+          --github-token=env://GITHUB_TOKEN \
+          --actions-id-token-request-url=env://ACTIONS_ID_TOKEN_REQUEST_URL \
+          --actions-id-token-request-token=env://ACTIONS_ID_TOKEN_REQUEST_TOKEN \
+          --build-dir=${{ inputs.BUILD_DIR }} \
