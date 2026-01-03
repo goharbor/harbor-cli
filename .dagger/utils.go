@@ -10,7 +10,7 @@ import (
 )
 
 func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory) ([]string, error) {
-	dirs := []string{"archive", "deb", "rpm"}
+	dirs := []string{"archive", "deb", "rpm", "apk"}
 	var files []string
 
 	ctr := s.Container().
