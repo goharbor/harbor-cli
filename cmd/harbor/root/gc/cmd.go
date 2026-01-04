@@ -29,6 +29,7 @@ func GC() *cobra.Command {
 	cmd.AddCommand(
 		GCHistoryCommand(),
 		GCLogsCommand(),
+		GCStopCommand(),
 		gcschedule.GCSchedule(),
 	)
 

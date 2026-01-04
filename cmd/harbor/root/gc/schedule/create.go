@@ -14,15 +14,20 @@
 package gcschedule
 
 import (
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"fmt"
+	"strings"
+
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	view "github.com/goharbor/harbor-cli/pkg/views/gc/jobs"
+	view "github.com/goharbor/harbor-cli/pkg/views/gc/create"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func CreateGCScheduleCmd() *cobra.Command {
+	var createView view.CreateView
+	var nextScheduledTime string
+	var params []string
+
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create the GC schedule",
@@ -36,24 +41,46 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 
-			resp, err := api.GetGCSchedule()
+			// Validating NextScheduledTime
+			if nextScheduledTime != "" {
+				dt, err := strfmt.ParseDateTime(nextScheduledTime)
+				if err != nil {
+					return err
+				}
+
+				createView.NextScheduledTime = dt
+			}
+
+			// Validating Parameters
+			for _, v := range params {
+				split := strings.Split(v, "=")
+
+				if len(split) == 2 {
+					createView.Parameters[split[0]] = split[1]
+				} else {
+					return fmt.Errorf("parameter should be of format key=val")
+				}
+			}
+
+			err = view.CreateScheduleView(&createView)
 			if err != nil {
 				return err
 			}
 
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(resp.Payload, FormatFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				view.GCJobs([]*models.GCHistory{resp.Payload}) // Only returns the next job scheduled
+			err = api.CreateGCSchedule(&createView)
+			if err != nil {
+				return err
 			}
 
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&createView.Type, "type", "t", "", "type of schedule")
+	flags.StringVarP(&createView.Cron, "cron", "c", "", "cron string for when schedule type is 'custom'")
+	flags.StringVarP(&nextScheduledTime, "next-schedule", "n", "", "next scheduled time. Example: 2026-01-04T10:15:30Z")
+	flags.StringArrayVarP(&params, "parameters", "p", []string{}, "schedule paramters in form key=value")
 
 	return cmd
 }

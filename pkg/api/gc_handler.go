@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/gc"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	view "github.com/goharbor/harbor-cli/pkg/views/gc/create"
 )
 
 func ListGCs(opts *ListFlags) (gc.GetGCHistoryOK, error) {
@@ -101,13 +102,22 @@ func GetGCFromName(name string) (*models.GCHistory, error) {
 	return nil, fmt.Errorf("job with name: %s, not found", name)
 }
 
-func CreateGCSchedule() error {
+func CreateGCSchedule(createView *view.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = client.GC.CreateGCSchedule(ctx, &gc.CreateGCScheduleParams{})
+	_, err = client.GC.CreateGCSchedule(ctx, &gc.CreateGCScheduleParams{
+		Schedule: &models.Schedule{
+			Parameters: createView.Parameters,
+			Schedule: &models.ScheduleObj{
+				Type:              createView.Type,
+				Cron:              createView.Cron,
+				NextScheduledTime: createView.NextScheduledTime,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
