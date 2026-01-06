@@ -16,58 +16,6 @@ type HarborCli struct {
 	IsInitialized bool
 }
 
-// The _full_ pipeline for CI/CD
-// Build Binaries -> Generate zip/tar.gz -> Building .deb & .rpm -> Building Brew Formula
-// -> Publishing to release page -> Publishing to apt
-//
-//	func (m *HarborCli) Pipeline(ctx context.Context, source *dagger.Directory, githubToken *dagger.Secret) (*dagger.Directory, error) {
-//		err := m.init(ctx, source)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		dist := dag.Directory()
-//		pipe := pipeline.InitPipeline(source, dag, m.AppVersion, m.GoVersion)
-//
-//		// Building Binaries
-//		dist, err = pipe.Build(ctx, dist)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		// Archiving Binaries
-//		dist, err = pipe.Archive(ctx, dist)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		// Building deb/rpm Binaries
-//		dist, err = pipe.NFPMBuild(ctx, dist)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		// Building Checksum file
-//		dist, err = pipe.Checksum(ctx, dist)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		// Publishing Release
-//		out, err := pipe.PublishRelease(ctx, dist, githubToken)
-//		if err != nil {
-//			return nil, err
-//		}
-//		fmt.Println(out)
-//
-//		// Publishing repo
-//		err = pipe.AptRepoBuild(ctx, dist, githubToken)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		return dist, err
-//	}
 func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {
 	out, err := dag.Container().
 		From("alpine:latest").
@@ -92,7 +40,7 @@ func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {
 	}
 
 	m.Source = source
-	m.AppVersion = strings.TrimSpace(out)
+	m.AppVersion = strings.TrimSpace(strings.TrimLeft(out, "v"))
 	m.IsInitialized = true
 
 	return nil
