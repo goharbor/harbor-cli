@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
@@ -135,7 +136,9 @@ func RunLogin(opts login.LoginView) error {
 	ctx := context.Background()
 	_, err = client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
-		return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
+		if !strings.Contains(err.Error(), "status 412") {
+			return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
+		}
 	}
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
