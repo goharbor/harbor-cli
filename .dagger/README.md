@@ -70,6 +70,93 @@ dagger call publish-image \
   --imageTags=v0.1.0,latest
 ```
 
+###  `PublishToWinget(packageId, version, githubToken, installerUrls)`
+
+Automates the submission of Harbor CLI updates to the Windows Package Manager (WinGet) repository. This function uses `wingetcreate` to update the package manifest and automatically submit a pull request to `microsoft/winget-pkgs`.
+
+#### GitHub App Setup 
+
+For automated workflows, we use a GitHub App instead of Personal Access Tokens for better security and maintainability:
+
+1. **Create a GitHub App** for your organization with permissions:
+   - `Contents: write`
+   - `Pull requests: write`
+
+2. **Fork `microsoft/winget-pkgs`** to your organization
+
+3. **Install the GitHub App** on the fork
+
+4. **Configure secrets/variables:**
+   - `vars.WINGET_APP_ID` - GitHub App ID
+   - `secrets.WINGET_APP_PRIVATE_KEY` - GitHub App private key
+
+The workflow uses `actions/create-github-app-token@v2` to generate short-lived tokens (1 hour) at runtime.
+
+#### Local Development
+
+For local testing, export a GitHub token with `public_repo` scope:
+
+```shell
+export GITHUB_TOKEN=ghp_yourTokenHere
+```
+
+**Basic Usage** (auto-detects installer URLs from GitHub releases):
+
+```bash
+dagger call publish-to-winget \
+  --package-id="GoHarbor.Harbor" \
+  --version="0.0.11" \
+  --github-token=env:GITHUB_TOKEN
+```
+
+**Advanced Usage** (specify custom installer URLs):
+
+```bash
+dagger call publish-to-winget \
+  --package-id="GoHarbor.Harbor" \
+  --version="0.0.11" \
+  --github-token=env:GITHUB_TOKEN \
+  --installer-urls="https://github.com/goharbor/harbor-cli/releases/download/v0.0.11/harbor-cli_0.0.11_windows_amd64.zip" \
+  --installer-urls="https://github.com/goharbor/harbor-cli/releases/download/v0.0.11/harbor-cli_0.0.11_windows_arm64.zip"
+```
+
+This will:
+1. Download the latest `wingetcreate` tool
+2. Update the WinGet manifest with the new version and installer URLs
+3. Automatically submit a PR to the `microsoft/winget-pkgs` repository
+
+**Requirements:**
+- GitHub App (for CI/CD) or Personal Access Token with `public_repo` scope (for local dev)
+- Valid installer URLs (must be publicly accessible)
+- Existing package in the WinGet repository
+- **Windows Docker host** or Windows container support (for CI/CD, use `runs-on: windows-latest` in GitHub Actions)
+
+**Note:** This function requires Windows containers because `wingetcreate` is a Windows-only tool. On Linux/macOS hosts, this will fail. In GitHub Actions, ensure your workflow uses a Windows runner.
+
+###  `PublishToWingetDryRun(packageId, version, installerUrls)`
+
+Test the WinGet publishing logic without requiring Windows containers. This shows exactly what command would be executed.
+
+```bash
+dagger call publish-to-winget-dry-run \
+  --package-id="GoHarbor.Harbor" \
+  --version="0.0.11"
+```
+
+Output example:
+```
+📦 WinGet Publishing Dry Run
+========================================
+Package ID: GoHarbor.Harbor
+Version: 0.0.11
+Installer URLs:
+https://github.com/goharbor/harbor-cli/releases/download/v0.0.11/harbor-cli_0.0.11_windows_amd64.zip
+https://github.com/goharbor/harbor-cli/releases/download/v0.0.11/harbor-cli_0.0.11_windows_arm64.zip
+
+Command that would be executed:
+wingetcreate.exe update GoHarbor.Harbor --version 0.0.11 --urls "..." --submit --token $env:GITHUB_TOKEN
+```
+
 ---
 
 ## ⚙️ Configuration Constants
