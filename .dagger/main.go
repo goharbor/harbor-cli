@@ -384,9 +384,10 @@ func (m *HarborCli) VulnerabilityCheck(ctx context.Context) (string, error) {
 // Runs a vulnerability check using govulncheck and writes results to vulnerability-check.report
 func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context) *dagger.File {
 	report := "vulnerability-check.report"
+	cmd := fmt.Sprintf("govulncheck ./... > %s || true", report)
 	return m.vulnerabilityCheck(ctx).
 		WithExec([]string{
-			"sh", "-c", fmt.Sprintf("govulncheck ./... > %s", report),
+			"sh", "-c", cmd,
 		}).File(report)
 }
 
@@ -397,6 +398,7 @@ func parsePlatform(platform string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid platform format: %s. Should be os/arch. E.g. darwin/amd64", platform)
 	}
 	return parts[0], parts[1], nil
+
 }
 
 func getVersion(tags []string) string {
