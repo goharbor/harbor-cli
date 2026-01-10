@@ -37,9 +37,12 @@ func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context, source *dagger
 	if err != nil {
 		return nil, err
 	}
+
 	report := "vulnerability-check.report"
+	cmd := fmt.Sprintf("govulncheck ./... > %s || true", report)
+
 	return m.vulnerabilityCheck(ctx).
 		WithExec([]string{
-			"sh", "-c", fmt.Sprintf("govulncheck ./... > %s", report),
+			"sh", "-c", cmd,
 		}).File(report), nil
 }
