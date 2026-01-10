@@ -43,6 +43,7 @@ func (m *HarborCli) Archive(ctx context.Context,
 			binPath := fmt.Sprintf("bin/%s", binName)
 
 			archiveName := fmt.Sprintf("harbor-cli_%s_%s_%s", m.AppVersion, os, arch)
+			archiveDir := getArchiveDirectory(buildDir.File(binPath), source)
 
 			var (
 				archiveFile string
@@ -55,19 +56,19 @@ func (m *HarborCli) Archive(ctx context.Context,
 				container = dag.Container().
 					From("alpine:latest").
 					WithExec([]string{"apk", "add", "--no-cache", "zip"}).
-					WithMountedDirectory("/input", buildDir).
+					WithMountedDirectory("/input", archiveDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
-					WithExec([]string{"zip", "-j", "/out/" + archiveFile, binPath})
+					WithExec([]string{"zip", "-j", "/out/" + archiveFile, "/input/harbor-cli", "/input/LICENSE", "/input/README.md"})
 			} else {
 				archiveFile = archiveName + ".tar.gz"
 				container = dag.Container().
 					From("alpine:latest").
-					WithMountedDirectory("/input", buildDir).
+					WithMountedDirectory("/input", archiveDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
 					WithExec([]string{
-						"tar", "-czf", "/out/" + archiveFile, "-C", "/input/bin", binName,
+						"tar", "-czf", "/out/" + archiveFile, "-C", "/input", ".",
 					})
 			}
 
@@ -78,4 +79,15 @@ func (m *HarborCli) Archive(ctx context.Context,
 	buildDir = buildDir.WithDirectory("archive", archives)
 
 	return buildDir, nil
+}
+
+func getArchiveDirectory(harborCli *dagger.File, source *dagger.Directory) *dagger.Directory {
+	archiveDir := dag.Directory()
+
+	archiveDir = archiveDir.
+		WithFile("LICENSE", source.File("LICENSE")).
+		WithFile("README.md", source.File("README.md")).
+		WithFile("harbor-cli", harborCli)
+
+	return archiveDir
 }
