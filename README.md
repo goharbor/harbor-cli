@@ -83,14 +83,15 @@ echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/har
 source ~/.zshrc # or restart your terminal
 ```
 
-
 ## Linux, MacOS and Windows
 
-Harbor CLI will soon be published on Homebrew.
-Meantime, we recommend using Harbor in the Container
-or downloading the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases)
+On Linux and macOS, you can use Homebrew:
 
+```bash
+brew install harbor-cli
+```
 
+Otherwise, you can download the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases).
 
 ## Add the Harbor CLI to your Container Image
 
