@@ -83,7 +83,7 @@ echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/har
 source ~/.zshrc # or restart your terminal
 ```
 
-## Linux, MacOS and Windows
+## Linux, macOS and Windows
 
 On Linux and macOS, you can use Homebrew:
 
