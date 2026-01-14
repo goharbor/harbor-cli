@@ -91,3 +91,18 @@ func Test_Login_Failure_WrongPassword(t *testing.T) {
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error for wrong password")
 }
+
+func Test_Login_Success_RobotAccount(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{"https://demo.goharbor.io"})
+
+	assert.NoError(t, cmd.Flags().Set("username", "robot_harbor-cli"))
+	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
+
+	err := cmd.Execute()
+	assert.NoError(t, err, "Expected no error for robot account login")
+}
