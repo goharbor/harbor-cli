@@ -68,7 +68,7 @@ func ViewPolicy(rpolicy *models.ReplicationPolicy) {
 		"Last Modified":      modifledTime,
 		"Description":        rpolicy.Description,
 		"Replicate Deletion": strconv.FormatBool(rpolicy.ReplicateDeletion),
-		"Copy By Chunk":      strconv.FormatBool(*rpolicy.CopyByChunk),
+		"Copy By Chunk":      formatCopyByChunk(rpolicy.CopyByChunk),
 		"Speed":              strconv.FormatInt(int64(*rpolicy.Speed), 10) + " B/s",
 	}
 
@@ -141,4 +141,11 @@ func getRegistryName(registry *models.Registry) string {
 		return "Local"
 	}
 	return registry.Name
+}
+
+func formatCopyByChunk(copyByChunk *bool) string {
+	if copyByChunk == nil {
+		return "N/A"
+	}
+	return strconv.FormatBool(*copyByChunk)
 }
