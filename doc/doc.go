@@ -76,8 +76,8 @@ func preblock(filename string) string {
 		weight = prevWeight
 	}
 
-	file := strings.Split(filename, markdownExtension)
-	name := filepath.Base(file[0])
+	baseName := filepath.Base(filename)
+	name := strings.TrimSuffix(baseName, markdownExtension)
 	title := strings.ReplaceAll(name, "-", " ")
 
 	return fmt.Sprintf(frontmdtemplate, title, weight)
@@ -247,7 +247,8 @@ func getWeight(filename string) int {
 	var fm FrontMatter
 	err = yaml.Unmarshal([]byte(yamlContent), &fm)
 	if err != nil {
-		panic(err)
+		log.Warningf("Failed to parse YAML in file %s", filename)
+		return 0
 	}
 	return fm.Weight
 }
