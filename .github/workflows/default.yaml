@@ -9,6 +9,8 @@ on:
     paths-ignore:
       - "*.md"
       - "assets/**"
+  release:
+      types: [published]
 
 permissions:
   contents: write
@@ -191,23 +193,23 @@ jobs:
     if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
     steps:
       - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Checkout repo
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Create Build Dir
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         run: mkdir -p dist
 
       - name: Building Binaries 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -215,7 +217,9 @@ jobs:
           args: "build --build-dir=./dist export --path=./dist"
       
       - name: Archiving Binaries 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -223,7 +227,9 @@ jobs:
           args: "archive --build-dir=./dist export --path=./dist"
 
       - name: NFPM Build (deb/rpm) 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -231,7 +237,9 @@ jobs:
           args: "nfpm-build --build-dir=./dist export --path=./dist"
 
       - name: APK Build (.apk) 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -239,7 +247,9 @@ jobs:
           args: "apk --build-dir=./dist export --path=./dist"
 
       - name: Creating Checksum 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -247,7 +257,9 @@ jobs:
           args: "checksum --build-dir=./dist export --path=./dist"
 
       - name: Publish Release 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -257,7 +269,9 @@ jobs:
           args: "publish-release --build-dir=./dist --token=env://GITHUB_TOKEN "
 
       - name: Apt Build 
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -267,13 +281,18 @@ jobs:
           args: "apt-build --build-dir=./dist --token=env://GITHUB_TOKEN "
 
       - name: Upload Build Artifact
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: actions/upload-artifact@v4
         with:
           name: build-dir
           path: ./dist
 
       - name: Publish and Sign Tagged Image
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'release')
         uses: ./.github/actions/publish-and-sign
         with:
           IMAGE_TAGS: "latest,${{ github.ref_name }}"
