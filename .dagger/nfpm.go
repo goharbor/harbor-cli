@@ -62,7 +62,7 @@ platform: linux
 version: %s
 section: default
 priority: extra
-maintainer: "NucleoFusion <lakshit.singh.mail@gmail.com>"
+maintainer: "Harbor CLI Maintainers <harbor-dev@lists.cncf.io>"
 description: "Harbor CLI — a command-line interface for interacting with your Harbor container registry."
 license: Apache 2.0 
 contents:
