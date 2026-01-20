@@ -105,7 +105,16 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 			huh.NewInput().
 				Title("Scanner Adapter URL").
 				Value(&url).
-				Validate(huh.ValidateNotEmpty()),
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("url cannot be empty")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
+					}
+					return nil
+				}),
 			huh.NewSelect[bool]().
 				Title("Disable ?").
 				Options(

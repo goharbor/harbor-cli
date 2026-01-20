@@ -15,7 +15,6 @@ package create
 
 import (
 	"errors"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -93,8 +92,8 @@ func CreateRegistryView(createView *api.CreateRegView) {
 						return errors.New("url cannot be empty or only spaces")
 					}
 					formattedUrl := utils.FormatUrl(str)
-					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("please enter the correct url format")
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
 					}
 					return nil
 				}),

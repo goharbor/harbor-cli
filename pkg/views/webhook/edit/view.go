@@ -104,7 +104,15 @@ func WebhookEditView(editView *EditView) {
 
 			huh.NewInput().Title("Endpoint URL").
 				Value(&editView.EndpointURL).
-				Validate(utils.EmptyStringValidator("Endpoint URL")),
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("endpoint URL cannot be empty")
+					}
+					if err := utils.ValidateURL(str); err != nil {
+						return err
+					}
+					return nil
+				}),
 
 			huh.NewInput().
 				Title("Auth Header").

@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,13 @@ func LdapPingCmd() *cobra.Command {
 		Short: "ping ldap server",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Validate LDAP URL if provided
+			if opts.LdapURL != "" {
+				if err := utils.ValidateURL(opts.LdapURL); err != nil {
+					return fmt.Errorf("invalid LDAP URL: %v", err)
+				}
+			}
+
 			response, err := api.LdapPingServer(opts)
 			if err != nil {
 				return err
