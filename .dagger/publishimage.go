@@ -39,20 +39,22 @@ func (m *HarborCli) PublishImageAndSign(
 		return "", err
 	}
 
-	_, err = m.Sign(
-		ctx,
-		githubToken,
-		actionsIdTokenRequestUrl,
-		actionsIdTokenRequestToken,
-		registryUsername,
-		registryPassword,
-		imageAddrs[0],
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to sign image: %w", err)
+	for _, addr := range imageAddrs {
+		_, err = m.Sign(
+			ctx,
+			githubToken,
+			actionsIdTokenRequestUrl,
+			actionsIdTokenRequestToken,
+			registryUsername,
+			registryPassword,
+			addr,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to sign image %s: %w", addr, err)
+		}
+		fmt.Printf("Signed image: %s\n", addr)
 	}
 
-	fmt.Printf("Signed image: %s\n", imageAddrs)
 	return imageAddrs[0], nil
 }
 
