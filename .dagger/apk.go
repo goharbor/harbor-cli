@@ -96,7 +96,7 @@ license="Apache-2.0"
 depends=""
 makedepends=""
 source=""
-maintainer="NucleoFusion <lakshit.singh.mail@gmail.com>"
+maintainer="Harbor CLI Maintainers <harbor-dev@lists.cncf.io>"
 builddir="/build"
 
 package() {
