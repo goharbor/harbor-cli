@@ -44,8 +44,8 @@ func (m *HarborCli) PublishRelease(ctx context.Context,
 
 	return ctr.
 		WithWorkdir("/src").
-		// Creating Release
-		WithExec([]string{"gh", "release", "create", "v" + m.AppVersion, "--generate-notes"}).
+		// Create release if it doesn't exist, otherwise continue
+		WithExec([]string{"sh", "-c", "gh release view v" + m.AppVersion + " || gh release create v" + m.AppVersion + " --generate-notes"}).
 		WithExec(cmd).
 		Stdout(ctx)
 }
