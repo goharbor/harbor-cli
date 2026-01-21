@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/create"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/update"
 	log "github.com/sirupsen/logrus"
@@ -93,6 +94,9 @@ Only the fields passed through flags will be updated; other fields will retain t
 				updateView.AccessCredential = opts.AccessCredential
 			}
 			if flags.Changed("url") {
+				if err := utils.ValidateURL(opts.URL); err != nil {
+					return fmt.Errorf("invalid --url: %w", err)
+				}
 				updateView.URL = strfmt.URI(opts.URL)
 			}
 			if flags.Changed("disabled") {
