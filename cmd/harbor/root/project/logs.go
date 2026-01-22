@@ -35,6 +35,13 @@ func LogsProjectCommmand() *cobra.Command {
 		Short: "get project logs",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			log.Debug("Starting execution of 'logs' command")
 			var err error
 			var resp *proj.GetLogExtsOK
