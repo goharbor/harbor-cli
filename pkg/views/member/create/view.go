@@ -92,7 +92,7 @@ func CreateMemberView(createView *CreateView) {
 					}
 
 					if !utils.ValidateUserName(str) {
-						return errors.New("Invalid username. Must be 1-255 characters and cannot contain special characters: , \" ~ # % $")
+						return errors.New("Invalid username. Must be 1-255 characters long and cannot contain special characters: , \" ~ # % $")
 					}
 
 					return nil
