@@ -15,7 +15,7 @@ harbor user create [flags]
 ### Options
 
 ```sh
-      --comment string    Comment
+      --comment string    Comment (optional)
       --email string      Email
   -h, --help              help for create
       --password string   Password
