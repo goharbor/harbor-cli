@@ -1,0 +1,101 @@
+package api
+
+import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/gc"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
+)
+
+// GetGCHistory gets the GC history
+func GetGCHistory(opts ListFlags) ([]*models.GCHistory, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	params := &gc.GetGCHistoryParams{
+		Page:     &opts.Page,
+		PageSize: &opts.PageSize,
+		Q:        &opts.Q,
+		Sort:     &opts.Sort,
+	}
+
+	resp, err := client.GC.GetGCHistory(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Payload, nil
+}
+
+// GetGCJobLog gets the log of a specific GC job
+func GetGCJobLog(id int64) (string, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.GC.GetGCLog(ctx, &gc.GetGCLogParams{
+		GCID: id,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Payload, nil
+}
+
+// GetGCSchedule gets the GC schedule
+func GetGCSchedule() (*models.GCHistory, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.GC.GetGCSchedule(ctx, &gc.GetGCScheduleParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Payload, nil
+}
+
+// CreateGCSchedule creates a GC schedule
+func CreateGCSchedule(schedule *models.Schedule) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GC.CreateGCSchedule(ctx, &gc.CreateGCScheduleParams{
+		Schedule: schedule,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("GC schedule created successfully")
+	return nil
+}
+
+// UpdateGCSchedule updates the GC schedule
+// Modified to take *models.Schedule allowing passing parameters
+func UpdateGCSchedule(schedule *models.Schedule) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GC.UpdateGCSchedule(ctx, &gc.UpdateGCScheduleParams{
+		Schedule: schedule,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Info("GC schedule updated successfully")
+	return nil
+}
