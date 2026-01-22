@@ -37,7 +37,7 @@ go build -o harbor-cli cmd/harbor/main.go
 Alternatively, use [Dagger](https://docs.dagger.io/) for isolated builds:
 
 ```bash
-dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
+dagger call build-dev --source=. --platform darwin/arm64 export --path=./harbor-cli
 ./harbor-dev --help
 ```
 
@@ -79,7 +79,7 @@ Ensure your changes work as expected.
 
 ```bash
 gofmt -s -w .
-dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli  #Recommended
+dagger call build-dev --source=. --platform darwin/arm64 export --path=./harbor-cli  #Recommended
 ./harbor-dev --help
 ```
 
@@ -96,7 +96,7 @@ go build -o ./bin/harbor-cli cmd/harbor/main.go
 Before committing, **always regenerate the documentation** if you've made any code changes or added new commands:
 
 ```bash
-dagger call run-doc export --path=./doc
+dagger call run-doc --source=. export --path=./doc
 ```
 
 ### 6. Commit with a clear message
