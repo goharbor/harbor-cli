@@ -40,7 +40,7 @@ func UserCreateCmd() *cobra.Command {
 				Username: opts.Username,
 			}
 
-			if opts.Email != "" && opts.Realname != "" && opts.Comment != "" && opts.Password != "" && opts.Username != "" {
+			if opts.Email != "" && opts.Realname != "" && opts.Password != "" && opts.Username != "" {
 				err = api.CreateUser(opts)
 			} else {
 				err = createUserView(createView)
