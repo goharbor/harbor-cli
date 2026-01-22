@@ -31,6 +31,7 @@ func GC() *cobra.Command {
 		UpdateGCScheduleCommand(),
 		GetGCLogCommand(),
 		RunGCCommand(),
+		StopGCCommand(),
 	)
 
 	return cmd

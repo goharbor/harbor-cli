@@ -113,3 +113,22 @@ func UpdateGCSchedule(schedule *models.Schedule) error {
 	log.Info("GC schedule updated successfully")
 	return nil
 }
+
+// StopGC stops a running GC job by ID
+func StopGC(gcID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GC.StopGC(ctx, &gc.StopGCParams{
+		GCID: gcID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	log.Infof("GC job %d stopped successfully", gcID)
+	return nil
+}
