@@ -31,6 +31,11 @@ func ListQuotaCommand() *cobra.Command {
 		Short: "list quotas",
 		Long:  "list quotas specified for each project",
 		Run: func(cmd *cobra.Command, args []string) {
+			if opts.PageSize < 0 {
+				log.Errorf("page size must be greater than or equal to 0")
+				return
+			}
+
 			if opts.PageSize > 100 {
 				log.Errorf("page size should be less than or equal to 100")
 				return
