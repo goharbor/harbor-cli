@@ -1,6 +1,7 @@
 package gc
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -11,6 +12,11 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
+
+type GCJobParams struct {
+	DryRun         bool `json:"dry_run"`
+	DeleteUntagged bool `json:"delete_untagged"`
+}
 
 var columns = []table.Column{
 	{Title: "ID", Width: 10},
@@ -25,6 +31,14 @@ func ListGC(history []*models.GCHistory) {
 	for _, job := range history {
 		creationTime, _ := utils.FormatCreatedTime(job.CreationTime.String())
 		updateTime, _ := utils.FormatCreatedTime(job.UpdateTime.String())
+		dryRun := "false"
+
+		if job.JobParameters != "" {
+			var prams GCJobParams
+			if err := json.Unmarshal([]byte(job.JobParameters), &prams); err == nil {
+				dryRun = strconv.FormatBool(prams.DryRun)
+			}
+		}
 
 		// Note: JobParameters is usually a JSON string. For simplicity we display it as is or handle parsing if needed.
 		// Usually contains {"dry_run": true/false}
@@ -32,7 +46,7 @@ func ListGC(history []*models.GCHistory) {
 		rows = append(rows, table.Row{
 			strconv.FormatInt(job.ID, 10),
 			job.JobStatus,
-			job.JobParameters,
+			dryRun,
 			creationTime,
 			updateTime,
 		})
