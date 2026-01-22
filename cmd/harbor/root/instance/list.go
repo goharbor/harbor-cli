@@ -14,6 +14,8 @@
 package instance
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/list"
@@ -33,7 +35,14 @@ filter them using a query string, and sort them in ascending or descending order
 This command provides an easy way to view all instances along with their details.`,
 		Example: `  harbor-cli instance list --page 1 --page-size 10
   harbor-cli instance list --query "name=my-instance" --sort "asc"`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			instance, err := api.ListInstance(opts)
 
 			if err != nil {
@@ -48,6 +57,7 @@ This command provides an easy way to view all instances along with their details
 			} else {
 				list.ListInstance(instance.Payload)
 			}
+			return nil
 		},
 	}
 

@@ -14,6 +14,7 @@
 package robot
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -69,6 +70,13 @@ Examples:
   harbor-cli project robot list`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			if len(args) > 0 {
 				project, err := api.GetProject(args[0], false)
 				if err != nil {

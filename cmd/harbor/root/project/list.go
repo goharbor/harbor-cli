@@ -45,6 +45,10 @@ func ListProjectCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting project list command")
 
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
