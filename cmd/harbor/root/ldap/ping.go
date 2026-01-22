@@ -29,7 +29,6 @@ func LdapPingCmd() *cobra.Command {
 		Short: "ping ldap server",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			response, err := api.LdapPingServer(opts)
 			if err != nil {
 				return err
