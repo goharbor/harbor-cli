@@ -31,8 +31,8 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Title("Provider").
 				Value(&updateView.Type).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("provider cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("provider cannot be empty or only spaces")
 					}
 					return nil
 				}),
@@ -40,8 +40,8 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Title("Name").
 				Value(&updateView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("name cannot be empty or only spaces")
 					}
 					return nil
 				}),

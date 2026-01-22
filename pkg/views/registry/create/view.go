@@ -63,8 +63,8 @@ func CreateRegistryView(createView *api.CreateRegView) {
 				Value(&createView.Type).
 				Options(registrySelectOptions...).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("registry provider cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("registry provider cannot be empty or only spaces")
 					}
 					return nil
 				}),

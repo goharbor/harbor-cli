@@ -15,6 +15,7 @@ package update
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/go-openapi/strfmt"
@@ -106,7 +107,7 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 				Title("Scanner Adapter URL").
 				Value(&url).
 				Validate(func(str string) error {
-					if str == "" {
+					if strings.TrimSpace(str) == "" {
 						return errors.New("url cannot be empty")
 					}
 					formattedUrl := utils.FormatUrl(str)
