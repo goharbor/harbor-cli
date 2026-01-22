@@ -1,0 +1,51 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-stop - Stop a running GC job
+
+
+.SH SYNOPSIS
+\fBharbor gc stop [flags]\fP
+
+
+.SH DESCRIPTION
+Stop a running Garbage Collection job in Harbor.
+
+.PP
+This command displays a list of currently running or pending GC jobs and
+allows you to select one to stop. Only jobs with status "running" or "pending"
+can be stopped.
+
+.PP
+Examples:
+  # Stop a running GC job interactively
+  harbor-cli gc stop
+
+.PP
+Notes:
+  - Only jobs that are currently running or pending can be stopped
+  - Jobs that have already completed cannot be stopped
+  - Use 'harbor-cli gc list' to view all GC jobs and their statuses
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for stop
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP
