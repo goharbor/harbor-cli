@@ -8,8 +8,7 @@ import (
 )
 
 func RunGCCommand() *cobra.Command {
-	var dryRun bool
-	var deleteUntagged bool
+	var dryRun, deleteUntagged bool
 
 	cmd := &cobra.Command{
 		Use:   "run",
