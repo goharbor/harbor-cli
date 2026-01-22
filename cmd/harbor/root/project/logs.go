@@ -37,7 +37,7 @@ func LogsProjectCommmand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting execution of 'logs' command")
 			var err error
-			var resp *proj.GetLogsOK
+			var resp *proj.GetLogExtsOK
 			var projectName string
 
 			if len(args) > 0 {
