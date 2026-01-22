@@ -15,6 +15,7 @@
 package gc
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/gc/update"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
@@ -116,7 +118,12 @@ func updateGCPredefinedSchedule(scheduleType string) error {
 
 func updateGCCustomSchedule(cron string) error {
 	if cron == "" {
-		return fmt.Errorf("cron expression is required for custom schedule")
+		logrus.Info("Opening interactive form for custom schedule configuration")
+		update.UpdateSchedule(&cron)
+	}
+
+	if err := validateCron(cron); err != nil {
+		return err
 	}
 
 	randomTime := strfmt.DateTime{}
@@ -131,8 +138,30 @@ func updateGCCustomSchedule(cron string) error {
 
 	err := api.UpdateGCSchedule(schedule)
 	if err != nil {
-		return fmt.Errorf("failed to update GC schedule: %v", utils.ParseHarborErrorMsg(err))
+		errMsg := utils.ParseHarborErrorMsg(err)
+		if strings.Contains(errMsg, "400") {
+			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the standard 6-field format (seconds minute hour day month weekday)")
+		}
+		return fmt.Errorf("failed to update GC schedule: %v", errMsg)
 	}
-	logrus.Info("Successfully updated GC schedule with custom cron")
+	logrus.Infof("Successfully updated GC schedule with custom cron expression: %s", cron)
+	return nil
+}
+
+func validateCron(cron string) error {
+	if cron == "" {
+		return errors.New("cron expression cannot be empty")
+	}
+	fields := strings.Fields(cron)
+	if len(fields) < 6 {
+		if len(fields) == 5 {
+			logrus.Infof("Converting 5-field cron to 6-field by adding '0' for seconds")
+			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
+		}
+		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
+	}
+	if len(fields) > 6 {
+		return fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
+	}
 	return nil
 }
