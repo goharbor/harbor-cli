@@ -41,7 +41,11 @@ func ElevateUserCmd() *cobra.Command {
 					return
 				}
 			} else {
-				userId = prompt.GetUserIdFromUser()
+				userId, err = prompt.GetUserIdFromUser()
+				if err != nil {
+					log.Errorf("failed to get user id from user selection: %v", err)
+					return
+				}
 			}
 			confirm, err := views.ConfirmElevation()
 			if err != nil {

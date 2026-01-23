@@ -49,7 +49,11 @@ func UserPasswordChangeCmd() *cobra.Command {
 					return
 				}
 			} else {
-				userId = prompt.GetUserIdFromUser()
+				userId, err = prompt.GetUserIdFromUser()
+				if err != nil {
+					log.Errorf("failed to get user id from user selection: \n%v", err)
+					return
+				}
 			}
 
 			reset.ChangePasswordView(resetView)

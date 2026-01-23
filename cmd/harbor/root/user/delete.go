@@ -66,7 +66,11 @@ func UserDeleteCmd() *cobra.Command {
 				}
 			} else {
 				// Interactive mode: get the user ID from the prompt.
-				userID := prompt.GetUserIdFromUser()
+				userID, err := prompt.GetUserIdFromUser()
+				if err != nil {
+					log.Error(err)
+					return
+				}
 				if err := api.DeleteUser(userID); err != nil {
 					if isUnauthorizedError(err) {
 						log.Error("Permission denied: Admin privileges are required to execute this command.")
