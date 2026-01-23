@@ -30,6 +30,7 @@ func UserDeleteCmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			// If there are command line arguments, process them concurrently.
+			log.SetOutput(cmd.OutOrStderr())
 			if len(args) > 0 {
 				var wg sync.WaitGroup
 				errChan := make(chan error, len(args)) // Channel to collect errors
@@ -68,7 +69,7 @@ func UserDeleteCmd() *cobra.Command {
 				// Interactive mode: get the user ID from the prompt.
 				userID, err := prompt.GetUserIdFromUser()
 				if err != nil {
-					log.Error(err)
+					log.Errorf("failed to get user id: %v", err)
 					return
 				}
 				if err := api.DeleteUser(userID); err != nil {
