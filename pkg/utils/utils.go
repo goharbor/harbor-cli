@@ -209,7 +209,7 @@ func GetUserIdFromUser() int64 {
 		if err != nil {
 			log.Fatal(err)
 		}
-		uview.UserList(response.Payload, userId)
+		uview.UserList(response.Payload)
 	}()
 
 	return <-userId
