@@ -40,7 +40,7 @@ func DeleteMemberCommand() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				ok, checkErr := api.CheckProject(args[0]) // verifying project name
+				ok, checkErr := api.CheckProject(args[0], isID) // verifying project name
 				if checkErr != nil {
 					return fmt.Errorf("failed to verify project name: %v", checkErr)
 				}

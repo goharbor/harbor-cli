@@ -53,7 +53,7 @@ func LogsProjectCommmand() *cobra.Command {
 			}
 
 			log.Debugf("Checking if project '%s' exists...", projectName)
-			projectExists, err := api.CheckProject(projectName)
+			projectExists, err := api.CheckProject(projectName, false)
 			if err != nil {
 				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborErrorMsg(err))
 			} else if !projectExists {

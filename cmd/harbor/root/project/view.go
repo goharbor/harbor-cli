@@ -49,14 +49,14 @@ func ViewCommand() *cobra.Command {
 			}
 
 			log.Debugf("Checking existence of project: %s", projectName)
-			projectExists, err := api.CheckProject(projectName)
+			projectExists, err := api.CheckProject(projectName, isID)
 			if err != nil {
 				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborErrorMsg(err))
 			} else if !projectExists {
 				return fmt.Errorf("project %s does not exist", projectName)
 			}
 			log.Debugf("Project %s exists", projectName)
-			project, err = api.GetProject(projectName, false)
+			project, err = api.GetProject(projectName, isID)
 			if err != nil {
 				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
 			}
