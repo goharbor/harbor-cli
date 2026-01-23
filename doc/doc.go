@@ -42,7 +42,10 @@ type FrontMatter struct {
 	Weight int    `yaml:"weight"`
 }
 
-func Doc() error {
+type MarkdownGenerator func(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error
+type MardownTreeGenerator func(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string, generator MarkdownGenerator) error
+
+func Doc(w io.Writer, treeGenerator MardownTreeGenerator) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -58,12 +61,12 @@ func Doc() error {
 		}
 	}
 	docDir := fmt.Sprintf("%s/%s", currentDir, folderName)
-	err = MarkdownTreeCustom(cmd.RootCmd(), docDir, preblock, linkHandler)
+	err = treeGenerator(cmd.RootCmd(), docDir, preblock, linkHandler, MarkdownCustom)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Documentation generated at " + docDir)
+	fmt.Fprintf(w, "Documentation generated at %s \n", docDir)
 	return nil
 }
 
@@ -168,12 +171,12 @@ func MarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) st
 	return err
 }
 
-func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string) error {
+func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string, generator MarkdownGenerator) error {
 	for _, c := range cmd.Commands() {
 		if !c.IsAvailableCommand() || c.IsAdditionalHelpTopicCommand() {
 			continue
 		}
-		if err := MarkdownTreeCustom(c, dir, filePrepender, linkHandler); err != nil {
+		if err := MarkdownTreeCustom(c, dir, filePrepender, linkHandler, generator); err != nil {
 			return err
 		}
 	}
@@ -194,11 +197,11 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	if _, err := io.WriteString(f, preblock); err != nil {
 		return err
 	}
-	defer f.Close()
-	if err := MarkdownCustom(cmd, f, linkHandler); err != nil {
+	if err := generator(cmd, f, linkHandler); err != nil {
 		return err
 	}
 	return nil
@@ -256,7 +259,7 @@ func getWeight(filename string) int {
 }
 
 func main() {
-	err := Doc()
+	err := Doc(os.Stdout, MarkdownTreeCustom)
 	if err != nil {
 		log.Fatal(err)
 	}
