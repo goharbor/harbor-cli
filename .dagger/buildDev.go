@@ -11,10 +11,10 @@ import (
 )
 
 // Create build of Harbor CLI for local testing and development
-func (m *HarborCli) BuildDev(ctx context.Context, platform string, source *dagger.Directory) *dagger.File {
+func (m *HarborCli) BuildDev(ctx context.Context, platform string, source *dagger.Directory) (*dagger.File, error) {
 	err := m.init(ctx, source)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	fmt.Println("🛠️  Building Harbor-Cli with Dagger...")
@@ -43,7 +43,7 @@ func (m *HarborCli) BuildDev(ctx context.Context, platform string, source *dagge
 	builder = builder.WithExec([]string{
 		"go", "build", "-ldflags", ldflagsArgs, "-o", "/bin/harbor-cli", "/src/cmd/harbor/main.go",
 	})
-	return builder.File("/bin/harbor-cli")
+	return builder.File("/bin/harbor-cli"), nil
 }
 
 // Parse the platform string into os and arch
