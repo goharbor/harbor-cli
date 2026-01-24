@@ -16,6 +16,7 @@ package gc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -58,10 +59,10 @@ Notes:
 			err = api.StopGC(gcID)
 			if err != nil {
 				errMsg := utils.ParseHarborErrorMsg(err)
-				if contains(errMsg, "404") {
+				if strings.Contains(errMsg, "404") {
 					return fmt.Errorf("GC job %d not found or already completed", gcID)
 				}
-				if contains(errMsg, "400") {
+				if strings.Contains(errMsg, "400") {
 					return fmt.Errorf("GC job %d cannot be stopped (may have already completed)", gcID)
 				}
 				return fmt.Errorf("failed to stop GC job %d: %v", gcID, errMsg)
@@ -73,17 +74,4 @@ Notes:
 	}
 
 	return cmd
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
-}
-
-func containsHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
