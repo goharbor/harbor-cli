@@ -34,7 +34,7 @@ func GetGCLogCommand() *cobra.Command {
 			}
 
 			if id <= 0 {
-			    return fmt.Errorf("gc_id must be a positive integer")
+				return fmt.Errorf("gc_id must be a positive integer")
 			}
 
 			logData, err := api.GetGCJobLog(id)
