@@ -27,9 +27,9 @@ func GC() *cobra.Command {
 
 	cmd.AddCommand(
 		ListGCCommand(),
+		GetGCLogCommand(),
 		ViewGCScheduleCommand(),
 		UpdateGCScheduleCommand(),
-		GetGCLogCommand(),
 		RunGCCommand(),
 		StopGCCommand(),
 	)

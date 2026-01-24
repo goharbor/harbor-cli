@@ -19,7 +19,6 @@ import (
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -28,18 +27,23 @@ func GetGCLogCommand() *cobra.Command {
 		Use:   "log [gc_id]",
 		Short: "Get GC job log",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
-				logrus.Fatalf("Invalid GC ID: %v", err)
+				return fmt.Errorf("Invalid GC ID: %v", err)
+			}
+
+			if id <= 0 {
+			    return fmt.Errorf("gc_id must be a positive integer")
 			}
 
 			logData, err := api.GetGCJobLog(id)
 			if err != nil {
-				logrus.Fatalf("Failed to get GC log: %v", err)
+				return fmt.Errorf("Failed to get GC log: %v", err)
 			}
 
 			fmt.Println(logData)
+			return nil
 		},
 	}
 	return cmd
