@@ -48,9 +48,9 @@ func ListGC(history []*models.GCHistory) {
 		dryRun := "false"
 
 		if job.JobParameters != "" {
-			var prams GCJobParams
-			if err := json.Unmarshal([]byte(job.JobParameters), &prams); err == nil {
-				dryRun = strconv.FormatBool(prams.DryRun)
+			var params GCJobParams
+			if err := json.Unmarshal([]byte(job.JobParameters), &params); err == nil {
+				dryRun = strconv.FormatBool(params.DryRun)
 			}
 		}
 

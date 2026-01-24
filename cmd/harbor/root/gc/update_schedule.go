@@ -70,7 +70,11 @@ Available schedule types:
 			case "Hourly", "Daily", "Weekly":
 				return updateGCPredefinedSchedule(scheduleType)
 			case "Custom":
-				return updateGCCustomSchedule(cron)
+				c, err := validateCron(cron)
+				if err != nil {
+					return err
+				}
+				return updateGCCustomSchedule(c)
 			}
 
 			return nil
@@ -97,14 +101,14 @@ func updateGCScheduleToNone() error {
 }
 
 func updateGCPredefinedSchedule(scheduleType string) error {
-	randomCron := "0 0 * * * * "
-	randomTime := strfmt.DateTime{}
+	defaultHourlyCron := "0 0 * * * * "
+	zeroTime := strfmt.DateTime{}
 
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{
 			Type:              scheduleType,
-			Cron:              randomCron,
-			NextScheduledTime: randomTime,
+			Cron:              defaultHourlyCron,
+			NextScheduledTime: zeroTime,
 		},
 	}
 
@@ -120,19 +124,21 @@ func updateGCCustomSchedule(cron string) error {
 	if cron == "" {
 		logrus.Info("Opening interactive form for custom schedule configuration")
 		update.UpdateSchedule(&cron)
+		// re-validate after interactive input
+		var err error
+		cron, err = validateCron(cron)
+		if err != nil {
+			return err
+		}
 	}
 
-	if err := validateCron(cron); err != nil {
-		return err
-	}
-
-	randomTime := strfmt.DateTime{}
+	zeroTime := strfmt.DateTime{}
 
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{
 			Type:              "Custom",
 			Cron:              cron,
-			NextScheduledTime: randomTime,
+			NextScheduledTime: zeroTime,
 		},
 	}
 
@@ -148,20 +154,20 @@ func updateGCCustomSchedule(cron string) error {
 	return nil
 }
 
-func validateCron(cron string) error {
+func validateCron(cron string) (string, error) {
 	if cron == "" {
-		return errors.New("cron expression cannot be empty")
+		return "", errors.New("cron expression cannot be empty")
 	}
 	fields := strings.Fields(cron)
 	if len(fields) < 6 {
 		if len(fields) == 5 {
 			logrus.Infof("Converting 5-field cron to 6-field by adding '0' for seconds")
-			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
+			return fmt.Sprintf("0 %s", cron), nil
 		}
-		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
+		return "", fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
 	}
 	if len(fields) > 6 {
-		return fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
+		return "", fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
 	}
-	return nil
+	return cron, nil
 }
