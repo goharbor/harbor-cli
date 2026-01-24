@@ -8,6 +8,26 @@ weight: 60
 
 ##### List GC history
 
+### Synopsis
+
+List GC (Garbage Collection) history in Harbor.
+
+This command displays a list of GC executions with their status, creation time,
+and other details. You can control the output using pagination flags and format options.
+
+Examples:
+  # List GC history with default pagination (page 1, 10 items per page)
+  harbor gc list
+
+  # List GC history with custom pagination
+  harbor gc list --page 2 --page-size 20
+
+  # List GC history with sorting by creation time (newest first)
+  harbor gc list --sort -creation_time
+
+  # Filter GC history by status
+  harbor gc list -q status=Success
+
 ```sh
 harbor gc list [flags]
 ```

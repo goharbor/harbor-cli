@@ -10,7 +10,28 @@ harbor-gc-list - List GC history
 
 
 .SH DESCRIPTION
-List GC history
+List GC (Garbage Collection) history in Harbor.
+
+.PP
+This command displays a list of GC executions with their status, creation time,
+and other details. You can control the output using pagination flags and format options.
+
+.PP
+Examples:
+  # List GC history with default pagination (page 1, 10 items per page)
+  harbor gc list
+
+.PP
+# List GC history with custom pagination
+  harbor gc list --page 2 --page-size 20
+
+.PP
+# List GC history with sorting by creation time (newest first)
+  harbor gc list --sort -creation_time
+
+.PP
+# Filter GC history by status
+  harbor gc list -q status=Success
 
 
 .SH OPTIONS
