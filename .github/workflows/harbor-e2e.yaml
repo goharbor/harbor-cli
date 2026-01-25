@@ -71,7 +71,7 @@ jobs:
 
           cp harbor.yml.tmpl harbor.yml
 
-          HOSTNAME="${HARBOR_HOSTNAME:-127.0.0.1}"
+          HOSTNAME="${HARBOR_HOSTNAME:-harbor.local}"
           ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
           if [ -z "$ADMIN_PW" ]; then
             ADMIN_PW=$(openssl rand -base64 30)
@@ -84,11 +84,16 @@ jobs:
           sed -i "/^database:/ { n; n; s|^  password:.*|  password: \"$(openssl rand -base64 30)\"| }" harbor.yml
 
           # create self-signed ssl certificate valid for 10 years
-          mkdir -p cert
+          # Use absolute paths because the prepare script runs in a container that mounts / -> /hostfs/
+          mkdir -p /tmp/harbor-podman/cert
           openssl req -newkey rsa:4096 -nodes -x509 -days 3650 \
             -subj "/C=US/ST=CA/L=SF/O=harbor-cli/CN=${HOSTNAME}" \
-            -keyout ./cert/harbor.key \
-            -out    ./cert/harbor.crt
+            -keyout /tmp/harbor-podman/cert/harbor.key \
+            -out    /tmp/harbor-podman/cert/harbor.crt
+
+          # Update harbor.yml to use absolute cert paths (required for prepare container's /hostfs mount)
+          sed -i "s|certificate:.*|certificate: /tmp/harbor-podman/cert/harbor.crt|" harbor.yml
+          sed -i "s|private_key:.*|private_key: /tmp/harbor-podman/cert/harbor.key|" harbor.yml
 
           sudo chown -R 1000:1000 .
 
@@ -111,7 +116,7 @@ jobs:
           # bash safety
           set -euo pipefail
 
-          HOST="${HARBOR_HOSTNAME:-127.0.0.1}"
+          HOST="${HARBOR_HOSTNAME:-harbor.local}"
           for i in $(seq 1 40); do
             if curl -sk https://${HOST}/api/v2.0/health >/dev/null; then
               echo "Harbor is ready"
@@ -130,7 +135,7 @@ jobs:
       - name: Set outputs
         id: set-outputs
         run: |
-          HOST="${HARBOR_HOSTNAME:-127.0.0.1}"
+          HOST="${HARBOR_HOSTNAME:-harbor.local}"
           ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
           if [ -z "$ADMIN_PW" ]; then
              ADMIN_PW=$(grep '^harbor_admin_password:' /tmp/harbor-podman/harbor.yml | awk '{print $2}' | tr -d '"')
