@@ -2,7 +2,7 @@ name: Main and Pull Request Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/harbor-setup-podman]
     tags:
       - "v*.*.*"
   pull_request:
@@ -165,6 +165,7 @@ jobs:
     with:
       harbor_hostname: "127.0.0.1"
       enable_trivy: false
+      run_tests: true
     secrets:
       harbor_admin_password: ${{ secrets.HARBOR_ADMIN_PASSWORD }}
 
