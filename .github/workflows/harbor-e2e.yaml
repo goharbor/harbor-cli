@@ -1,0 +1,121 @@
+name: Harbor E2E Setup
+
+on:
+  workflow_call:
+    inputs:
+      harbor_hostname:
+        required: false
+        type: string
+        default: "127.0.0.1" # The hostname defaults to localhost if nothing is provided
+      enable_trivy:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      harbor_admin_password:
+        required: false # If no password is given, a random base64 password is generated at runtime
+
+jobs:
+  setup-harbor:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:40 # Using a priveledged fedora container inside ubuntu to follow GHA guidelines
+      options: --privileged
+    env:
+      HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
+      HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
+    outputs:
+      harbor_url: ${{ steps.set-outputs.outputs.harbor_url }}
+      harbor_username: ${{ steps.set-outputs.outputs.harbor_username }}
+      harbor_password: ${{ steps.set-outputs.outputs.harbor_password }}
+    steps:
+      - name: Install dependencies
+        run: |
+          dnf -y install \
+            podman podman-docker podman-compose \
+            git tar gzip wget openssl \
+            iproute shadow-utils hostname \
+            && dnf clean all
+
+      - name: Configure Podman for CI
+        run: |
+          # Verify podman is working
+          podman --version
+          podman-compose --version
+
+      - name: Clone Harbor Podman repo
+        run: git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
+
+      - name: Prepare harbor config and TLS
+        working-directory: /tmp/harbor-podman
+        run: |
+          # bash safety
+          set -euo pipefail
+
+          cp harbor.yml.tmpl harbor.yml
+
+          HOSTNAME="${HARBOR_HOSTNAME:-127.0.0.1}"
+          ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
+          if [ -z "$ADMIN_PW" ]; then
+            ADMIN_PW=$(openssl rand -base64 30)
+          fi
+
+          sed -i "s|^hostname:.*|hostname: ${HOSTNAME}|" harbor.yml
+
+          # set the passwords for admin and databases
+          sed -i "s|^harbor_admin_password:.*|harbor_admin_password: \"${ADMIN_PW}\"|" harbor.yml
+          sed -i "/^database:/ { n; n; s|^  password:.*|  password: \"$(openssl rand -base64 30)\"| }" harbor.yml
+
+          # create self-signed ssl certificate valid for 10 years
+          mkdir -p cert
+          openssl req -newkey rsa:4096 -nodes -x509 -days 3650 \
+            -subj "/C=US/ST=CA/L=SF/O=harbor-cli/CN=${HOSTNAME}" \
+            -keyout ./cert/harbor.key \
+            -out    ./cert/harbor.crt
+
+          chown -R 1000:1000 .
+
+      - name: Start Harbor
+        working-directory: /tmp/harbor-podman
+        env:
+          ENABLE_TRIVY: ${{ inputs.enable_trivy }}
+        run: |
+          set -euo pipefail
+          extra_flag=""
+          if [ "${ENABLE_TRIVY}" = "true" ]; then
+            extra_flag="--with-trivy"
+          fi
+          ./install.sh ${extra_flag}
+
+      - name: Wait for Harbor to be ready
+        run: |
+          # bash safety
+          set -euo pipefail
+
+          HOST="${HARBOR_HOSTNAME:-127.0.0.1}"
+          for i in $(seq 1 40); do
+            if curl -sk https://${HOST}/api/v2.0/health >/dev/null; then
+              echo "Harbor is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Harbor failed to become ready" >&2
+          podman ps -a
+          podman logs harbor-core || true
+          exit 1
+
+      - name: Show running containers
+        run: podman ps -a
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          HOST="${HARBOR_HOSTNAME:-127.0.0.1}"
+          ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
+          if [ -z "$ADMIN_PW" ]; then
+             ADMIN_PW=$(grep '^harbor_admin_password:' /tmp/harbor-podman/harbor.yml | awk '{print $2}' | tr -d '"')
+          fi
+          echo "harbor_url=https://${HOST}" >> $GITHUB_OUTPUT
+          echo "harbor_username=admin" >> $GITHUB_OUTPUT
+          echo "harbor_password=${ADMIN_PW}" >> $GITHUB_OUTPUT
