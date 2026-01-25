@@ -20,6 +20,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
 type MemberUser struct {
@@ -85,9 +86,13 @@ func CreateMemberView(createView *CreateView) {
 			huh.NewInput().
 				Title("Username").
 				Value(&createView.MemberUser.Username).
-				Validate(func(str string) error { // TODO: Add username checking
+				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Username and UserID cannot both be empty.")
+						return errors.New("Username cannot be empty.")
+					}
+
+					if !utils.ValidateUserName(str) {
+						return errors.New("Invalid username. Must be 1-255 characters long and cannot contain special characters: , \" ~ # % $")
 					}
 
 					return nil

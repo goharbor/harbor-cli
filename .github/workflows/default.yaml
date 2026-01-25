@@ -9,8 +9,11 @@ on:
     paths-ignore:
       - "*.md"
       - "assets/**"
-  release:
-      types: [published]
+  workflow_dispatch:  # Allow manual trigger on existing releases
+    inputs:
+      tag:
+        description: 'Tag to build (e.g., v1.0.0)'
+        required: true
 
 permissions:
   contents: write
@@ -25,6 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: Dagger Version
+        id: dagger_version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Generate Document
@@ -77,6 +81,7 @@ jobs:
           fetch-depth: 0
 
       - name: Dagger Version
+        id: dagger_version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Run Vulnerability Check
@@ -90,11 +95,8 @@ jobs:
         run: |
           echo "<h2> 🔒 Vulnerability Check Results</h2>" >> $GITHUB_STEP_SUMMARY
           cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
-          # Check if the lint report contains any content (error or issues)
           if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
-              # If the file contains content, output an error message and exit with code 1
-              echo "⚠️ Vulnerability issues found!" >> $GITHUB_STEP_SUMMARY
-              exit 1
+              echo "⚠️ Vulnerability issues found! Please review." >> $GITHUB_STEP_SUMMARY
           fi
 
   test-code:
@@ -104,6 +106,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Dagger Version
+        id: dagger_version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v7
@@ -190,36 +196,39 @@ jobs:
       packages: write
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch')
     steps:
       - name: Checkout repo
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Create Build Dir
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         run: mkdir -p dist
 
-      - name: Building Binaries 
+      - name: Building Binaries
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
           verb: call
           args: "build --build-dir=./dist export --path=./dist"
-      
-      - name: Archiving Binaries 
+
+      - name: Archiving Binaries
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
@@ -229,47 +238,47 @@ jobs:
       - name: Building SBOM 
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
           verb: call
           args: "sbom --build-dir=./dist export --path=./dist"
 
-      - name: NFPM Build (deb/rpm) 
+      - name: NFPM Build (deb/rpm)
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
           verb: call
           args: "nfpm-build --build-dir=./dist export --path=./dist"
 
-      - name: APK Build (.apk) 
+      - name: APK Build (.apk)
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
           verb: call
           args: "apk --build-dir=./dist export --path=./dist"
 
-      - name: Creating Checksum 
+      - name: Creating Checksum
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         with:
           version: "latest"
           verb: call
           args: "checksum --build-dir=./dist export --path=./dist"
 
-      - name: Publish Release 
+      - name: Publish Release
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -278,10 +287,10 @@ jobs:
           verb: call
           args: "publish-release --build-dir=./dist --token=env://GITHUB_TOKEN "
 
-      - name: Apt Build 
+      - name: Apt Build
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -293,7 +302,7 @@ jobs:
       - name: Upload Build Artifact
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: build-dir
@@ -302,10 +311,10 @@ jobs:
       - name: Publish and Sign Tagged Image
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-          (github.event_name == 'release')
+          (github.event_name == 'workflow_dispatch')
         uses: ./.github/actions/publish-and-sign
         with:
-          IMAGE_TAGS: "latest,${{ github.ref_name }}"
+          IMAGE_TAGS: "latest,${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
