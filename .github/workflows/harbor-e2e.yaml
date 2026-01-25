@@ -125,12 +125,12 @@ jobs:
             sleep 5
           done
           echo "Harbor failed to become ready" >&2
-          podman ps -a
-          podman logs harbor-core || true
+          sudo podman ps -a
+          sudo podman logs harbor-core || true
           exit 1
 
       - name: Show running containers
-        run: podman ps -a
+        run: sudo podman ps -a
 
       - name: Set outputs
         id: set-outputs
@@ -159,4 +159,4 @@ jobs:
           HARBOR_PASSWORD: ${{ steps.set-outputs.outputs.harbor_password }}
         run: |
           echo "Running e2e tests against Harbor at ${HARBOR_URL}"
-          go test -v ...
+          go test -v ./...
