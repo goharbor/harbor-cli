@@ -11,6 +11,10 @@ on:
         required: false
         type: boolean
         default: false
+      run_tests:
+        required: false
+        type: boolean
+        default: true # Run e2e tests after Harbor setup
     secrets:
       harbor_admin_password:
         required: false # If no password is given, a random base64 password is generated at runtime
@@ -33,7 +37,7 @@ jobs:
         run: |
           dnf -y install \
             podman podman-docker podman-compose \
-            git tar gzip wget openssl \
+            git tar gzip wget openssl curl golang \
             iproute shadow-utils hostname \
             && dnf clean all
 
@@ -119,3 +123,20 @@ jobs:
           echo "harbor_url=https://${HOST}" >> $GITHUB_OUTPUT
           echo "harbor_username=admin" >> $GITHUB_OUTPUT
           echo "harbor_password=${ADMIN_PW}" >> $GITHUB_OUTPUT
+
+      # E2E tests run in the same job to access the Harbor instance
+      - name: Checkout harbor-cli repo
+        if: ${{ inputs.run_tests }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run E2E Tests
+        if: ${{ inputs.run_tests }}
+        env:
+          HARBOR_URL: ${{ steps.set-outputs.outputs.harbor_url }}
+          HARBOR_USERNAME: ${{ steps.set-outputs.outputs.harbor_username }}
+          HARBOR_PASSWORD: ${{ steps.set-outputs.outputs.harbor_password }}
+        run: |
+          echo "Running e2e tests against Harbor at ${HARBOR_URL}"
+          go test -v ...
