@@ -43,7 +43,6 @@ jobs:
           # Harbor rejects 127.0.0.1/localhost as hostname, so we use a fake hostname
           # and map it to localhost in /etc/hosts
           echo "127.0.0.1 ${HARBOR_HOSTNAME}" | sudo tee -a /etc/hosts
-          echo "Configured /etc/hosts:"
           cat /etc/hosts | grep "${HARBOR_HOSTNAME}"
 
       - name: Configure Podman for CI
