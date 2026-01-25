@@ -159,7 +159,7 @@ jobs:
 
   harbor-e2e:
     needs:
-      - lint
+      # - lint
       - test-code
     uses: ./.github/workflows/harbor-e2e.yaml
     with:
