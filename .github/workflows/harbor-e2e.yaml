@@ -22,6 +22,7 @@ on:
 jobs:
   setup-harbor:
     runs-on: ubuntu-latest
+    options: --privileged
     env:
       HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
       HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
