@@ -22,7 +22,6 @@ on:
 jobs:
   setup-harbor:
     runs-on: ubuntu-latest
-    options: --privileged
     env:
       HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
       HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
@@ -83,7 +82,7 @@ jobs:
             -keyout ./cert/harbor.key \
             -out    ./cert/harbor.crt
 
-          chown -R 1000:1000 .
+          sudo chown -R 1000:1000 .
 
       - name: Start Harbor
         working-directory: /tmp/harbor-podman
