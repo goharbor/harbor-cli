@@ -111,7 +111,7 @@ func isHarborHealthy(baseURL string) bool {
 		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Allow self-signed certs for local instance
+				InsecureSkipVerify: true, // #nosec G402 - Allow self-signed certs for local test instance only
 			},
 		},
 	}
