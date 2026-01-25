@@ -6,7 +6,7 @@ on:
       harbor_hostname:
         required: false
         type: string
-        default: "127.0.0.1" # The hostname defaults to localhost if nothing is provided
+        default: "harbor.local" # Hostname is defaulted to harbor.local (since harbor rejects localhost and 127.0.0.1)
       enable_trivy:
         required: false
         type: boolean
@@ -37,6 +37,14 @@ jobs:
           sudo apt-get install -y \
             podman podman-docker podman-compose \
             git tar gzip wget openssl curl golang-go
+
+      - name: Configure hostname in /etc/hosts
+        run: |
+          # Harbor rejects 127.0.0.1/localhost as hostname, so we use a fake hostname
+          # and map it to localhost in /etc/hosts
+          echo "127.0.0.1 ${HARBOR_HOSTNAME}" | sudo tee -a /etc/hosts
+          echo "Configured /etc/hosts:"
+          cat /etc/hosts | grep "${HARBOR_HOSTNAME}"
 
       - name: Configure Podman for CI
         run: |
