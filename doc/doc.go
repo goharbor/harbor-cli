@@ -43,9 +43,9 @@ type FrontMatter struct {
 }
 
 type MarkdownGenerator func(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error
-type MardownTreeGenerator func(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string, generator MarkdownGenerator) error
+type MarkdownTreeGenerator func(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string, generator MarkdownGenerator) error
 
-func Doc(w io.Writer, treeGenerator MardownTreeGenerator) error {
+func Doc(w io.Writer, treeGenerator MarkdownTreeGenerator) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return err
