@@ -96,7 +96,7 @@ jobs:
           if [ "${ENABLE_TRIVY}" = "true" ]; then
             extra_flag="--with-trivy"
           fi
-          ./install.sh ${extra_flag}
+          sudo ./install.sh ${extra_flag}
 
       - name: Wait for Harbor to be ready
         run: |
