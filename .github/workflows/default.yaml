@@ -163,7 +163,7 @@ jobs:
       - test-code
     uses: ./.github/workflows/harbor-e2e.yaml
     with:
-      harbor_hostname: "127.0.0.1"
+      harbor_hostname: "harbor.local"
       enable_trivy: false
       run_tests: true
     secrets:
