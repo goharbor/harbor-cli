@@ -43,6 +43,13 @@ jobs:
 
       - name: Configure Podman for CI
         run: |
+          # Configure Podman to allow short-name resolution without TTY prompts
+          mkdir -p /etc/containers/registries.conf.d
+          cat > /etc/containers/registries.conf.d/shortnames.conf <<EOF
+          unqualified-search-registries = ["docker.io"]
+          short-name-mode = "permissive"
+          EOF
+          
           # Verify podman is working
           podman --version
           podman-compose --version
@@ -84,7 +91,9 @@ jobs:
         env:
           ENABLE_TRIVY: ${{ inputs.enable_trivy }}
         run: |
+          # bash safety
           set -euo pipefail
+
           extra_flag=""
           if [ "${ENABLE_TRIVY}" = "true" ]; then
             extra_flag="--with-trivy"
