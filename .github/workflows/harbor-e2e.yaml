@@ -36,10 +36,10 @@ jobs:
       - name: Install dependencies
         run: |
           dnf -y install \
-            podman podman-docker podman-compose \
-            git tar gzip wget openssl curl golang \
-            iproute shadow-utils hostname \
-            && dnf clean all
+          podman podman-docker podman-compose \
+          git tar gzip wget openssl curl golang \
+          iproute shadow-utils hostname \
+          && dnf clean all
 
       - name: Configure Podman for CI
         run: |
@@ -50,9 +50,19 @@ jobs:
           short-name-mode = "permissive"
           EOF
           
+          # Configure Podman for nested containers (podman-in-container)
+          # Use cgroupfs instead of systemd since we're in a GitHub Actions container
+          mkdir -p /etc/containers
+          cat > /etc/containers/containers.conf <<EOF
+          [engine]
+          cgroup_manager = "cgroupfs"
+          events_logger = "file"
+          EOF
+          
           # Verify podman is working
           podman --version
           podman-compose --version
+          podman info | grep -i cgroup
 
       - name: Clone Harbor Podman repo
         run: git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
