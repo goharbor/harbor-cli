@@ -22,12 +22,10 @@ on:
 jobs:
   setup-harbor:
     runs-on: ubuntu-latest
-    container:
-      image: fedora:40 # Using a priveledged fedora container inside ubuntu to follow GHA guidelines
-      options: --privileged
     env:
       HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
       HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
+      TERM: xterm  # Avoid tput errors from install.sh color output
     outputs:
       harbor_url: ${{ steps.set-outputs.outputs.harbor_url }}
       harbor_username: ${{ steps.set-outputs.outputs.harbor_username }}
@@ -35,34 +33,24 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf -y install \
-          podman podman-docker podman-compose \
-          git tar gzip wget openssl curl golang \
-          iproute shadow-utils hostname \
-          && dnf clean all
+          sudo apt-get update
+          sudo apt-get install -y \
+            podman podman-docker podman-compose \
+            git tar gzip wget openssl curl golang-go
 
       - name: Configure Podman for CI
         run: |
           # Configure Podman to allow short-name resolution without TTY prompts
-          mkdir -p /etc/containers/registries.conf.d
-          cat > /etc/containers/registries.conf.d/shortnames.conf <<EOF
+          # This allows pulling "goharbor/prepare" instead of "docker.io/goharbor/prepare"
+          sudo mkdir -p /etc/containers/registries.conf.d
+          cat <<EOF | sudo tee /etc/containers/registries.conf.d/shortnames.conf
           unqualified-search-registries = ["docker.io"]
           short-name-mode = "permissive"
-          EOF
-          
-          # Configure Podman for nested containers (podman-in-container)
-          # Use cgroupfs instead of systemd since we're in a GitHub Actions container
-          mkdir -p /etc/containers
-          cat > /etc/containers/containers.conf <<EOF
-          [engine]
-          cgroup_manager = "cgroupfs"
-          events_logger = "file"
           EOF
           
           # Verify podman is working
           podman --version
           podman-compose --version
-          podman info | grep -i cgroup
 
       - name: Clone Harbor Podman repo
         run: git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
