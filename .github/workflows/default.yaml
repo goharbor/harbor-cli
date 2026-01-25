@@ -2,7 +2,7 @@ name: Main and Pull Request Pipeline
 
 on:
   push:
-    branches: [main, feat/harbor-setup-podman]
+    branches: [main]
     tags:
       - "v*.*.*"
   pull_request:
@@ -159,7 +159,7 @@ jobs:
 
   harbor-e2e:
     needs:
-      # - lint
+      - lint
       - test-code
     uses: ./.github/workflows/harbor-e2e.yaml
     with:
