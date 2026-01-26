@@ -70,11 +70,7 @@ Available schedule types:
 			case "Hourly", "Daily", "Weekly":
 				return updateGCPredefinedSchedule(scheduleType)
 			case "Custom":
-				c, err := validateCron(cron)
-				if err != nil {
-					return err
-				}
-				return updateGCCustomSchedule(c)
+				return updateGCCustomSchedule(cron)
 			}
 
 			return nil
