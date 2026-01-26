@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -144,4 +145,72 @@ func TestStorageStringToBytes(t *testing.T) {
 	// Exceeding maximum value
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
+}
+
+func TestCapitalize(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{"hello", "Hello"},
+		{"world", "World"},
+		{"", ""},
+		{"A", "A"},
+		{"a", "A"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.in, func(t *testing.T) {
+			got := utils.Capitalize(tc.in)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestRemoveColumns(t *testing.T) {
+	columns := []table.Column{
+		{Title: "ID", Width: 10},
+		{Title: "Name", Width: 20},
+		{Title: "Age", Width: 5},
+	}
+
+	tests := []struct {
+		name         string
+		colsToRemove []string
+		wantLen      int
+		wantTitles   []string
+	}{
+		{
+			name:         "Remove one column",
+			colsToRemove: []string{"Age"},
+			wantLen:      2,
+			wantTitles:   []string{"ID", "Name"},
+		},
+		{
+			name:         "Remove multiple columns",
+			colsToRemove: []string{"Name", "Age"},
+			wantLen:      1,
+			wantTitles:   []string{"ID"},
+		},
+		{
+			name:         "Remove non-existent column",
+			colsToRemove: []string{"Gender"},
+			wantLen:      3,
+			wantTitles:   []string{"ID", "Name", "Age"},
+		},
+		{
+			name:         "Remove all columns",
+			colsToRemove: []string{"ID", "Name", "Age"},
+			wantLen:      0,
+			wantTitles:   []string{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := utils.RemoveColumns(columns, tc.colsToRemove)
+			assert.Len(t, got, tc.wantLen)
+			for i, col := range got {
+				assert.Equal(t, tc.wantTitles[i], col.Title)
+			}
+		})
+	}
 }
