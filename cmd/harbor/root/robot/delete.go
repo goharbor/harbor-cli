@@ -60,15 +60,28 @@ Examples:
 				robotName := args[0]
 				robot, err := api.GetRobotByName(robotName)
 				if err != nil {
-					return fmt.Errorf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
+					errorCode := utils.ParseHarborErrorCode(err)
+					if errorCode == "403" {
+						return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+					} else {
+						return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 				robotID = robot.ID
 			} else {
-				robotID = prompt.GetRobotIDFromUser(-1)
+				robotID, err = prompt.GetRobotIDFromUser(-1)
+				if err != nil {
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 			err = api.DeleteRobot(robotID)
 			if err != nil {
-				return fmt.Errorf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
+				errorCode := utils.ParseHarborErrorCode(err)
+				if errorCode == "403" {
+					return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+				} else {
+					return fmt.Errorf("failed to delete robot: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 			fmt.Printf("Robot account (ID: %d) was successfully deleted\n", robotID)
 			return nil
