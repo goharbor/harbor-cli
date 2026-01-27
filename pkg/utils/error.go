@@ -77,7 +77,7 @@ func ParseHarborErrorCode(err error) string {
 	parts := strings.Split(errMsg, "]")
 	if len(parts) >= 2 {
 		codePart := strings.TrimSpace(parts[1])
-		if strings.HasPrefix(codePart, "[") && len(codePart) >= 4 {
+		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
 			code := codePart[1:4]
 			return code
 		}
