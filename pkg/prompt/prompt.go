@@ -163,15 +163,22 @@ func GetReferenceFromUser(repositoryName string, projectName string) string {
 	return <-reference
 }
 
-func GetUserIdFromUser() int64 {
-	userId := make(chan int64)
+func GetUserIdFromUser() (int64, error) {
+	response, err := api.ListUsers()
+	if err != nil {
+		return 0, err
+	}
 
-	go func() {
-		response, _ := api.ListUsers()
-		uview.UserList(response.Payload, userId)
-	}()
+	if len(response.Payload) == 0 {
+		return 0, errors.New("No users found")
+	}
 
-	return <-userId
+	id, err := uview.UserList(response.Payload)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 func GetImmutableTagRule(projectName string) int64 {

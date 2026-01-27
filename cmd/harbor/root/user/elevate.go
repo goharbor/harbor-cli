@@ -30,6 +30,7 @@ func ElevateUserCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			var userId int64
+			log.SetOutput(cmd.OutOrStderr())
 			if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
 				if err != nil {
@@ -41,7 +42,11 @@ func ElevateUserCmd() *cobra.Command {
 					return
 				}
 			} else {
-				userId = prompt.GetUserIdFromUser()
+				userId, err = prompt.GetUserIdFromUser()
+				if err != nil {
+					log.Errorf("failed to get user id: %v", err)
+					return
+				}
 			}
 			confirm, err := views.ConfirmElevation()
 			if err != nil {
