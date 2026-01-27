@@ -89,21 +89,17 @@ Examples:
 			var projectPermissionsMap = make(map[string][]models.Permission)
 			var accessesSystem []*models.Access
 
-			fmt.Println("1")
 			// Handle config file or interactive input
 			if configFile != "" {
-				fmt.Println("2")
 				if err := loadFromConfigFile(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			} else {
-				fmt.Println("3")
 				if err := handleInteractiveInput(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			}
 
-			fmt.Println("4")
 			// Build system access permissions
 			for _, perm := range permissions {
 				accessesSystem = append(accessesSystem, &models.Access{
@@ -112,12 +108,10 @@ Examples:
 				})
 			}
 
-			fmt.Println("5")
 			// Build merged permissions structure
 			opts.Permissions = buildMergedPermissions(projectPermissionsMap, accessesSystem)
 			opts.Level = "system"
 
-			fmt.Println("6")
 			// Create robot and handle response
 			return createRobotAndHandleResponse(&opts, exportToFile)
 		},
@@ -173,25 +167,21 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 }
 
 func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
-	fmt.Println("3a")
 	// Show interactive form if needed
 	if opts.Name == "" || opts.Duration == 0 {
 		create.CreateRobotView(opts)
 	}
 
-	fmt.Println("3b")
 	// Validate duration
 	if opts.Duration == 0 {
 		return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(fmt.Errorf("duration cannot be 0")))
 	}
 
-	fmt.Println("3c")
 	// Get system permissions
 	if err := getSystemPermissions(all, permissions); err != nil {
 		return err
 	}
 
-	fmt.Println("3d")
 	// Get project permissions
 	return getProjectPermissions(opts, projectPermissionsMap)
 }
