@@ -37,7 +37,7 @@ func LogsProjectCommmand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting execution of 'logs' command")
 			var err error
-			var resp *proj.GetLogsOK
+			var resp *proj.GetLogExtsOK
 			var projectName string
 
 			if len(args) > 0 {
@@ -68,7 +68,7 @@ func LogsProjectCommmand() *cobra.Command {
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(resp, formatFlag)
+				err = utils.PrintFormat(resp.Payload, formatFlag)
 				if err != nil {
 					return err
 				}
