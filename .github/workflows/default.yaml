@@ -94,9 +94,90 @@ jobs:
       - name: Generate vulnerability summary
         run: |
           echo "<h2> 🔒 Vulnerability Check Results</h2>" >> $GITHUB_STEP_SUMMARY
-          cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
-          if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
-              echo "⚠️ Vulnerability issues found! Please review." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if grep -q "No vulnerabilities found." vulnerability-check.report; then
+            echo "✅ No vulnerabilities found." >> $GITHUB_STEP_SUMMARY
+          else
+            vuln_count=$(grep -c "^Vulnerability #" vulnerability-check.report || echo "0")
+            echo "⚠️ **Vulnerabilities detected:** $vuln_count found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Table header
+            echo "| Vulnerability ID | Package | Found In | Fixed In | Description | Example Trace | Details |" >> $GITHUB_STEP_SUMMARY
+            echo "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+            
+            # Parse and format each vulnerability as a table row
+            awk '
+              BEGIN { in_vuln = 0; in_trace = 0; desc = ""; trace = "" }
+              
+              /^Vulnerability #[0-9]+:/ {
+                if (in_vuln) {
+                  # Print previous vulnerability as table row
+                  gsub(/\|/, "\\|", desc)
+                  gsub(/\|/, "\\|", trace)
+                  if (trace == "") trace = "N/A"
+                  print "| " vuln_id " | " pkg " | " found_ver " | " fixed_ver " | " desc " | `" trace "` | [View](https://pkg.go.dev/vuln/" vuln_id ") |"
+                }
+                vuln_id = $NF
+                in_vuln = 1
+                in_trace = 0
+                desc = ""
+                trace = ""
+                pkg = ""
+                found_ver = ""
+                fixed_ver = ""
+                next
+              }
+              
+              in_vuln && /^[[:space:]]*Found in:/ {
+                found_in = $NF
+                split(found_in, arr, "@")
+                pkg = arr[1]
+                found_ver = arr[2]
+                next
+              }
+              
+              in_vuln && /^[[:space:]]*Fixed in:/ {
+                fixed_in = $NF
+                split(fixed_in, arr, "@")
+                fixed_ver = arr[2]
+                next
+              }
+              
+              in_vuln && /Example traces found:/ {
+                in_trace = 1
+                next
+              }
+              
+              in_vuln && in_trace && /^[[:space:]]*#[0-9]+:/ {
+                sub(/^[[:space:]]*#[0-9]+:[[:space:]]*/, "")
+                trace = $0
+                next
+              }
+              
+              in_vuln && /^More info:/ { next }
+              in_vuln && /^Standard library/ { next }
+              in_vuln && /^[[:space:]]*Module:/ { next }
+              in_vuln && /^Your code is affected by/ { next }
+              
+              in_vuln && !in_trace && !/^[[:space:]]*$/ && !/^[[:space:]]*Found in:/ && !/^[[:space:]]*Fixed in:/ && !/^Vulnerability/ {
+                if (desc == "") {
+                  desc = $0
+                } else {
+                  desc = desc " " $0
+                }
+              }
+              
+              END {
+                if (in_vuln) {
+                  gsub(/\|/, "\\|", desc)
+                  gsub(/\|/, "\\|", trace)
+                  if (trace == "") trace = "N/A"
+                  print "| " vuln_id " | " pkg " | " found_ver " | " fixed_ver " | " desc " | `" trace "` | [View](https://pkg.go.dev/vuln/" vuln_id ") |"
+                }
+              }
+            ' vulnerability-check.report >> $GITHUB_STEP_SUMMARY
           fi
 
   test-code:
