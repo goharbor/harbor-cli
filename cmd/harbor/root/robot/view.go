@@ -67,12 +67,7 @@ Examples:
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					errorCode := utils.ParseHarborErrorCode(err)
-					if errorCode == "403" {
-						return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
-					} else {
-						return fmt.Errorf("failed to parse robot ID: %v", utils.ParseHarborErrorMsg(err))
-					}
+					return fmt.Errorf("failed to parse robot ID %q: %v", args[0], err)
 				}
 			} else {
 				robotID, err = prompt.GetRobotIDFromUser(-1)
