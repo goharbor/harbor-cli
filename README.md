@@ -244,7 +244,7 @@ Make sure you have the latest [Dagger](https://docs.dagger.io/) installed in you
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
+dagger call build-dev --source=. --platform darwin/arm64 export --path=./harbor-cli
 ./harbor-dev --help
 ```
 
