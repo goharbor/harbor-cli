@@ -109,3 +109,73 @@ func (m *HarborCli) TestCoverageReport(ctx context.Context, source *dagger.Direc
         cat ` + reportFile + ` >&2
     `}).File(reportFile), nil
 }
+
+// TestIntegration runs integration tests against a local Harbor service
+func (m *HarborCli) TestIntegration(ctx context.Context, source *dagger.Directory) (string, error) {
+	err := m.init(ctx, source)
+	if err != nil {
+		return "", err
+	}
+
+	// 1. Redis
+	redis := dag.Container().
+		From("redis:7-alpine").
+		WithExposedPort(6379).
+		AsService()
+
+	// 2. Postgres
+	postgres := dag.Container().
+		From("postgres:13-alpine").
+		WithEnvVariable("POSTGRES_PASSWORD", "root123").
+		WithEnvVariable("POSTGRES_DB", "registry").
+		WithExposedPort(5432).
+		AsService()
+
+	// 3. Harbor Core
+	harborHost := "harbor.local"
+	// Minimal app.conf content
+	appConf := `
+appname = Harbor
+runmode = prod
+enablegzip = true
+[prod]
+httpport = 8080
+`
+	configDir := dag.Directory().WithNewFile("app.conf", appConf)
+
+	harbor := dag.Container().
+		From("goharbor/harbor-core:v2.10.0").
+		WithMountedDirectory("/etc/core", configDir).
+		WithEnvVariable("PORT", "8080").
+		WithEnvVariable("CORE_SECRET", "1234567890123456").
+		WithEnvVariable("HARBOR_ADMIN_PASSWORD", "Harbor12345").
+		WithEnvVariable("POSTGRESQL_HOST", "postgres").
+		WithEnvVariable("POSTGRESQL_PORT", "5432").
+		WithEnvVariable("POSTGRESQL_USERNAME", "postgres").
+		WithEnvVariable("POSTGRESQL_PASSWORD", "root123").
+		WithEnvVariable("POSTGRESQL_DATABASE", "registry").
+		WithEnvVariable("_REDIS_URL_CORE", "redis://redis:6379").
+		WithEnvVariable("EXT_ENDPOINT", "http://"+harborHost+":8080").
+		WithServiceBinding("postgres", postgres).
+		WithServiceBinding("redis", redis).
+		WithExposedPort(8080).
+		AsService()
+
+	test := dag.Container().
+		From("golang:"+m.GoVersion+"-alpine").
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+m.GoVersion)).
+		WithEnvVariable("GOMODCACHE", "/go/pkg/mod").
+		WithMountedCache("/go/build-cache", dag.CacheVolume("go-build-"+m.GoVersion)).
+		WithEnvVariable("GOCACHE", "/go/build-cache").
+		WithMountedDirectory("/src", m.Source).
+		WithWorkdir("/src").
+		WithServiceBinding("redis", redis).
+		WithServiceBinding("postgres", postgres).
+		WithServiceBinding(harborHost, harbor).
+		WithEnvVariable("HARBOR_URL", "http://"+harborHost+":8080").
+		WithEnvVariable("HARBOR_USERNAME", "admin").
+		WithEnvVariable("HARBOR_PASSWORD", "Harbor12345").
+		WithExec([]string{"go", "test", "-v", "./..."})
+
+	return test.Stdout(ctx)
+}

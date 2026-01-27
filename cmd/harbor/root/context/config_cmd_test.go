@@ -14,6 +14,7 @@
 package context_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
@@ -49,12 +50,17 @@ func Test_ContextGetCmd_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -75,12 +81,17 @@ func Test_ContextGetCmd_Failure(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -101,12 +112,17 @@ func Test_ContextGetCmd_CredentialName_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -117,7 +133,7 @@ func Test_ContextGetCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "get", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "get", "credentials.serveraddress", "--name", "harbor-cli@" + harborURL})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
@@ -127,12 +143,17 @@ func Test_ContextGetCmd_CredentialName_Failure(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -153,12 +174,17 @@ func Test_ContextUpdateCmd_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -169,7 +195,7 @@ func Test_ContextUpdateCmd_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", harborURL})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
@@ -179,12 +205,17 @@ func Test_ContextUpdateCmd_CredentialName_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -195,7 +226,7 @@ func Test_ContextUpdateCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", harborURL, "--name", "harbor-cli@" + harborURL})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 }
@@ -205,12 +236,17 @@ func Test_ContextUpdateCmd_CredentialName_Failure(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -221,7 +257,7 @@ func Test_ContextUpdateCmd_CredentialName_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", "http://demo.goharbor.io", "--name", "harbor-cli@http://goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "credentials.serveraddress", harborURL, "--name", "harbor-cli@http://goharbor.io"})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent credential name")
 }
@@ -231,12 +267,17 @@ func Test_ContextUpdateCmd_Failure(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -247,7 +288,7 @@ func Test_ContextUpdateCmd_Failure(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "update", "serveraddress", "http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "update", "serveraddress", harborURL})
 	err = rootCmd.Execute()
 	assert.Error(t, err, "Expected an error when setting a non-existent config item")
 }
@@ -257,12 +298,17 @@ func Test_ContextDeleteCmd_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -314,12 +360,17 @@ func Test_ContextDeleteCmd_CredentialName_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -330,7 +381,7 @@ func Test_ContextDeleteCmd_CredentialName_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 	rootCmd := root.RootCmd()
-	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--name", "harbor-cli@http://demo.goharbor.io"})
+	rootCmd.SetArgs([]string{"context", "delete", "credentials.serveraddress", "--name", "harbor-cli@" + harborURL})
 	err = rootCmd.Execute()
 	assert.NoError(t, err)
 	config, err := utils.GetCurrentHarborConfig()
@@ -345,12 +396,17 @@ func Test_ContextDeleteCmd_CredentialName_Failure(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
@@ -371,18 +427,23 @@ func Test_ContextDeleteCmd_Current_Flag_Success(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	helpers.SetMockKeyring(t)
+	harborURL := "http://demo.goharbor.io"
+	if url := os.Getenv("HARBOR_URL"); url != "" {
+		harborURL = url
+	}
+
 	testConfig := &utils.HarborConfig{
-		CurrentCredentialName: "harbor-cli@http://demo.goharbor.io",
+		CurrentCredentialName: "harbor-cli@" + harborURL,
 		Credentials: []utils.Credential{
 			{
-				Name:          "harbor-cli@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "harbor-cli@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "harbor-cli",
 				Password:      "Harbor12345",
 			},
 			{
-				Name:          "admin@http://demo.goharbor.io",
-				ServerAddress: "http://demo.goharbor.io",
+				Name:          "admin@" + harborURL,
+				ServerAddress: harborURL,
 				Username:      "admin",
 				Password:      "Admin12345",
 			},
