@@ -15,11 +15,11 @@ package labels
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/label/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -33,7 +33,7 @@ func CreateLabelCommand() *cobra.Command {
 		Long:    "create label in harbor",
 		Example: "harbor label create",
 		Args:    cobra.ExactArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			createView := &create.CreateView{
 				Name:        opts.Name,
@@ -43,6 +43,15 @@ func CreateLabelCommand() *cobra.Command {
 				ProjectID:   opts.ProjectID,
 			}
 			if opts.Name != "" && opts.Scope != "" {
+				if opts.Scope == "p" && opts.ProjectID == 0 {
+					return fmt.Errorf("project ID is required when scope is 'p' (project-specific). Use --project flag to specify the project ID")
+				}
+				if opts.Scope == "p" {
+					_, err := api.GetProject(strconv.FormatInt(opts.ProjectID, 10), true)
+					if err != nil {
+						return fmt.Errorf("project with ID %d does not exist", opts.ProjectID)
+					}
+				}
 				err = api.CreateLabel(opts)
 			} else {
 				flags := cmd.Flags()
@@ -50,8 +59,9 @@ func CreateLabelCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Errorf("failed to create label: %v", err)
+				return fmt.Errorf("failed to create label: %v", err)
 			}
+			return nil
 		},
 	}
 
