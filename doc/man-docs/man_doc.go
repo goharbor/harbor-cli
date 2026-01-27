@@ -15,6 +15,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -22,10 +23,14 @@ import (
 
 	cmd "github.com/goharbor/harbor-cli/cmd/harbor/root"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
 
-func ManDoc() error {
+type ManTreeGenerator func(cmd *cobra.Command, header *doc.GenManHeader, dir string) error
+type ManPageCleaner func(string) error
+
+func ManDoc(w io.Writer, generator ManTreeGenerator, cleaner ManPageCleaner) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -33,9 +38,9 @@ func ManDoc() error {
 	folderName := "man-docs/man1"
 	_, err = os.Stat(folderName)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(folderName, 0755)
+		err = os.MkdirAll(folderName, 0755) //cannot create nested directories using os.Mkdir
 		if err != nil {
-			log.Fatal("Error creating folder:", err)
+			return fmt.Errorf("failed to create directory: %w", err)
 		}
 	}
 	docDir := fmt.Sprintf("%s/%s", currentDir, folderName)
@@ -47,18 +52,17 @@ func ManDoc() error {
 		Manual:  "Harbor User Manuals",
 	}
 
-	err = doc.GenManTree(cmd.RootCmd(), header, docDir)
+	err = generator(cmd.RootCmd(), header, docDir)
 	if err != nil {
-		fmt.Println("Error generating documentation:", err)
-		os.Exit(1)
+		return fmt.Errorf("error generating documentation: %w", err)
 	}
 
-	err = cleanManPages(docDir)
+	err = cleaner(docDir)
 	if err != nil {
-		log.Fatalf("Error cleaning up documentation: %v", err)
+		return fmt.Errorf("error cleaning documentation: %w", err)
 	}
 
-	fmt.Println("Documentation generated successfully in", docDir)
+	fmt.Fprintf(w, "Documentation generated successfully in %s\n", docDir)
 	return nil
 }
 
@@ -100,7 +104,7 @@ func cleanManPages(docDir string) error {
 }
 
 func main() {
-	err := ManDoc()
+	err := ManDoc(os.Stdout, doc.GenManTree, cleanManPages)
 	if err != nil {
 		log.Fatal(err)
 	}
