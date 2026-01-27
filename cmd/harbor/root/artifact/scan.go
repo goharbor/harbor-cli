@@ -79,20 +79,19 @@ func StopScanArtifactCommand() *cobra.Command {
 		Short:   "Stop a scan of an artifact",
 		Long:    `Stop a scan of an artifact in Harbor Repository`,
 		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, repoName, reference string
 
 			if len(args) > 0 {
 				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
 				if err != nil {
-					log.Errorf("failed to parse project/repo/reference: %v", err)
+					return fmt.Errorf("failed to parse project/repo/reference: %w", err)
 				}
 			} else {
-				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project name: %w", err)
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
@@ -100,8 +99,9 @@ func StopScanArtifactCommand() *cobra.Command {
 
 			err = api.StopScanArtifact(projectName, repoName, reference)
 			if err != nil {
-				log.Errorf("failed to stop scan of artifact: %v", err)
+				return fmt.Errorf("failed to stop scan of artifact: %w", err)
 			}
+			return nil
 		},
 	}
 	return cmd

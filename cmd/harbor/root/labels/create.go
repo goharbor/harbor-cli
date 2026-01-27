@@ -33,7 +33,7 @@ func CreateLabelCommand() *cobra.Command {
 		Long:    "create label in harbor",
 		Example: "harbor label create",
 		Args:    cobra.ExactArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			createView := &create.CreateView{
 				Name:        opts.Name,
@@ -50,8 +50,9 @@ func CreateLabelCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				log.Errorf("failed to create label: %v", err)
+				return fmt.Errorf("failed to create label: %w", err)
 			}
+			return nil
 		},
 	}
 

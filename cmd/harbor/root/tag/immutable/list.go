@@ -41,7 +41,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
   harbor tag immutable list  
   `,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var resp immutable.ListImmuRulesOK
 			var projectName string
@@ -51,26 +51,26 @@ You can specify the project name as an argument or, if omitted, you will be prom
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-					return
+					return fmt.Errorf("failed to get project name: %w", err)
 				}
 			}
 
 			resp, err = api.ListImmutable(projectName)
 			if err != nil {
-				log.Errorf("failed to list immutablility rule: %v", err)
+				return fmt.Errorf("failed to list immutablility rule: %w", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				utils.PrintPayloadInJSONFormat(resp)
-				return
+				return nil
 			}
 			if len(resp.Payload) == 0 {
 				fmt.Println("No immutable tag rules found.")
-				return
+				return nil
 			}
 			list.ListImmuRules(resp.Payload)
+			return nil
 		},
 	}
 	return cmd

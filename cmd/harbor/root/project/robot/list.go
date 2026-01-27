@@ -14,6 +14,7 @@
 package robot
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -72,7 +73,7 @@ Examples:
 			if len(args) > 0 {
 				project, err := api.GetProject(args[0], false)
 				if err != nil {
-					log.Errorf("Invalid Project Name: %v", err)
+					return fmt.Errorf("invalid project name: %w", err)
 				}
 				opts.ProjectID = int64(project.Payload.ProjectID)
 				opts.Q = projectQString + strconv.FormatInt(opts.ProjectID, 10)
@@ -83,14 +84,14 @@ Examples:
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
-					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project by id %d: %w", projectID, err)
 				}
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				log.Errorf("failed to get robots list: %v", err)
+				return fmt.Errorf("failed to get robots list: %w", err)
 			}
 
 			formatFlag := viper.GetString("output-format")
