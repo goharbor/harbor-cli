@@ -94,9 +94,27 @@ jobs:
       - name: Generate vulnerability summary
         run: |
           echo "<h2> 🔒 Vulnerability Check Results</h2>" >> $GITHUB_STEP_SUMMARY
-          cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
-          if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
-              echo "⚠️ Vulnerability issues found! Please review." >> $GITHUB_STEP_SUMMARY
+          if grep -q "No vulnerabilities found." vulnerability-check.report; then
+            echo "✅ No vulnerabilities found." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Vulnerabilities detected. See details below." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Vulnerability ID | Package | Details |" >> $GITHUB_STEP_SUMMARY
+            echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+
+             awk '
+               /^Vulnerability #[0-9]+:/ {
+                  split($0, a, ": ")
+                  vuln_id = a[2]
+               }
+               /^Found in:/ {
+                  pkg = $3
+               }
+               /^Fixed in:/ {
+                    fixed = $3
+                    print "| " vuln_id " | " pkg " | " fixed " | [View Details](https://pkg.go.dev/vuln/" vuln_id ") |"
+               }
+              ' vulnerability-check.report >> $GITHUB_STEP_SUMMARY 
           fi
 
   test-code:
