@@ -22,6 +22,9 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
 	"gopkg.in/yaml.v2"
+
+	log "github.com/sirupsen/logrus"
+
 )
 
 type PolicyConfig struct {
@@ -71,6 +74,8 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
+	log.Debug("Replication policy config file read successfully")
+
 
 	var config PolicyConfig
 	switch fileType {
@@ -78,10 +83,14 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 		if err := yaml.Unmarshal(data, &config); err != nil {
 			return nil, fmt.Errorf("failed to parse YAML: %v", err)
 		}
+		log.Debugf("Parsed %s configuration successfully", fileType)
+
 	case "json":
 		if err := json.Unmarshal(data, &config); err != nil {
 			return nil, fmt.Errorf("failed to parse JSON: %v", err)
 		}
+		log.Debugf("Parsed %s configuration successfully", fileType)
+
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s, expected 'yaml' or 'json'", fileType)
 	}
@@ -89,6 +98,8 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 	if err := validateConfig(&config); err != nil {
 		return nil, fmt.Errorf("configuration validation failed: %v", err)
 	}
+	log.Debug("Replication policy configuration validated successfully")
+
 
 	opts := &create.CreateView{
 		Name:              config.Name,
