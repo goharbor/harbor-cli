@@ -26,6 +26,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/purge"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/quota"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/registry"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/replication"
@@ -146,6 +147,9 @@ harbor help
 
 	cmd = ldap.Ldap()
 	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = purge.Purge()
 	root.AddCommand(cmd)
 
 	// Access
