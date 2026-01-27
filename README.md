@@ -1,4 +1,3 @@
-
 ![Harbor-CLI Logo_256px](https://github.com/user-attachments/assets/fa18e8f0-a2e4-4462-ab2d-446a88f9edb3)
 
 **Harbor CLI — a command-line interface for interacting with your Harbor container registry. A streamlined, user-friendly alternative to the WebUI, as your daily driver or for scripting and automation.**
@@ -14,20 +13,21 @@
 2. Tool for scripting and automation of common repeatable Harbor tasks running on your machine or inside your pipeline
 
 # Features
+
 The project's first goal is to reach WebUI parity.
 
 ```
-✅ project       Manage projects  
-✅ repo          Manage repositories  
-✅ artifact      Manage artifacts  
-✅ label         Manage labels  
-✅ tag           Manage tags   
-✅ quota         Manage quotas  
-✅ webhook       Manage webhook policies 
-✅ robot         Robot Account 
+✅ project       Manage projects
+✅ repo          Manage repositories
+✅ artifact      Manage artifacts
+✅ label         Manage labels
+✅ tag           Manage tags
+✅ quota         Manage quotas
+✅ webhook       Manage webhook policies
+✅ robot         Robot Account
 
-✅ login         Log in to Harbor registry  
-✅ user          Manage users  
+✅ login         Log in to Harbor registry
+✅ user          Manage users
 
 ✅ registry      Manage registries
 ✅ replication   Manage replication
@@ -59,9 +59,18 @@ The project's first goal is to reach WebUI parity.
 
 # Installation
 
-## Container 
+## Container
 
 Running Harbor CLI as a container is simple. Use the following command to get started:
+
+Prerequisite: ensure the config file exists on the host before running Docker:
+
+```bash
+mkdir -p $HOME/.config/harbor-cli
+touch $HOME/.config/harbor-cli/config.yaml
+```
+
+This prevents the "directory vs file" bind-mount error where Docker creates `config.yaml` as a directory if the file doesn't exist yet.
 
 ```shell
 docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor-cli/config.yaml \
@@ -69,6 +78,7 @@ docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor
   registry.goharbor.io/harbor-cli/harbor-cli \
   --help
 ```
+
 Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
 If you intend
@@ -79,7 +89,7 @@ and append the alias to your .zshrc or .bashrc file
 ```shell
 echo "export HARBOR_CLI_CONFIG=\$HOME/.config/harbor-cli/config.yaml" >> ~/.zshrc
 echo "export HARBOR_ENCRYPTION_KEY=\$(cat <path_to_32bit_private_key_file> | base64)" >> ~/.zshrc
-echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/harbor-cli/config.yaml -e HARBOR_ENCRYPTION_KEY=\$HARBOR_ENCRYPTION_KEY registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc 
+echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/harbor-cli/config.yaml -e HARBOR_ENCRYPTION_KEY=\$HARBOR_ENCRYPTION_KEY registry.goharbor.io/harbor-cli/harbor-cli'" >> ~/.zshrc
 source ~/.zshrc # or restart your terminal
 ```
 
@@ -95,7 +105,7 @@ Otherwise, you can download the binary from the [releases page](https://github.c
 
 ## Add the Harbor CLI to your Container Image
 
-Using Curl or Wget isn't needed if you want to 
+Using Curl or Wget isn't needed if you want to
 add the Harbor CLI to your container.
 Instead, we recommend copying the Harbor CLI from our official image
 by using the following Dockerfile:
@@ -106,11 +116,10 @@ COPY --from=registry.goharbor.io/harbor-cli/harbor-cli:latest /harbor /usr/local
 # --chown and --chmod flags can be used to set the permissions
 ```
 
-
-
 # Example Commands💡
+
 ```bash
->./harbor    
+>./harbor
 
 Official Harbor CLI
 
@@ -159,34 +168,37 @@ Use "harbor [command] --help" for more information about a command.
 #### Config Management
 
 ##### Hierarchy
-  Use the `--config` flag to specify a custom configuration file path (the highest priority).
-  
+
+Use the `--config` flag to specify a custom configuration file path (the highest priority).
+
 ```bash
   harbor --config /path/to/custom/config.yaml artifact list
-  ```
+```
 
-  If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
+If `--config` is not provided, Harbor CLI checks the `HARBOR_CLI_CONFIG` environment variable for the config file path.
 
-  ```bash
-  export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
-  harbor artifact list
-  ```
+```bash
+export HARBOR_CLI_CONFIG=/path/to/custom/config.yaml
+harbor artifact list
+```
 
-  If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
-  ```bash
-  harbor artifact list
-  ```  
+If neither is set, it defaults to `$XDG_CONFIG_HOME/harbor-cli/config.yaml` or `$HOME/.config/harbor-cli/config.yaml` if `XDG_CONFIG_HOME` is unset.
+
+```bash
+harbor artifact list
+```
 
 ##### Data Path
-  - Data paths are determined by the `XDG_DATA_HOME` environment variable.
-  - If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
-  - The data file always contains the path of the latest config used.
+
+- Data paths are determined by the `XDG_DATA_HOME` environment variable.
+- If `XDG_DATA_HOME` is not set, it defaults to `$HOME/.local/share/harbor-cli/data.yaml`.
+- The data file always contains the path of the latest config used.
 
 ##### Config TL;DR
-  - `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
-  - Environment variables override default settings, and the `--config` flag takes precedence over both environment variables and defaults.
-  - The data file always contains the path of the latest config used.
 
+- `--config` flag > `HARBOR_CLI_CONFIG` environment variable > default XDG config paths.
+- Environment variables override default settings, and the `--config` flag takes precedence over both environment variables and defaults.
+- The data file always contains the path of the latest config used.
 
 #### Log in to Harbor Registry
 
@@ -228,17 +240,15 @@ harbor repo list
 
 # Supported Platforms
 
-Platform | Status
---|--
-Linux | ✅
-macOS | ✅
-Windows | ✅
-
-
+| Platform | Status |
+| -------- | ------ |
+| Linux    | ✅     |
+| macOS    | ✅     |
+| Windows  | ✅     |
 
 # Build From Source
 
-Make sure you have the latest [Dagger](https://docs.dagger.io/) installed in your system. 
+Make sure you have the latest [Dagger](https://docs.dagger.io/) installed in your system.
 
 #### Using Dagger
 
@@ -263,20 +273,17 @@ but not all functionalities may be available or work as expected.
 
 Harbor <2.0.0 is not supported.
 
-
-
 # Community
 
-* **Twitter:** [@project_harbor](https://twitter.com/project_harbor)
-* **User Group:** Join Harbor user email group: [harbor-users@lists.cncf.io](https://lists.cncf.io/g/harbor-users) to get update of Harbor's news, features, releases, or to provide suggestion and feedback.
-* **Developer Group:** Join Harbor developer group: [harbor-dev@lists.cncf.io](https://lists.cncf.io/g/harbor-dev) for discussion on Harbor development and contribution.
-* **Slack:** Join Harbor's community for discussion and ask questions: [Cloud Native Computing Foundation](https://slack.cncf.io/), channel: [#harbor](https://cloud-native.slack.com/messages/harbor/), [#harbor-dev](https://cloud-native.slack.com/messages/harbor-dev/) and [#harbor-cli](https://cloud-native.slack.com/archives/C078LCGU9K6).
-* **Community Calls:** Every Tuesday at 15:00 CET/CEST or 19:30 IST - [Join Meeting](https://zoom.us/j/99658352431)
+- **Twitter:** [@project_harbor](https://twitter.com/project_harbor)
+- **User Group:** Join Harbor user email group: [harbor-users@lists.cncf.io](https://lists.cncf.io/g/harbor-users) to get update of Harbor's news, features, releases, or to provide suggestion and feedback.
+- **Developer Group:** Join Harbor developer group: [harbor-dev@lists.cncf.io](https://lists.cncf.io/g/harbor-dev) for discussion on Harbor development and contribution.
+- **Slack:** Join Harbor's community for discussion and ask questions: [Cloud Native Computing Foundation](https://slack.cncf.io/), channel: [#harbor](https://cloud-native.slack.com/messages/harbor/), [#harbor-dev](https://cloud-native.slack.com/messages/harbor-dev/) and [#harbor-cli](https://cloud-native.slack.com/archives/C078LCGU9K6).
+- **Community Calls:** Every Tuesday at 15:00 CET/CEST or 19:30 IST - [Join Meeting](https://zoom.us/j/99658352431)
 
 # License
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](https://github.com/goharbor/harbor-cli/blob/main/LICENSE) file for details.
-
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgoharbor%2Fharbor-cli?ref=badge_large)
 
@@ -288,4 +295,3 @@ This project is maintained by the Harbor community. We thank all our contributor
 
 For any questions or issues, please open an issue on our [GitHub Issues](https://github.com/goharbor/harbor-cli/issues) page.<br>
 Give a ⭐ if this project helped you, Thank YOU!
-
