@@ -77,7 +77,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("name cannot be empty or only spaces")
 					}
-					if isVaild := utils.ValidateRegistryName(str); !isVaild {
+					if isValid := utils.ValidateRegistryName(str); !isValid {
 						return errors.New("please enter the correct name format")
 					}
 					return nil
