@@ -18,6 +18,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -27,11 +28,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-func GetUsers(opts api.ListFlags) ([]*models.UserResp, error) {
+type UserLister interface {
+	UserList(opts ...api.ListFlags) (*user.ListUsersOK, error)
+}
+type DefaultUserLister struct{}
+
+func (d *DefaultUserLister) UserList(opts ...api.ListFlags) (*user.ListUsersOK, error) {
+	return api.ListUsers(opts...)
+}
+
+func GetUsers(opts api.ListFlags, userLister UserLister) ([]*models.UserResp, error) {
 	var allUsers []*models.UserResp
 
-	if opts.PageSize > 100 {
-		return nil, fmt.Errorf("page size should be less than or equal to 100")
+	if opts.PageSize > 100 || opts.PageSize < 0 {
+		return nil, fmt.Errorf("page size should be greater than or equal to 0 and less than or equal to 100")
 	}
 
 	if opts.PageSize == 0 {
@@ -39,7 +49,7 @@ func GetUsers(opts api.ListFlags) ([]*models.UserResp, error) {
 		opts.Page = 1
 
 		for {
-			response, err := api.ListUsers(opts)
+			response, err := userLister.UserList(opts)
 			if err != nil {
 				if isUnauthorizedError(err) {
 					return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
@@ -55,7 +65,7 @@ func GetUsers(opts api.ListFlags) ([]*models.UserResp, error) {
 			opts.Page++
 		}
 	} else {
-		response, err := api.ListUsers(opts)
+		response, err := userLister.UserList(opts)
 		if err != nil {
 			if isUnauthorizedError(err) {
 				return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
@@ -92,7 +102,8 @@ func UserListCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			allUsers, err := GetUsers(opts)
+			defaultUserLister := &DefaultUserLister{}
+			allUsers, err := GetUsers(opts, defaultUserLister)
 			if err != nil {
 				return err
 			}
