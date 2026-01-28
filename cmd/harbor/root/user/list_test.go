@@ -29,6 +29,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"go.yaml.in/yaml/v4"
 )
 
@@ -474,4 +475,30 @@ func TestGetUsers(t *testing.T) {
 			}
 		})
 	}
+}
+func TestUserListCmd(t *testing.T) {
+	cmd := UserListCmd()
+
+	assert.Equal(t, "list", cmd.Use)
+	assert.Equal(t, "List users", cmd.Short)
+	assert.Contains(t, cmd.Aliases, "ls")
+
+	pageFlag := cmd.Flags().Lookup("page")
+	assert.NotNil(t, pageFlag)
+	assert.Equal(t, "1", pageFlag.DefValue)
+
+	pageSizeFlag := cmd.Flags().Lookup("page-size")
+	assert.NotNil(t, pageSizeFlag)
+	assert.Equal(t, "0", pageSizeFlag.DefValue)
+
+	queryFlag := cmd.Flags().Lookup("query")
+	assert.NotNil(t, queryFlag)
+
+	sortFlag := cmd.Flags().Lookup("sort")
+	assert.NotNil(t, sortFlag)
+
+	assert.Equal(t, "p", pageFlag.Shorthand)
+	assert.Equal(t, "n", pageSizeFlag.Shorthand)
+	assert.Equal(t, "q", queryFlag.Shorthand)
+	assert.Equal(t, "s", sortFlag.Shorthand)
 }
