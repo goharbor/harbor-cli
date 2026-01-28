@@ -15,6 +15,7 @@ package list
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 
@@ -33,7 +34,7 @@ var columns = []table.Column{
 	{Title: "Registration Time", Width: tablelist.WidthL},
 }
 
-func ListUsers(users []*models.UserResp) {
+func MakeUserRows(users []*models.UserResp) []table.Row {
 	var rows []table.Row
 	for _, user := range users {
 		isAdmin := "No"
@@ -49,11 +50,19 @@ func ListUsers(users []*models.UserResp) {
 			createdTime,
 		})
 	}
-
+	return rows
+}
+func ListUsers(w io.Writer, users []*models.UserResp) error {
+	rows := MakeUserRows(users)
 	m := tablelist.NewModel(columns, rows, len(rows))
-
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+	opts := []tea.ProgramOption{tea.WithOutput(w)}
+	if w != os.Stdout {
+		opts = append(opts, tea.WithInput(nil))
 	}
+	p := tea.NewProgram(m, opts...)
+
+	if _, err := p.Run(); err != nil {
+		return fmt.Errorf("failed to render user list: %w", err)
+	}
+	return nil
 }
