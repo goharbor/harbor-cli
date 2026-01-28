@@ -58,7 +58,9 @@ func DeleteMemberCommand() *cobra.Command {
 			}
 
 			if delAllFlag {
-				api.DeleteAllMember(project, !isID)
+				if err := api.DeleteAllMember(project, !isID); err != nil {
+					return fmt.Errorf("failed to delete all members: %v", err)
+				}
 				fmt.Println("All members deleted successfully")
 				return nil
 			}

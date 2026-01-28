@@ -92,16 +92,21 @@ func CreateMember(opts create.CreateView) error {
 	return nil
 }
 
-func DeleteAllMember(projectName string, xIsResourceName bool) {
+func DeleteAllMember(projectName string, xIsResourceName bool) error {
 	var wg sync.WaitGroup
-	response, _ := ListMembers(projectName, "", true)
-	length := len(response.Payload)
-	errChan := make(chan error, length)
 
+	response, err := ListMembers(projectName, "", true)
+	if err != nil {
+		return fmt.Errorf("failed to list members: %w", err)
+	}
+
+	length := len(response.Payload)
 	if length < 1 {
 		log.Info("No members found in project")
-		return
+		return nil
 	}
+
+	errChan := make(chan error, length)
 
 	for _, member := range response.Payload {
 		wg.Add(1)
@@ -111,21 +116,28 @@ func DeleteAllMember(projectName string, xIsResourceName bool) {
 			if err != nil {
 				errChan <- err
 			}
-		}(member.ID) // Pass member.ID to the goroutine
+		}(member.ID)
 	}
 
-	// Wait for all goroutines to finish
+	// Wait for all goroutines to finish then close the channel
 	go func() {
 		wg.Wait()
 		close(errChan)
 	}()
 
-	// Handle errors after all deletions are done
+	// Collect errors from deletions
+	var errs []error
 	for err := range errChan {
 		if err != nil {
-			log.Errorln("Error:", err)
+			errs = append(errs, err)
 		}
 	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to delete %d member(s): %v", len(errs), errs[0])
+	}
+
+	return nil
 }
 
 func DeleteMember(projectName string, memberID int64, xIsResourceName bool) error {
