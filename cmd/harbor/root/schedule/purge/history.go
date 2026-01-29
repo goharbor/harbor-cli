@@ -17,19 +17,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func LogPurgeCommand() *cobra.Command {
+func HistoryCommand() *cobra.Command {
 	var (
-		purgeID int64
+		page     int64
+		pageSize int64
+		query    string
+		sort     string
+		purgeID  int64
 	)
 
 	cmd := &cobra.Command{
-		Use:   "log",
-		Short: "Get purge job log by ID",
-		Long:  "Get purge job logs filtered by specific purge ID.",
-		Args:  cobra.ExactArgs(0),
+		Use:   "history",
+		Short: "Show the history of purge jobs",
+		Long:  "Show the history of purge jobs in Harbor",
+		Args:  cobra.NoArgs,
 	}
 
-	cmd.Flags().Int64VarP(&purgeID, "purge-id", "p", 0, "ID of the purge job to retrieve logs for")
+	flags := cmd.Flags()
+	flags.Int64VarP(&page, "page", "", 1, "Page number")
+	flags.Int64VarP(&pageSize, "page-size", "", 20, "Size per page")
+	flags.StringVarP(&query, "query", "q", "", "Query filter to search purge job results")
+	flags.StringVarP(&sort, "sort", "", "", "Sort the purge job results in ascending or descending order")
+	flags.Int64VarP(&purgeID, "purge-id", "p", 0, "ID of the purge job to filter results")
 
 	return cmd
 }

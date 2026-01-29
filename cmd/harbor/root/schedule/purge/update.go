@@ -14,23 +14,16 @@
 package purge
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/purge/schedule"
 	"github.com/spf13/cobra"
 )
 
-func Purge() *cobra.Command {
+func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "purge",
-		Short: "Manage purge jobs and schedules",
-		Long:  "Manage purge jobs and schedules in Harbor",
+		Use:   "update",
+		Short: "Update purge job schedules",
+		Long:  "Update purge job schedules in Harbor",
+		Args:  cobra.NoArgs,
 	}
-
-	cmd.AddCommand(
-		ListPurgeCommand(),
-		LogPurgeCommand(),
-		StopPurgeCommand(),
-		schedule.ScheduleCommand(),
-	)
 
 	return cmd
 }

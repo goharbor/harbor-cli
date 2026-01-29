@@ -17,18 +17,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// StopPurgeCommand returns a command prototype to stop a purge job by ID.
-// This is a placeholder; implementation will be added in a follow-up change.
-func StopPurgeCommand() *cobra.Command {
+func StopCommand() *cobra.Command {
 	var (
 		purgeID int64
 	)
 
 	cmd := &cobra.Command{
 		Use:   "stop",
-		Short: "Stop the specific purge audit log execution by ID",
+		Short: "Stop the specific purge job execution by ID",
 		Long:  "Stop the purge audit log execution specified by purge ID.",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.MaximumNArgs(1),
 	}
 
 	cmd.Flags().Int64VarP(&purgeID, "purge-id", "p", 0, "ID of the purge job to stop")

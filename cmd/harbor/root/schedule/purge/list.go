@@ -11,20 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package schedule
+package purge
 
 import (
 	"github.com/spf13/cobra"
 )
 
-func UpdateSchedule() *cobra.Command {
+func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Update an existing purge schedule",
-		Args:  cobra.ExactArgs(0),
+		Use:   "list",
+		Short: "Get purge job schedule configurations",
+		Args:  cobra.NoArgs,
 	}
-	cmd.Flags().StringP("cron", "c", "", "New cron expression for the schedule (required)")
-	cmd.MarkFlagRequired("cron")
 
 	return cmd
 }

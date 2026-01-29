@@ -11,20 +11,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package schedule
+package purge
 
 import (
 	"github.com/spf13/cobra"
 )
 
-func CreateScheduleCommand() *cobra.Command {
+func StatusCommand() *cobra.Command {
+	var (
+		purgeID int64
+	)
+
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a new purge schedule",
-		Args:  cobra.ExactArgs(0),
+		Use:   "status",
+		Short: "Show the status of a purge job by ID",
+		Long:  "Show the status of a purge job by ID in Harbor",
+		Args:  cobra.MaximumNArgs(1),
 	}
-	cmd.Flags().StringP("cron", "c", "", "Cron expression for the schedule (required)")
-	cmd.MarkFlagRequired("cron")
+
+	cmd.Flags().Int64VarP(&purgeID, "purge-id", "p", 0, "ID of the purge job to stop")
 
 	return cmd
 }

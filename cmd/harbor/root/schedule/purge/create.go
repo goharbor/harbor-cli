@@ -11,23 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package schedule
+package purge
 
 import (
 	"github.com/spf13/cobra"
 )
 
-func ScheduleCommand() *cobra.Command {
+func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "schedule",
-		Short: "Manage purge schedules",
-		Long:  "Manage purge schedules in Harbor",
+		Use:   "create",
+		Short: "Create purge jobs",
+		Long:  "Create purge jobs in Harbor",
+		Args:  cobra.NoArgs,
 	}
-
-	cmd.AddCommand(
-		CreateScheduleCommand(),
-		UpdateSchedule(),
-	)
 
 	return cmd
 }
