@@ -14,13 +14,18 @@
 package errors
 
 import (
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"errors"
+	"fmt"
+)
+
+var (
+	as = errors.As
 )
 
 type Error struct {
 	cause   error
 	message string
-	hint    string
+	hints   []string
 }
 
 func New(message string) *Error {
@@ -29,32 +34,74 @@ func New(message string) *Error {
 	}
 }
 
+func Newf(format string, args ...any) *Error {
+	return &Error{
+		message: fmt.Sprintf(format, args...),
+	}
+}
+
+func AsError(err error) *Error {
+	var e *Error
+	if errors.As(err, &e) {
+		return e
+	}
+	return &Error{
+		message: err.Error(),
+	}
+}
+
+func IsError(err error) bool {
+	var e *Error
+	return as(err, &e)
+}
+
+func Cause(err error) error {
+	if e := isHarborError(err); e != nil {
+		return e.Cause()
+	}
+	return nil
+}
+
+func Hints(err error) []string {
+	if e := isHarborError(err); e != nil {
+		return e.Hints()
+	}
+	return nil
+}
+
+func Status(err error) string {
+	if e := isHarborError(err); e != nil {
+		return e.Status()
+	}
+	return ""
+}
+
 func (e *Error) WithCause(cause error) *Error {
-	e.cause = cause
+	if e.cause == nil {
+		e.cause = cause
+	}
 	return e
 }
 
 func (e *Error) WithHint(hint string) *Error {
-	e.hint = hint
+	e.hints = append(e.hints, hint)
 	return e
 }
 
 func (e *Error) Error() string {
 	if e.cause != nil {
-		causeMsg := utils.ParseHarborErrorMsg(e.cause)
+		causeMsg := parseHarborErrorMsg(e.cause)
 		return e.message + ": " + causeMsg
 	}
 	return e.message
 }
 
-func (e *Error) Status() string {
-	return utils.ParseHarborErrorCode(e.cause)
-}
+func (e *Error) Cause() error { return e.cause }
 
-func (e *Error) Hint() string {
-	return e.hint
-}
+func (e *Error) Status() string { return parseHarborErrorCode(e.cause) }
 
-func (e *Error) Unwrap() error {
-	return e.cause
-}
+func (e *Error) Hints() []string { return e.hints }
+
+func (e *Error) Message() string { return e.message }
+
+func (e *Error) Unwrap() error { return e.cause }
