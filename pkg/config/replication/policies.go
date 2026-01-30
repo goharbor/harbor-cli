@@ -21,8 +21,8 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
-	"gopkg.in/yaml.v2"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 type PolicyConfig struct {
