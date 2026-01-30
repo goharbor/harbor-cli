@@ -25,6 +25,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Function variables for testing - these can be swapped in tests
+var (
+	listMembersFunc  = ListMembers
+	deleteMemberFunc = DeleteMember
+)
+
 // View a Member in a project
 func ListMember(opts ListMemberOptions) (*member.ListProjectMembersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
@@ -95,7 +101,7 @@ func CreateMember(opts create.CreateView) error {
 func DeleteAllMember(projectName string, xIsResourceName bool) error {
 	var wg sync.WaitGroup
 
-	response, err := ListMembers(projectName, "", true)
+	response, err := listMembersFunc(projectName, "", true)
 	if err != nil {
 		return fmt.Errorf("failed to list members: %w", err)
 	}
@@ -112,7 +118,7 @@ func DeleteAllMember(projectName string, xIsResourceName bool) error {
 		wg.Add(1)
 		go func(memberID int64) {
 			defer wg.Done()
-			err := DeleteMember(projectName, memberID, xIsResourceName)
+			err := deleteMemberFunc(projectName, memberID, xIsResourceName)
 			if err != nil {
 				errChan <- err
 			}
