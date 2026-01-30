@@ -13,6 +13,10 @@
 // limitations under the License.
 package errors
 
+import (
+	"github.com/goharbor/harbor-cli/pkg/utils"
+)
+
 type Error struct {
 	cause   error
 	message string
@@ -37,9 +41,14 @@ func (e *Error) WithHint(hint string) *Error {
 
 func (e *Error) Error() string {
 	if e.cause != nil {
-		return e.message + ": " + e.cause.Error()
+		causeMsg := utils.ParseHarborErrorMsg(e.cause)
+		return e.message + ": " + causeMsg
 	}
 	return e.message
+}
+
+func (e *Error) Status() string {
+	return utils.ParseHarborErrorCode(e.cause)
 }
 
 func (e *Error) Hint() string {
