@@ -23,6 +23,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type UserCreator interface {
+	FillUser(opts *create.CreateView)
+	UserCreate(opts create.CreateView) error
+}
+type DefaultUserCreator struct{}
+
+func (d *DefaultUserCreator) FillUser(opts *create.CreateView) {
+	create.CreateUserView(opts)
+}
+
+func (d *DefaultUserCreator) UserCreate(opts create.CreateView) error {
+	return api.CreateUser(opts)
+}
+func CreateUser(opts *create.CreateView, userCreator UserCreator) {
+	var err error
+
+	if opts.Email == "" || opts.Realname == "" || opts.Password == "" || opts.Username == "" {
+		userCreator.FillUser(opts)
+	}
+
+	err = userCreator.UserCreate(*opts)
+
+	if err != nil {
+		if isUnauthorizedError(err) {
+			log.Error("Permission denied: Admin privileges are required to execute this command.")
+		} else {
+			log.Errorf("failed to create user: %v", err)
+		}
+	}
+}
 func UserCreateCmd() *cobra.Command {
 	var opts create.CreateView
 
@@ -31,30 +61,8 @@ func UserCreateCmd() *cobra.Command {
 		Short: "create user",
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			createView := &create.CreateView{
-				Email:    opts.Email,
-				Realname: opts.Realname,
-				Comment:  opts.Comment,
-				Password: opts.Password,
-				Username: opts.Username,
-			}
-
-			if opts.Email != "" && opts.Realname != "" && opts.Comment != "" && opts.Password != "" && opts.Username != "" {
-				err = api.CreateUser(opts)
-			} else {
-				err = createUserView(createView)
-			}
-
-			// Check if the error is due to unauthorized access.
-
-			if err != nil {
-				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					log.Errorf("failed to create user: %v", err)
-				}
-			}
+			d := &DefaultUserCreator{}
+			CreateUser(&opts, d)
 		},
 	}
 
@@ -67,12 +75,9 @@ func UserCreateCmd() *cobra.Command {
 
 	return cmd
 }
-
-func createUserView(createView *create.CreateView) error {
-	create.CreateUserView(createView)
-	return api.CreateUser(*createView)
-}
-
 func isUnauthorizedError(err error) bool {
+	if err == nil {
+		return false
+	}
 	return strings.Contains(err.Error(), "403")
 }
