@@ -23,8 +23,14 @@ import (
 
 func TestMakeUserRows(t *testing.T) {
 	dateStr := "2023-01-01T12:00:00Z"
-	testDate, _ := strfmt.ParseDateTime(dateStr)
-	expectedTimeStr, _ := utils.FormatCreatedTime(dateStr)
+	testDate, err := strfmt.ParseDateTime(dateStr)
+	if err != nil {
+		t.Fatalf("failed to parse date %q: %v", dateStr, err)
+	}
+	expectedTimeStr, err := utils.FormatCreatedTime(dateStr)
+	if err != nil {
+		t.Fatalf("failed to format created time %q: %v", dateStr, err)
+	}
 	tests := []struct {
 		name     string
 		setup    func() []*models.UserResp

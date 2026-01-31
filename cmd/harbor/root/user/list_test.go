@@ -123,7 +123,7 @@ func TestPrintUsers(t *testing.T) {
 			switch {
 			case len(allUsers) == 0:
 				if !strings.Contains(logs, "No users found") {
-					t.Errorf(`Expected logs to contain "No user found" but got: %s`, logs)
+					t.Errorf(`Expected logs to contain "No users found" but got: %s`, logs)
 				}
 			case tt.outputFormat == "json":
 				if contentBuf.Len() == 0 {
@@ -179,22 +179,6 @@ func TestPrintUsers(t *testing.T) {
 	}
 }
 
-/*
-	[X] make a test opts, only Page and PageSize fields needs to be there
-	[X] make a helper to populate the users
-	[X] mock api.List
-	[X] mock authentication (no need, just make the api mock to pass an error with 403 in case you need to check for unauthenticated user)
-	[X] test error logs
-	[X] check if the users received are correct
-
-*/
-/*
-	Logic for mocking api.ListUsers
-	-> should return (*user.ListUsersOK, error) ; Payload should be populated with the users
-	-> shoud return the PageSize*(Page-1) th user till PageSize*(Page) -1  th user (0 based indexing)
-	Helper for populating users:
-	-> models.UserResp ko append krna hoga api.ListFlags type ke payload me
-*/
 type MockUserLister struct {
 	numberOfUsersforTesting int64
 	usersForTesting         []*models.UserResp
