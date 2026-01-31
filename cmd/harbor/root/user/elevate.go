@@ -14,10 +14,11 @@
 package user
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,42 +28,38 @@ func ElevateUserCmd() *cobra.Command {
 		Short: "elevate user",
 		Long:  "elevate user to admin role",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var userId int64
 			if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
 				if err != nil {
-					log.Errorf("failed to get user id for '%s': %v", args[0], err)
-					return
+					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
 				}
 				if userId == 0 {
-					log.Errorf("User with name '%s' not found", args[0])
-					return
+					return fmt.Errorf("user with name '%s' not found", args[0])
 				}
 			} else {
 				userId = prompt.GetUserIdFromUser()
 			}
 			confirm, err := views.ConfirmElevation()
 			if err != nil {
-				log.Errorf("failed to confirm elevation: %v", err)
-				return
+				return fmt.Errorf("failed to confirm elevation: %v", err)
 			}
 			if !confirm {
-				log.Error("User did not confirm elevation. Aborting command.")
-				return
+				return fmt.Errorf("User did not confirm elevation. Aborting command.")
 			}
 
 			err = api.ElevateUser(userId)
 			if err != nil {
 				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
+					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 				} else {
-					log.Errorf("failed to elevate user: %v", err)
+					return fmt.Errorf("failed to elevate user: %v", err)
 				}
 			}
+			return nil
 		},
 	}
-
 	return cmd
 }
