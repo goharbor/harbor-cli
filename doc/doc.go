@@ -76,8 +76,8 @@ func preblock(filename string) string {
 		weight = prevWeight
 	}
 
-	file := strings.Split(filename, markdownExtension)
-	name := filepath.Base(file[0])
+	baseName := filepath.Base(filename)
+	name := strings.TrimSuffix(baseName, markdownExtension)
 	title := strings.ReplaceAll(name, "-", " ")
 
 	return fmt.Sprintf(frontmdtemplate, title, weight)
@@ -114,8 +114,10 @@ func MarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) st
 	name := cmd.CommandPath()
 
 	buf.WriteString("## " + name + "\n\n")
-	buf.WriteString("### Description\n\n")
-	buf.WriteString("##### " + cmd.Short + "\n\n")
+	if len(cmd.Short) > 0 {
+		buf.WriteString("### Description\n\n")
+		buf.WriteString("##### " + cmd.Short + "\n\n")
+	}
 	if len(cmd.Long) > 0 {
 		buf.WriteString("### Synopsis\n\n")
 		buf.WriteString(cmd.Long + "\n\n")
@@ -247,7 +249,8 @@ func getWeight(filename string) int {
 	var fm FrontMatter
 	err = yaml.Unmarshal([]byte(yamlContent), &fm)
 	if err != nil {
-		panic(err)
+		log.Warningf("Failed to parse YAML in file %s", filename)
+		return 0
 	}
 	return fm.Weight
 }

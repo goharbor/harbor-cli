@@ -9,6 +9,14 @@ on:
     paths-ignore:
       - "*.md"
       - "assets/**"
+  workflow_dispatch:  # Allow manual trigger on existing releases
+    inputs:
+      tag:
+        description: 'Tag to build (e.g., v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   lint:
@@ -20,6 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: Dagger Version
+        id: dagger_version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Generate Document
@@ -27,7 +36,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: run-doc export --path=doc
+          args: run-doc --source=. export --path=doc
 
       - name: Check for changes
         run: |
@@ -50,7 +59,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: lint-report export --path=golangci-lint.report
+          args: lint-report --source=. export --path=golangci-lint.report
 
       - name: Generate lint summary
         run: |
@@ -63,13 +72,6 @@ jobs:
               exit 1
           fi
 
-      # - uses: reviewdog/action-setup@v1
-      # - name: Run Reviewdog
-      #   env:
-      #     REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     reviewdog -f=sarif -name="Golang Linter Report" -reporter=github-check -filter-mode nofilter -fail-level any -tee < golangci-lint-report.sarif
-
   vulnerability-check:
     runs-on: ubuntu-latest
     steps:
@@ -79,6 +81,7 @@ jobs:
           fetch-depth: 0
 
       - name: Dagger Version
+        id: dagger_version
         uses: sagikazarmark/dagger-version-action@v0.0.1
 
       - name: Run Vulnerability Check
@@ -86,36 +89,96 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: vulnerability-check-report export --path=vulnerability-check.report
+          args: vulnerability-check-report --source=. export --path=vulnerability-check.report
 
       - name: Generate vulnerability summary
         run: |
           echo "<h2> 🔒 Vulnerability Check Results</h2>" >> $GITHUB_STEP_SUMMARY
-          cat vulnerability-check.report >> $GITHUB_STEP_SUMMARY
-          # Check if the lint report contains any content (error or issues)
-          if ! grep -q "No vulnerabilities found." vulnerability-check.report; then
-              # If the file contains content, output an error message and exit with code 1
-              echo "⚠️ Linting issues found!" >> $GITHUB_STEP_SUMMARY
-              exit 1
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if grep -q "No vulnerabilities found." vulnerability-check.report; then
+            echo "✅ No vulnerabilities found." >> $GITHUB_STEP_SUMMARY
+          else
+            vuln_count=$(grep -c "^Vulnerability #" vulnerability-check.report || echo "0")
+            echo "⚠️ **Vulnerabilities detected:** $vuln_count found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Table header
+            echo "| Vulnerability ID | Package | Found In | Fixed In | Description | Example Trace | Details |" >> $GITHUB_STEP_SUMMARY
+            echo "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+            
+            # Parse and format each vulnerability as a table row
+            awk '
+              BEGIN { in_vuln = 0; in_trace = 0; desc = ""; trace = "" }
+              
+              /^Vulnerability #[0-9]+:/ {
+                if (in_vuln) {
+                  # Print previous vulnerability as table row
+                  gsub(/\|/, "\\|", desc)
+                  gsub(/\|/, "\\|", trace)
+                  if (trace == "") trace = "N/A"
+                  print "| " vuln_id " | " pkg " | " found_ver " | " fixed_ver " | " desc " | `" trace "` | [View](https://pkg.go.dev/vuln/" vuln_id ") |"
+                }
+                vuln_id = $NF
+                in_vuln = 1
+                in_trace = 0
+                desc = ""
+                trace = ""
+                pkg = ""
+                found_ver = ""
+                fixed_ver = ""
+                next
+              }
+              
+              in_vuln && /^[[:space:]]*Found in:/ {
+                found_in = $NF
+                split(found_in, arr, "@")
+                pkg = arr[1]
+                found_ver = arr[2]
+                next
+              }
+              
+              in_vuln && /^[[:space:]]*Fixed in:/ {
+                fixed_in = $NF
+                split(fixed_in, arr, "@")
+                fixed_ver = arr[2]
+                next
+              }
+              
+              in_vuln && /Example traces found:/ {
+                in_trace = 1
+                next
+              }
+              
+              in_vuln && in_trace && /^[[:space:]]*#[0-9]+:/ {
+                sub(/^[[:space:]]*#[0-9]+:[[:space:]]*/, "")
+                trace = $0
+                next
+              }
+              
+              in_vuln && /^More info:/ { next }
+              in_vuln && /^Standard library/ { next }
+              in_vuln && /^[[:space:]]*Module:/ { next }
+              in_vuln && /^Your code is affected by/ { next }
+              
+              in_vuln && !in_trace && !/^[[:space:]]*$/ && !/^[[:space:]]*Found in:/ && !/^[[:space:]]*Fixed in:/ && !/^Vulnerability/ {
+                if (desc == "") {
+                  desc = $0
+                } else {
+                  desc = desc " " $0
+                }
+              }
+              
+              END {
+                if (in_vuln) {
+                  gsub(/\|/, "\\|", desc)
+                  gsub(/\|/, "\\|", trace)
+                  if (trace == "") trace = "N/A"
+                  print "| " vuln_id " | " pkg " | " found_ver " | " fixed_ver " | " desc " | `" trace "` | [View](https://pkg.go.dev/vuln/" vuln_id ") |"
+                }
+              }
+            ' vulnerability-check.report >> $GITHUB_STEP_SUMMARY
           fi
-
-  test-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Dagger Version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
-
-      - name: Test Release
-        uses: dagger/dagger-for-github@v7
-        with:
-          version: ${{ steps.dagger_version.outputs.version }}
-          verb: call
-          args: snapshot-release
 
   test-code:
     runs-on: ubuntu-latest
@@ -125,12 +188,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Dagger Version
+        id: dagger_version
+        uses: sagikazarmark/dagger-version-action@v0.0.1
+
       - name: Run Tests
         uses: dagger/dagger-for-github@v7
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-report export --path=TestReport.json
+          args: test-report --source=. export --path=TestReport.json
 
       - name: Summarize Tests
         uses: robherley/go-test-action@v0.6.0
@@ -143,7 +210,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-coverage-report export --path=coverage-report.md
+          args: test-coverage-report --source=. export --path=coverage-report.md
 
       - name: Add coverage to step summary
         if: github.event_name == 'pull_request'
@@ -155,7 +222,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: test-coverage export --path=coverage.out
+          args: test-coverage --source=. export --path=coverage.out
 
       - uses: codecov/codecov-action@v5
         if: github.event_name == 'pull_request'
@@ -169,7 +236,7 @@ jobs:
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
-          args: build-dev --platform linux/amd64 export --path=./harbor-dev
+          args: build-dev --source=. --platform linux/amd64 export --path=./harbor-dev
 
   push-latest-images:
     needs:
@@ -210,46 +277,117 @@ jobs:
       packages: write
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch')
     steps:
       - name: Checkout repo
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
-      - name: Checkout repo
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: actions/checkout@v4
+      - name: Create Build Dir
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        run: mkdir -p dist
+
+      - name: Building Binaries
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
         with:
-          fetch-depth: 0
+          version: "latest"
+          verb: call
+          args: "build --build-dir=./dist export --path=./dist"
 
-      - name: Push images
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
-        uses: ./.github/actions/publish-and-sign
+      - name: Archiving Binaries
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
         with:
-          IMAGE_TAGS: latest, ${{ github.ref_name }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-          REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
-          REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+          version: "latest"
+          verb: call
+          args: "archive --build-dir=./dist export --path=./dist"
 
-      - name: Create Release
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+      - name: NFPM Build (deb/rpm)
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: "latest"
+          verb: call
+          args: "nfpm-build --build-dir=./dist export --path=./dist"
+
+      - name: APK Build (.apk)
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: "latest"
+          verb: call
+          args: "apk --build-dir=./dist export --path=./dist"
+
+      - name: Creating Checksum
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
+        with:
+          version: "latest"
+          verb: call
+          args: "checksum --build-dir=./dist export --path=./dist"
+
+      - name: Publish Release
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
         uses: dagger/dagger-for-github@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: "latest"
           verb: call
-          args: "release --github-token=env:GITHUB_TOKEN"
+          args: "publish-release --build-dir=./dist --token=env://GITHUB_TOKEN "
+
+      - name: Apt Build
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: dagger/dagger-for-github@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: "latest"
+          verb: call
+          args: "apt-build --build-dir=./dist --token=env://GITHUB_TOKEN "
+
+      - name: Upload Build Artifact
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dir
+          path: ./dist
 
       - name: Publish and Sign Tagged Image
-        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/'))
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
         uses: ./.github/actions/publish-and-sign
         with:
-          IMAGE_TAGS: "latest, ${{ github.ref_name }}"
+          IMAGE_TAGS: "latest,${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           REGISTRY_ADDRESS: ${{ vars.REGISTRY_ADDRESS }}
           REGISTRY_USERNAME: ${{ vars.REGISTRY_USERNAME }}
+          BUILD_DIR: "dist"
