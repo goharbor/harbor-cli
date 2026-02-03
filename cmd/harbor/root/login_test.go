@@ -14,6 +14,9 @@
 package root_test
 
 import (
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
@@ -21,16 +24,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func newMockHarborServer(t *testing.T, validCreds map[string]string) *httptest.Server {
+	t.Helper()
+
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		if !ok || validCreds[username] != password {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = io.WriteString(w, `{"errors":[{"code":"UNAUTHORIZED","message":"unauthorized"}]}`)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"user_id":1,"username":"`+username+`"}`)
+	}))
+}
+
 func Test_Login_Success(t *testing.T) {
+	helpers.SetMockKeyring(t)
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 	cmd := root.LoginCommand()
+
+	server := newMockHarborServer(t, map[string]string{
+		"harbor-cli": "Harbor12345",
+	})
+	defer server.Close()
+
 	validServerAddresses := []string{
-		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:443",
-		"http://demo.goharbor.io",
-		"https://demo.goharbor.io",
+		server.URL,
+		server.URL + "/",
 	}
 
 	for _, serverAddress := range validServerAddresses {
@@ -48,6 +74,7 @@ func Test_Login_Success(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongServer(t *testing.T) {
+	helpers.SetMockKeyring(t)
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
@@ -63,12 +90,18 @@ func Test_Login_Failure_WrongServer(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongUsername(t *testing.T) {
+	helpers.SetMockKeyring(t)
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
+	server := newMockHarborServer(t, map[string]string{
+		"harbor-cli": "Harbor12345",
+	})
+	defer server.Close()
+
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	cmd.SetArgs([]string{server.URL})
 
 	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
@@ -78,12 +111,18 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 }
 
 func Test_Login_Failure_WrongPassword(t *testing.T) {
+	helpers.SetMockKeyring(t)
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
+	server := newMockHarborServer(t, map[string]string{
+		"admin": "Harbor12345",
+	})
+	defer server.Close()
+
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	cmd.SetArgs([]string{server.URL})
 
 	assert.NoError(t, cmd.Flags().Set("username", "admin"))
 	assert.NoError(t, cmd.Flags().Set("password", "wrong"))
@@ -93,12 +132,18 @@ func Test_Login_Failure_WrongPassword(t *testing.T) {
 }
 
 func Test_Login_Success_RobotAccount(t *testing.T) {
+	helpers.SetMockKeyring(t)
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
+	server := newMockHarborServer(t, map[string]string{
+		"robot_harbor-cli": "Harbor12345",
+	})
+	defer server.Close()
+
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"https://demo.goharbor.io"})
+	cmd.SetArgs([]string{server.URL})
 
 	assert.NoError(t, cmd.Flags().Set("username", "robot_harbor-cli"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
