@@ -34,6 +34,7 @@ var (
 	Password      string
 	Name          string
 	passwordStdin bool
+	ssoFlag       bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -46,6 +47,11 @@ func LoginCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				serverAddress = args[0]
+			}
+
+			if ssoFlag {
+				fmt.Println("OAuth/SSO authentication selected")
+				return fmt.Errorf("OAuth/SSO implementation in progress")
 			}
 
 			if passwordStdin {
@@ -83,6 +89,7 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.BoolVar(&ssoFlag, "sso", false, "Use OAuth/SSO authentication")
 
 	return cmd
 }
