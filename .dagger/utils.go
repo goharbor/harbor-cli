@@ -35,6 +35,29 @@ func DistBinaries(ctx context.Context, s *dagger.Client, dist *dagger.Directory)
 	return files, nil
 }
 
+func DistSBOM(ctx context.Context, s *dagger.Client, dist *dagger.Directory) ([]string, error) {
+	var files []string
+
+	ctr := s.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/dist", dist).
+		WithWorkdir("/dist")
+
+	out, err := ctr.WithExec([]string{"ls", "sbom"}).Stdout(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	bins := strings.Split(out, "\n")
+	for _, bin := range bins {
+		if bin != "" && bin != "nfpm.yml" {
+			files = append(files, filepath.Join("/", "dist", "sbom", bin))
+		}
+	}
+
+	return files, nil
+}
+
 func LDFlags(ctx context.Context, version, goVersion, buildTime, commit string) string {
 	return fmt.Sprintf("-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=%s "+
 		"-X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=%s "+
