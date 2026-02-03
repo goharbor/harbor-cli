@@ -1,0 +1,64 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package gc
+
+import (
+	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/views/gc"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+)
+
+func ListGCCommand() *cobra.Command {
+	var opts api.ListFlags
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List GC history",
+		Long: `List GC (Garbage Collection) history in Harbor.
+
+This command displays a list of GC executions with their status, creation time,
+and other details. You can control the output using pagination flags and format options.
+
+Examples:
+  # List GC history with default pagination (page 1, 10 items per page)
+  harbor gc list
+
+  # List GC history with custom pagination
+  harbor gc list --page 2 --page-size 20
+
+  # List GC history with sorting by creation time (newest first)
+  harbor gc list --sort -creation_time
+
+  # Filter GC history by status
+  harbor gc list -q status=Success`,
+		Run: func(cmd *cobra.Command, args []string) {
+			history, err := api.GetGCHistory(opts)
+			if err != nil {
+				logrus.Fatalf("Failed to get GC history: %v", err)
+			}
+
+			gc.ListGC(history)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
+	flags.Int64VarP(&opts.PageSize, "page-size", "s", 10, "Size of per page")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+
+	return cmd
+}
