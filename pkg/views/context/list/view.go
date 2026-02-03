@@ -22,8 +22,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+	contextview "github.com/goharbor/harbor-cli/pkg/views/context"
 )
 
 var columns = []table.Column{
@@ -32,7 +32,7 @@ var columns = []table.Column{
 	{Title: "Server Address", Width: tablelist.WidthXXL},
 }
 
-func ListContexts(contexts []api.ContextListView, currentCredential string) {
+func ListContexts(contexts []contextview.ContextListView, currentCredential string) {
 	rows := selectActiveContext(contexts, currentCredential)
 
 	var opts []tea.ProgramOption
@@ -48,7 +48,7 @@ func ListContexts(contexts []api.ContextListView, currentCredential string) {
 	}
 }
 
-func selectActiveContext(contexts []api.ContextListView, currentCredential string) []table.Row {
+func selectActiveContext(contexts []contextview.ContextListView, currentCredential string) []table.Row {
 	var rows []table.Row
 
 	for _, ctx := range contexts {

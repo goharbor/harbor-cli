@@ -21,11 +21,11 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
+	contextview "github.com/goharbor/harbor-cli/pkg/views/context"
 )
 
-func ContextList(contexts []api.ContextListView, activeContext string) (string, error) {
+func ContextList(contexts []contextview.ContextListView, activeContext string) (string, error) {
 	itemsList := make([]list.Item, len(contexts))
 
 	for i, ctx := range contexts {

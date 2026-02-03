@@ -31,7 +31,7 @@ type RegistryOption struct {
 	Name string
 }
 
-func CreateRegistryView(createView *api.CreateRegView) {
+func CreateRegistryView(createView *CreateView) {
 	registries, _ := api.GetRegistryProviders()
 
 	// Initialize a slice to hold registry options

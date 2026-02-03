@@ -48,7 +48,7 @@ func ListRegistries(opts ...ListFlags) (*registry.ListRegistriesOK, error) {
 	return response, nil
 }
 
-func CreateRegistry(opts CreateRegView) error {
+func CreateRegistry(opts *models.Registry) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -57,18 +57,7 @@ func CreateRegistry(opts CreateRegView) error {
 	_, err = client.Registry.CreateRegistry(
 		ctx,
 		&registry.CreateRegistryParams{
-			Registry: &models.Registry{
-				Credential: &models.RegistryCredential{
-					AccessKey:    opts.Credential.AccessKey,
-					AccessSecret: opts.Credential.AccessSecret,
-					Type:         opts.Credential.Type,
-				},
-				Description: opts.Description,
-				Insecure:    opts.Insecure,
-				Name:        opts.Name,
-				Type:        opts.Type,
-				URL:         opts.URL,
-			},
+			Registry: opts,
 		},
 	)
 	if err != nil {
