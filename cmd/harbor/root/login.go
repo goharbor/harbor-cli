@@ -51,7 +51,7 @@ func LoginCommand() *cobra.Command {
 
 			if ssoFlag {
 				fmt.Println("OAuth/SSO authentication selected")
-				return fmt.Errorf("OAuth/SSO implementation in progress")
+				return fmt.Errorf("OAuth/SSO implementation currently in progress")
 			}
 
 			if passwordStdin {
