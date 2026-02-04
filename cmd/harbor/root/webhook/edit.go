@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	"github.com/spf13/cobra"
 )
@@ -84,6 +85,9 @@ or leave them out and use the interactive prompt to select and update a webhook.
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
+				if err := utils.ValidateURL(opts.EndpointURL); err != nil {
+					return err
+				}
 				err = api.UpdateWebhook(&opts)
 			} else {
 				err = editWebhookView(editView)

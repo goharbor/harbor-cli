@@ -170,6 +170,8 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+// ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
+// Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
 	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
 
