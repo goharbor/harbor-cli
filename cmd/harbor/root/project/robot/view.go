@@ -14,6 +14,7 @@
 package robot
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
@@ -21,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/view"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -58,7 +58,7 @@ Examples:
   # Interactive selection (will prompt for project and robot)
   harbor-cli project robot view`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				robot   *robot.GetRobotByIDOK
 				robotID int64
@@ -68,30 +68,32 @@ Examples:
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", err)
+					return fmt.Errorf("failed to parse robot ID: %v", err)
 				}
 			} else if ProjectName != "" {
 				project, err := api.GetProject(ProjectName, false)
 				if err != nil {
-					log.Fatalf("failed to get project by name %s: %v", ProjectName, err)
+					return fmt.Errorf("failed to get project by name %s: %v", ProjectName, err)
 				}
 				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
-					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 				}
 				robotID = prompt.GetRobotIDFromUser(projectID)
 			}
 
 			robot, err = api.GetRobot(robotID)
 			if err != nil {
-				log.Fatalf("failed to get robot: %v", err)
+				return fmt.Errorf("failed to get robot: %v", err)
 			}
 
 			// Convert to a list and display
 			// robots := &models.Robot{robot.Payload}
 			view.ViewRobot(robot.Payload)
+
+			return nil
 		},
 	}
 

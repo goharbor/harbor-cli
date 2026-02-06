@@ -38,7 +38,7 @@ func RefreshSecretCommand() *cobra.Command {
 		Short: "refresh robot secret by id",
 		Long: `Refresh the secret for an existing robot account in Harbor.
 
-This command generates a new secret for a robot account, effectively revoking 
+This command generates a new secret for a robot account, effectively revoking
 the old secret and requiring updates to any systems using the robot's credentials.
 
 The command supports multiple ways to identify the robot account:
@@ -73,12 +73,12 @@ Examples:
   # Interactive refresh (will prompt for project and robot selection)
   harbor-cli project robot refresh`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", err)
+					return fmt.Errorf("failed to parse robot ID: %v", err)
 				}
 			} else {
 				robotID = prompt.GetRobotIDFromUser(-1)
@@ -87,7 +87,7 @@ Examples:
 			if secret != "" {
 				err = utils.ValidatePassword(secret)
 				if err != nil {
-					log.Fatalf("Invalid secret: %v\n", err)
+					return fmt.Errorf("Invalid secret: %v\n", err)
 				}
 			}
 			if secretStdin {
@@ -96,7 +96,7 @@ Examples:
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				log.Fatalf("failed to refresh robot secret: %v\n", err)
+				return fmt.Errorf("failed to refresh robot secret: %v\n", err)
 			}
 
 			log.Info("Secret updated successfully.")
@@ -107,10 +107,11 @@ Examples:
 
 				err = clipboard.WriteAll(response.Payload.Secret)
 				if err != nil {
-					log.Fatalf("failed to write the secret to the clipboard: %v", err)
+					return fmt.Errorf("failed to write the secret to the clipboard: %v", err)
 				}
 				fmt.Println("secret copied to clipboard.")
 			}
+			return err
 		},
 	}
 

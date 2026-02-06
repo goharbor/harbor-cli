@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,8 +29,8 @@ func ListInstanceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all preheat provider instances in Harbor",
-		Long: `List all preheat provider instances registered in Harbor. You can paginate the results, 
-filter them using a query string, and sort them in ascending or descending order. 
+		Long: `List all preheat provider instances registered in Harbor. You can paginate the results,
+filter them using a query string, and sort them in ascending or descending order.
 This command provides an easy way to view all instances along with their details.`,
 		Example: `  harbor-cli instance list --page 1 --page-size 10
   harbor-cli instance list --query "name=my-instance" --sort "asc"`,
@@ -46,13 +45,13 @@ This command provides an easy way to view all instances along with their details
 			instance, err := api.ListInstance(opts)
 
 			if err != nil {
-				log.Fatalf("failed to get instance list: %v", err)
+				return fmt.Errorf("failed to get instance list: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(instance, FormatFlag)
 				if err != nil {
-					log.Errorf("Failed to print config: %v", err)
+					return fmt.Errorf("Failed to print config: %v", err)
 				}
 			} else {
 				list.ListInstance(instance.Payload)
