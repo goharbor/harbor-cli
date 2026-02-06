@@ -26,7 +26,14 @@ import (
 
 // NewListRegistryCommand creates a new `harbor list registry` command
 func ListRegistryCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -35,6 +42,17 @@ func ListRegistryCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "url", "name", "type", "description", "status", "creation_time"},
+				)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
 			}
 			registry, err := api.ListRegistries(opts)
 
@@ -63,6 +81,9 @@ func ListRegistryCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }

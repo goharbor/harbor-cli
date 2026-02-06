@@ -26,7 +26,14 @@ import (
 )
 
 func ListArtifactCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -63,6 +70,18 @@ Supports pagination, search queries, and sorting using flags.`,
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
 
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "type", "media_type", "artifact_id", "artifact_type", "project_id", "repository_id", "repository_name",
+						"manifest_media_type", "digest"},
+				)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
+			}
+
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
 
 			if err != nil {
@@ -87,6 +106,9 @@ Supports pagination, search queries, and sorting using flags.`,
 	flags.Int64VarP(&opts.PageSize, "page-size", "n", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }

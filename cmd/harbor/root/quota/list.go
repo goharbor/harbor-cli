@@ -60,13 +60,7 @@ func ListQuotaCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (use 0 to fetch all)")
 	flags.StringVarP(&opts.Reference, "ref", "", "", "Reference type of quota")
 	flags.StringVarP(&opts.ReferenceID, "refid", "", "", "Reference ID of quota")
-	flags.StringVarP(
-		&opts.Sort,
-		"sort",
-		"",
-		"",
-		"Sort the resource list in ascending or descending order",
-	)
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }
