@@ -53,7 +53,28 @@ func ParseHarborErrorMsg(err error) string {
 }
 
 func ParseHarborErrorCode(err error) string {
-	parts := strings.Split(err.Error(), "]")
+	if err == nil {
+		return ""
+	}
+
+	errMsg := err.Error()
+
+	// Handle: "response status code does not match any response statuses defined for this endpoint in the swagger spec (status 403): {}"
+	if strings.Contains(errMsg, "(status ") {
+		// Extract content between "(status " and ")"
+		startIdx := strings.Index(errMsg, "(status ")
+		if startIdx != -1 {
+			startIdx += len("(status ")
+			endIdx := strings.Index(errMsg[startIdx:], ")")
+			if endIdx != -1 {
+				statusCode := strings.TrimSpace(errMsg[startIdx : startIdx+endIdx])
+				return statusCode
+			}
+		}
+	}
+
+	// Handle: "[code] message" format
+	parts := strings.Split(errMsg, "]")
 	if len(parts) >= 2 {
 		codePart := strings.TrimSpace(parts[1])
 		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
@@ -61,5 +82,6 @@ func ParseHarborErrorCode(err error) string {
 			return code
 		}
 	}
+
 	return ""
 }

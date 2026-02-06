@@ -189,12 +189,19 @@ func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]mo
 func getSystemPermissions(all bool, permissions *[]models.Permission) error {
 	if len(*permissions) == 0 {
 		if all {
-			perms, _ := api.GetPermissions()
+			perms, err := api.GetPermissions()
+			if err != nil {
+				return fmt.Errorf("failed to get system permissions: %v", utils.ParseHarborErrorMsg(err))
+			}
 			for _, perm := range perms.Payload.System {
 				*permissions = append(*permissions, *perm)
 			}
 		} else {
-			*permissions = prompt.GetRobotPermissionsFromUser("system")
+			var err error
+			*permissions, err = prompt.GetRobotPermissionsFromUser("system")
+			if err != nil {
+				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
+			}
 			if len(*permissions) == 0 {
 				return fmt.Errorf("failed to create robot: %v",
 					utils.ParseHarborErrorMsg(fmt.Errorf("no permissions selected, robot account needs at least one permission")))
@@ -231,7 +238,10 @@ func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models
 
 	if len(selectedProjects) > 0 {
 		fmt.Println("Select permissions to apply to all selected projects:")
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
+		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to get project permissions: %v", err)
+		}
 		for _, projectName := range selectedProjects {
 			projectPermissionsMap[projectName] = projectPermissions
 		}
@@ -251,7 +261,10 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 				return fmt.Errorf("project name cannot be empty")
 			}
 
-			projectPermissionsMap[projectName] = prompt.GetRobotPermissionsFromUser("project")
+			projectPermissionsMap[projectName], err = prompt.GetRobotPermissionsFromUser("project")
+			if err != nil {
+				return fmt.Errorf("failed to get project permissions: %v", err)
+			}
 
 			moreProjects, err := promptMoreProjects()
 			if err != nil {
@@ -262,7 +275,10 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 			}
 		}
 	} else {
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
+		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to get project permissions: %v", err)
+		}
 		projectPermissionsMap[opts.ProjectName] = projectPermissions
 	}
 
@@ -301,7 +317,12 @@ func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission
 func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) error {
 	response, err := api.CreateRobot(*opts)
 	if err != nil {
-		return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
+		errorCode := utils.ParseHarborErrorCode(err)
+		if errorCode == "403" {
+			return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+		} else {
+			return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
+		}
 	}
 
 	logrus.Infof("Successfully created robot account '%s' (ID: %d)",

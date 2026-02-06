@@ -81,7 +81,10 @@ Examples:
 					log.Fatalf("failed to parse robot ID: %v", err)
 				}
 			} else {
-				robotID = prompt.GetRobotIDFromUser(-1)
+				robotID, err = prompt.GetRobotIDFromUser(-1)
+				if err != nil {
+					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			if secret != "" {
@@ -96,7 +99,12 @@ Examples:
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				log.Fatalf("failed to refresh robot secret: %v\n", err)
+				errorCode := utils.ParseHarborErrorCode(err)
+				if errorCode == "403" {
+					log.Fatalf("Permission denied: (Project) Admin privileges are required to execute this command.\n")
+				} else {
+					log.Fatalf("failed to refresh robot secret: %v\n", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			log.Info("Secret updated successfully.")
