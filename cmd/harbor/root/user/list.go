@@ -48,7 +48,7 @@ func UserListCmd() *cobra.Command {
 
 			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
 				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"name", "id"},
+					[]string{"email", "username", "user_id", "realname", "comment", "creation_time"},
 				)
 				if qErr != nil {
 					return qErr

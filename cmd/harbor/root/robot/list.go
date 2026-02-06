@@ -24,7 +24,14 @@ import (
 
 // ListRobotCommand creates a new `harbor project robot list` command
 func ListRobotCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "list [projectName]",
@@ -62,6 +69,17 @@ Examples:
   harbor-cli robot list --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "name", "description", "secret", "level", "duration", "expires_at", "creation_time",
+						"editable", "disable"},
+				)
+				if qErr != nil {
+					log.Errorf("failed to build query parameters: %v", qErr)
+				}
+
+				opts.Q = q
+			}
 			robots, err := api.ListRobot(opts)
 			if err != nil {
 				log.Errorf("failed to get robots list: %v", utils.ParseHarborErrorMsg(err))
@@ -83,13 +101,10 @@ Examples:
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(
-		&opts.Sort,
-		"sort",
-		"",
-		"",
-		"Sort the resource list in ascending or descending order",
-	)
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }

@@ -28,7 +28,10 @@ import (
 
 // ListRobotCommand creates a new `harbor project robot list` command
 func ListRobotCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+	)
 
 	projectQString := constants.ProjectQString
 	cmd := &cobra.Command{
@@ -112,13 +115,7 @@ Examples:
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "", 0, "Project ID")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(
-		&opts.Sort,
-		"sort",
-		"",
-		"",
-		"Sort the resource list in ascending or descending order",
-	)
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
 }

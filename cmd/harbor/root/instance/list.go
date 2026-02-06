@@ -23,7 +23,14 @@ import (
 )
 
 func ListInstanceCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -34,6 +41,18 @@ This command provides an easy way to view all instances along with their details
 		Example: `  harbor-cli instance list --page 1 --page-size 10
   harbor-cli instance list --query "name=my-instance" --sort "asc"`,
 		Run: func(cmd *cobra.Command, args []string) {
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "name", "description", "endpoint", "vendor", "status", "enabled", "auth_mode"},
+				)
+				if qErr != nil {
+					log.Fatalf("Failed to build query parameters: %v", qErr)
+				}
+
+				opts.Q = q
+			}
+
 			instance, err := api.ListInstance(opts)
 
 			if err != nil {
@@ -56,6 +75,9 @@ This command provides an easy way to view all instances along with their details
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }
