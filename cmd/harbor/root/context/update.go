@@ -39,7 +39,7 @@ func UpdateContextItemCommand() *cobra.Command {
   # Set/update a credential's password by specifying the credential name
   harbor config update credentials.password myNewSecret --name admin@http://demo.goharbor.io
 `,
-		Long: `Set/update the value of a specific CLI config item. 
+		Long: `Set/update the value of a specific CLI config item.
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.
 If you specify --name, that credential (rather than the "current" one) will be updated.`,
 		Args: cobra.ExactArgs(2),

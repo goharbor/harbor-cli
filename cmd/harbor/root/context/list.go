@@ -30,11 +30,10 @@ func ListContextCommand() *cobra.Command {
 		Short:   "List contexts",
 		Example: `  harbor context list`,
 		Args:    cobra.MaximumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				fmt.Println("failed to get config: ", utils.ParseHarborErrorMsg(err))
-				return
+				return fmt.Errorf("failed to get config: %w", err)
 			}
 
 			// Get the output format
@@ -43,8 +42,7 @@ func ListContextCommand() *cobra.Command {
 				// Use utils.PrintFormat if available
 				err = utils.PrintFormat(config, formatFlag)
 				if err != nil {
-					fmt.Println("Failed to print config: ", utils.ParseHarborErrorMsg(err))
-					return
+					return fmt.Errorf("failed to print config: %w", err)
 				}
 			} else {
 				var cxlist []api.ContextListView
@@ -55,6 +53,7 @@ func ListContextCommand() *cobra.Command {
 				currentCredential := config.CurrentCredentialName
 				list.ListContexts(cxlist, currentCredential)
 			}
+			return nil
 		},
 	}
 	return cmd

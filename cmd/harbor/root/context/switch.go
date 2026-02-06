@@ -28,11 +28,10 @@ func SwitchContextCommand() *cobra.Command {
 		Short:   "Switch to a new context",
 		Example: `harbor context switch harbor-cli@https-demo-goharbor-io`,
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			config, err := utils.GetCurrentHarborConfig()
 			if err != nil {
-				fmt.Println("failed to get config: ", utils.ParseHarborErrorMsg(err))
-				return
+				return fmt.Errorf("failed to get config: %w", err)
 			}
 
 			if len(args) == 1 {
@@ -48,7 +47,7 @@ func SwitchContextCommand() *cobra.Command {
 				if found {
 					config.CurrentCredentialName = newActiveCredential
 					if err := utils.UpdateConfigFile(config); err != nil {
-						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
+						return fmt.Errorf("failed to update config: %w", err)
 					}
 				} else {
 					fmt.Println("context doesn't exist")
@@ -56,19 +55,19 @@ func SwitchContextCommand() *cobra.Command {
 			} else {
 				res, err := prompt.GetActiveContextFromUser()
 				if err != nil {
-					fmt.Println("failed to get active context: ", utils.ParseHarborErrorMsg(err))
-					return
+					return fmt.Errorf("failed to get active context: %w", err)
 				}
 				if res != "" {
 					msg := fmt.Sprintf("context switched from '%s' to '%s'", config.CurrentCredentialName, res)
 					config.CurrentCredentialName = res
 					if err := utils.UpdateConfigFile(config); err != nil {
-						fmt.Println("failed to update config: ", utils.ParseHarborErrorMsg(err))
+						return fmt.Errorf("failed to update config: %w", err)
 					} else {
 						fmt.Println(msg)
 					}
 				}
 			}
+			return nil
 		},
 	}
 	return cmd
