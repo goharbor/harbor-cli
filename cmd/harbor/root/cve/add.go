@@ -14,9 +14,10 @@
 package cve
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ func AddCveAllowlistCommand() *cobra.Command {
 		Use:   "add",
 		Short: "Add cve allowlist",
 		Long:  "Create allowlist of CVEs to ignore during vulnerability scanning",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			updateView := &update.UpdateView{
 				CveId:      opts.CveId,
@@ -37,8 +38,9 @@ func AddCveAllowlistCommand() *cobra.Command {
 
 			err = updatecveView(updateView)
 			if err != nil {
-				log.Errorf("failed to add cveallowlist: %v", err)
+				return fmt.Errorf("failed to add cveallowlist: %v", err)
 			}
+			return nil
 		},
 	}
 

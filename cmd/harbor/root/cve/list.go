@@ -14,10 +14,11 @@
 package cve
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,21 +28,21 @@ func ListCveCommand() *cobra.Command {
 		Use:   "list",
 		Short: "List system level allowlist of cve",
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			cve, err := api.ListSystemCve()
 			if err != nil {
-				log.Fatalf("failed to get system cve list: %v", err)
+				return fmt.Errorf("failed to get system cve list: %v", err)
 			}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(cve, FormatFlag)
 				if err != nil {
-					log.Fatalf("failed to print cve list: %v", err)
-					return
+					return fmt.Errorf("failed to print cve list: %v", err)
 				}
 			} else {
 				list.ListSystemCve(cve.Payload)
 			}
+			return nil
 		},
 	}
 

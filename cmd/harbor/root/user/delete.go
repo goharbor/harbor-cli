@@ -14,6 +14,7 @@
 package user
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -28,7 +29,7 @@ func UserDeleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "delete user by name or id",
 		Args:  cobra.MinimumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// If there are command line arguments, process them concurrently.
 			if len(args) > 0 {
 				var wg sync.WaitGroup
@@ -59,22 +60,22 @@ func UserDeleteCmd() *cobra.Command {
 				// Process errors from the goroutines.
 				for err := range errChan {
 					if isUnauthorizedError(err) {
-						log.Error("Permission denied: Admin privileges are required to execute this command.")
-					} else {
-						log.Errorf("failed to delete user: %v", err)
+						return fmt.Errorf("permission denied: admin privileges are required to execute this command")
 					}
+					return fmt.Errorf("failed to delete user: %w", err)
 				}
-			} else {
-				// Interactive mode: get the user ID from the prompt.
-				userID := prompt.GetUserIdFromUser()
-				if err := api.DeleteUser(userID); err != nil {
-					if isUnauthorizedError(err) {
-						log.Error("Permission denied: Admin privileges are required to execute this command.")
-					} else {
-						log.Errorf("failed to delete user: %v", err)
-					}
-				}
+				return nil
 			}
+
+			// Interactive mode: get the user ID from the prompt.
+			userID := prompt.GetUserIdFromUser()
+			if err := api.DeleteUser(userID); err != nil {
+				if isUnauthorizedError(err) {
+					return fmt.Errorf("permission denied: admin privileges are required to execute this command")
+				}
+				return fmt.Errorf("failed to delete user: %w", err)
+			}
+			return nil
 		},
 	}
 
