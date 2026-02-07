@@ -203,34 +203,3 @@ func LogsProject(projectName string) (*project.GetLogExtsOK, error) {
 
 	return response, nil
 }
-
-func CheckProject(projectNameOrID string, useProjectID bool) (bool, error) {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return false, err
-	}
-
-	if useProjectID {
-		_, err := GetProject(projectNameOrID, true)
-		if err != nil {
-			if utils.ParseHarborErrorCode(err) == "404" {
-				return false, nil
-			}
-			return false, err
-		}
-		return true, nil
-	}
-
-	response, err := client.Project.HeadProject(ctx, &project.HeadProjectParams{
-		ProjectName: projectNameOrID,
-		Context:     ctx,
-	})
-	if err != nil {
-		if utils.ParseHarborErrorCode(err) == "404" {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return response.IsSuccess(), nil
-}

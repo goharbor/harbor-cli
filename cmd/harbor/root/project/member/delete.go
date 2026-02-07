@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -40,16 +41,14 @@ func DeleteMemberCommand() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				ok, checkErr := api.CheckProject(args[0], isID) // verifying project name
+				_, checkErr := api.GetProject(args[0], isID)
 				if checkErr != nil {
-					return fmt.Errorf("failed to verify project name: %v", checkErr)
+					if utils.ParseHarborErrorCode(checkErr) == "404" {
+						return fmt.Errorf("project %s does not exist", args[0])
+					}
+					return fmt.Errorf("failed to verify project: %v", checkErr)
 				}
-
-				if ok {
-					project = args[0]
-				} else {
-					return fmt.Errorf("invalid project name: %s", args[0])
-				}
+				project = args[0]
 			} else {
 				project, err = prompt.GetProjectNameFromUser()
 				if err != nil {
