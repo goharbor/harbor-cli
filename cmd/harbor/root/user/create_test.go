@@ -89,14 +89,19 @@ func TestCreateUsers(t *testing.T) {
 		if len(u1) != len(u2) {
 			return false
 		}
-		slices.SortFunc(u1, func(a, b *create.CreateView) int {
+		u1Copy := make([]*create.CreateView, len(u1))
+		u2Copy := make([]*create.CreateView, len(u2))
+		copy(u1Copy, u1)
+		copy(u2Copy, u2)
+
+		slices.SortFunc(u1Copy, func(a, b *create.CreateView) int {
 			return cmp.Compare(a.Username, b.Username)
 		})
-		slices.SortFunc(u2, func(a, b *create.CreateView) int {
+		slices.SortFunc(u2Copy, func(a, b *create.CreateView) int {
 			return cmp.Compare(a.Username, b.Username)
 		})
-		for i := 0; i < len(u1); i++ {
-			if !reflect.DeepEqual(u1[i], u2[i]) {
+		for i := 0; i < len(u1Copy); i++ {
+			if !reflect.DeepEqual(u1Copy[i], u2Copy[i]) {
 				return false
 			}
 		}
