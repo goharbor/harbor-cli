@@ -110,6 +110,17 @@ func TestElevateUser(t *testing.T) {
 			expectedErr:     "failed to get user id",
 		},
 		{
+			name: "user id is zero logs not found",
+			setup: func() *MockUserElevator {
+				m := initMockUserElevator(5, false, true, nil)
+				m.id["ghost"] = 0
+				return m
+			},
+			args:            []string{"ghost"},
+			expectedAdminID: []int64{},
+			expectedErr:     "not found",
+		},
+		{
 			name: "permission denied error",
 			setup: func() *MockUserElevator {
 				return initMockUserElevator(5, true, true, nil)
