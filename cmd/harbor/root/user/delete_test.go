@@ -16,6 +16,7 @@ package user
 import (
 	"bytes"
 	"fmt"
+	"sync"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -23,6 +24,7 @@ import (
 )
 
 type MockUserDeleter struct {
+	mu              sync.Mutex
 	id              map[string]int64
 	user            map[int64]string
 	userCnt         int
@@ -30,6 +32,8 @@ type MockUserDeleter struct {
 }
 
 func (m *MockUserDeleter) UserDelete(userID int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if m.expectAuthError {
 		return fmt.Errorf("403")
 	}
@@ -41,6 +45,8 @@ func (m *MockUserDeleter) UserDelete(userID int64) error {
 	return fmt.Errorf("user %d not found", userID)
 }
 func (m *MockUserDeleter) GetUserIDByName(username string) (int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if v, ok := m.id[username]; ok {
 		return v, nil
 	} else {
