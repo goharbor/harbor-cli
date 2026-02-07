@@ -16,10 +16,8 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -196,19 +194,16 @@ func ValidateURL(rawURL string) error {
 	return nil
 }
 
-func FPrintFormat[T any](w io.Writer, resp T, format string) error {
+func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
-		FPrintPayloadInJSONFormat(w, resp)
+		PrintPayloadInJSONFormat(resp)
 		return nil
 	}
 	if format == "yaml" {
-		FPrintPayloadInYAMLFormat(w, resp)
+		PrintPayloadInYAMLFormat(resp)
 		return nil
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
-}
-func PrintFormat[T any](resp T, format string) error {
-	return FPrintFormat(os.Stdout, resp, format)
 }
 
 func EmptyStringValidator(variable string) func(string) error {

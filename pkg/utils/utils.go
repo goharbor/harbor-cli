@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -35,7 +34,8 @@ import (
 )
 
 // Returns Harbor v2 client for given clientConfig
-func FPrintPayloadInJSONFormat(w io.Writer, payload any) {
+
+func PrintPayloadInJSONFormat(payload any) {
 	if payload == nil {
 		return
 	}
@@ -45,10 +45,10 @@ func FPrintPayloadInJSONFormat(w io.Writer, payload any) {
 		panic(err)
 	}
 
-	fmt.Fprint(w, string(jsonStr))
+	fmt.Println(string(jsonStr))
 }
 
-func FPrintPayloadInYAMLFormat(w io.Writer, payload any) {
+func PrintPayloadInYAMLFormat(payload any) {
 	if payload == nil {
 		return
 	}
@@ -58,15 +58,7 @@ func FPrintPayloadInYAMLFormat(w io.Writer, payload any) {
 		panic(err)
 	}
 
-	fmt.Fprint(w, string(yamlStr))
-}
-
-func PrintPayloadInJSONFormat(payload any) {
-	FPrintPayloadInJSONFormat(os.Stdout, payload)
-}
-
-func PrintPayloadInYAMLFormat(payload any) {
-	FPrintPayloadInYAMLFormat(os.Stdout, payload)
+	fmt.Println(string(yamlStr))
 }
 
 func ParseProjectRepo(projectRepo string) (project, repo string, err error) {

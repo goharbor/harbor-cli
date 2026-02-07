@@ -47,7 +47,9 @@ func CreateUser(opts *create.CreateView, userCreator UserCreator) {
 
 	if err != nil {
 		if isUnauthorizedError(err) {
-			log.Error("Permission denied: Admin privileges are required to execute this command.")
+			log.WithFields(log.Fields{
+				"action": "user create",
+			}).Error("Permission denied: The current account does not have the required permissions to create users.")
 		} else {
 			log.Errorf("failed to create user: %v", err)
 		}

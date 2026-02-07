@@ -15,7 +15,6 @@ package list
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 
@@ -52,14 +51,10 @@ func MakeUserRows(users []*models.UserResp) []table.Row {
 	}
 	return rows
 }
-func ListUsers(w io.Writer, users []*models.UserResp) error {
+func ListUsers(users []*models.UserResp) error {
 	rows := MakeUserRows(users)
 	m := tablelist.NewModel(columns, rows, len(rows))
-	opts := []tea.ProgramOption{tea.WithOutput(w)}
-	if w != os.Stdout {
-		opts = append(opts, tea.WithInput(nil))
-	}
-	p := tea.NewProgram(m, opts...)
+	p := tea.NewProgram(m, tea.WithOutput(os.Stdout))
 
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("failed to render user list: %w", err)

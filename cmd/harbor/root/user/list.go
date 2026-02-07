@@ -15,8 +15,6 @@ package user
 
 import (
 	"fmt"
-	"io"
-	"os"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -76,19 +74,19 @@ func GetUsers(opts api.ListFlags, userLister UserLister) ([]*models.UserResp, er
 	}
 	return allUsers, nil
 }
-func PrintUsers(w io.Writer, allUsers []*models.UserResp) error {
+func PrintUsers(allUsers []*models.UserResp) error {
 	if len(allUsers) == 0 {
 		log.Info("No users found")
 		return nil
 	}
 	formatFlag := viper.GetString("output-format")
 	if formatFlag != "" {
-		err := utils.FPrintFormat(w, allUsers, formatFlag)
+		err := utils.PrintFormat(allUsers, formatFlag)
 		if err != nil {
 			log.Error(err)
 		}
 	} else {
-		if err := list.ListUsers(w, allUsers); err != nil {
+		if err := list.ListUsers(allUsers); err != nil {
 			return err
 		}
 	}
@@ -107,7 +105,7 @@ func UserListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintUsers(os.Stdout, allUsers)
+			return PrintUsers(allUsers)
 		},
 	}
 

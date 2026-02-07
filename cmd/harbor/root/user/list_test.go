@@ -19,6 +19,8 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -33,6 +35,25 @@ import (
 	"go.yaml.in/yaml/v4"
 )
 
+func captureOutput(f func() error) (string, error) {
+	origStdout := os.Stdout
+	defer func() { os.Stdout = origStdout }()
+
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	if err := f(); err != nil {
+		return "", err
+	}
+
+	w.Close()
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
 func TestPrintUsers(t *testing.T) {
 	testDate, _ := strfmt.ParseDateTime("2023-01-01T12:00:00Z")
 	testUsers := func() []*models.UserResp {
@@ -105,7 +126,7 @@ func TestPrintUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			allUsers := tt.setup()
 
-			var logBuf, contentBuf bytes.Buffer
+			var logBuf bytes.Buffer
 			originalLogOutput := log.StandardLogger().Out
 			log.SetOutput(&logBuf)
 			defer log.SetOutput(originalLogOutput)
@@ -114,7 +135,10 @@ func TestPrintUsers(t *testing.T) {
 			viper.Set("output-format", tt.outputFormat)
 			defer viper.Set("output-format", originalFormatFlag)
 
-			if err := PrintUsers(&contentBuf, allUsers); err != nil {
+			output, err := captureOutput(func() error {
+				return PrintUsers(allUsers)
+			})
+			if err != nil {
 				t.Fatalf("PrintUsers() returned error: %v", err)
 			}
 
@@ -126,12 +150,12 @@ func TestPrintUsers(t *testing.T) {
 					t.Errorf(`Expected logs to contain "No users found" but got: %s`, logs)
 				}
 			case tt.outputFormat == "json":
-				if contentBuf.Len() == 0 {
-					t.Fatal("Expected JSON output, but buffer was empty")
+				if len(output) == 0 {
+					t.Fatal("Expected JSON output, but output was empty")
 				}
 				var decodedUsers []*models.UserResp
-				if err := json.Unmarshal(contentBuf.Bytes(), &decodedUsers); err != nil {
-					t.Fatalf("Output is not valid JSON: %v. Output:\n%s", err, contentBuf.String())
+				if err := json.Unmarshal([]byte(output), &decodedUsers); err != nil {
+					t.Fatalf("Output is not valid JSON: %v. Output:\n%s", err, output)
 				}
 				if len(decodedUsers) != len(allUsers) {
 					t.Errorf("Expected %d users in JSON, got %d", len(allUsers), len(decodedUsers))
@@ -145,12 +169,12 @@ func TestPrintUsers(t *testing.T) {
 					}
 				}
 			case tt.outputFormat == "yaml":
-				if contentBuf.Len() == 0 {
-					t.Fatal("Expected YAML output, but buffer was empty")
+				if len(output) == 0 {
+					t.Fatal("Expected YAML output, but output was empty")
 				}
 				var decodedUsers []*models.UserResp
-				if err := yaml.Unmarshal(contentBuf.Bytes(), &decodedUsers); err != nil {
-					t.Fatalf("Output is not valid YAML: %v. Output:\n%s", err, contentBuf.String())
+				if err := yaml.Unmarshal([]byte(output), &decodedUsers); err != nil {
+					t.Fatalf("Output is not valid YAML: %v. Output:\n%s", err, output)
 				}
 				if len(decodedUsers) != len(allUsers) {
 					t.Errorf("Expected %d users in YAML, got %d", len(allUsers), len(decodedUsers))
@@ -164,10 +188,9 @@ func TestPrintUsers(t *testing.T) {
 					}
 				}
 			default:
-				if contentBuf.Len() == 0 {
-					t.Fatal("Expected TUI table output, but buffer was empty. Did you pass 'w' to ListUsers?")
+				if len(output) == 0 {
+					t.Fatal("Expected TUI table output, but output was empty")
 				}
-				output := contentBuf.String()
 				if !strings.Contains(output, "ID") || !strings.Contains(output, "Name") || !strings.Contains(output, "Administrator") {
 					t.Error("Expected table output to contain headers 'ID', 'Name' and 'Administrator among other headers")
 				}
