@@ -83,7 +83,7 @@ func UserPasswordChangeCmd() *cobra.Command {
 		Use:   "password",
 		Short: "Reset user password by name or id",
 		Long:  "Allows admin to reset the password for a specified user or select interactively if no username is provided.",
-		Args:  cobra.MinimumNArgs(0),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			d := &DefaultUserPasswordChanger{}
 			ChangePassword(args, d)

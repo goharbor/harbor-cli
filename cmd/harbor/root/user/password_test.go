@@ -114,6 +114,18 @@ func TestChangePassword(t *testing.T) {
 			expectedErr:         "failed to get user id",
 		},
 		{
+			name: "user id is zero logs not found",
+			setup: func() *MockUserPasswordChanger {
+				m := initMockUserPasswordChanger(5, false)
+				m.id["ghost"] = 0
+				return m
+			},
+			args:                []string{"ghost"},
+			expectedPasswordID:  0,
+			expectedNewPassword: "",
+			expectedErr:         "not found",
+		},
+		{
 			name: "permission denied error",
 			setup: func() *MockUserPasswordChanger {
 				return initMockUserPasswordChanger(5, true)
@@ -122,6 +134,18 @@ func TestChangePassword(t *testing.T) {
 			expectedPasswordID:  0,
 			expectedNewPassword: "",
 			expectedErr:         "Permission denied",
+		},
+		{
+			name: "reset password fails with non-403 error",
+			setup: func() *MockUserPasswordChanger {
+				m := initMockUserPasswordChanger(5, false)
+				delete(m.passwords, 1)
+				return m
+			},
+			args:                []string{"test1"},
+			expectedPasswordID:  0,
+			expectedNewPassword: "",
+			expectedErr:         "failed to reset user password",
 		},
 	}
 
