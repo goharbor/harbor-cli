@@ -23,11 +23,12 @@ import (
 )
 
 type CreateView struct {
-	Username string
-	Email    string
-	Realname string
-	Comment  string
-	Password string
+	Username        string
+	Email           string
+	Realname        string
+	Comment         string
+	Password        string
+	ConfirmPassword string
 }
 
 func CreateUserView(createView *CreateView) {
@@ -81,6 +82,19 @@ func CreateUserView(createView *CreateView) {
 					}
 					if err := utils.ValidatePassword(str); err != nil {
 						return err
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("Confirm Password").
+				EchoMode(huh.EchoModePassword).
+				Value(&createView.ConfirmPassword).
+				Validate(func(str string) error {
+					if strings.TrimSpace(str) == "" {
+						return errors.New("confirm password cannot be empty")
+					}
+					if str != createView.Password {
+						return errors.New("passwords do not match")
 					}
 					return nil
 				}),
