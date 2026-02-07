@@ -26,13 +26,82 @@ import (
 	"github.com/spf13/viper"
 )
 
+type ProjectLister interface {
+	ListProjects(opts ...api.ListFlags) (project.ListProjectsOK, error)
+	ListAllProjects(opts ...api.ListFlags) (project.ListProjectsOK, error)
+}
+
+type DefaultProjectLister struct{}
+
+func (d *DefaultProjectLister) ListProjects(opts ...api.ListFlags) (project.ListProjectsOK, error) {
+	return api.ListProject(opts...)
+}
+func (d *DefaultProjectLister) ListAllProjects(opts ...api.ListFlags) (project.ListProjectsOK, error) {
+	return api.ListAllProjects(opts...)
+}
+
+func PrintProjects(allProjects []*models.Project) error {
+	log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
+	if len(allProjects) == 0 {
+		log.Info("No projects found")
+		return nil
+	}
+	formatFlag := viper.GetString("output-format")
+	if formatFlag != "" {
+		log.WithField("output_format", formatFlag).Debug("Output format selected")
+		err := utils.PrintFormat(allProjects, formatFlag)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Debug("Listing projects using default view")
+		list.ListProjects(allProjects)
+	}
+	return nil
+}
+func BuildListOptions(private, public bool, opts *api.ListFlags, fuzzy, match, ranges []string) (func(...api.ListFlags) (project.ListProjectsOK, error), error) {
+	var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
+	log.Debug("Starting project list command")
+
+	if opts.PageSize > 100 { // add the check for opts.PageSize<0 too
+		return nil, fmt.Errorf("page size should be less than or equal to 100")
+	}
+
+	if private && public {
+		return nil, fmt.Errorf("Cannot specify both --private and --public flags")
+	}
+
+	if private {
+		log.Debug("Using private project list function")
+		opts.Public = false
+		listFunc = api.ListProject
+	} else if public {
+		log.Debug("Using public project list function")
+		opts.Public = true
+		listFunc = api.ListProject
+	} else {
+		log.Debug("Using list all projects function")
+		listFunc = api.ListAllProjects
+	}
+
+	if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
+		q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+			[]string{"name", "project_id", "public", "creation_time", "owner_id"},
+		)
+		if qErr != nil {
+			return nil, qErr
+		}
+
+		opts.Q = q
+	}
+	return listFunc, nil
+}
 func ListProjectCommand() *cobra.Command {
 	var (
 		opts        api.ListFlags
 		private     bool
 		public      bool
 		allProjects []*models.Project
-		err         error
 		// For querying, opts.Q
 		fuzzy  []string
 		match  []string
@@ -43,62 +112,14 @@ func ListProjectCommand() *cobra.Command {
 		Short: "List projects",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting project list command")
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
-			}
-
-			if private && public {
-				return fmt.Errorf("Cannot specify both --private and --public flags")
-			}
-
-			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
-			if private {
-				log.Debug("Using private project list function")
-				opts.Public = false
-				listFunc = api.ListProject
-			} else if public {
-				log.Debug("Using public project list function")
-				opts.Public = true
-				listFunc = api.ListProject
-			} else {
-				log.Debug("Using list all projects function")
-				listFunc = api.ListAllProjects
-			}
-
-			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
-				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"name", "project_id", "public", "creation_time", "owner_id"},
-				)
-				if qErr != nil {
-					return qErr
-				}
-
-				opts.Q = q
-			}
-
+			listFunc, err := BuildListOptions(private, public, &opts, fuzzy, match, ranges)
 			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
-
-			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
-			if len(allProjects) == 0 {
-				log.Info("No projects found")
-				return nil
-			}
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(allProjects, formatFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				log.Debug("Listing projects using default view")
-				list.ListProjects(allProjects)
+			if err := PrintProjects(allProjects); err != nil {
+				return err
 			}
 			return nil
 		},
@@ -110,7 +131,7 @@ func ListProjectCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.BoolVarP(&private, "private", "", false, "Show only private projects")
 	flags.BoolVarP(&public, "public", "", false, "Show only public projects")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order") //doc should clearly mention how to use, what is going to get sorted
 	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
 	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
 	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
