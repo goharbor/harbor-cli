@@ -39,14 +39,21 @@ func captureOutput(f func() error) (string, error) {
 	origStdout := os.Stdout
 	defer func() { os.Stdout = origStdout }()
 
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = w.Close()
+		_ = r.Close()
+	}()
 	os.Stdout = w
-
 	if err := f(); err != nil {
 		return "", err
 	}
-
-	w.Close()
+	if err := w.Close(); err != nil {
+		return "", err
+	}
 
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, r); err != nil {
@@ -55,7 +62,10 @@ func captureOutput(f func() error) (string, error) {
 	return buf.String(), nil
 }
 func TestPrintUsers(t *testing.T) {
-	testDate, _ := strfmt.ParseDateTime("2023-01-01T12:00:00Z")
+	testDate, err := strfmt.ParseDateTime("2023-01-01T12:00:00Z")
+	if err != nil {
+		t.Fatalf("failed to parse test date: %v", err)
+	}
 	testUsers := func() []*models.UserResp {
 		return []*models.UserResp{
 			{

@@ -52,7 +52,7 @@ func GetUsers(opts api.ListFlags, userLister UserLister) ([]*models.UserResp, er
 				if isUnauthorizedError(err) {
 					return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 				}
-				return nil, fmt.Errorf("failed to list users: %v", err)
+				return nil, fmt.Errorf("failed to list users: %w", err)
 			}
 
 			allUsers = append(allUsers, response.Payload...)
@@ -68,7 +68,7 @@ func GetUsers(opts api.ListFlags, userLister UserLister) ([]*models.UserResp, er
 			if isUnauthorizedError(err) {
 				return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 			}
-			return nil, fmt.Errorf("failed to list users: %v", err)
+			return nil, fmt.Errorf("failed to list users: %w", err)
 		}
 		allUsers = response.Payload
 	}
@@ -84,6 +84,7 @@ func PrintUsers(allUsers []*models.UserResp) error {
 		err := utils.PrintFormat(allUsers, formatFlag)
 		if err != nil {
 			log.Error(err)
+			return err
 		}
 	} else {
 		if err := list.ListUsers(allUsers); err != nil {

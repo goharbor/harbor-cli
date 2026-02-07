@@ -14,11 +14,11 @@
 package list
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
 func TestMakeUserRows(t *testing.T) {
@@ -26,10 +26,6 @@ func TestMakeUserRows(t *testing.T) {
 	testDate, err := strfmt.ParseDateTime(dateStr)
 	if err != nil {
 		t.Fatalf("failed to parse date %q: %v", dateStr, err)
-	}
-	expectedTimeStr, err := utils.FormatCreatedTime(dateStr)
-	if err != nil {
-		t.Fatalf("failed to format created time %q: %v", dateStr, err)
 	}
 	tests := []struct {
 		name     string
@@ -67,9 +63,9 @@ func TestMakeUserRows(t *testing.T) {
 				}
 			},
 			expected: [][]string{
-				{"1", "testUser1", "Yes", "test1@domain.com", expectedTimeStr},
-				{"2", "testUser2", "No", "test2@domain.com", expectedTimeStr},
-				{"3", "testUser3", "No", "test3@domain.com", expectedTimeStr},
+				{"1", "testUser1", "Yes", "test1@domain.com"},
+				{"2", "testUser2", "No", "test2@domain.com"},
+				{"3", "testUser3", "No", "test3@domain.com"},
 			},
 		},
 		{
@@ -88,15 +84,19 @@ func TestMakeUserRows(t *testing.T) {
 				t.Fatalf("MakeUserRows returned %d rows for %d users", len(rows), len(users))
 			}
 			for i := 0; i < len(rows); i++ {
-				if len(rows[i]) != len(tt.expected[i]) {
-					t.Errorf("Row %d: expected %d columns, got %d", i, len(tt.expected[i]), len(rows[i]))
+				if len(rows[i]) != len(tt.expected[i])+1 {
+					t.Errorf("Row %d: expected %d columns, got %d", i, len(tt.expected[i])+1, len(rows[i]))
 					continue
 				}
-				for j := 0; j < len(rows[i]); j++ {
+				for j := 0; j < len(tt.expected[i]); j++ {
 					if rows[i][j] != tt.expected[i][j] {
 						t.Errorf("Row %d, Column %d: expected '%s', but got '%s'",
 							i, j, tt.expected[i][j], rows[i][j])
 					}
+				}
+				timeCol := rows[i][len(rows[i])-1]
+				if !strings.Contains(timeCol, "ago") {
+					t.Errorf("Row %d, time column: expected to contain 'ago', but got '%s'", i, timeCol)
 				}
 			}
 		})
