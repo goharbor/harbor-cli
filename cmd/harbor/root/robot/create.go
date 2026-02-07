@@ -194,7 +194,11 @@ func getSystemPermissions(all bool, permissions *[]models.Permission) error {
 				*permissions = append(*permissions, *perm)
 			}
 		} else {
-			*permissions = prompt.GetRobotPermissionsFromUser("system")
+			var err error
+			*permissions, err = prompt.GetRobotPermissionsFromUser("system")
+			if err != nil {
+				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+			}
 			if len(*permissions) == 0 {
 				return fmt.Errorf("failed to create robot: %v",
 					utils.ParseHarborErrorMsg(fmt.Errorf("no permissions selected, robot account needs at least one permission")))
@@ -231,7 +235,10 @@ func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models
 
 	if len(selectedProjects) > 0 {
 		fmt.Println("Select permissions to apply to all selected projects:")
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
+		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+		}
 		for _, projectName := range selectedProjects {
 			projectPermissionsMap[projectName] = projectPermissions
 		}
@@ -251,7 +258,10 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 				return fmt.Errorf("project name cannot be empty")
 			}
 
-			projectPermissionsMap[projectName] = prompt.GetRobotPermissionsFromUser("project")
+			projectPermissionsMap[projectName], err = prompt.GetRobotPermissionsFromUser("project")
+			if err != nil {
+				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+			}
 
 			moreProjects, err := promptMoreProjects()
 			if err != nil {
@@ -262,7 +272,10 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 			}
 		}
 	} else {
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
+		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+		}
 		projectPermissionsMap[opts.ProjectName] = projectPermissions
 	}
 

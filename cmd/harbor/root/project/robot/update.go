@@ -138,7 +138,10 @@ Examples:
 				}
 				permissions = choices
 			} else {
-				permissions = prompt.GetRobotPermissionsFromUser("project")
+				permissions, err = prompt.GetRobotPermissionsFromUser("project")
+				if err != nil {
+					log.Fatalf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			// []Permission to []*Access
