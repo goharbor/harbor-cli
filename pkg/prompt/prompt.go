@@ -319,7 +319,14 @@ func GetActiveContextFromUser() (string, error) {
 func GetRobotPermissionsFromUser(kind string) ([]models.Permission, error) {
 	permissions := make(chan robotView.PermissionSelectResult)
 	go func() {
-		response, _ := api.GetPermissions()
+		response, err := api.GetPermissions()
+		if err != nil {
+			permissions <- robotView.PermissionSelectResult{
+				Permissions: nil,
+				Err:         err,
+			}
+			return
+		}
 		robotView.ListPermissions(response.Payload, kind, permissions)
 	}()
 	result := <-permissions
