@@ -16,6 +16,7 @@ package user
 import (
 	"fmt"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -25,64 +26,86 @@ import (
 	"github.com/spf13/viper"
 )
 
-func UserListCmd() *cobra.Command {
-	var opts api.ListFlags
+type UserLister interface {
+	UserList(opts ...api.ListFlags) (*user.ListUsersOK, error)
+}
+type DefaultUserLister struct{}
+
+func (d *DefaultUserLister) UserList(opts ...api.ListFlags) (*user.ListUsersOK, error) {
+	return api.ListUsers(opts...)
+}
+
+func GetUsers(opts api.ListFlags, userLister UserLister) ([]*models.UserResp, error) {
 	var allUsers []*models.UserResp
 
+	if opts.PageSize > 100 || opts.PageSize < 0 {
+		return nil, fmt.Errorf("page size should be greater than or equal to 0 and less than or equal to 100")
+	}
+
+	if opts.PageSize == 0 {
+		opts.PageSize = 100
+		opts.Page = 1
+
+		for {
+			response, err := userLister.UserList(opts)
+			if err != nil {
+				if isUnauthorizedError(err) {
+					return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+				}
+				return nil, fmt.Errorf("failed to list users: %v", err)
+			}
+
+			allUsers = append(allUsers, response.Payload...)
+
+			if len(response.Payload) < int(opts.PageSize) {
+				break
+			}
+			opts.Page++
+		}
+	} else {
+		response, err := userLister.UserList(opts)
+		if err != nil {
+			if isUnauthorizedError(err) {
+				return nil, fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+			}
+			return nil, fmt.Errorf("failed to list users: %v", err)
+		}
+		allUsers = response.Payload
+	}
+	return allUsers, nil
+}
+func PrintUsers(allUsers []*models.UserResp) error {
+	if len(allUsers) == 0 {
+		log.Info("No users found")
+		return nil
+	}
+	formatFlag := viper.GetString("output-format")
+	if formatFlag != "" {
+		err := utils.PrintFormat(allUsers, formatFlag)
+		if err != nil {
+			log.Error(err)
+		}
+	} else {
+		if err := list.ListUsers(allUsers); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func UserListCmd() *cobra.Command {
+	var opts api.ListFlags
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List users",
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			defaultUserLister := &DefaultUserLister{}
+			allUsers, err := GetUsers(opts, defaultUserLister)
+			if err != nil {
+				return err
 			}
-
-			if opts.PageSize == 0 {
-				opts.PageSize = 100
-				opts.Page = 1
-
-				for {
-					response, err := api.ListUsers(opts)
-					if err != nil {
-						if isUnauthorizedError(err) {
-							return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
-						}
-						return fmt.Errorf("failed to list users: %v", err)
-					}
-
-					allUsers = append(allUsers, response.Payload...)
-
-					if len(response.Payload) < int(opts.PageSize) {
-						break
-					}
-					opts.Page++
-				}
-			} else {
-				response, err := api.ListUsers(opts)
-				if err != nil {
-					if isUnauthorizedError(err) {
-						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
-					}
-					return fmt.Errorf("failed to list users: %v", err)
-				}
-				allUsers = response.Payload
-			}
-			if len(allUsers) == 0 {
-				log.Info("No users found")
-				return nil
-			}
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				err := utils.PrintFormat(allUsers, formatFlag)
-				if err != nil {
-					log.Error(err)
-				}
-			} else {
-				list.ListUsers(allUsers)
-			}
-			return nil
+			return PrintUsers(allUsers)
 		},
 	}
 

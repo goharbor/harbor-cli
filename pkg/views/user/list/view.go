@@ -33,7 +33,7 @@ var columns = []table.Column{
 	{Title: "Registration Time", Width: tablelist.WidthL},
 }
 
-func ListUsers(users []*models.UserResp) {
+func MakeUserRows(users []*models.UserResp) []table.Row {
 	var rows []table.Row
 	for _, user := range users {
 		isAdmin := "No"
@@ -49,11 +49,15 @@ func ListUsers(users []*models.UserResp) {
 			createdTime,
 		})
 	}
-
+	return rows
+}
+func ListUsers(users []*models.UserResp) error {
+	rows := MakeUserRows(users)
 	m := tablelist.NewModel(columns, rows, len(rows))
+	p := tea.NewProgram(m, tea.WithOutput(os.Stdout))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+	if _, err := p.Run(); err != nil {
+		return fmt.Errorf("failed to render user list: %w", err)
 	}
+	return nil
 }
