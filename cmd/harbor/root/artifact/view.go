@@ -14,12 +14,13 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/artifact/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,7 +31,7 @@ func ViewArtifactCommmand() *cobra.Command {
 		Short:   "Get information of an artifact",
 		Long:    `Get information of an artifact`,
 		Example: `harbor artifact view <project>/<repository>:<tag> OR harbor artifact view <project>/<repository>@<digest>`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, repoName, reference string
 			var artifact *artifact.GetArtifactOK
@@ -38,13 +39,12 @@ func ViewArtifactCommmand() *cobra.Command {
 			if len(args) > 0 {
 				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
 				if err != nil {
-					log.Errorf("failed to parse project/repo/reference: %v", err)
+					return fmt.Errorf("failed to parse project/repo/reference: %w", err)
 				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-					return
+					return fmt.Errorf("failed to get project name: %w", err)
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
@@ -52,29 +52,28 @@ func ViewArtifactCommmand() *cobra.Command {
 
 			if reference == "" {
 				if len(args) > 0 {
-					log.Errorf("Invalid artifact reference format: %s", args[0])
+					return fmt.Errorf("invalid artifact reference format: %s", args[0])
 				} else {
-					log.Error("Invalid artifact reference format: no arguments provided")
+					return fmt.Errorf("invalid artifact reference format: no arguments provided")
 				}
 			}
 
 			artifact, err = api.ViewArtifact(projectName, repoName, reference, false)
 
 			if err != nil {
-				log.Errorf("failed to get info of an artifact: %v", err)
-				return
+				return fmt.Errorf("failed to get info of an artifact: %w", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(artifact, FormatFlag)
 				if err != nil {
-					log.Error(err)
-					return
+					return fmt.Errorf("failed to print format: %w", err)
 				}
 			} else {
 				view.ViewArtifact(artifact.Payload)
 			}
+			return nil
 		},
 	}
 

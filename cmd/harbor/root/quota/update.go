@@ -45,15 +45,14 @@ func UpdateQuotaCommand() *cobra.Command {
 		Use:   "update [QuotaID]",
 		Short: "update quotas for projects",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var storageValue int64
 
 			// get quota id with quota
 			quota, err := GetQuotaFromUser(args, opts)
 			if err != nil {
-				log.Errorf("error: %v", err)
-				return
+				return fmt.Errorf("failed to get quota: %w", err)
 			}
 
 			if storage != "" {
@@ -62,16 +61,14 @@ func UpdateQuotaCommand() *cobra.Command {
 				} else {
 					storageValue, err = utils.StorageStringToBytes(storage)
 					if err != nil {
-						log.Errorf("failed to parse storage: %v", err)
-						os.Exit(1)
+						return fmt.Errorf("failed to parse storage: %w", err)
 					}
 				}
 			} else {
 				storage = update.UpdateQuotaView(quota)
 				storageValue, err = utils.StorageStringToBytes(storage)
 				if err != nil {
-					log.Errorf("failed to parse storage: %v", err)
-					os.Exit(1)
+					return fmt.Errorf("failed to parse storage: %w", err)
 				}
 			}
 
@@ -81,11 +78,11 @@ func UpdateQuotaCommand() *cobra.Command {
 
 			err = api.UpdateQuota(quota.ID, hardlimit)
 			if err != nil {
-				log.Errorf("failed to update quota: %v", err)
-				os.Exit(1)
+				return fmt.Errorf("failed to update quota: %w", err)
 			}
 
 			log.Infof("quota updated successfully!")
+			return nil
 		},
 	}
 

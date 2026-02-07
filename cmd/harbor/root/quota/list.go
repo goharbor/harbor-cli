@@ -14,10 +14,11 @@
 package quota
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,28 +31,26 @@ func ListQuotaCommand() *cobra.Command {
 		Use:   "list",
 		Short: "list quotas",
 		Long:  "list quotas specified for each project",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
-				log.Errorf("page size should be less than or equal to 100")
-				return
+				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
 			quota, err := api.ListQuota(opts)
 			if err != nil {
-				log.Errorf("failed to get quota list: %v", err)
-				return
+				return fmt.Errorf("failed to get quota list: %w", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(quota, FormatFlag)
 				if err != nil {
-					log.Errorf("failed to get quota list: %v", err)
-					return
+					return fmt.Errorf("failed to get quota list: %w", err)
 				}
 			} else {
 				list.ListQuotas(quota.Payload)
 			}
+			return nil
 		},
 	}
 
