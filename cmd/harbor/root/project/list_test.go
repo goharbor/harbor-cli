@@ -87,11 +87,11 @@ func (m *MockProjectLister) mockListFunc(opts ...api.ListFlags) (project.ListPro
 func (m *MockProjectLister) populateProjects() []*models.Project {
 	projects := make([]*models.Project, 0, m.projectsCnt)
 	for i := 0; i < int(m.projectsCnt); i++ {
-		user := &models.Project{
+		project := &models.Project{
 			ProjectID: int32(i + 1), // #nosec G115
 			Name:      fmt.Sprintf("Project%d", i+1),
 		}
-		projects = append(projects, user)
+		projects = append(projects, project)
 	}
 	m.projects = projects
 	return projects
@@ -265,7 +265,7 @@ func TestBuildListOptions(t *testing.T) {
 
 			// Check if we expected an error but did not get one (or vice-versa)
 			if (err != nil) != (tt.wantedErr != "") {
-				t.Fatalf("fetchProjects() error presence mismatch: got error %v, wantError %v", err, tt.wantedErr)
+				t.Fatalf("BuildListOptions() error presence mismatch: got error %v, wantError %v", err, tt.wantedErr)
 			}
 
 			if tt.wantedErr != "" {
@@ -394,7 +394,7 @@ func TestFetchProjects(t *testing.T) {
 			} else {
 				if opts.PageSize == 0 {
 					if !projectsAreEqual(allProjects, m.projects) {
-						t.Errorf("Expected all of the users to be returned")
+						t.Errorf("Expected all of the projects to be returned")
 					}
 				} else {
 					requiredPage, requiredPageSize := opts.Page, opts.PageSize
@@ -403,11 +403,11 @@ func TestFetchProjects(t *testing.T) {
 
 					if start >= int64(m.projectsCnt) {
 						if len(allProjects) != 0 {
-							t.Errorf("Expected empty result for page beyond data, got %d users", len(allProjects))
+							t.Errorf("Expected empty result for page beyond data, got %d projects", len(allProjects))
 						}
 					} else {
 						if !projectsAreEqual(allProjects, m.projects[start:end]) {
-							t.Errorf("Expected different set of users")
+							t.Errorf("Expected different set of projects")
 						}
 					}
 				}

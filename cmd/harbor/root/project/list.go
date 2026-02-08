@@ -120,7 +120,7 @@ func ListProjectCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.BoolVarP(&private, "private", "", false, "Show only private projects")
 	flags.BoolVarP(&public, "public", "", false, "Show only public projects")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order") //doc should clearly mention how to use, what is going to get sorted
+	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
 	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
 	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
