@@ -54,7 +54,7 @@ func MakeUserRows(users []*models.UserResp) []table.Row {
 func ListUsers(users []*models.UserResp) error {
 	rows := MakeUserRows(users)
 	m := tablelist.NewModel(columns, rows, len(rows))
-	p := tea.NewProgram(m, tea.WithOutput(os.Stdout))
+	p := tea.NewProgram(m, tea.WithOutput(os.Stdout), tea.WithInput(nil))
 
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("failed to render user list: %w", err)
