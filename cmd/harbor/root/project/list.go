@@ -41,7 +41,9 @@ func PrintProjects(allProjects []*models.Project) error {
 		}
 	} else {
 		log.Debug("Listing projects using default view")
-		list.ListProjects(allProjects)
+		if err := list.ListProjects(allProjects); err != nil {
+			return err
+		}
 	}
 	return nil
 }

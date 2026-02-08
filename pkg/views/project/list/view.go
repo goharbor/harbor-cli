@@ -34,7 +34,7 @@ var columns = []table.Column{
 	{Title: "Creation Time", Width: tablelist.WidthL},
 }
 
-func ListProjects(projects []*models.Project) {
+func ListProjects(projects []*models.Project) error {
 	var rows []table.Row
 	for _, project := range projects {
 		accessLevel := "public"
@@ -60,10 +60,10 @@ func ListProjects(projects []*models.Project) {
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+	if _, err := tea.NewProgram(m, tea.WithOutput(os.Stdout), tea.WithInput(nil)).Run(); err != nil {
+		return fmt.Errorf("Error running program:%w", err)
 	}
+	return nil
 }
 
 func SearchProjects(projects []*models.Project) {
