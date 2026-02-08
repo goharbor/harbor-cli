@@ -26,20 +26,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type ProjectLister interface {
-	ListProjects(opts ...api.ListFlags) (project.ListProjectsOK, error)
-	ListAllProjects(opts ...api.ListFlags) (project.ListProjectsOK, error)
-}
-
-type DefaultProjectLister struct{}
-
-func (d *DefaultProjectLister) ListProjects(opts ...api.ListFlags) (project.ListProjectsOK, error) {
-	return api.ListProject(opts...)
-}
-func (d *DefaultProjectLister) ListAllProjects(opts ...api.ListFlags) (project.ListProjectsOK, error) {
-	return api.ListAllProjects(opts...)
-}
-
 func PrintProjects(allProjects []*models.Project) error {
 	log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
 	if len(allProjects) == 0 {
@@ -63,8 +49,8 @@ func BuildListOptions(private, public bool, opts *api.ListFlags, fuzzy, match, r
 	var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
 	log.Debug("Starting project list command")
 
-	if opts.PageSize > 100 { // add the check for opts.PageSize<0 too
-		return nil, fmt.Errorf("page size should be less than or equal to 100")
+	if opts.PageSize > 100 || opts.PageSize < 0 {
+		return nil, fmt.Errorf("page size should be greater than or equal to 0 and less than or equal to 100")
 	}
 
 	if private && public {
@@ -113,6 +99,9 @@ func ListProjectCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			listFunc, err := BuildListOptions(private, public, &opts, fuzzy, match, ranges)
+			if err != nil {
+				return fmt.Errorf("failed to build the options: %v", err)
+			}
 			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
