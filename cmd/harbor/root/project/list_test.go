@@ -15,20 +15,50 @@
 package project
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.yaml.in/yaml/v4"
 )
 
-// api.ListProject, api.ListAllProjects
-// -> take care of public and private
-// -> project store and return projects according to pagination similar to user pagination,
+func captureOutput(f func() error) (string, error) {
+	origStdout := os.Stdout
+	defer func() { os.Stdout = origStdout }()
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = w.Close()
+		_ = r.Close()
+	}()
+	os.Stdout = w
+	if err := f(); err != nil {
+		return "", err
+	}
+	if err := w.Close(); err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
 type MockProjectLister struct {
 	projectsCnt int
 	projects    []*models.Project
@@ -384,4 +414,195 @@ func TestFetchProjects(t *testing.T) {
 			}
 		})
 	}
+}
+func TestPrintProjects(t *testing.T) {
+	var logBuf bytes.Buffer
+	log.SetOutput(&logBuf)
+	defer log.SetOutput(os.Stderr)
+
+	testProjects := func() []*models.Project {
+		return []*models.Project{
+			{
+				ProjectID:  1,
+				Name:       "testProject1",
+				RegistryID: 0,
+				RepoCount:  5,
+				Metadata: &models.ProjectMetadata{
+					Public: "true",
+				},
+			},
+			{
+				ProjectID:  2,
+				Name:       "testProject2",
+				RegistryID: 10,
+				RepoCount:  3,
+				Metadata: &models.ProjectMetadata{
+					Public: "false",
+				},
+			},
+			{
+				ProjectID:  3,
+				Name:       "testProject3",
+				RegistryID: 0,
+				RepoCount:  0,
+				Metadata: &models.ProjectMetadata{
+					Public: "false",
+				},
+			},
+		}
+	}
+	tests := []struct {
+		name         string
+		setup        func() []*models.Project
+		outputFormat string
+	}{
+		{
+			name: "Number of projects not zero and output format is json",
+			setup: func() []*models.Project {
+				return testProjects()
+			},
+			outputFormat: "json",
+		},
+		{
+			name: "Number of projects not zero and output format yaml",
+			setup: func() []*models.Project {
+				return testProjects()
+			},
+			outputFormat: "yaml",
+		},
+		{
+			name: "Number of projects not zero and output format default",
+			setup: func() []*models.Project {
+				return testProjects()
+			},
+			outputFormat: "",
+		},
+		{
+			name: "Number of projects is zero",
+			setup: func() []*models.Project {
+				return []*models.Project{}
+			},
+			outputFormat: "default",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			allProjects := tt.setup()
+
+			logBuf.Reset()
+
+			originalFormatFlag := viper.GetString("output-format")
+			viper.Set("output-format", tt.outputFormat)
+			defer viper.Set("output-format", originalFormatFlag)
+
+			output, err := captureOutput(func() error {
+				return PrintProjects(allProjects)
+			})
+			if err != nil {
+				t.Fatalf("PrintProjects() returned error: %v", err)
+			}
+
+			switch {
+			case len(allProjects) == 0:
+				if !strings.Contains(logBuf.String(), "No projects found") {
+					t.Errorf(`Expected logs to contain "No projects found" but got: %s`, logBuf.String())
+				}
+			case tt.outputFormat == "json":
+				if len(output) == 0 {
+					t.Fatal("Expected JSON output, but output was empty")
+				}
+				var decoded []*models.Project
+				if err := json.Unmarshal([]byte(output), &decoded); err != nil {
+					t.Fatalf("Output is not valid JSON: %v. Output:\n%s", err, output)
+				}
+				if len(decoded) != len(allProjects) {
+					t.Errorf("Expected %d projects in JSON, got %d", len(allProjects), len(decoded))
+				}
+				if len(decoded) > 0 {
+					if decoded[0].Name != allProjects[0].Name {
+						t.Errorf("Expected name '%s', got '%s'", allProjects[0].Name, decoded[0].Name)
+					}
+					if decoded[0].ProjectID != allProjects[0].ProjectID {
+						t.Errorf("Expected ProjectID %d, got %d", allProjects[0].ProjectID, decoded[0].ProjectID)
+					}
+				}
+			case tt.outputFormat == "yaml":
+				if len(output) == 0 {
+					t.Fatal("Expected YAML output, but output was empty")
+				}
+				var decoded []*models.Project
+				if err := yaml.Unmarshal([]byte(output), &decoded); err != nil {
+					t.Fatalf("Output is not valid YAML: %v. Output:\n%s", err, output)
+				}
+				if len(decoded) != len(allProjects) {
+					t.Errorf("Expected %d projects in YAML, got %d", len(allProjects), len(decoded))
+				}
+				if len(decoded) > 0 {
+					if decoded[0].Name != allProjects[0].Name {
+						t.Errorf("Expected name '%s', got '%s'", allProjects[0].Name, decoded[0].Name)
+					}
+					if decoded[0].ProjectID != allProjects[0].ProjectID {
+						t.Errorf("Expected ProjectID %d, got %d", allProjects[0].ProjectID, decoded[0].ProjectID)
+					}
+				}
+			default:
+				if len(output) == 0 {
+					t.Fatal("Expected TUI table output, but output was empty")
+				}
+				if !strings.Contains(output, "ID") || !strings.Contains(output, "Project Name") || !strings.Contains(output, "Access Level") {
+					t.Error("Expected table output to contain headers 'ID', 'Project Name' and 'Access Level' among other headers")
+				}
+				if !strings.Contains(output, "testProject1") {
+					t.Errorf("Expected table to contain project name 'testProject1'")
+				}
+			}
+		})
+	}
+}
+func TestListProjectCommand(t *testing.T) {
+	cmd := ListProjectCommand()
+
+	assert.Equal(t, "list", cmd.Use, "Expected command use to be 'list'")
+	assert.NotEmpty(t, cmd.Short, "Expected a short description for the command")
+	assert.NotNil(t, cmd.Args, "Expected Args validator to be set")
+
+	flags := cmd.Flags()
+
+	nameFlag := flags.Lookup("name")
+	assert.NotNil(t, nameFlag, "Expected 'name' flag to exist")
+	assert.Equal(t, "", nameFlag.DefValue, "Expected 'name' flag default value to be empty string")
+
+	pageFlag := flags.Lookup("page")
+	assert.NotNil(t, pageFlag, "Expected 'page' flag to exist")
+	assert.Equal(t, "1", pageFlag.DefValue, "Expected 'page' flag default value to be 1")
+
+	pageSizeFlag := flags.Lookup("page-size")
+	assert.NotNil(t, pageSizeFlag, "Expected 'page-size' flag to exist")
+	assert.Equal(t, "0", pageSizeFlag.DefValue, "Expected 'page-size' flag default value to be 0")
+
+	privateFlag := flags.Lookup("private")
+	assert.NotNil(t, privateFlag, "Expected 'private' flag to exist")
+	assert.Equal(t, "false", privateFlag.DefValue, "Expected 'private' flag default value to be false")
+
+	publicFlag := flags.Lookup("public")
+	assert.NotNil(t, publicFlag, "Expected 'public' flag to exist")
+	assert.Equal(t, "false", publicFlag.DefValue, "Expected 'public' flag default value to be false")
+
+	sortFlag := flags.Lookup("sort")
+	assert.NotNil(t, sortFlag, "Expected 'sort' flag to exist")
+	assert.Equal(t, "", sortFlag.DefValue, "Expected 'sort' flag default value to be empty string")
+
+	fuzzyFlag := flags.Lookup("fuzzy")
+	assert.NotNil(t, fuzzyFlag, "Expected 'fuzzy' flag to exist")
+	assert.Equal(t, "[]", fuzzyFlag.DefValue, "Expected 'fuzzy' flag default value to be empty slice")
+
+	matchFlag := flags.Lookup("match")
+	assert.NotNil(t, matchFlag, "Expected 'match' flag to exist")
+	assert.Equal(t, "[]", matchFlag.DefValue, "Expected 'match' flag default value to be empty slice")
+
+	rangeFlag := flags.Lookup("range")
+	assert.NotNil(t, rangeFlag, "Expected 'range' flag to exist")
+	assert.Equal(t, "[]", rangeFlag.DefValue, "Expected 'range' flag default value to be empty slice")
+
+	assert.NotNil(t, cmd.RunE, "Expected RunE to be not nil")
 }
