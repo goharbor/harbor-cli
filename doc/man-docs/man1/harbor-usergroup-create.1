@@ -1,0 +1,47 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-usergroup-create - create user group
+
+
+.SH SYNOPSIS
+\fBharbor usergroup create [flags]\fP
+
+
+.SH DESCRIPTION
+create user group
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB-l\fP, \fB--ldap-dn\fP=""
+	The DN of the LDAP group if group type is 1 (LDAP group)
+
+.PP
+\fB-n\fP, \fB--name\fP=""
+	Group name
+
+.PP
+\fB-t\fP, \fB--type\fP=0
+	Group type
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-usergroup(1)\fP

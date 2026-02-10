@@ -58,6 +58,7 @@ harbor help
 * [harbor schedule](harbor-schedule.md)	 - Schedule jobs in Harbor
 * [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry
 * [harbor user](harbor-user.md)	 - Manage users
+* [harbor usergroup](harbor-usergroup.md)	 - Manage usergroup
 * [harbor version](harbor-version.md)	 - Version of Harbor CLI
 * [harbor webhook](harbor-webhook.md)	 - Manage webhook policies in Harbor
 
