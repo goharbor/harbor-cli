@@ -34,7 +34,7 @@ func CreateTagView(tagName *string) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("tag name cannot be empty or only spaces")
 					}
-					if isVaild := utils.ValidateTagName(str); !isVaild {
+					if isValid := utils.ValidateTagName(str); !isValid {
 						return errors.New("please enter the correct tag name format")
 					}
 					return nil
