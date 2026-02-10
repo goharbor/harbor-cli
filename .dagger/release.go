@@ -25,8 +25,14 @@ func (m *HarborCli) PublishRelease(ctx context.Context,
 		return "", err
 	}
 
+	sbomFiles, err := DistSBOM(ctx, dag, buildDir)
+	if err != nil {
+		return "", err
+	}
+
 	cmd := []string{"gh", "release", "upload", "v" + m.AppVersion}
 	cmd = append(cmd, bins...)
+	cmd = append(cmd, sbomFiles...)
 	cmd = append(cmd, "/dist/checksums.txt")
 	cmd = append(cmd, "--clobber")
 
