@@ -59,6 +59,7 @@ func UpdateRegistryView(updateView *models.Registry) {
 					if err := utils.ValidateURL(formattedUrl); err != nil {
 						return err
 					}
+					updateView.URL = formattedUrl
 					return nil
 				}),
 			huh.NewInput().

@@ -95,6 +95,8 @@ func CreateRegistryView(createView *api.CreateRegView) {
 					if err := utils.ValidateURL(formattedUrl); err != nil {
 						return err
 					}
+					// Update the bound value to the normalized URL after successful validation.
+					createView.URL = formattedUrl
 					return nil
 				}),
 			huh.NewInput().

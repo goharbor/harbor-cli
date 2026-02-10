@@ -46,10 +46,12 @@ func CreateRegistryCommand() *cobra.Command {
 			}
 
 			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
-				err = utils.ValidateURL(opts.URL)
+				formattedUrl := utils.FormatUrl(opts.URL)
+				err = utils.ValidateURL(formattedUrl)
 				if err != nil {
 					return err
 				}
+				opts.URL = formattedUrl
 				err = api.CreateRegistry(opts)
 			} else {
 				err = createRegistryView(createView)

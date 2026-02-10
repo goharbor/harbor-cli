@@ -47,9 +47,11 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 			}
 
 			if opts.Name != "" && opts.Vendor != "" && opts.Endpoint != "" {
-				if err := utils.ValidateURL(opts.Endpoint); err != nil {
+				formattedEndpoint := utils.FormatUrl(opts.Endpoint)
+				if err := utils.ValidateURL(formattedEndpoint); err != nil {
 					return err
 				}
+				opts.Endpoint = formattedEndpoint
 				err = api.CreateInstance(opts)
 			} else {
 				err = createInstanceView(createView)

@@ -81,6 +81,7 @@ func CreateInstanceView(createView *CreateView) {
 					if err := utils.ValidateURL(formattedUrl); err != nil {
 						return err
 					}
+					createView.Endpoint = formattedUrl
 					return nil
 				}),
 			huh.NewConfirm().

@@ -78,10 +78,11 @@ func UpdateRegistryCommand() *cobra.Command {
 				updateView.Description = opts.Description
 			}
 			if flags.Changed("url") {
-				if err := utils.ValidateURL(opts.URL); err != nil {
+				formattedUrl := utils.FormatUrl(opts.URL)
+				if err := utils.ValidateURL(formattedUrl); err != nil {
 					return err
 				}
-				updateView.URL = opts.URL
+				updateView.URL = formattedUrl
 			}
 			if flags.Changed("insecure") {
 				updateView.Insecure = opts.Insecure
