@@ -31,6 +31,8 @@ import (
 	"github.com/spf13/viper"
 	"go.yaml.in/yaml/v4"
 	"golang.org/x/term"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Returns Harbor v2 client for given clientConfig
@@ -184,6 +186,14 @@ func GetSecretStdin(prompt string) (string, error) {
 
 func ToKebabCase(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}
+
+func FromKebabCase(s string) string {
+	words := strings.Split(s, "-")
+	for i, word := range words {
+		words[i] = cases.Title(language.English).String(word)
+	}
+	return strings.Join(words, " ")
 }
 
 func Capitalize(s string) string {

@@ -58,7 +58,7 @@ harbor-cli logs --output-format json`,
 				if refreshInterval != "" {
 					interval, err = time.ParseDuration(refreshInterval)
 					if err != nil {
-						return fmt.Errorf("invalid refresh interval: %v", err)
+						return fmt.Errorf("invalid refresh interval: %w", err)
 					}
 					if interval < 500*time.Millisecond {
 						return fmt.Errorf("refresh-interval must be at least 500ms (got: %v)", interval)
@@ -81,6 +81,8 @@ harbor-cli logs --output-format json`,
 				} else {
 					list.ListLogs(logs.Payload)
 				}
+			} else {
+				list.ListLogs(logs.Payload)
 			}
 			return nil
 		},

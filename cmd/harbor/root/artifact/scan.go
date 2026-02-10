@@ -88,7 +88,6 @@ func StopScanArtifactCommand() *cobra.Command {
 					return fmt.Errorf("failed to parse project/repo/reference: %v", err)
 				}
 			} else {
-				var projectName string
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
