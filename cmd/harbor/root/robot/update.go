@@ -95,7 +95,10 @@ Examples:
 					return fmt.Errorf("failed to parse robot ID: %v", err)
 				}
 			} else {
-				robotID = prompt.GetRobotIDFromUser(-1)
+				robotID, err = prompt.GetRobotIDFromUser(-1)
+				if err != nil {
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			// Get current robot configuration
@@ -306,7 +309,10 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 			*permissions = append(*permissions, *perm)
 		}
 	} else {
-		newPermissions := prompt.GetRobotPermissionsFromUser("system")
+		newPermissions, err := prompt.GetRobotPermissionsFromUser("system")
+		if err != nil {
+			return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+		}
 		if len(newPermissions) == 0 {
 			return fmt.Errorf("failed to update robot: %v",
 				utils.ParseHarborErrorMsg(fmt.Errorf("no permissions selected, robot account needs at least one permission")))
@@ -377,7 +383,10 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 
 	if len(selectedProjects) > 0 {
 		fmt.Println("Select permissions to apply to all selected projects:")
-		projectPermissions := prompt.GetRobotPermissionsFromUser("project")
+		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+		}
 
 		// Validate project permissions
 		validProjectPerms, err := validateProjectPermissions(projectPermissions)
@@ -449,7 +458,10 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 			// Update permissions for selected projects
 			for _, project := range selectedProjects {
 				fmt.Printf("Updating permissions for project: %s\n", project)
-				projectPerms := prompt.GetRobotPermissionsFromUser("project")
+				projectPerms, err := prompt.GetRobotPermissionsFromUser("project")
+				if err != nil {
+					return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+				}
 
 				// Validate project permissions
 				validProjectPerms, err := validateProjectPermissions(projectPerms)
@@ -474,7 +486,10 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 			return fmt.Errorf("project name cannot be empty")
 		}
 
-		projectPerms := prompt.GetRobotPermissionsFromUser("project")
+		projectPerms, err := prompt.GetRobotPermissionsFromUser("project")
+		if err != nil {
+			return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+		}
 
 		// Validate project permissions
 		validProjectPerms, err := validateProjectPermissions(projectPerms)

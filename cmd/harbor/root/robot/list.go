@@ -14,6 +14,8 @@
 package robot
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/list"
@@ -61,10 +63,15 @@ Examples:
   # Get robot details in JSON format
   harbor-cli robot list --output-format json`,
 		Args: cobra.MaximumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				log.Errorf("failed to get robots list: %v", utils.ParseHarborErrorMsg(err))
+				errorCode := utils.ParseHarborErrorCode(err)
+				if errorCode == "403" {
+					return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+				} else {
+					return fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			formatFlag := viper.GetString("output-format")
@@ -76,6 +83,7 @@ Examples:
 			} else {
 				list.ListRobots(robots.Payload)
 			}
+			return nil
 		},
 	}
 

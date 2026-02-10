@@ -85,7 +85,10 @@ Examples:
 				if err != nil {
 					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 				}
-				robotID = prompt.GetRobotIDFromUser(projectID)
+				robotID, err = prompt.GetRobotIDFromUser(projectID)
+				if err != nil {
+					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			if secret != "" {

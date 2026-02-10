@@ -88,13 +88,19 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
 				}
-				robotID = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
+				robotID, err = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
+				if err != nil {
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
 					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 				}
-				robotID = prompt.GetRobotIDFromUser(projectID)
+				robotID, err = prompt.GetRobotIDFromUser(projectID)
+				if err != nil {
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 			err = api.DeleteRobot(robotID)
 			if err != nil {
