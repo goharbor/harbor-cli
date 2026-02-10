@@ -60,6 +60,9 @@ harbor-cli logs --output-format json`,
 					if err != nil {
 						return fmt.Errorf("invalid refresh interval: %v", err)
 					}
+					if interval < 500*time.Millisecond {
+						return fmt.Errorf("refresh-interval must be at least 500ms (got: %v)", interval)
+					}
 				}
 				followLogs(opts, interval)
 			} else {
