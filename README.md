@@ -47,7 +47,7 @@ The project's first goal is to reach WebUI parity.
 
 ❌ GC
 
-❌ Job Service   Dashbaord
+❌ Job Service   Dashboard
 
 ❌ Auditlog      Auditlogs dashboard
 
@@ -71,8 +71,7 @@ docker run -ti --rm -v $HOME/.config/harbor-cli/config.yaml:/root/.config/harbor
 ```
 Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
 
-If you intend
-to run the CLI as a container,it is advised
+If you intend to run the CLI as a container, it is advised
 to set the following environment variables and to create an alias
 and append the alias to your .zshrc or .bashrc file
 
