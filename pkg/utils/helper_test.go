@@ -129,6 +129,40 @@ func TestValidateRegistryName(t *testing.T) {
 	assert.False(t, utils.ValidateRegistryName("-bad"))
 }
 
+func TestValidateURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		// valid URLs
+		{"valid https domain", "https://demo.goharbor.io", false},
+		{"valid http domain", "http://registry.example.com", false},
+		{"valid domain with port", "https://harbor.local:8443", false},
+		{"valid domain with path", "https://example.com/v2", false},
+		{"valid IPv4", "http://192.168.1.1", false},
+		{"valid IPv4 with port", "http://192.168.1.1:8080", false},
+		{"valid IPv6", "http://[::1]", false},
+
+		// invalid URLs
+		{"empty string", "", true},
+		{"no host", "https://", true},
+		{"bare path", "/just/a/path", true},
+		{"invalid domain double dot", "https://invalid..domain", true},
+		{"domain starting with hyphen", "https://-invalid.com", true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := utils.ValidateURL(tc.input)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestPrintFormat(t *testing.T) {
 	// capture stdout
 	var buf bytes.Buffer

@@ -15,7 +15,6 @@ package create
 
 import (
 	"errors"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -64,8 +63,8 @@ func CreateRegistryView(createView *api.CreateRegView) {
 				Value(&createView.Type).
 				Options(registrySelectOptions...).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("registry provider cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("registry provider cannot be empty or only spaces")
 					}
 					return nil
 				}),
@@ -93,9 +92,11 @@ func CreateRegistryView(createView *api.CreateRegView) {
 						return errors.New("url cannot be empty or only spaces")
 					}
 					formattedUrl := utils.FormatUrl(str)
-					if _, err := url.ParseRequestURI(formattedUrl); err != nil {
-						return errors.New("please enter the correct url format")
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
 					}
+					// Update the bound value to the normalized URL after successful validation.
+					createView.URL = formattedUrl
 					return nil
 				}),
 			huh.NewInput().

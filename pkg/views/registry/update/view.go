@@ -15,9 +15,11 @@ package update
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,8 +31,8 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Title("Provider").
 				Value(&updateView.Type).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("provider cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("provider cannot be empty or only spaces")
 					}
 					return nil
 				}),
@@ -38,8 +40,8 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Title("Name").
 				Value(&updateView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("name cannot be empty or only spaces")
 					}
 					return nil
 				}),
@@ -50,9 +52,14 @@ func UpdateRegistryView(updateView *models.Registry) {
 				Title("URL").
 				Value(&updateView.URL).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("url cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("url cannot be empty or only spaces")
 					}
+					formattedUrl := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
+					}
+					updateView.URL = formattedUrl
 					return nil
 				}),
 			huh.NewInput().
