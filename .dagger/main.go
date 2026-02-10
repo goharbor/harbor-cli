@@ -22,7 +22,7 @@ func (m *HarborCli) init(ctx context.Context, source *dagger.Directory) error {
 		WithExec([]string{"apk", "add", "--no-cache", "git"}).
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
-		WithExec([]string{"git", "describe", "--tags", "--abbrev=0"}).
+		WithExec([]string{"sh", "-c", "git describe --tags --abbrev=0 || echo v0.0.0"}).
 		Stdout(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get version: %w", err)

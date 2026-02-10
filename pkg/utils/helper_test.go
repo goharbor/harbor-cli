@@ -26,14 +26,66 @@ import (
 )
 
 func TestFormatCreatedTime(t *testing.T) {
-	// "now" should be 0 minutes ago
-	now := time.Now().Format(time.RFC3339Nano)
-	s, err := utils.FormatCreatedTime(now)
-	assert.NoError(t, err)
-	assert.True(t, strings.HasSuffix(s, "minute ago") || strings.HasSuffix(s, "minutes ago"))
+	tests := []struct {
+		name      string
+		duration  time.Duration
+		wantOneOf []string // allow flexibility in output string
+		wantErr   bool
+	}{
+		{
+			name:      "Now",
+			duration:  0,
+			wantOneOf: []string{"0 minute ago", "0 minutes ago"},
+			wantErr:   false,
+		},
+		{
+			name:      "59 minutes ago",
+			duration:  59 * time.Minute,
+			wantOneOf: []string{"59 minute ago", "59 minutes ago"},
+			wantErr:   false,
+		},
+		{
+			name:      "1 hour ago",
+			duration:  1 * time.Hour,
+			wantOneOf: []string{"1 hour ago", "1 hours ago"},
+			wantErr:   false,
+		},
+		{
+			name:      "23 hours ago",
+			duration:  23 * time.Hour,
+			wantOneOf: []string{"23 hour ago", "23 hours ago"},
+			wantErr:   false,
+		},
+		{
+			name:      "1 day ago",
+			duration:  24 * time.Hour,
+			wantOneOf: []string{"1 day ago", "1 days ago"},
+			wantErr:   false,
+		},
+		{
+			name:      "2 days ago",
+			duration:  48 * time.Hour,
+			wantOneOf: []string{"2 day ago", "2 days ago"},
+			wantErr:   false,
+		},
+	}
 
-	// invalid timestamp returns error
-	_, err = utils.FormatCreatedTime("not-a-timestamp")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Calculate timestamp based on duration
+			timestamp := time.Now().Add(-tc.duration).Format(time.RFC3339Nano)
+			got, err := utils.FormatCreatedTime(timestamp)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Contains(t, tc.wantOneOf, got)
+			}
+		})
+	}
+
+	// Invalid timestamp
+	_, err := utils.FormatCreatedTime("invalid-time")
 	assert.Error(t, err)
 }
 
@@ -167,4 +219,47 @@ func TestPrintFormat(t *testing.T) {
 	// unsupported
 	err = utils.PrintFormat(obj, "xml")
 	assert.Error(t, err)
+}
+
+func TestCamelCaseToHR(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{"camelCase", "Camel Case"},
+		{"PascalCase", "Pascal Case"},
+		{"HTTPClient", "H T T P Client"}, // Existing implementation splits every upper case
+		{"simple", "Simple"},
+		{"", ""},
+		{"a", "A"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.in, func(t *testing.T) {
+			got := utils.CamelCaseToHR(tc.in)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestValidateURL(t *testing.T) {
+	tests := []struct {
+		in      string
+		wantErr bool
+	}{
+		{"https://example.com", false},
+		{"http://127.0.0.1", false},
+		{"http://localhost", true}, // localhost is often treated specially, but ValidateURL regex expects dots for domains usually, let's see. Validated source: it checks ParseIP OR regex with dots.
+		{"invalid-url", true},
+		{"http://", true},
+		{"https://.com", true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.in, func(t *testing.T) {
+			err := utils.ValidateURL(tc.in)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
