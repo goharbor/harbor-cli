@@ -17,8 +17,8 @@ package context
 import (
 	"fmt"
 
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	contextview "github.com/goharbor/harbor-cli/pkg/views/context"
 	"github.com/goharbor/harbor-cli/pkg/views/context/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -47,9 +47,9 @@ func ListContextCommand() *cobra.Command {
 					return
 				}
 			} else {
-				var cxlist []api.ContextListView
+				var cxlist []contextview.ContextListView
 				for _, cred := range config.Credentials {
-					cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+					cx := contextview.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 					cxlist = append(cxlist, cx)
 				}
 				currentCredential := config.CurrentCredentialName

@@ -26,6 +26,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/constants"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
+	contextview "github.com/goharbor/harbor-cli/pkg/views/context"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
@@ -287,7 +288,7 @@ func GetQuotaIDFromUser() int64 {
 	QuotaID := make(chan int64)
 
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := api.ListQuota(api.ListQuotaFlags{})
 		if err != nil {
 			log.Errorf("failed to list quota: %v", err)
 		}
@@ -302,9 +303,9 @@ func GetActiveContextFromUser() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var cxlist []api.ContextListView
+	var cxlist []contextview.ContextListView
 	for _, cred := range config.Credentials {
-		cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+		cx := contextview.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 		cxlist = append(cxlist, cx)
 	}
 

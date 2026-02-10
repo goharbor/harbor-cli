@@ -14,6 +14,7 @@
 package registry
 
 import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/create"
 	log "github.com/sirupsen/logrus"
@@ -21,7 +22,7 @@ import (
 )
 
 func CreateRegistryCommand() *cobra.Command {
-	var opts api.CreateRegView
+	var opts create.CreateView
 
 	cmd := &cobra.Command{
 		Use:     "create",
@@ -30,12 +31,12 @@ func CreateRegistryCommand() *cobra.Command {
 		Args:    cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
-			createView := &api.CreateRegView{
+			createView := &create.CreateView{
 				Name:        opts.Name,
 				Type:        opts.Type,
 				Description: opts.Description,
 				URL:         opts.URL,
-				Credential: api.RegistryCredential{
+				Credential: create.RegistryCredential{
 					AccessKey:    opts.Credential.AccessKey,
 					Type:         opts.Credential.Type,
 					AccessSecret: opts.Credential.AccessSecret,
@@ -44,7 +45,19 @@ func CreateRegistryCommand() *cobra.Command {
 			}
 
 			if opts.Name != "" && opts.Type != "" && opts.URL != "" {
-				err = api.CreateRegistry(opts)
+				registryModel := &models.Registry{
+					Name:        opts.Name,
+					Type:        opts.Type,
+					Description: opts.Description,
+					URL:         opts.URL,
+					Credential: &models.RegistryCredential{
+						AccessKey:    opts.Credential.AccessKey,
+						AccessSecret: opts.Credential.AccessSecret,
+						Type:         opts.Credential.Type,
+					},
+					Insecure: opts.Insecure,
+				}
+				err = api.CreateRegistry(registryModel)
 			} else {
 				err = createRegistryView(createView)
 			}
@@ -92,11 +105,24 @@ func CreateRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func createRegistryView(createView *api.CreateRegView) error {
+func createRegistryView(createView *create.CreateView) error {
 	if createView == nil {
-		createView = &api.CreateRegView{}
+		createView = &create.CreateView{}
 	}
 
 	create.CreateRegistryView(createView)
-	return api.CreateRegistry(*createView)
+
+	registryModel := &models.Registry{
+		Name:        createView.Name,
+		Type:        createView.Type,
+		Description: createView.Description,
+		URL:         createView.URL,
+		Credential: &models.RegistryCredential{
+			AccessKey:    createView.Credential.AccessKey,
+			AccessSecret: createView.Credential.AccessSecret,
+			Type:         createView.Credential.Type,
+		},
+		Insecure: createView.Insecure,
+	}
+	return api.CreateRegistry(registryModel)
 }
