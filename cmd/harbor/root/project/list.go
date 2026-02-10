@@ -26,13 +26,70 @@ import (
 	"github.com/spf13/viper"
 )
 
+func PrintProjects(allProjects []*models.Project) error {
+	log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
+	if len(allProjects) == 0 {
+		log.Info("No projects found")
+		return nil
+	}
+	formatFlag := viper.GetString("output-format")
+	if formatFlag != "" {
+		log.WithField("output_format", formatFlag).Debug("Output format selected")
+		err := utils.PrintFormat(allProjects, formatFlag)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Debug("Listing projects using default view")
+		if err := list.ListProjects(allProjects); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func BuildListOptions(private, public bool, opts *api.ListFlags, fuzzy, match, ranges []string) (func(...api.ListFlags) (project.ListProjectsOK, error), error) {
+	var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
+	log.Debug("Starting project list command")
+
+	if opts.PageSize > 100 || opts.PageSize < 0 {
+		return nil, fmt.Errorf("page size should be greater than or equal to 0 and less than or equal to 100")
+	}
+
+	if private && public {
+		return nil, fmt.Errorf("Cannot specify both --private and --public flags")
+	}
+
+	if private {
+		log.Debug("Using private project list function")
+		opts.Public = false
+		listFunc = api.ListProject
+	} else if public {
+		log.Debug("Using public project list function")
+		opts.Public = true
+		listFunc = api.ListProject
+	} else {
+		log.Debug("Using list all projects function")
+		listFunc = api.ListAllProjects
+	}
+
+	if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
+		q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+			[]string{"name", "project_id", "public", "creation_time", "owner_id"},
+		)
+		if qErr != nil {
+			return nil, qErr
+		}
+
+		opts.Q = q
+	}
+	return listFunc, nil
+}
 func ListProjectCommand() *cobra.Command {
 	var (
 		opts        api.ListFlags
 		private     bool
 		public      bool
 		allProjects []*models.Project
-		err         error
 		// For querying, opts.Q
 		fuzzy  []string
 		match  []string
@@ -43,62 +100,17 @@ func ListProjectCommand() *cobra.Command {
 		Short: "List projects",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting project list command")
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			listFunc, err := BuildListOptions(private, public, &opts, fuzzy, match, ranges)
+			if err != nil {
+				return fmt.Errorf("failed to build the options: %v", err)
 			}
-
-			if private && public {
-				return fmt.Errorf("Cannot specify both --private and --public flags")
-			}
-
-			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
-			if private {
-				log.Debug("Using private project list function")
-				opts.Public = false
-				listFunc = api.ListProject
-			} else if public {
-				log.Debug("Using public project list function")
-				opts.Public = true
-				listFunc = api.ListProject
-			} else {
-				log.Debug("Using list all projects function")
-				listFunc = api.ListAllProjects
-			}
-
-			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
-				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"name", "project_id", "public", "creation_time", "owner_id"},
-				)
-				if qErr != nil {
-					return qErr
-				}
-
-				opts.Q = q
-			}
-
 			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
-
-			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
-			if len(allProjects) == 0 {
-				log.Info("No projects found")
-				return nil
-			}
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(allProjects, formatFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				log.Debug("Listing projects using default view")
-				list.ListProjects(allProjects)
+			if err := PrintProjects(allProjects); err != nil {
+				return err
 			}
 			return nil
 		},
