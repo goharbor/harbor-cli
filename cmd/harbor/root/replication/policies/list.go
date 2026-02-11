@@ -25,7 +25,15 @@ import (
 )
 
 func ListCommand() *cobra.Command {
-	var opts api.ListFlags
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List replication policies",
@@ -38,6 +46,17 @@ func ListCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching policies...")
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "name", "description", "creation_time"},
+				)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
+			}
 			allPolicies, err := api.ListReplicationPolicies(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
@@ -69,6 +88,9 @@ func ListCommand() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 0, "Size of per page (0 to fetch all)")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }

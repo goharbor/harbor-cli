@@ -26,8 +26,15 @@ import (
 )
 
 func UserListCmd() *cobra.Command {
-	var opts api.ListFlags
-	var allUsers []*models.UserResp
+
+	var (
+		opts     api.ListFlags
+		allUsers []*models.UserResp
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:     "list",
@@ -37,6 +44,17 @@ func UserListCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
 				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"email", "username", "user_id", "realname", "comment", "creation_time"},
+				)
+				if qErr != nil {
+					return qErr
+				}
+
+				opts.Q = q
 			}
 
 			if opts.PageSize == 0 {
@@ -91,6 +109,9 @@ func UserListCmd() *cobra.Command {
 	flags.Int64VarP(&opts.PageSize, "page-size", "n", 0, "Size of per page (0 to fetch all)")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
 	flags.StringVarP(&opts.Sort, "sort", "s", "", "Sort the resource list in ascending or descending order")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }
