@@ -7,7 +7,10 @@ import (
 )
 
 // Generate CLI Documentation and return the directory containing the generated files
-func (m *HarborCli) RunDoc(ctx context.Context, source *dagger.Directory) (*dagger.Directory, error) {
+func (m *HarborCli) RunDoc(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (*dagger.Directory, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
