@@ -15,9 +15,12 @@
 package gc
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +30,8 @@ func RunGCCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run Garbage Collection manually",
-		Run: func(cmd *cobra.Command, args []string) {
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			scheduleObj := models.ScheduleObj{
 				Type: "Manual",
 			}
@@ -44,9 +48,10 @@ func RunGCCommand() *cobra.Command {
 
 			err := api.CreateGCSchedule(scheduleBody)
 			if err != nil {
-				logrus.Fatalf("Failed to start GC: %v", err)
+				return fmt.Errorf("failed to start GC: %v", utils.ParseHarborErrorMsg(err))
 			}
-			logrus.Info("GC started successfully")
+			log.Info("GC started successfully")
+			return nil
 		},
 	}
 
