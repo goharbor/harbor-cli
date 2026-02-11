@@ -81,8 +81,6 @@ harbor-cli logs --output-format json`,
 				} else {
 					list.ListLogs(logs.Payload)
 				}
-			} else {
-				list.ListLogs(logs.Payload)
 			}
 			return nil
 		},
