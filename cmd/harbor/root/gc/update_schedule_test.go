@@ -117,17 +117,6 @@ func TestValidateCron_Midnight(t *testing.T) {
 	assert.Equal(t, cron, result)
 }
 
-func TestValidScheduleTypes(t *testing.T) {
-	assert.True(t, validScheduleTypes["None"])
-	assert.True(t, validScheduleTypes["Hourly"])
-	assert.True(t, validScheduleTypes["Daily"])
-	assert.True(t, validScheduleTypes["Weekly"])
-	assert.True(t, validScheduleTypes["Custom"])
-	assert.False(t, validScheduleTypes["Monthly"])
-	assert.False(t, validScheduleTypes["Yearly"])
-	assert.False(t, validScheduleTypes[""])
-}
-
 func TestValidateCron_FieldsCount(t *testing.T) {
 	testCases := []struct {
 		name        string

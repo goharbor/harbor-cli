@@ -18,34 +18,39 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/sirupsen/logrus"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/gc/schedule"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func ViewGCScheduleCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "schedule",
 		Short: "Display the GC schedule",
-		Run: func(cmd *cobra.Command, args []string) {
+		Args:  cobra.MaximumNArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			scheduleWrapper, err := api.GetGCSchedule()
 			if err != nil {
-				logrus.Fatalf("Failed to get GC schedule: %v", err)
+				return fmt.Errorf("failed to get GC schedule: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			if scheduleWrapper == nil || scheduleWrapper.Schedule == nil {
-				fmt.Println("No GC schedule set.")
-				return
+				log.Info("No GC schedule set.")
+				return nil
 			}
 
-			s := scheduleWrapper.Schedule
-
-			fmt.Printf("Schedule Type:     %s\n", s.Type)
-			if s.Cron != "" {
-				fmt.Printf("Cron Expression:   %s\n", s.Cron)
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(scheduleWrapper, formatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				schedule.ViewGCSchedule(scheduleWrapper)
 			}
-			fmt.Printf("Next Execution:    %v\n", s.NextScheduledTime)
-			fmt.Printf("Creation Time:     %v\n", scheduleWrapper.CreationTime)
-			fmt.Printf("Update Time:       %v\n", scheduleWrapper.UpdateTime)
+			return nil
 		},
 	}
 }
