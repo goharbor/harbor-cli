@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -29,14 +28,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-var validScheduleTypes = map[string]bool{
-	"None":   true,
-	"Hourly": true,
-	"Daily":  true,
-	"Weekly": true,
-	"Custom": true,
-}
 
 func UpdateGCScheduleCommand() *cobra.Command {
 	var scheduleType string
@@ -58,10 +49,6 @@ Available schedule types:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			scheduleType = cases.Title(language.English).String(strings.ToLower(args[0]))
 
-			if !validScheduleTypes[scheduleType] {
-				return fmt.Errorf("invalid schedule type: %s. Valid types are: none, hourly, daily, weekly, custom", args[0])
-			}
-
 			logrus.Infof("Updating GC schedule to type: %s", scheduleType)
 
 			switch scheduleType {
@@ -71,9 +58,9 @@ Available schedule types:
 				return updateGCPredefinedSchedule(scheduleType)
 			case "Custom":
 				return updateGCCustomSchedule(cron)
+			default:
+				return fmt.Errorf("invalid schedule type: %s. Valid types are: none, hourly, daily, weekly, custom", args[0])
 			}
-
-			return nil
 		},
 	}
 
@@ -84,7 +71,6 @@ Available schedule types:
 }
 
 func updateGCScheduleToNone() error {
-	// Wrap ScheduleObj in proper structure
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{Type: "None"},
 	}
@@ -97,14 +83,9 @@ func updateGCScheduleToNone() error {
 }
 
 func updateGCPredefinedSchedule(scheduleType string) error {
-	defaultHourlyCron := "0 0 * * * * "
-	zeroTime := strfmt.DateTime{}
-
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{
-			Type:              scheduleType,
-			Cron:              defaultHourlyCron,
-			NextScheduledTime: zeroTime,
+			Type: scheduleType,
 		},
 	}
 
@@ -128,13 +109,10 @@ func updateGCCustomSchedule(cron string) error {
 		}
 	}
 
-	zeroTime := strfmt.DateTime{}
-
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{
-			Type:              "Custom",
-			Cron:              cron,
-			NextScheduledTime: zeroTime,
+			Type: "Custom",
+			Cron: cron,
 		},
 	}
 

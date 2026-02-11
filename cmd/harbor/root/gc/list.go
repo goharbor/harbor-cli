@@ -15,14 +15,36 @@
 package gc
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/gc"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
+var validGCSortFields = []string{
+	"creation_time",
+	"update_time",
+	"id",
+	"job_status",
+}
+
+var validGCQueryKeys = []string{
+	"id",
+	"job_status",
+	"job_name",
+}
+
 func ListGCCommand() *cobra.Command {
-	var opts api.ListFlags
+	var (
+		opts   api.ListFlags
+		sort   []string
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -42,23 +64,58 @@ Examples:
   # List GC history with sorting by creation time (newest first)
   harbor gc list --sort -creation_time
 
-  # Filter GC history by status
-  harbor gc list -q status=Success`,
-		Run: func(cmd *cobra.Command, args []string) {
+  # List GC history with multiple sort fields
+  harbor gc list --sort creation_time --sort -job_status
+
+  # Filter GC history by status (exact match)
+  harbor gc list --match job_status=Success
+
+  # Filter GC history by fuzzy match
+  harbor gc list --fuzzy job_name=gc`,
+		Args: cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
+			if len(sort) > 0 {
+				sortParam, err := utils.BuildSortParam(sort, validGCSortFields)
+				if err != nil {
+					return err
+				}
+				opts.Sort = sortParam
+			}
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges, validGCQueryKeys)
+				if qErr != nil {
+					return qErr
+				}
+				opts.Q = q
+			}
+
 			history, err := api.GetGCHistory(opts)
 			if err != nil {
-				logrus.Fatalf("Failed to get GC history: %v", err)
+				return fmt.Errorf("failed to get GC history: %v", utils.ParseHarborErrorMsg(err))
+			}
+
+			if len(history) == 0 {
+				log.Info("No GC history found")
+				return nil
 			}
 
 			gc.ListGC(history)
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "p", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "s", 10, "Size of per page")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&sort, "sort", nil, "Sort the resource list (e.g. --sort creation_time --sort -update_time)")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "Exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "Range filter (key=min~max)")
 
 	return cmd
 }
