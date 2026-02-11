@@ -7,7 +7,10 @@ import (
 )
 
 // Executes Go tests
-func (m *HarborCli) Test(ctx context.Context, source *dagger.Directory) (string, error) {
+func (m *HarborCli) Test(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (string, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return "", err
@@ -27,7 +30,10 @@ func (m *HarborCli) Test(ctx context.Context, source *dagger.Directory) (string,
 
 // Executes Go tests and returns TestReport in json file
 // TestReport executes Go tests and returns only the JSON report file
-func (m *HarborCli) TestReport(ctx context.Context, source *dagger.Directory) (*dagger.File, error) {
+func (m *HarborCli) TestReport(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (*dagger.File, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
@@ -49,7 +55,10 @@ func (m *HarborCli) TestReport(ctx context.Context, source *dagger.Directory) (*
 }
 
 // Tests Coverage of code base
-func (m *HarborCli) TestCoverage(ctx context.Context, source *dagger.Directory) (*dagger.File, error) {
+func (m *HarborCli) TestCoverage(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (*dagger.File, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
@@ -70,7 +79,10 @@ func (m *HarborCli) TestCoverage(ctx context.Context, source *dagger.Directory) 
 }
 
 // TestCoverageReport processes coverage data and returns a formatted markdown report
-func (m *HarborCli) TestCoverageReport(ctx context.Context, source *dagger.Directory) (*dagger.File, error) {
+func (m *HarborCli) TestCoverageReport(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (*dagger.File, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err

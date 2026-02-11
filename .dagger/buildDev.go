@@ -11,7 +11,10 @@ import (
 )
 
 // Create build of Harbor CLI for local testing and development
-func (m *HarborCli) BuildDev(ctx context.Context, platform string, source *dagger.Directory) *dagger.File {
+func (m *HarborCli) BuildDev(ctx context.Context, platform string,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) *dagger.File {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil
