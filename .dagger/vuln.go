@@ -21,7 +21,10 @@ func (m *HarborCli) vulnerabilityCheck(ctx context.Context) *dagger.Container {
 }
 
 // Runs a vulnerability check using govulncheck
-func (m *HarborCli) VulnerabilityCheck(ctx context.Context, source *dagger.Directory) (string, error) {
+func (m *HarborCli) VulnerabilityCheck(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (string, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return "", err
@@ -32,7 +35,10 @@ func (m *HarborCli) VulnerabilityCheck(ctx context.Context, source *dagger.Direc
 }
 
 // Runs a vulnerability check using govulncheck and writes results to vulnerability-check.report
-func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context, source *dagger.Directory) (*dagger.File, error) {
+func (m *HarborCli) VulnerabilityCheckReport(ctx context.Context,
+	// +ignore=[".gitignore"]
+	// +defaultPath="."
+	source *dagger.Directory) (*dagger.File, error) {
 	err := m.init(ctx, source)
 	if err != nil {
 		return nil, err
