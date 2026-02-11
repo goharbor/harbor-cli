@@ -140,7 +140,7 @@ Examples:
 			} else {
 				permissions, err = prompt.GetRobotPermissionsFromUser("project")
 				if err != nil {
-					log.Fatalf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
