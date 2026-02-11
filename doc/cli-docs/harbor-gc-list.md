@@ -25,8 +25,14 @@ Examples:
   # List GC history with sorting by creation time (newest first)
   harbor gc list --sort -creation_time
 
-  # Filter GC history by status
-  harbor gc list -q status=Success
+  # List GC history with multiple sort fields
+  harbor gc list --sort creation_time --sort -job_status
+
+  # Filter GC history by status (exact match)
+  harbor gc list --match job_status=Success
+
+  # Filter GC history by fuzzy match
+  harbor gc list --fuzzy job_name=gc
 
 ```sh
 harbor gc list [flags]
@@ -35,11 +41,13 @@ harbor gc list [flags]
 ### Options
 
 ```sh
+      --fuzzy strings   Fuzzy match filter (key=value)
   -h, --help            help for list
+      --match strings   Exact match filter (key=value)
   -p, --page int        Page number (default 1)
   -s, --page-size int   Size of per page (default 10)
-  -q, --query string    Query string to query resources
-      --sort string     Sort the resource list in ascending or descending order
+      --range strings   Range filter (key=min~max)
+      --sort strings    Sort the resource list (e.g. --sort creation_time --sort -update_time)
 ```
 
 ### Options inherited from parent commands
