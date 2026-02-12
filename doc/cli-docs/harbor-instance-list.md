@@ -10,8 +10,8 @@ weight: 95
 
 ### Synopsis
 
-List all preheat provider instances registered in Harbor. You can paginate the results, 
-filter them using a query string, and sort them in ascending or descending order. 
+List all preheat provider instances registered in Harbor. You can paginate the results,
+filter them using a query string, and sort them in ascending or descending order.
 This command provides an easy way to view all instances along with their details.
 
 ```sh
