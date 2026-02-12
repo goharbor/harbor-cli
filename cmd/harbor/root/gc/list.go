@@ -35,6 +35,10 @@ var validGCQueryKeys = []string{
 	"id",
 	"job_status",
 	"job_name",
+	"job_kind",
+	"creation_time",
+	"update_time",
+	"deleted",
 }
 
 func ListGCCommand() *cobra.Command {
