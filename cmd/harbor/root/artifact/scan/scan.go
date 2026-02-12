@@ -11,30 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package artifact
+package artifactscan
 
-import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/label"
-	artifactscan "github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/scan"
-	artifacttags "github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/tags"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func Artifact() *cobra.Command {
+func ScanArtifactCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "artifact",
-		Short:   "Manage artifacts",
-		Long:    `Manage artifacts in Harbor Repository`,
-		Example: `  harbor artifact list`,
+		Use:     "scan",
+		Short:   "Scan an artifact",
+		Long:    `Scan an artifact in Harbor Repository`,
+		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
 	}
 
 	cmd.AddCommand(
-		ListArtifactCommand(),
-		ViewArtifactCommmand(),
-		DeleteArtifactCommand(),
-		artifactscan.ScanArtifactCommand(),
-		artifacttags.ArtifactTagsCmd(),
-		label.LabelsArtifactCommmand(),
+		StartScanArtifactCommand(),
+		StopScanArtifactCommand(),
+		// LogScanArtifactCommand(),
 	)
 
 	return cmd
