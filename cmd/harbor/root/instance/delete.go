@@ -14,9 +14,10 @@
 package instance
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -30,15 +31,14 @@ If no argument is provided, you will be prompted to select an instance from a li
 		Example: `  harbor-cli instance delete my-instance
   harbor-cli instance delete 12345`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var instanceName string
 
 			if instanceID != -1 {
 				instanceName, err = api.GetInstanceNameByID(instanceID)
 				if err != nil {
-					log.Errorf("%v", err)
-					return
+					return fmt.Errorf("%v", err)
 				}
 			} else if len(args) > 0 {
 				instanceName = args[0]
@@ -47,8 +47,9 @@ If no argument is provided, you will be prompted to select an instance from a li
 			}
 			err = api.DeleteInstance(instanceName)
 			if err != nil {
-				log.Errorf("failed to delete instance: %v", err)
+				return fmt.Errorf("failed to delete instance: %v", err)
 			}
+			return nil
 		},
 	}
 	cmd.Flags().Int64VarP(&instanceID, "id", "i", -1, "ID of the instance to delete")

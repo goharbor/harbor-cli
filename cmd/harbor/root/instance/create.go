@@ -14,9 +14,10 @@
 package instance
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -26,12 +27,12 @@ func CreateInstanceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new preheat provider instance in Harbor",
-		Long: `Create a new preheat provider instance within Harbor for distributing container images. 
+		Long: `Create a new preheat provider instance within Harbor for distributing container images.
 The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
 You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.`,
 		Example: `  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true`,
 		Args:    cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			createView := &create.CreateView{
 				Name:        opts.Name,
@@ -51,8 +52,9 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 			}
 
 			if err != nil {
-				log.Errorf("failed to create instance: %v", err)
+				return fmt.Errorf("failed to create instance: %v", err)
 			}
+			return nil
 		},
 	}
 

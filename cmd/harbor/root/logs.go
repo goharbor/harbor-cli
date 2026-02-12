@@ -65,23 +65,22 @@ harbor-cli logs --output-format json`,
 					}
 				}
 				followLogs(opts, interval)
-				return nil
-			}
-
-			logs, err := api.AuditLogs(opts)
-			if err != nil {
-				return fmt.Errorf("failed to retrieve audit logs: %w", err)
-			}
-
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(logs.Payload, formatFlag)
-				if err != nil {
-					return err
-				}
 			} else {
-				list.ListLogs(logs.Payload)
+				logs, err := api.AuditLogs(opts)
+				if err != nil {
+					return fmt.Errorf("failed to retrieve audit logs: %v", err)
+				}
+
+				formatFlag := viper.GetString("output-format")
+				if formatFlag != "" {
+					log.WithField("output_format", formatFlag).Debug("Output format selected")
+					err = utils.PrintFormat(logs.Payload, formatFlag)
+					if err != nil {
+						return err
+					}
+				} else {
+					list.ListLogs(logs.Payload)
+				}
 			}
 			return nil
 		},

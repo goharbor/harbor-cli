@@ -14,10 +14,11 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/repository/search"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,22 +28,22 @@ func SearchRepoCmd() *cobra.Command {
 		Use:   "search",
 		Short: "search repository based on their names",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			repo, err := api.SearchRepository(args[0])
 			if err != nil {
-				log.Fatalf("failed to get repositories: %v", err)
-				return
+				return fmt.Errorf("failed to get repositories: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(repo, FormatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				search.SearchRepositories(repo.Payload.Repository)
 			}
+			return nil
 		},
 	}
 	return cmd

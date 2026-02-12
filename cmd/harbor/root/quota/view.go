@@ -14,11 +14,12 @@
 package quota
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,27 +31,26 @@ func ViewQuotaCommand() *cobra.Command {
 		Use:   "view [quotaID]",
 		Short: "get quota by quota ID",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var quota *models.Quota
 
 			// get quota id with quota
 			quota, err = GetQuotaFromUser(args, opts)
 			if err != nil {
-				log.Errorf("error: %v", err)
-				return
+				return fmt.Errorf("error: %v", err)
 			}
 			quotas := []*models.Quota{quota}
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				err = utils.PrintFormat(quota, FormatFlag)
 				if err != nil {
-					log.Errorf("failed to get quota list: %v", err)
-					return
+					return fmt.Errorf("failed to get quota list: %v", err)
 				}
 			} else {
 				list.ListQuotas(quotas)
 			}
+			return nil
 		},
 	}
 	flags := cmd.Flags()
