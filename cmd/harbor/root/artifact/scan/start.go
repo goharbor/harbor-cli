@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package artifact
+package artifactscan
 
 import (
 	"fmt"
@@ -19,26 +19,8 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
-
-func ScanArtifactCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "scan",
-		Short:   "Scan an artifact",
-		Long:    `Scan an artifact in Harbor Repository`,
-		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
-	}
-
-	cmd.AddCommand(
-		StartScanArtifactCommand(),
-		StopScanArtifactCommand(),
-		// LogScanArtifactCommand(),
-	)
-
-	return cmd
-}
 
 func StartScanArtifactCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -68,39 +50,6 @@ func StartScanArtifactCommand() *cobra.Command {
 				return fmt.Errorf("failed to start scan of artifact: %v", err)
 			}
 			return nil
-		},
-	}
-	return cmd
-}
-
-func StopScanArtifactCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "stop",
-		Short:   "Stop a scan of an artifact",
-		Long:    `Stop a scan of an artifact in Harbor Repository`,
-		Example: `harbor artifact scan stop <project>/<repository>/<reference>`,
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			var projectName, repoName, reference string
-
-			if len(args) > 0 {
-				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
-				if err != nil {
-					log.Errorf("failed to parse project/repo/reference: %v", err)
-				}
-			} else {
-				projectName, err = prompt.GetProjectNameFromUser()
-				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-				}
-				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
-			}
-
-			err = api.StopScanArtifact(projectName, repoName, reference)
-			if err != nil {
-				log.Errorf("failed to stop scan of artifact: %v", err)
-			}
 		},
 	}
 	return cmd
