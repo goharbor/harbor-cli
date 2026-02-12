@@ -16,35 +16,51 @@ package gc
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	gclog "github.com/goharbor/harbor-cli/pkg/views/gc/log"
 	"github.com/spf13/cobra"
 )
 
 func GetGCLogCommand() *cobra.Command {
+	var gcID int64
+
 	cmd := &cobra.Command{
-		Use:   "log [gc_id]",
+		Use:   "log",
 		Short: "Get GC job log",
-		Args:  cobra.ExactArgs(1),
+		Long: `Get the log of a specific GC (Garbage Collection) job.
+
+If no GC job ID is provided via the --id flag, an interactive selector
+will be displayed to choose from available GC jobs.
+
+Examples:
+  # Get GC log by specifying the job ID
+  harbor gc log --id 42
+
+  # Get GC log interactively (select from list)
+  harbor gc log`,
+		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("Invalid GC ID: %v", err)
+			var err error
+
+			if gcID <= 0 {
+				gcID, err = gclog.SelectGCJob()
+				if err != nil {
+					return err
+				}
 			}
 
-			if id <= 0 {
-				return fmt.Errorf("gc_id must be a positive integer")
-			}
-
-			logData, err := api.GetGCJobLog(id)
+			logData, err := api.GetGCJobLog(gcID)
 			if err != nil {
-				return fmt.Errorf("Failed to get GC log: %v", err)
+				return fmt.Errorf("failed to get GC log: %v", err)
 			}
 
 			fmt.Println(logData)
 			return nil
 		},
 	}
+
+	cmd.Flags().Int64Var(&gcID, "id", 0, "ID of the GC job to get logs for")
+
 	return cmd
 }
