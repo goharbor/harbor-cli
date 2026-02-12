@@ -24,7 +24,7 @@ import (
 func TestListFlags(t *testing.T) {
 	t.Run("default values", func(t *testing.T) {
 		var flags api.ListFlags
-		
+
 		assert.Equal(t, int64(0), flags.ProjectID)
 		assert.Equal(t, int64(0), flags.Page)
 		assert.Equal(t, int64(0), flags.PageSize)
@@ -46,7 +46,7 @@ func TestListFlags(t *testing.T) {
 			Sort:      "name",
 			Public:    true,
 		}
-		
+
 		assert.Equal(t, int64(10), flags.ProjectID)
 		assert.Equal(t, int64(1), flags.Page)
 		assert.Equal(t, int64(50), flags.PageSize)
@@ -68,7 +68,7 @@ func TestListMemberOptions(t *testing.T) {
 			Page:            1,
 			PageSize:        10,
 		}
-		
+
 		assert.True(t, opts.XIsResourceName)
 		assert.Equal(t, "library", opts.ProjectNameOrID)
 		assert.Equal(t, "testuser", opts.EntityName)
@@ -81,14 +81,16 @@ func TestListMemberOptions(t *testing.T) {
 			XIsResourceName: true,
 			ProjectNameOrID: "my-project",
 		}
-		
+
 		byID := api.ListMemberOptions{
 			XIsResourceName: false,
 			ProjectNameOrID: "123",
 		}
-		
+
 		assert.True(t, byName.XIsResourceName)
+		assert.Equal(t, "my-project", byName.ProjectNameOrID)
 		assert.False(t, byID.XIsResourceName)
+		assert.Equal(t, "123", byID.ProjectNameOrID)
 	})
 }
 
@@ -101,7 +103,7 @@ func TestUpdateMemberOptions(t *testing.T) {
 			ID:              123,
 			RoleID:          nil,
 		}
-		
+
 		assert.True(t, opts.XIsResourceName)
 		assert.Equal(t, "library", opts.ProjectNameOrID)
 		assert.Equal(t, int64(123), opts.ID)
@@ -117,7 +119,7 @@ func TestGetMemberOptions(t *testing.T) {
 			ProjectNameOrID: "42",
 			ID:              100,
 		}
-		
+
 		assert.False(t, opts.XIsResourceName)
 		assert.Equal(t, "42", opts.ProjectNameOrID)
 		assert.Equal(t, int64(100), opts.ID)
@@ -129,7 +131,7 @@ func TestGetMemberOptions(t *testing.T) {
 			ProjectNameOrID: "test-project",
 			ID:              200,
 		}
-		
+
 		assert.True(t, opts.XIsResourceName)
 		assert.Equal(t, "test-project", opts.ProjectNameOrID)
 		assert.Equal(t, int64(200), opts.ID)
