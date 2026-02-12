@@ -10,7 +10,7 @@ weight: 10
 
 ### Synopsis
 
-Create a new preheat provider instance within Harbor for distributing container images. 
+Create a new preheat provider instance within Harbor for distributing container images.
 The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
 You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.
 
