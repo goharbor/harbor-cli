@@ -206,23 +206,21 @@ func Capitalize(s string) string {
 
 // GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
 func GetUserIdFromUser() int64 {
-	userId := make(chan int64)
-
-	go func() {
-		credentialName := viper.GetString("current-credential-name")
-		client, err := GetClientByCredentialName(credentialName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ctx := context.Background()
-		response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
-		if err != nil {
-			log.Fatal(err)
-		}
-		uview.UserList(response.Payload, userId)
-	}()
-
-	return <-userId
+	credentialName := viper.GetString("current-credential-name")
+	client, err := GetClientByCredentialName(credentialName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx := context.Background()
+	response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	userId, err := uview.UserList(response.Payload)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return userId
 }
 
 // RemoveColumns removes columns with specified titles from the given columns array.
