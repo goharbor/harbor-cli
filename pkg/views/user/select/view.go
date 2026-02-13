@@ -18,13 +18,25 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
 func UserList(users []*models.UserResp) (int64, error) {
 	var itemList []list.Item
 	items := map[string]int64{}
+
+	if len(users) == 0 {
+		msg := views.RedText("Operation failed:")
+		out := views.
+			BaseStyle.
+			BorderForeground(lipgloss.Color("1")).
+			Render(msg, "No users found in the registry.")
+		fmt.Println(out)
+		return 0, fmt.Errorf("No users in the registry")
+	}
 
 	for _, r := range users {
 		items[r.Username] = r.UserID

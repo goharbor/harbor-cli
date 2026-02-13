@@ -14,6 +14,8 @@
 package views
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -28,6 +30,14 @@ var (
 
 var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
+
+func RedText (strs ...string) string {
+	var msg strings.Builder
+	for _, str := range strs {
+		msg.WriteString(str)
+	}
+	return RedANSI + msg.String() + ResetANSI
+}
 
 const (
 	GreenANSI = "\033[32m"

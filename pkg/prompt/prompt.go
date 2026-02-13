@@ -169,10 +169,6 @@ func GetUserIdFromUser() (int64, error) {
 		return 0, err
 	}
 
-	if len(response.Payload) == 0 {
-		return 0, errors.New("No users found")
-	}
-
 	id, err := uview.UserList(response.Payload)
 	if err != nil {
 		return 0, err
