@@ -31,7 +31,7 @@ var (
 var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
 
-func RedText (strs ...string) string {
+func RedText(strs ...string) string {
 	var msg strings.Builder
 	for _, str := range strs {
 		msg.WriteString(str)
