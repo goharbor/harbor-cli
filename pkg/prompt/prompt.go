@@ -192,15 +192,6 @@ func GetTagFromUser(repoName, projectName, reference string) string {
 	return <-tag
 }
 
-func GetTagNameFromUser() string {
-	repoName := make(chan string)
-
-	go func() {
-	}()
-
-	return <-repoName
-}
-
 func GetScannerIdFromUser() string {
 	scannerId := make(chan string)
 
