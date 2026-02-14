@@ -60,7 +60,7 @@ func LogsProjectCommmand() *cobra.Command {
 				return fmt.Errorf("project %s does not exist", projectName)
 			}
 			log.Debugf("Fetching logs for project: %s", projectName)
-			resp, err = api.LogsProject(projectName)
+			resp, err = api.LogsProject(projectName, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get project logs: %v", utils.ParseHarborErrorMsg(err))
 			}
