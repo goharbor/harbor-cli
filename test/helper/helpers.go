@@ -44,26 +44,28 @@ const (
 )
 
 // GetHarborConfig returns the Harbor instance configuration for tests.
-// It first checks for a local Harbor instance (from CI podman setup) via environment variables.
+// It requires a local Harbor instance (from CI podman setup) via environment variables.
 func GetHarborConfig(t *testing.T) *HarborTestConfig {
 	t.Helper()
 
-	// Check for local Harbor instance from environment
 	localURL := os.Getenv(EnvHarborURL)
 	localUsername := os.Getenv(EnvHarborUsername)
 	localPassword := os.Getenv(EnvHarborPassword)
 
-	// Verify local instance is healthy
-		if isHarborHealthy(localURL) {
-			t.Logf("Using local Harbor instance at %s", localURL)
-			return &HarborTestConfig{
-				URL:      localURL,
-				Username: localUsername,
-				Password: localPassword,
-			}
-		}
-		t.Logf("Local Harbor instance at %s is not healthy", localURL)
-		return nil
+	if localURL == "" || localUsername == "" || localPassword == "" {
+		t.Fatalf("Missing Harbor test environment variables: %s, %s, %s", EnvHarborURL, EnvHarborUsername, EnvHarborPassword)
+	}
+
+	if !isHarborHealthy(localURL) {
+		t.Fatalf("Local Harbor instance at %s is not healthy", localURL)
+	}
+
+	t.Logf("Using local Harbor instance at %s", localURL)
+	return &HarborTestConfig{
+		URL:      localURL,
+		Username: localUsername,
+		Password: localPassword,
+	}
 }
 
 // GetHarborServerAddresses returns a list of valid server address formats for the current Harbor instance.
@@ -72,6 +74,7 @@ func GetHarborServerAddresses(t *testing.T) []string {
 	t.Helper()
 	cfg := GetHarborConfig(t)
 
+	// Local instance typically runs on a single address
 	return []string{cfg.URL}
 }
 
