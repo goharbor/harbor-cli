@@ -192,10 +192,6 @@ func GetTagFromUser(repoName, projectName, reference string) string {
 	return <-tag
 }
 
-// GetTagNameFromUser was removed - it contained a deadlock bug (empty goroutine
-// that never sent to the channel). Use GetTagFromUser() instead which correctly
-// fetches and displays tags for user selection.
-
 func GetScannerIdFromUser() string {
 	scannerId := make(chan string)
 
