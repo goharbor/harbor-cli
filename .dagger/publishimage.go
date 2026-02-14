@@ -342,7 +342,7 @@ func (m *HarborCli) AttestSBOM(
 		"--type", "spdxjson",
 		"--predicate", "/sbom.spdx.json",
 		"--registry-username", registryUsername,
-		"--registry-password", "env://REGISTRY_PASSWORD",
+		"--registry-password", registryPassword,
 		imageAddr,
 		"--timeout", "1m",
 	}).Stdout(ctx)
