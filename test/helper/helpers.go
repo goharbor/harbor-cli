@@ -34,8 +34,6 @@ type HarborTestConfig struct {
 	URL      string
 	Username string
 	Password string
-	// IsLocal indicates if this is the local podman Harbor instance (true) or fallback (false)
-	IsLocal bool
 }
 
 const (
@@ -43,16 +41,10 @@ const (
 	EnvHarborURL      = "HARBOR_URL"
 	EnvHarborUsername = "HARBOR_USERNAME"
 	EnvHarborPassword = "HARBOR_PASSWORD"
-
-	// Fallback to demo.goharbor.io
-	FallbackURL      = "https://demo.goharbor.io"
-	FallbackUsername = "harbor-cli"
-	FallbackPassword = "Harbor12345"
 )
 
 // GetHarborConfig returns the Harbor instance configuration for tests.
 // It first checks for a local Harbor instance (from CI podman setup) via environment variables.
-// If the local instance is not available or not healthy, it falls back to demo.goharbor.io.
 func GetHarborConfig(t *testing.T) *HarborTestConfig {
 	t.Helper()
 
@@ -61,28 +53,17 @@ func GetHarborConfig(t *testing.T) *HarborTestConfig {
 	localUsername := os.Getenv(EnvHarborUsername)
 	localPassword := os.Getenv(EnvHarborPassword)
 
-	if localURL != "" && localUsername != "" && localPassword != "" {
-		// Verify local instance is healthy
+	// Verify local instance is healthy
 		if isHarborHealthy(localURL) {
 			t.Logf("Using local Harbor instance at %s", localURL)
 			return &HarborTestConfig{
 				URL:      localURL,
 				Username: localUsername,
 				Password: localPassword,
-				IsLocal:  true,
 			}
 		}
-		t.Logf("Local Harbor instance at %s is not healthy, falling back to demo.goharbor.io", localURL)
-	}
-
-	// Fallback to demo.goharbor.io
-	t.Log("Using fallback Harbor instance at demo.goharbor.io")
-	return &HarborTestConfig{
-		URL:      FallbackURL,
-		Username: FallbackUsername,
-		Password: FallbackPassword,
-		IsLocal:  false,
-	}
+		t.Logf("Local Harbor instance at %s is not healthy", localURL)
+		return nil
 }
 
 // GetHarborServerAddresses returns a list of valid server address formats for the current Harbor instance.
@@ -91,18 +72,7 @@ func GetHarborServerAddresses(t *testing.T) []string {
 	t.Helper()
 	cfg := GetHarborConfig(t)
 
-	if cfg.IsLocal {
-		// Local instance typically runs on a single address
-		return []string{cfg.URL}
-	}
-
-	// For demo.goharbor.io, test multiple URL formats
-	return []string{
-		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:443",
-		"http://demo.goharbor.io",
-		"https://demo.goharbor.io",
-	}
+	return []string{cfg.URL}
 }
 
 // isHarborHealthy checks if a Harbor instance is responding to health checks.
