@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/gc"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
@@ -191,6 +192,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = scan_all.ScanAll()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = gc.GC()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 

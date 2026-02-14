@@ -1,0 +1,88 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-list - List GC history
+
+
+.SH SYNOPSIS
+\fBharbor gc list [flags]\fP
+
+
+.SH DESCRIPTION
+List GC (Garbage Collection) history in Harbor.
+
+.PP
+This command displays a list of GC executions with their status, creation time,
+and other details. You can control the output using pagination flags and format options.
+
+.PP
+Examples:
+  # List GC history with default pagination (page 1, 10 items per page)
+  harbor gc list
+
+.PP
+# List GC history with custom pagination
+  harbor gc list --page 2 --page-size 20
+
+.PP
+# List GC history with sorting by creation time (newest first)
+  harbor gc list --sort -creation_time
+
+.PP
+# List GC history with multiple sort fields
+  harbor gc list --sort creation_time --sort -job_status
+
+.PP
+# Filter GC history by status (exact match)
+  harbor gc list --match job_status=Success
+
+.PP
+# Filter GC history by fuzzy match
+  harbor gc list --fuzzy job_name=gc
+
+
+.SH OPTIONS
+\fB--fuzzy\fP=[]
+	Fuzzy match filter (key=value)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--match\fP=[]
+	Exact match filter (key=value)
+
+.PP
+\fB-p\fP, \fB--page\fP=1
+	Page number
+
+.PP
+\fB-s\fP, \fB--page-size\fP=10
+	Size of per page
+
+.PP
+\fB--range\fP=[]
+	Range filter (key=min~max)
+
+.PP
+\fB--sort\fP=[]
+	Sort the resource list (e.g. --sort creation_time --sort -update_time)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP

@@ -1,0 +1,52 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-log - Get GC job log
+
+
+.SH SYNOPSIS
+\fBharbor gc log [flags]\fP
+
+
+.SH DESCRIPTION
+Get the log of a specific GC (Garbage Collection) job.
+
+.PP
+If no GC job ID is provided via the --id flag, an interactive selector
+will be displayed to choose from available GC jobs.
+
+.PP
+Examples:
+  # Get GC log by specifying the job ID
+  harbor gc log --id 42
+
+.PP
+# Get GC log interactively (select from list)
+  harbor gc log
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for log
+
+.PP
+\fB--id\fP=0
+	ID of the GC job to get logs for
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP
