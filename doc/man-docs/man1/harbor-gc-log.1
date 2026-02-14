@@ -6,16 +6,33 @@ harbor-gc-log - Get GC job log
 
 
 .SH SYNOPSIS
-\fBharbor gc log [gc_id] [flags]\fP
+\fBharbor gc log [flags]\fP
 
 
 .SH DESCRIPTION
-Get GC job log
+Get the log of a specific GC (Garbage Collection) job.
+
+.PP
+If no GC job ID is provided via the --id flag, an interactive selector
+will be displayed to choose from available GC jobs.
+
+.PP
+Examples:
+  # Get GC log by specifying the job ID
+  harbor gc log --id 42
+
+.PP
+# Get GC log interactively (select from list)
+  harbor gc log
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
 	help for log
+
+.PP
+\fB--id\fP=0
+	ID of the GC job to get logs for
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
