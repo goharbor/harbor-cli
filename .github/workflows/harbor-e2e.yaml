@@ -156,6 +156,7 @@ jobs:
           HARBOR_URL: ${{ steps.set-outputs.outputs.harbor_url }}
           HARBOR_USERNAME: ${{ steps.set-outputs.outputs.harbor_username }}
           HARBOR_PASSWORD: ${{ steps.set-outputs.outputs.harbor_password }}
+          HARBOR_REQUIRED: "true"
         run: |
           echo "Running e2e tests against Harbor at ${HARBOR_URL}"
           go test -v ./...
