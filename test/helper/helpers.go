@@ -14,16 +14,102 @@
 package helpers
 
 import (
+	"crypto/tls"
+	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
+
+// HarborTestConfig holds connection details for a Harbor instance used in tests.
+type HarborTestConfig struct {
+	URL      string
+	Username string
+	Password string
+}
+
+const (
+	// Environment variables for local Harbor instance (set by CI workflow)
+	EnvHarborURL      = "HARBOR_URL"
+	EnvHarborUsername = "HARBOR_USERNAME"
+	EnvHarborPassword = "HARBOR_PASSWORD"
+	EnvHarborRequired = "HARBOR_REQUIRED"
+)
+
+// GetHarborConfig returns the Harbor instance configuration for tests.
+// It requires a local Harbor instance (from CI podman setup) via environment variables.
+// If Harbor is not available:
+// Skips if HARBOR_REQUIRED is not set
+// Fails if HARBOR_REQUIRED=true
+func GetHarborConfig(t *testing.T) *HarborTestConfig {
+	t.Helper()
+
+	localURL := os.Getenv(EnvHarborURL)
+	localUsername := os.Getenv(EnvHarborUsername)
+	localPassword := os.Getenv(EnvHarborPassword)
+	harborRequired := os.Getenv(EnvHarborRequired) == "true"
+
+	if localURL == "" || localUsername == "" || localPassword == "" {
+		if harborRequired {
+			t.Fatalf("Missing Harbor test environment variables: %s, %s, %s (required for harbor-e2e)", EnvHarborURL, EnvHarborUsername, EnvHarborPassword)
+		}
+		t.Skipf("Harbor test environment variables not set. Harbor instance required for this test.")
+	}
+
+	// If Harbor instance is not healthy
+	if !isHarborHealthy(localURL) {
+		if harborRequired {
+			t.Fatalf("Local Harbor instance at %s is not healthy or unreachable (required for harbor-e2e)", localURL)
+		}
+		t.Skipf("Local Harbor instance at %s is not healthy or unreachable", localURL)
+	}
+
+	t.Logf("Using local Harbor instance at %s", localURL)
+	return &HarborTestConfig{
+		URL:      localURL,
+		Username: localUsername,
+		Password: localPassword,
+	}
+}
+
+// GetHarborServerAddresses returns a list of valid server address formats for the current Harbor instance.
+// Useful for testing different URL formats (with/without port, http/https).
+func GetHarborServerAddresses(t *testing.T) []string {
+	t.Helper()
+	cfg := GetHarborConfig(t)
+
+	// Local instance typically runs on a single address
+	return []string{cfg.URL}
+}
+
+// isHarborHealthy checks if a Harbor instance is responding to health checks.
+func isHarborHealthy(baseURL string) bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // #nosec G402 - Allow self-signed certs for local test instance only
+			},
+		},
+	}
+
+	healthURL := fmt.Sprintf("%s/api/v2.0/health", baseURL)
+	resp, err := client.Get(healthURL)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK
+}
 
 var envMutex sync.Mutex
 

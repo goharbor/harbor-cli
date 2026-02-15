@@ -238,6 +238,17 @@ jobs:
           verb: call
           args: build-dev --source=. --platform linux/amd64 export --path=./harbor-dev
 
+  harbor-e2e:
+    needs:
+      - lint
+    uses: ./.github/workflows/harbor-e2e.yaml
+    with:
+      harbor_hostname: "harbor.local"
+      enable_trivy: false
+      run_tests: true
+    secrets:
+      harbor_admin_password: ${{ secrets.HARBOR_ADMIN_PASSWORD }}
+
   push-latest-images:
     needs:
       - lint

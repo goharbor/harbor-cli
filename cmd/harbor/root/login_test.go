@@ -25,21 +25,19 @@ func Test_Login_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
-	cmd := root.LoginCommand()
-	validServerAddresses := []string{
-		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:443",
-		"http://demo.goharbor.io",
-		"https://demo.goharbor.io",
-	}
 
-	for _, serverAddress := range validServerAddresses {
+	harborCfg := helpers.GetHarborConfig(t)
+	serverAddresses := helpers.GetHarborServerAddresses(t)
+
+	cmd := root.LoginCommand()
+
+	for _, serverAddress := range serverAddresses {
 		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
 			args := []string{serverAddress}
 			cmd.SetArgs(args)
 
-			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
-			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
+			assert.NoError(t, cmd.Flags().Set("username", harborCfg.Username))
+			assert.NoError(t, cmd.Flags().Set("password", harborCfg.Password))
 
 			err := cmd.Execute()
 			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
@@ -67,11 +65,13 @@ func Test_Login_Failure_WrongUsername(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
+	harborCfg := helpers.GetHarborConfig(t)
+
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	cmd.SetArgs([]string{harborCfg.URL})
 
 	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
-	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
+	assert.NoError(t, cmd.Flags().Set("password", harborCfg.Password))
 
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error for wrong username")
@@ -82,11 +82,13 @@ func Test_Login_Failure_WrongPassword(t *testing.T) {
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
-	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	harborCfg := helpers.GetHarborConfig(t)
 
-	assert.NoError(t, cmd.Flags().Set("username", "admin"))
-	assert.NoError(t, cmd.Flags().Set("password", "wrong"))
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{harborCfg.URL})
+
+	assert.NoError(t, cmd.Flags().Set("username", harborCfg.Username))
+	assert.NoError(t, cmd.Flags().Set("password", "wrong-password-12345"))
 
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error for wrong password")

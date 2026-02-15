@@ -1,0 +1,162 @@
+name: Harbor E2E Setup
+
+on:
+  workflow_call:
+    inputs:
+      harbor_hostname:
+        required: false
+        type: string
+        default: "harbor.local" # Hostname is defaulted to harbor.local (since harbor rejects localhost and 127.0.0.1)
+      enable_trivy:
+        required: false
+        type: boolean
+        default: false
+      run_tests:
+        required: false
+        type: boolean
+        default: true # Run e2e tests after Harbor setup
+    secrets:
+      harbor_admin_password:
+        required: false # If no password is given, a random base64 password is generated at runtime
+
+jobs:
+  setup-harbor:
+    runs-on: ubuntu-latest
+    env:
+      HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
+      HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
+      TERM: xterm  # Avoid tput errors from install.sh color output
+    outputs:
+      harbor_url: ${{ steps.set-outputs.outputs.harbor_url }}
+      harbor_username: ${{ steps.set-outputs.outputs.harbor_username }}
+      harbor_password: ${{ steps.set-outputs.outputs.harbor_password }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            podman podman-docker podman-compose \
+            git tar gzip wget openssl curl golang-go
+
+      - name: Configure hostname in /etc/hosts
+        run: |
+          # Harbor rejects 127.0.0.1/localhost as hostname, so we use a fake hostname
+          # and map it to localhost in /etc/hosts
+          echo "127.0.0.1 ${HARBOR_HOSTNAME}" | sudo tee -a /etc/hosts
+          cat /etc/hosts | grep "${HARBOR_HOSTNAME}"
+
+      - name: Configure Podman for CI
+        run: |
+          # Configure Podman to allow short-name resolution without TTY prompts
+          # This allows pulling "goharbor/prepare" instead of "docker.io/goharbor/prepare"
+          sudo mkdir -p /etc/containers/registries.conf.d
+          cat <<EOF | sudo tee /etc/containers/registries.conf.d/shortnames.conf
+          unqualified-search-registries = ["docker.io"]
+          short-name-mode = "permissive"
+          EOF
+          
+          # Verify podman is working
+          podman --version
+          podman-compose --version
+
+      - name: Clone Harbor Podman repo
+        run: git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
+
+      - name: Prepare harbor config and TLS
+        working-directory: /tmp/harbor-podman
+        run: |
+          # bash safety
+          set -euo pipefail
+
+          cp harbor.yml.tmpl harbor.yml
+
+          HOSTNAME="${HARBOR_HOSTNAME:-harbor.local}"
+          ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
+          if [ -z "$ADMIN_PW" ]; then
+            ADMIN_PW=$(openssl rand -base64 30)
+          fi
+
+          sed -i "s|^hostname:.*|hostname: ${HOSTNAME}|" harbor.yml
+
+          # set the passwords for admin and databases
+          sed -i "s|^harbor_admin_password:.*|harbor_admin_password: \"${ADMIN_PW}\"|" harbor.yml
+          sed -i "/^database:/ { n; n; s|^  password:.*|  password: \"$(openssl rand -base64 30)\"| }" harbor.yml
+
+          # create self-signed ssl certificate valid for 10 years
+          # Use absolute paths because the prepare script runs in a container that mounts / -> /hostfs/
+          mkdir -p /tmp/harbor-podman/cert
+          openssl req -newkey rsa:4096 -nodes -x509 -days 3650 \
+            -subj "/C=US/ST=CA/L=SF/O=harbor-cli/CN=${HOSTNAME}" \
+            -keyout /tmp/harbor-podman/cert/harbor.key \
+            -out    /tmp/harbor-podman/cert/harbor.crt
+
+          # Update harbor.yml to use absolute cert paths (required for prepare container's /hostfs mount)
+          sed -i "s|certificate:.*|certificate: /tmp/harbor-podman/cert/harbor.crt|" harbor.yml
+          sed -i "s|private_key:.*|private_key: /tmp/harbor-podman/cert/harbor.key|" harbor.yml
+
+          sudo chown -R 1000:1000 .
+
+      - name: Start Harbor
+        working-directory: /tmp/harbor-podman
+        env:
+          ENABLE_TRIVY: ${{ inputs.enable_trivy }}
+        run: |
+          # bash safety
+          set -euo pipefail
+
+          extra_flag=""
+          if [ "${ENABLE_TRIVY}" = "true" ]; then
+            extra_flag="--with-trivy"
+          fi
+          sudo ./install.sh ${extra_flag}
+
+      - name: Wait for Harbor to be ready
+        run: |
+          # bash safety
+          set -euo pipefail
+
+          HOST="${HARBOR_HOSTNAME:-harbor.local}"
+          for i in $(seq 1 40); do
+            if curl -sk https://${HOST}/api/v2.0/health >/dev/null; then
+              echo "Harbor is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Harbor failed to become ready" >&2
+          sudo podman ps -a
+          sudo podman logs harbor-core || true
+          exit 1
+
+      - name: Show running containers
+        run: sudo podman ps -a
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          HOST="${HARBOR_HOSTNAME:-harbor.local}"
+          ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
+          if [ -z "$ADMIN_PW" ]; then
+             ADMIN_PW=$(grep '^harbor_admin_password:' /tmp/harbor-podman/harbor.yml | awk '{print $2}' | tr -d '"')
+          fi
+          echo "harbor_url=https://${HOST}" >> $GITHUB_OUTPUT
+          echo "harbor_username=admin" >> $GITHUB_OUTPUT
+          echo "harbor_password=${ADMIN_PW}" >> $GITHUB_OUTPUT
+
+      # E2E tests run in the same job to access the Harbor instance
+      - name: Checkout harbor-cli repo
+        if: ${{ inputs.run_tests }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run E2E Tests
+        if: ${{ inputs.run_tests }}
+        env:
+          HARBOR_URL: ${{ steps.set-outputs.outputs.harbor_url }}
+          HARBOR_USERNAME: ${{ steps.set-outputs.outputs.harbor_username }}
+          HARBOR_PASSWORD: ${{ steps.set-outputs.outputs.harbor_password }}
+          HARBOR_REQUIRED: "true"
+        run: |
+          echo "Running e2e tests against Harbor at ${HARBOR_URL}"
+          go test -v ./...
