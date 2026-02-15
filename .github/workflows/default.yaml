@@ -160,7 +160,6 @@ jobs:
   harbor-e2e:
     needs:
       - lint
-      # - test-code
     uses: ./.github/workflows/harbor-e2e.yaml
     with:
       harbor_hostname: "harbor.local"
