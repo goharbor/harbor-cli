@@ -336,14 +336,12 @@ func (m *HarborCli) AttestSBOM(
 	}
 
 	// Use cosign attest to create in-toto attestation with SPDX JSON predicate
+	// The registry password is already available as REGISTRY_PASSWORD env var
 	return cosignCtr.WithExec([]string{
-		"cosign", "attest",
-		"--yes",
-		"--type", "spdxjson",
-		"--predicate", "/sbom.spdx.json",
-		"--registry-username", registryUsername,
-		"--registry-password", registryPassword,
-		imageAddr,
-		"--timeout", "1m",
+		"sh", "-c",
+		fmt.Sprintf(
+			"cosign attest --yes --type spdxjson --predicate /sbom.spdx.json --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 1m",
+			registryUsername, imageAddr,
+		),
 	}).Stdout(ctx)
 }
