@@ -41,23 +41,35 @@ const (
 	EnvHarborURL      = "HARBOR_URL"
 	EnvHarborUsername = "HARBOR_USERNAME"
 	EnvHarborPassword = "HARBOR_PASSWORD"
+	EnvHarborRequired = "HARBOR_REQUIRED"
 )
 
 // GetHarborConfig returns the Harbor instance configuration for tests.
 // It requires a local Harbor instance (from CI podman setup) via environment variables.
+// If Harbor is not available:
+// Skips if HARBOR_REQUIRED is not set
+// Fails if HARBOR_REQUIRED=true
 func GetHarborConfig(t *testing.T) *HarborTestConfig {
 	t.Helper()
 
 	localURL := os.Getenv(EnvHarborURL)
 	localUsername := os.Getenv(EnvHarborUsername)
 	localPassword := os.Getenv(EnvHarborPassword)
+	harborRequired := os.Getenv(EnvHarborRequired) == "true"
 
 	if localURL == "" || localUsername == "" || localPassword == "" {
-		t.Fatalf("Missing Harbor test environment variables: %s, %s, %s", EnvHarborURL, EnvHarborUsername, EnvHarborPassword)
+		if harborRequired {
+			t.Fatalf("Missing Harbor test environment variables: %s, %s, %s (required for harbor-e2e)", EnvHarborURL, EnvHarborUsername, EnvHarborPassword)
+		}
+		t.Skipf("Harbor test environment variables not set. Harbor instance required for this test.")
 	}
 
+	// If Harbor instance is not healthy
 	if !isHarborHealthy(localURL) {
-		t.Fatalf("Local Harbor instance at %s is not healthy", localURL)
+		if harborRequired {
+			t.Fatalf("Local Harbor instance at %s is not healthy or unreachable (required for harbor-e2e)", localURL)
+		}
+		t.Skipf("Local Harbor instance at %s is not healthy or unreachable", localURL)
 	}
 
 	t.Logf("Using local Harbor instance at %s", localURL)
