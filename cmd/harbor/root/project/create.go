@@ -64,7 +64,7 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 			ProxyCache:   opts.ProxyCache,
 		}
 
-		err := fillCreateView(projectCreator, createView)
+		err := projectCreator.FillProjectView(createView)
 		if err != nil {
 			return fmt.Errorf("Failed to get the required params to create project:%w", err)
 		}
@@ -97,17 +97,4 @@ func CreateProjectCommand() *cobra.Command {
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
 	return cmd
-}
-
-func fillCreateView(projectCreator ProjectCreator, createView *create.CreateView) error {
-	if createView == nil {
-		createView = &create.CreateView{
-			ProjectName:  "",
-			Public:       false,
-			RegistryID:   "",
-			StorageLimit: "-1",
-		}
-	}
-	err := projectCreator.FillProjectView(createView)
-	return err
 }
