@@ -44,7 +44,7 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 	if len(args) > 0 {
 		opts.ProjectName = args[0]
 	}
-	
+
 	if opts.ProxyCache && opts.RegistryID == "" {
 		return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
 	}
@@ -52,7 +52,7 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 	if !opts.ProxyCache && opts.RegistryID != "" {
 		return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
 	}
-	
+
 	if opts.ProjectName == "" || opts.StorageLimit == "" {
 		log.Debug("Switching to interactive view...")
 		createView = &create.CreateView{
@@ -78,6 +78,7 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 	fmt.Fprintf(w, "Project '%s' created successfully\n", projectName)
 	return nil
 }
+
 // CreateProjectCommand creates a new `harbor create project` command
 func CreateProjectCommand() *cobra.Command {
 	opts := &create.CreateView{}

@@ -46,15 +46,15 @@ func (m *mockProjectCreator) CreateProject(opts create.CreateView) error {
 	return nil
 }
 func TestCreateProject(t *testing.T) {
-	projectsAreEqual := func(u1, u2 []*create.CreateView) bool {
-		if len(u1) != len(u2) {
+	projectsAreEqual := func(p1, p2 []*create.CreateView) bool {
+		if len(p1) != len(p2) {
 			return false
 		}
 		mp := make(map[string]int)
-		for _, proj := range u1 {
+		for _, proj := range p1 {
 			mp[proj.ProjectName]++
 		}
-		for _, proj := range u2 {
+		for _, proj := range p2 {
 			mp[proj.ProjectName]--
 		}
 		for _, val := range mp {
@@ -207,7 +207,7 @@ func TestCreateProject(t *testing.T) {
 						errInFilling: true,
 					}
 			},
-			expectedErr:      "Failed to get the required params to create project",
+			expectedErr:      "failed to get the required params to create project",
 			expectedProjects: []*create.CreateView{},
 		},
 		{
