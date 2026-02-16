@@ -39,7 +39,7 @@ func (d *DefaultProjectCreator) FillProjectView(createView *create.CreateView) e
 }
 
 func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.CreateView, args []string) error {
-	var ProjectName string
+	var projectName string
 	var createView *create.CreateView
 	if len(args) > 0 {
 		opts.ProjectName = args[0]
@@ -71,11 +71,11 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 		createView = opts
 	}
 
-	ProjectName = createView.ProjectName
+	projectName = createView.ProjectName
 	if err := projectCreator.CreateProject(*createView); err != nil {
 		return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
 	}
-	fmt.Fprintf(w, "Project '%s' created successfully\n", ProjectName)
+	fmt.Fprintf(w, "Project '%s' created successfully\n", projectName)
 	return nil
 }
 // CreateProjectCommand creates a new `harbor create project` command
