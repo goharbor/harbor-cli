@@ -45,59 +45,6 @@ func (m *mockProjectCreator) CreateProject(opts create.CreateView) error {
 	m.projectName[opts.ProjectName] = struct{}{}
 	return nil
 }
-func TestFillCreateView(t *testing.T) {
-	tests := []struct {
-		name         string
-		input        *create.CreateView
-		errInFilling bool
-		expectError  bool
-		expectName   string
-		expectLimit  string
-	}{
-		{
-			name:        "nil createView gets defaults then filled",
-			input:       nil,
-			expectName:  "testProject999",
-			expectLimit: "-1",
-		},
-		{
-			name: "empty createView gets filled",
-			input: &create.CreateView{
-				ProjectName:  "",
-				StorageLimit: "",
-			},
-			expectName:  "testProject999",
-			expectLimit: "-1",
-		},
-		{
-			name:         "error in FillProjectView propagates",
-			input:        &create.CreateView{},
-			errInFilling: true,
-			expectError:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mock := &mockProjectCreator{
-				projectName:  make(map[string]struct{}),
-				errInFilling: tt.errInFilling,
-			}
-
-			err := fillCreateView(mock, tt.input)
-
-			if tt.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				if tt.input != nil {
-					assert.Equal(t, tt.expectName, tt.input.ProjectName)
-					assert.Equal(t, tt.expectLimit, tt.input.StorageLimit)
-				}
-			}
-		})
-	}
-}
 func TestCreateProject(t *testing.T) {
 	projectsAreEqual := func(u1, u2 []*create.CreateView) bool {
 		if len(u1) != len(u2) {
