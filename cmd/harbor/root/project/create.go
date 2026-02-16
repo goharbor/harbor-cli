@@ -65,7 +65,7 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 
 		err := projectCreator.FillProjectView(createView)
 		if err != nil {
-			return fmt.Errorf("Failed to get the required params to create project:%w", err)
+			return fmt.Errorf("failed to get the required params to create project: %w", err)
 		}
 	} else {
 		createView = opts
