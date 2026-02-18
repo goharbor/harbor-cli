@@ -47,6 +47,7 @@ func AsError(err error) *Error {
 	}
 	return &Error{
 		message: err.Error(),
+		cause:   err,
 	}
 }
 
