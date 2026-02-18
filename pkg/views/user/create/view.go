@@ -99,7 +99,7 @@ func CreateUserView(createView *CreateView) {
 					return nil
 				}),
 			huh.NewInput().
-				Title("Comment").
+				Title("Comment (optional)").
 				Value(&createView.Comment),
 		),
 	).WithTheme(theme).Run()

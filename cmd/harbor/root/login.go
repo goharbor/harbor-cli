@@ -130,7 +130,7 @@ func RunLogin(opts login.LoginView) error {
 	}
 	err := utils.ValidateURL(opts.Server)
 	if err != nil {
-		return fmt.Errorf("invalid server URL: %s", err)
+		return fmt.Errorf("invalid server URL: %w", err)
 	}
 	client := utils.GetClientByConfig(clientConfig)
 	ctx := context.Background()

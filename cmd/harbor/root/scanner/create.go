@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/create"
 	"github.com/spf13/cobra"
 )
@@ -32,6 +33,13 @@ func CreateScannerCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Name == "" || opts.Auth == "" || opts.URL == "" {
 				create.CreateScannerView(&opts)
+			} else {
+				// Validate URL when provided via flags
+				formattedUrl := utils.FormatUrl(opts.URL)
+				if err := utils.ValidateURL(formattedUrl); err != nil {
+					return err
+				}
+				opts.URL = formattedUrl
 			}
 
 			if ping {
