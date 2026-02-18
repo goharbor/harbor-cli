@@ -19,8 +19,8 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/gc/stop"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -45,7 +45,7 @@ Notes:
   - Use 'harbor-cli gc list' to view all GC jobs and their statuses`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			gcID, err := stop.SelectGCJob()
+			gcID, err := prompt.GetRunningGCJobIDFromUser()
 			if err != nil {
 				if err.Error() == "no running GC jobs found to stop" {
 					logrus.Info(err.Error())

@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	gclog "github.com/goharbor/harbor-cli/pkg/views/gc/log"
+	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +44,7 @@ Examples:
 			var err error
 
 			if gcID <= 0 {
-				gcID, err = gclog.SelectGCJob()
+				gcID, err = prompt.GetGCJobIDFromUser()
 				if err != nil {
 					return err
 				}
