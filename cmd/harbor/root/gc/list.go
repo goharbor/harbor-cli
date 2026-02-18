@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/gc"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var validGCSortFields = []string{
@@ -108,7 +109,15 @@ Examples:
 				return nil
 			}
 
-			gc.ListGC(history)
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				err = utils.PrintFormat(history, formatFlag)
+				if err != nil {
+					return err
+				}
+			} else {
+				gc.ListGC(history)
+			}
 			return nil
 		},
 	}
