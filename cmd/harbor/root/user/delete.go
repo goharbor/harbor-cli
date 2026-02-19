@@ -54,7 +54,7 @@ func UserDeleteCmd() *cobra.Command {
 			if len(args) == 0 {
 				userID := prompt.GetUserIdFromUser()
 				if err := api.DeleteUser(userID); err != nil {
-					return fmt.Errorf("failed to delete user: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to delete user: %s", utils.ParseHarborErrorMsg(err))
 				}
 				fmt.Println("User deleted successfully")
 				return nil
