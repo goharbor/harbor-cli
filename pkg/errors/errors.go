@@ -22,23 +22,96 @@ var (
 	as = errors.As
 )
 
+type Frame struct {
+	Message string
+	Hints   []string
+}
+
 type Error struct {
-	cause   error
-	message string
-	hints   []string
+	frames []Frame
+	cause  error
 }
 
 func New(message string) *Error {
 	return &Error{
-		message: message,
+		frames: []Frame{{Message: message}},
 	}
 }
 
 func Newf(format string, args ...any) *Error {
 	return &Error{
-		message: fmt.Sprintf(format, args...),
+		frames: []Frame{{Message: fmt.Sprintf(format, args...)}},
 	}
 }
+
+func Wrap(err error, message string) *Error {
+	e := AsError(err)
+	e.frames = append([]Frame{{Message: message}}, e.frames...)
+	return e
+}
+
+func Wrapf(err error, format string, args ...any) *Error {
+	return Wrap(err, fmt.Sprintf(format, args...))
+}
+
+func (e *Error) WithHint(hint string) *Error {
+	if len(e.frames) > 0 {
+		e.frames[0].Hints = append(e.frames[0].Hints, hint)
+	}
+	return e
+}
+
+func (e *Error) WithCause(cause error) *Error {
+	if e.cause == nil {
+		e.cause = cause
+	}
+	return e
+}
+
+func (e *Error) Error() string {
+	if len(e.frames) == 0 {
+		return ""
+	}
+	return e.frames[len(e.frames)-1].Message
+}
+
+func (e *Error) Message() string {
+	if len(e.frames) == 0 {
+		return ""
+	}
+	return e.frames[0].Message
+}
+
+func (e *Error) Errors() []string {
+	msgs := make([]string, len(e.frames))
+	for i, f := range e.frames {
+		msgs[i] = f.Message
+	}
+	return msgs
+}
+
+func (e *Error) Hints() []string {
+	var all []string
+	for _, f := range e.frames {
+		all = append(all, f.Hints...)
+	}
+	return all
+}
+
+func (e *Error) Frames() []Frame {
+	return e.frames
+}
+
+func (e *Error) Cause() error { return e.cause }
+
+func (e *Error) Status() string {
+	if e.cause == nil {
+		return ""
+	}
+	return parseHarborErrorCode(e.cause)
+}
+
+func (e *Error) Unwrap() error { return e.cause }
 
 func AsError(err error) *Error {
 	var e *Error
@@ -46,8 +119,8 @@ func AsError(err error) *Error {
 		return e
 	}
 	return &Error{
-		message: err.Error(),
-		cause:   err,
+		frames: []Frame{{Message: parseHarborErrorMsg(err)}},
+		cause:  err,
 	}
 }
 
@@ -76,33 +149,3 @@ func Status(err error) string {
 	}
 	return ""
 }
-
-func (e *Error) WithCause(cause error) *Error {
-	if e.cause == nil {
-		e.cause = cause
-	}
-	return e
-}
-
-func (e *Error) WithHint(hint string) *Error {
-	e.hints = append(e.hints, hint)
-	return e
-}
-
-func (e *Error) Error() string {
-	if e.cause != nil {
-		causeMsg := parseHarborErrorMsg(e.cause)
-		return e.message + ": " + causeMsg
-	}
-	return e.message
-}
-
-func (e *Error) Cause() error { return e.cause }
-
-func (e *Error) Status() string { return parseHarborErrorCode(e.cause) }
-
-func (e *Error) Hints() []string { return e.hints }
-
-func (e *Error) Message() string { return e.message }
-
-func (e *Error) Unwrap() error { return e.cause }
