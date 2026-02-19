@@ -6,7 +6,7 @@ weight: 185
 
 ### Description
 
-##### delete user by name
+##### Delete users by name or interactive prompt
 
 ```sh
 harbor user delete [username...] [flags]

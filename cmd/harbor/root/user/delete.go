@@ -48,7 +48,7 @@ func fetchAllUsers() ([]*models.UserResp, error) {
 func UserDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete [username...]",
-		Short: "delete user by name",
+		Short: "Delete users by name or interactive prompt",
 		Args:  cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
