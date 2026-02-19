@@ -17,12 +17,32 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+func fetchAllUsers() ([]*models.UserResp, error) {
+	opts := api.ListFlags{Page: 1, PageSize: 100}
+	var allUsers []*models.UserResp
+	for {
+		response, err := api.ListUsers(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		allUsers = append(allUsers, response.Payload...)
+
+		if len(response.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
+	}
+	return allUsers, nil
+}
 
 // UserDeleteCmd defines the "delete" command for user deletion.
 func UserDeleteCmd() *cobra.Command {
@@ -40,12 +60,12 @@ func UserDeleteCmd() *cobra.Command {
 				return nil
 			}
 
-			allUsers, err := api.ListUsers()
+			allUsers, err := fetchAllUsers()
 			if err != nil {
 				return fmt.Errorf("failed to list users: %v", utils.ParseHarborErrorMsg(err))
 			}
 			userMap := make(map[string]int64)
-			for _, u := range allUsers.Payload {
+			for _, u := range allUsers {
 				userMap[u.Username] = u.UserID
 			}
 
