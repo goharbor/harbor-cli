@@ -61,7 +61,7 @@ func ListProjects(projects []*models.Project) error {
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m, tea.WithOutput(os.Stdout), tea.WithInput(nil)).Run(); err != nil {
-		return fmt.Errorf("Error running program:%w", err)
+		return fmt.Errorf("Error running program: %w", err)
 	}
 	return nil
 }

@@ -56,7 +56,7 @@ func BuildListOptions(private, public bool, opts *api.ListFlags, fuzzy, match, r
 	}
 
 	if private && public {
-		return nil, fmt.Errorf("Cannot specify both --private and --public flags")
+		return nil, fmt.Errorf("cannot specify both --private and --public flags")
 	}
 
 	if private {
@@ -107,7 +107,7 @@ func ListProjectCommand() *cobra.Command {
 			log.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
-				return fmt.Errorf("%s", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to get projects list: %s", utils.ParseHarborErrorMsg(err))
 			}
 			if err := PrintProjects(allProjects); err != nil {
 				return err

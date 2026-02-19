@@ -31,7 +31,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"go.yaml.in/yaml/v4"
+	"gopkg.in/yaml.v2"
 )
 
 func captureOutput(f func() error) (string, error) {
@@ -71,7 +71,7 @@ func (m *MockProjectLister) mockListFunc(opts ...api.ListFlags) (project.ListPro
 		return *res, fmt.Errorf("mock list error")
 	}
 	if len(opts) == 0 {
-		return *res, fmt.Errorf("No options passed")
+		return *res, fmt.Errorf("no options passed")
 	}
 	listFlags := opts[0]
 	page, pageSize := listFlags.Page, listFlags.PageSize
@@ -158,7 +158,7 @@ func TestBuildListOptions(t *testing.T) {
 					opts:    &api.ListFlags{},
 				}
 			},
-			wantedErr: "Cannot specify both --private and --public",
+			wantedErr: "cannot specify both --private and --public",
 		},
 		{
 			name: "page size exceeds maximum",
