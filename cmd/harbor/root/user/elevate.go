@@ -21,63 +21,45 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type UserElevator interface {
-	GetUserIDByName(username string) (int64, error)
-	GetUserIDFromUser() int64
-	ConfirmElevation() (bool, error)
-	ElevateUser(userID int64) error
-}
+var (
+	getUsersIDByName  = api.GetUsersIdByName
+	getUserIDFromUser = prompt.GetUserIdFromUser
+	confirmElevation  = views.ConfirmElevation
+	elevateUserAPI    = api.ElevateUser
+)
 
-type DefaultUserElevator struct{}
-
-func (d *DefaultUserElevator) GetUserIDByName(username string) (int64, error) {
-	return api.GetUsersIdByName(username)
-}
-
-func (d *DefaultUserElevator) GetUserIDFromUser() int64 {
-	return prompt.GetUserIdFromUser()
-}
-
-func (d *DefaultUserElevator) ConfirmElevation() (bool, error) {
-	return views.ConfirmElevation()
-}
-
-func (d *DefaultUserElevator) ElevateUser(userID int64) error {
-	return api.ElevateUser(userID)
-}
-
-func ElevateUser(args []string, userElevator UserElevator) {
+func ElevateUser(args []string) {
 	var err error
 	var userID int64
 
 	if len(args) > 0 {
-		userID, err = userElevator.GetUserIDByName(args[0])
+		userID, err = getUsersIDByName(args[0])
 		if err != nil {
 			log.Errorf("failed to get user id for '%s': %v", args[0], err)
 			return
 		}
 		if userID == 0 {
-			log.Errorf("User with name '%s' not found", args[0])
+			log.Errorf("user with name '%s' not found", args[0])
 			return
 		}
 	} else {
-		userID = userElevator.GetUserIDFromUser()
+		userID = getUserIDFromUser()
 	}
 
-	confirm, err := userElevator.ConfirmElevation()
+	confirm, err := confirmElevation()
 	if err != nil {
 		log.Errorf("failed to confirm elevation: %v", err)
 		return
 	}
 	if !confirm {
-		log.Error("User did not confirm elevation. Aborting command.")
+		log.Error("user did not confirm elevation. Aborting command.")
 		return
 	}
 
-	err = userElevator.ElevateUser(userID)
+	err = elevateUserAPI(userID)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			log.Error("Permission denied: Admin privileges are required to execute this command.")
+			log.Error("permission denied: Admin privileges are required to execute this command.")
 		} else {
 			log.Errorf("failed to elevate user: %v", err)
 		}
@@ -91,8 +73,7 @@ func ElevateUserCmd() *cobra.Command {
 		Long:  "elevate user to admin role",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			d := &DefaultUserElevator{}
-			ElevateUser(args, d)
+			ElevateUser(args)
 		},
 	}
 
