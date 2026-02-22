@@ -22,56 +22,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type UserPasswordChanger interface {
-	GetUserIDByName(username string) (int64, error)
-	GetUserIDFromUser() int64
-	FillPasswordView(resetView *reset.PasswordChangeView)
-	ResetPassword(userID int64, resetView reset.PasswordChangeView) error
-}
+var (
+	getUserIDByName   = api.GetUsersIdByName
+	getUserIDFromUser = prompt.GetUserIdFromUser
+	fillPasswordView  = reset.ChangePasswordView
+	resetPassword     = api.ResetPassword
+)
 
-type DefaultUserPasswordChanger struct{}
-
-func (d *DefaultUserPasswordChanger) GetUserIDByName(username string) (int64, error) {
-	return api.GetUsersIdByName(username)
-}
-
-func (d *DefaultUserPasswordChanger) GetUserIDFromUser() int64 {
-	return prompt.GetUserIdFromUser()
-}
-
-func (d *DefaultUserPasswordChanger) FillPasswordView(resetView *reset.PasswordChangeView) {
-	reset.ChangePasswordView(resetView)
-}
-
-func (d *DefaultUserPasswordChanger) ResetPassword(userID int64, resetView reset.PasswordChangeView) error {
-	return api.ResetPassword(userID, resetView)
-}
-
-func ChangePassword(args []string, passwordChanger UserPasswordChanger) {
+func ChangePassword(args []string) {
 	var userID int64
 	var err error
 	resetView := &reset.PasswordChangeView{}
 
 	if len(args) > 0 {
-		userID, err = passwordChanger.GetUserIDByName(args[0])
+		userID, err = getUserIDByName(args[0])
 		if err != nil {
 			log.Errorf("failed to get user id for '%s': %v", args[0], err)
 			return
 		}
 		if userID == 0 {
-			log.Errorf("User with name '%s' not found", args[0])
+			log.Errorf("user with name '%s' not found", args[0])
 			return
 		}
 	} else {
-		userID = passwordChanger.GetUserIDFromUser()
+		userID = getUserIDFromUser()
 	}
 
-	passwordChanger.FillPasswordView(resetView)
+	fillPasswordView(resetView)
 
-	err = passwordChanger.ResetPassword(userID, *resetView)
+	err = resetPassword(userID, *resetView)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			log.Error("Permission denied: Admin privileges are required to execute this command.")
+			log.Error("permission denied: Admin privileges are required to execute this command.")
 		} else {
 			log.Errorf("failed to reset user password: %v", err)
 		}
@@ -85,8 +67,7 @@ func UserPasswordChangeCmd() *cobra.Command {
 		Long:  "Allows admin to reset the password for a specified user or select interactively if no username is provided.",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			d := &DefaultUserPasswordChanger{}
-			ChangePassword(args, d)
+			ChangePassword(args)
 		},
 	}
 	return cmd

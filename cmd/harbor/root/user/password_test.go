@@ -30,23 +30,23 @@ type MockUserPasswordChanger struct {
 	expectAuthError bool
 }
 
-func (m *MockUserPasswordChanger) GetUserIDByName(username string) (int64, error) {
+func (m *MockUserPasswordChanger) getUserIDByName(username string) (int64, error) {
 	if v, ok := m.id[username]; ok {
 		return v, nil
 	}
 	return 0, fmt.Errorf("username %s not found", username)
 }
 
-func (m *MockUserPasswordChanger) GetUserIDFromUser() int64 {
+func (m *MockUserPasswordChanger) getUserIDFromUser() int64 {
 	return 999
 }
 
-func (m *MockUserPasswordChanger) FillPasswordView(resetView *reset.PasswordChangeView) {
+func (m *MockUserPasswordChanger) fillPasswordView(resetView *reset.PasswordChangeView) {
 	resetView.NewPassword = "NewPass456"
 	resetView.ConfirmPassword = "NewPass456"
 }
 
-func (m *MockUserPasswordChanger) ResetPassword(userID int64, resetView reset.PasswordChangeView) error {
+func (m *MockUserPasswordChanger) resetPassword(userID int64, resetView reset.PasswordChangeView) error {
 	if m.expectAuthError {
 		return fmt.Errorf("403")
 	}
@@ -68,10 +68,24 @@ func initMockUserPasswordChanger(userCnt int, expectAuthError bool) *MockUserPas
 		m.id[fmt.Sprintf("test%d", i+1)] = int64(i + 1)
 		m.passwords[int64(i+1)] = "InitialPass123"
 	}
+	getUserIDByName = m.getUserIDByName
+	getUserIDFromUser = m.getUserIDFromUser
+	fillPasswordView = m.fillPasswordView
+	resetPassword = m.resetPassword
 	return m
 }
 
 func TestChangePassword(t *testing.T) {
+	origGetUsersId := getUserIDByName
+	origPrompt := getUserIDFromUser
+	origFillPassword := fillPasswordView
+	origReset := resetPassword
+	defer func() {
+		getUserIDByName = origGetUsersId
+		getUserIDFromUser = origPrompt
+		fillPasswordView = origFillPassword
+		resetPassword = origReset
+	}()
 	tests := []struct {
 		name                string
 		setup               func() *MockUserPasswordChanger
@@ -133,7 +147,7 @@ func TestChangePassword(t *testing.T) {
 			args:                []string{"test1"},
 			expectedPasswordID:  0,
 			expectedNewPassword: "",
-			expectedErr:         "Permission denied",
+			expectedErr:         "permission denied",
 		},
 		{
 			name: "reset password fails with non-403 error",
@@ -145,7 +159,7 @@ func TestChangePassword(t *testing.T) {
 			args:                []string{"test1"},
 			expectedPasswordID:  0,
 			expectedNewPassword: "",
-			expectedErr:         "failed to reset user password",
+			expectedErr:         "failed to reset",
 		},
 	}
 
@@ -157,7 +171,7 @@ func TestChangePassword(t *testing.T) {
 			defer log.SetOutput(originalLogOutput)
 
 			m := tt.setup()
-			ChangePassword(tt.args, m)
+			ChangePassword(tt.args)
 
 			logs := buf.String()
 
