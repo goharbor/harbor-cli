@@ -16,7 +16,6 @@ package schedule
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -33,7 +32,7 @@ var columns = []table.Column{
 	{Title: "Update Time", Width: tablelist.WidthXXL},
 }
 
-func ViewGCSchedule(schedule *models.GCHistory) {
+func ViewGCSchedule(schedule *models.GCHistory) error {
 	var rows []table.Row
 
 	cronStr := ""
@@ -59,7 +58,7 @@ func ViewGCSchedule(schedule *models.GCHistory) {
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return fmt.Errorf("error running program: %w", err)
 	}
+	return nil
 }

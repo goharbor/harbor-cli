@@ -48,7 +48,9 @@ func ViewGCScheduleCommand() *cobra.Command {
 					return err
 				}
 			} else {
-				schedule.ViewGCSchedule(scheduleWrapper)
+				if err := schedule.ViewGCSchedule(scheduleWrapper); err != nil {
+					return err
+				}
 			}
 			return nil
 		},

@@ -100,7 +100,9 @@ func updateGCPredefinedSchedule(scheduleType string) error {
 func updateGCCustomSchedule(cron string) error {
 	if cron == "" {
 		logrus.Info("Opening interactive form for custom schedule configuration")
-		update.UpdateSchedule(&cron)
+		if err := update.UpdateSchedule(&cron); err != nil {
+			return err
+		}
 		// re-validate after interactive input
 		var err error
 		cron, err = validateCron(cron)

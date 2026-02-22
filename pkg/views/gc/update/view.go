@@ -21,10 +21,9 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
 )
 
-func UpdateSchedule(cron *string) {
+func UpdateSchedule(cron *string) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -38,8 +37,9 @@ func UpdateSchedule(cron *string) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func validateCronExpression(cron string) error {
