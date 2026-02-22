@@ -15,8 +15,6 @@ package project
 
 import (
 	"fmt"
-	"io"
-	"os"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -25,34 +23,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type ProjectCreator interface {
-	CreateProject(opts create.CreateView) error
-	FillProjectView(createView *create.CreateView) error
-}
-type DefaultProjectCreator struct{}
+var fillProjectView = create.CreateProjectView
 
-func (d *DefaultProjectCreator) CreateProject(opts create.CreateView) error {
-	return api.CreateProject(opts)
-}
-func (d *DefaultProjectCreator) FillProjectView(createView *create.CreateView) error {
-	return create.CreateProjectView(createView)
-}
-
-func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.CreateView, args []string) error {
-	var projectName string
-	var createView *create.CreateView
+func buildCreateView(opts *create.CreateView, args []string) (*create.CreateView, error) {
 	if len(args) > 0 {
 		opts.ProjectName = args[0]
 	}
 
 	if opts.ProxyCache && opts.RegistryID == "" {
-		return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
+		return nil, fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
 	}
 
 	if !opts.ProxyCache && opts.RegistryID != "" {
-		return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+		return nil, fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
 	}
 
+	var createView *create.CreateView
 	if opts.ProjectName == "" || opts.StorageLimit == "" {
 		log.Debug("Switching to interactive view...")
 		createView = &create.CreateView{
@@ -63,32 +49,40 @@ func CreateProject(w io.Writer, projectCreator ProjectCreator, opts *create.Crea
 			ProxyCache:   opts.ProxyCache,
 		}
 
-		err := projectCreator.FillProjectView(createView)
+		err := fillProjectView(createView)
 		if err != nil {
-			return fmt.Errorf("failed to get the required params to create project: %w", err)
+			return nil, fmt.Errorf("failed to get the required params to create project: %w", err)
 		}
 	} else {
 		createView = opts
 	}
 
-	projectName = createView.ProjectName
-	if err := projectCreator.CreateProject(*createView); err != nil {
+	return createView, nil
+}
+
+func createProject(createProjectAPI func(opts create.CreateView) error, opts *create.CreateView, args []string) error {
+	createView, err := buildCreateView(opts, args)
+	if err != nil {
+		return err
+	}
+
+	if err := createProjectAPI(*createView); err != nil {
 		return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
 	}
-	fmt.Fprintf(w, "Project '%s' created successfully\n", projectName)
+	fmt.Printf("project '%s' created successfully\n", createView.ProjectName)
 	return nil
 }
 
 // CreateProjectCommand creates a new `harbor create project` command
 func CreateProjectCommand() *cobra.Command {
 	opts := &create.CreateView{}
-
+	createProjectAPI := api.CreateProject
 	cmd := &cobra.Command{
 		Use:   "create [project name]",
 		Short: "create project",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return CreateProject(os.Stdout, &DefaultProjectCreator{}, opts, args)
+			return createProject(createProjectAPI, opts, args)
 		}}
 
 	flags := cmd.Flags()

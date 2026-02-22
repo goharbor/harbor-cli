@@ -15,7 +15,6 @@
 package project
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
@@ -28,8 +27,7 @@ type mockProjectCreator struct {
 	errInFilling bool
 }
 
-// FillProjectView simulates a user filling the project details through the TUI
-func (m *mockProjectCreator) FillProjectView(createView *create.CreateView) error {
+func (m *mockProjectCreator) fillProjectView(createView *create.CreateView) error {
 	if m.errInFilling {
 		return fmt.Errorf("unexpected error while filling the project view")
 	}
@@ -38,7 +36,8 @@ func (m *mockProjectCreator) FillProjectView(createView *create.CreateView) erro
 	createView.StorageLimit = "-1"
 	return nil
 }
-func (m *mockProjectCreator) CreateProject(opts create.CreateView) error {
+
+func (m *mockProjectCreator) createProjectAPI(opts create.CreateView) error {
 	if _, found := m.projectName[opts.ProjectName]; found {
 		return fmt.Errorf("project with same name already exists")
 	}
@@ -46,6 +45,9 @@ func (m *mockProjectCreator) CreateProject(opts create.CreateView) error {
 	return nil
 }
 func TestCreateProject(t *testing.T) {
+	origFillProjectView := fillProjectView
+	defer func() { fillProjectView = origFillProjectView }()
+
 	projectsAreEqual := func(p1, p2 []*create.CreateView) bool {
 		if len(p1) != len(p2) {
 			return false
@@ -71,111 +73,40 @@ func TestCreateProject(t *testing.T) {
 	}
 	tests := []struct {
 		name             string
-		setup            func() ([]input, *mockProjectCreator)
+		inputs           []input
+		errInFilling     bool
 		expectedErr      string
 		expectedProjects []*create.CreateView
 	}{
 		{
-			name: "successfully create project with all flags",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{
-							Public:       true,
-							StorageLimit: "100",
-						},
-						args: []string{"my-project"},
+			name: "project creation with user provided project name and storage should succeed",
+			inputs: []input{
+				{
+					opts: &create.CreateView{
+						Public:       true,
+						StorageLimit: "100",
 					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
+					args: []string{"my-project"},
+				},
 			},
 			expectedProjects: []*create.CreateView{
 				{ProjectName: "my-project"},
 			},
 		},
 		{
-			name: "missing fields triggers interactive view",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{},
-					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
+			name: "project creation should succeed if no error in interactive view",
+			inputs: []input{
+				{opts: &create.CreateView{}},
 			},
 			expectedProjects: []*create.CreateView{
 				{ProjectName: "testProject999"},
-			},
-		},
-		{
-			name: "project name from args with empty storage triggers interactive view",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{},
-						args: []string{"arg-project"},
-					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
-			},
-			expectedProjects: []*create.CreateView{
-				{ProjectName: "testProject999"},
-			},
-		},
-		{
-			name: "proxy cache without registry id returns error",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{
-							StorageLimit: "100",
-							ProxyCache:   true,
-						},
-						args: []string{"proxy-project"},
-					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
-			},
-			expectedErr:      "proxy cache selected but no registry ID provided",
-			expectedProjects: []*create.CreateView{},
-		},
-		{
-			name: "registry id without proxy cache returns error",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{
-							StorageLimit: "100",
-							RegistryID:   "5",
-						},
-						args: []string{"bad-config"},
-					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
-			},
-			expectedErr:      "registry ID should only be provided when proxy-cache is enabled",
-			expectedProjects: []*create.CreateView{},
-		},
-		{
-			name: "proxy cache with registry id succeeds",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{
-						opts: &create.CreateView{
-							StorageLimit: "200",
-							ProxyCache:   true,
-							RegistryID:   "10",
-						},
-						args: []string{"cache-project"},
-					},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
-			},
-			expectedProjects: []*create.CreateView{
-				{ProjectName: "cache-project"},
 			},
 		},
 		{
 			name: "duplicate project name fails second create",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{opts: &create.CreateView{StorageLimit: "100"}, args: []string{"dup"}},
-					{opts: &create.CreateView{StorageLimit: "100"}, args: []string{"dup"}},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
+			inputs: []input{
+				{opts: &create.CreateView{StorageLimit: "100"}, args: []string{"dup"}},
+				{opts: &create.CreateView{StorageLimit: "100"}, args: []string{"dup"}},
 			},
 			expectedErr: "failed to create project",
 			expectedProjects: []*create.CreateView{
@@ -184,12 +115,10 @@ func TestCreateProject(t *testing.T) {
 		},
 		{
 			name: "create multiple projects",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-					{opts: &create.CreateView{StorageLimit: "10"}, args: []string{"proj-a"}},
-					{opts: &create.CreateView{StorageLimit: "20"}, args: []string{"proj-b"}},
-					{opts: &create.CreateView{StorageLimit: "30"}, args: []string{"proj-c"}},
-				}, &mockProjectCreator{projectName: make(map[string]struct{})}
+			inputs: []input{
+				{opts: &create.CreateView{StorageLimit: "10"}, args: []string{"proj-a"}},
+				{opts: &create.CreateView{StorageLimit: "20"}, args: []string{"proj-b"}},
+				{opts: &create.CreateView{StorageLimit: "30"}, args: []string{"proj-c"}},
 			},
 			expectedProjects: []*create.CreateView{
 				{ProjectName: "proj-a"},
@@ -198,34 +127,32 @@ func TestCreateProject(t *testing.T) {
 			},
 		},
 		{
-			name: "interactive view error propagates",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{
-						{opts: &create.CreateView{}},
-					}, &mockProjectCreator{
-						projectName:  make(map[string]struct{}),
-						errInFilling: true,
-					}
+			name: "buildCreateView error propagates without calling API",
+			inputs: []input{
+				{opts: &create.CreateView{}},
 			},
+			errInFilling:     true,
 			expectedErr:      "failed to get the required params to create project",
 			expectedProjects: []*create.CreateView{},
 		},
 		{
-			name: "no projects to create",
-			setup: func() ([]input, *mockProjectCreator) {
-				return []input{}, &mockProjectCreator{projectName: make(map[string]struct{})}
-			},
+			name:             "no projects to create",
+			inputs:           []input{},
 			expectedProjects: []*create.CreateView{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			inputs, m := tt.setup()
+			m := &mockProjectCreator{
+				projectName:  make(map[string]struct{}),
+				errInFilling: tt.errInFilling,
+			}
+			fillProjectView = m.fillProjectView
+
 			var lastErr error
-			for _, in := range inputs {
-				var buf bytes.Buffer
-				err := CreateProject(&buf, m, in.opts, in.args)
+			for _, in := range tt.inputs {
+				err := createProject(m.createProjectAPI, in.opts, in.args)
 				if err != nil {
 					lastErr = err
 				}
@@ -238,7 +165,6 @@ func TestCreateProject(t *testing.T) {
 				assert.NoError(t, lastErr)
 			}
 
-			// Build the list of created projects from the mock's map
 			var created []*create.CreateView
 			for name := range m.projectName {
 				created = append(created, &create.CreateView{ProjectName: name})
@@ -274,4 +200,116 @@ func TestCreateProjectCommand(t *testing.T) {
 	proxyCacheFlag := cmd.Flags().Lookup("proxy-cache")
 	assert.NotNil(t, proxyCacheFlag)
 	assert.Equal(t, "false", proxyCacheFlag.DefValue)
+}
+
+func TestBuildCreateView(t *testing.T) {
+	origFillProjectView := fillProjectView
+	defer func() { fillProjectView = origFillProjectView }()
+
+	tests := []struct {
+		name         string
+		opts         *create.CreateView
+		args         []string
+		errInFilling bool
+		expectedErr  string
+		expectedView *create.CreateView
+	}{
+		{
+			name: "all flags provided returns opts directly",
+			opts: &create.CreateView{
+				ProjectName:  "full-project",
+				Public:       true,
+				StorageLimit: "500",
+			},
+			args: nil,
+			expectedView: &create.CreateView{
+				ProjectName:  "full-project",
+				Public:       true,
+				StorageLimit: "500",
+			},
+		},
+		{
+			name: "missing storage triggers interactive view",
+			opts: &create.CreateView{},
+			args: []string{"some-project"},
+			expectedView: &create.CreateView{
+				ProjectName:  "testProject999",
+				StorageLimit: "-1",
+			},
+		},
+		{
+			name: "missing project name triggers interactive view",
+			opts: &create.CreateView{
+				StorageLimit: "100",
+			},
+			expectedView: &create.CreateView{
+				ProjectName:  "testProject999",
+				StorageLimit: "-1",
+			},
+		},
+		{
+			name: "proxy cache without registry id returns error",
+			opts: &create.CreateView{
+				StorageLimit: "100",
+				ProxyCache:   true,
+			},
+			args:        []string{"proxy-proj"},
+			expectedErr: "proxy cache selected but no registry ID provided",
+		},
+		{
+			name: "registry id without proxy cache returns error",
+			opts: &create.CreateView{
+				StorageLimit: "100",
+				RegistryID:   "5",
+			},
+			args:        []string{"bad-proj"},
+			expectedErr: "registry ID should only be provided when proxy-cache is enabled",
+		},
+		{
+			name: "proxy cache with registry id succeeds",
+			opts: &create.CreateView{
+				ProjectName:  "cache-proj",
+				StorageLimit: "200",
+				ProxyCache:   true,
+				RegistryID:   "10",
+			},
+			expectedView: &create.CreateView{
+				ProjectName:  "cache-proj",
+				StorageLimit: "200",
+				ProxyCache:   true,
+				RegistryID:   "10",
+			},
+		},
+		{
+			name:         "interactive view error propagates",
+			opts:         &create.CreateView{},
+			errInFilling: true,
+			expectedErr:  "failed to get the required params to create project",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &mockProjectCreator{
+				projectName:  make(map[string]struct{}),
+				errInFilling: tt.errInFilling,
+			}
+			fillProjectView = m.fillProjectView
+
+			view, err := buildCreateView(tt.opts, tt.args)
+
+			if tt.expectedErr != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedErr)
+				assert.Nil(t, view)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, view)
+				assert.Equal(t, tt.expectedView.ProjectName, view.ProjectName)
+				assert.Equal(t, tt.expectedView.StorageLimit, view.StorageLimit)
+				assert.Equal(t, tt.expectedView.ProxyCache, view.ProxyCache)
+				assert.Equal(t, tt.expectedView.RegistryID, view.RegistryID)
+			}
+		})
+	}
 }
