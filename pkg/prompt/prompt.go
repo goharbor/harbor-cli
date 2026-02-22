@@ -482,6 +482,11 @@ func GetRunningGCJobIDFromUser() (int64, error) {
 			return
 		}
 
+		// FIXME(#716): This client-side filtering should be replaced with server-side filtering
+		// using the `q` query parameter. Harbor supports multi-value exact match syntax:
+		// q=job_status={Running Pending In_Progress}
+		// However, our current query builder (pkg/utils/query.go) does not support
+		// the multi-value exact match format yet.
 		var runningJobs []*models.GCHistory
 		for _, job := range history {
 			status := strings.ToLower(job.JobStatus)
