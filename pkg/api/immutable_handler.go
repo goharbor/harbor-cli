@@ -50,12 +50,21 @@ func CreateImmutable(opts create.CreateView, projectName string) error {
 	return nil
 }
 
-func ListImmutable(projectName string) (immutable.ListImmuRulesOK, error) {
+func ListImmutable(projectName string, opts ...ListFlags) (immutable.ListImmuRulesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return immutable.ListImmuRulesOK{}, err
 	}
-	response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{ProjectNameOrID: projectName})
+
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+	response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{
+		ProjectNameOrID: projectName,
+		Q:               &listFlags.Q,
+	})
 	if err != nil {
 		return immutable.ListImmuRulesOK{}, err
 	}

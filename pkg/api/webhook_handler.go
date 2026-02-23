@@ -25,14 +25,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {
+func ListWebhooks(projectName string, opts ...ListFlags) (webhook.ListWebhookPoliciesOfProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return webhook.ListWebhookPoliciesOfProjectOK{}, err
 	}
 
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
 	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
 		ProjectNameOrID: projectName,
+		Q:               &listFlags.Q,
 	})
 
 	if err != nil {

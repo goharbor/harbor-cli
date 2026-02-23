@@ -76,6 +76,15 @@ func CreateTagsCmd() *cobra.Command {
 }
 
 func ListTagsCmd() *cobra.Command {
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
+
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List tags of an artifact",
@@ -84,6 +93,17 @@ func ListTagsCmd() *cobra.Command {
 			var err error
 			var tags *artifact.ListTagsOK
 			var projectName, repoName, reference string
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "repository_id", "artifact_id", "name", "immutable"},
+				)
+				if qErr != nil {
+					log.Errorf("error while building query parameter: %v", qErr)
+				}
+
+				opts.Q = q
+			}
 
 			if len(args) > 0 {
 				projectName, repoName, reference, err = utils.ParseProjectRepoReference(args[0])
@@ -102,7 +122,7 @@ func ListTagsCmd() *cobra.Command {
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
-			tags, err = api.ListTags(projectName, repoName, reference)
+			tags, err = api.ListTags(projectName, repoName, reference, opts)
 
 			if err != nil {
 				log.Errorf("failed to list tags: %v", err)
@@ -121,6 +141,12 @@ func ListTagsCmd() *cobra.Command {
 			}
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 
 	return cmd
 }

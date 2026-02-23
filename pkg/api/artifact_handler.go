@@ -155,16 +155,23 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 }
 
 // ListTags lists all tags of a specific artifact.
-func ListTags(projectName, repoName, reference string) (*artifact.ListTagsOK, error) {
+func ListTags(projectName, repoName, reference string, opts ...ListFlags) (*artifact.ListTagsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return &artifact.ListTagsOK{}, err
+	}
+
+	var listFlags ListFlags
+
+	if len(opts) > 0 {
+		listFlags = opts[0]
 	}
 
 	resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
 		ProjectName:    projectName,
 		RepositoryName: repoName,
 		Reference:      reference,
+		Q:              &listFlags.Q,
 	})
 
 	if err != nil {
