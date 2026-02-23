@@ -25,12 +25,33 @@ import (
 )
 
 func ListScannerCommand() *cobra.Command {
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List scanners",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			scannersResp, err := api.ListScanners()
+
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"uuid", "url", "description", "name", "disabled", "is_default", "adapter", "vendor", "health", "version",
+						"skip_certVerify"},
+				)
+				if qErr != nil {
+					log.Errorf("error while building query parameter: %v", qErr)
+				}
+
+				opts.Q = q
+			}
+
+			scannersResp, err := api.ListScanners(opts)
 			if err != nil {
 				return fmt.Errorf("failed to list scanners: %v", err)
 			}
@@ -54,5 +75,11 @@ func ListScannerCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 	return cmd
 }
