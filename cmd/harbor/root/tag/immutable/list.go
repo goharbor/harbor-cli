@@ -26,6 +26,14 @@ import (
 )
 
 func ListImmutableCommand() *cobra.Command {
+
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
 	cmd := &cobra.Command{
 		Use:   "list [PROJECT_NAME]",
 		Short: "Display all immutable tag rules for a project",
@@ -45,6 +53,17 @@ You can specify the project name as an argument or, if omitted, you will be prom
 			var resp immutable.ListImmuRulesOK
 			var projectName string
 
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "priority", "disabled", "action", "template"},
+				)
+				if qErr != nil {
+					log.Errorf("error while building query parameter: %v", qErr)
+				}
+
+				opts.Q = q
+			}
+
 			if len(args) > 0 {
 				projectName = args[0]
 			} else {
@@ -54,7 +73,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
 				}
 			}
 
-			resp, err = api.ListImmutable(projectName)
+			resp, err = api.ListImmutable(projectName, opts)
 			if err != nil {
 				return fmt.Errorf("failed to list immutablility rule: %v", err)
 			}
@@ -77,5 +96,12 @@ You can specify the project name as an argument or, if omitted, you will be prom
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
+
 	return cmd
 }

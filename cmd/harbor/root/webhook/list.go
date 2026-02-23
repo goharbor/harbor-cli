@@ -21,11 +21,20 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	webhookViews "github.com/goharbor/harbor-cli/pkg/views/webhook/list"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func ListWebhookCommand() *cobra.Command {
+	var (
+		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
+	)
+
 	cmd := &cobra.Command{
 		Use:   "list [PROJECT_NAME]",
 		Short: "List all webhook policies for a Harbor project",
@@ -47,6 +56,17 @@ Use the '--output-format' flag for raw JSON output.`,
 			var resp webhook.ListWebhookPoliciesOfProjectOK
 			var projectName string
 
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "project_id", "description", "name", "creator", "enabled"},
+				)
+				if qErr != nil {
+					log.Errorf("error while building query parameter: %v", qErr)
+				}
+
+				opts.Q = q
+			}
+
 			if len(args) > 0 {
 				projectName = args[0]
 			} else {
@@ -56,7 +76,7 @@ Use the '--output-format' flag for raw JSON output.`,
 				}
 			}
 
-			resp, err = api.ListWebhooks(projectName)
+			resp, err = api.ListWebhooks(projectName, opts)
 			if err != nil {
 				return fmt.Errorf("failed to list webhooks: %v", err)
 			}
@@ -75,5 +95,11 @@ Use the '--output-format' flag for raw JSON output.`,
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 	return cmd
 }
