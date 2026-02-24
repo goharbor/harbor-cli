@@ -28,30 +28,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockUserCreator struct {
+type mockUserCreator struct {
 	usernames       map[string]struct{}
 	emails          map[string]struct{}
 	users           []*create.CreateView
 	expectAuthError bool
 }
 
-func initMockUserCreator(expectAuthError bool) *MockUserCreator {
-	return &MockUserCreator{
+func newMockUserCreator(expectAuthError bool) *mockUserCreator {
+	m := &mockUserCreator{
 		usernames:       make(map[string]struct{}),
 		emails:          make(map[string]struct{}),
 		users:           []*create.CreateView{},
 		expectAuthError: expectAuthError,
 	}
+	fillUser = m.fillUser
+	return m
 }
 
 /*
- FillUser simulates the interactive prompt that fills missing fields.
+ fillUser simulates the interactive prompt that fills missing fields.
  Note: Username and Email must be provided in test cases since they're
  required fields that would be prompted interactively in real usage.
- Only Realname and Password are filled here to test the FillUser path.
+ Only Realname and Password are filled here to test the fillUser path.
 */
 
-func (m *MockUserCreator) FillUser(opts *create.CreateView) {
+func (m *mockUserCreator) fillUser(opts *create.CreateView) {
 	randomStr := "Random string 1234"
 	if opts.Realname == "" {
 		opts.Realname = randomStr
@@ -61,7 +63,7 @@ func (m *MockUserCreator) FillUser(opts *create.CreateView) {
 	}
 }
 
-func (m *MockUserCreator) UserCreate(opts create.CreateView) error {
+func (m *mockUserCreator) userCreate(opts create.CreateView) error {
 	if m.expectAuthError {
 		return fmt.Errorf("403")
 	}
@@ -85,6 +87,10 @@ func (m *MockUserCreator) UserCreate(opts create.CreateView) error {
 	return nil
 }
 func TestCreateUsers(t *testing.T) {
+	origFillUser := fillUser
+	defer func() {
+		fillUser = origFillUser
+	}()
 	usersAreEqual := func(u1, u2 []*create.CreateView) bool {
 		if len(u1) != len(u2) {
 			return false
@@ -109,13 +115,13 @@ func TestCreateUsers(t *testing.T) {
 	}
 	tests := []struct {
 		name          string
-		setup         func() ([]*create.CreateView, *MockUserCreator)
+		setup         func() ([]*create.CreateView, *mockUserCreator)
 		expectedUsers []*create.CreateView
 		expectedErr   string
 	}{
 		{
 			name: "successfully create single user with all fields",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{
 						Username: "testuser",
@@ -125,7 +131,7 @@ func TestCreateUsers(t *testing.T) {
 						Comment:  "Test comment",
 					},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{
@@ -140,13 +146,13 @@ func TestCreateUsers(t *testing.T) {
 		},
 		{
 			name: "successfully create multiple users",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{Username: "user1", Email: "user1@example.com", Realname: "User One", Password: "Pass1", Comment: "First"},
 					{Username: "user2", Email: "user2@example.com", Realname: "User Two", Password: "Pass2", Comment: "Second"},
 					{Username: "user3", Email: "user3@example.com", Realname: "User Three", Password: "Pass3", Comment: "Third"},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{Username: "user1", Email: "user1@example.com", Realname: "User One", Password: "Pass1", Comment: "First"},
@@ -156,15 +162,15 @@ func TestCreateUsers(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			name: "create user with missing fields triggers FillUser",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			name: "create user with missing fields triggers fillUser",
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{
 						Username: "testuser",
 						Email:    "test@example.com",
 					},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{
@@ -178,7 +184,7 @@ func TestCreateUsers(t *testing.T) {
 		},
 		{
 			name: "permission denied error (403)",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{
 						Username: "testuser",
@@ -187,19 +193,19 @@ func TestCreateUsers(t *testing.T) {
 						Password: "TestPass123",
 					},
 				}
-				return views, initMockUserCreator(true)
+				return views, newMockUserCreator(true)
 			},
 			expectedUsers: []*create.CreateView{},
 			expectedErr:   "Permission denied",
 		},
 		{
 			name: "duplicate username fails second user",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{Username: "sameuser", Email: "first@example.com", Realname: "First", Password: "Pass1"},
 					{Username: "sameuser", Email: "second@example.com", Realname: "Second", Password: "Pass2"},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{Username: "sameuser", Email: "first@example.com", Realname: "First", Password: "Pass1"},
@@ -208,12 +214,12 @@ func TestCreateUsers(t *testing.T) {
 		},
 		{
 			name: "duplicate email fails second user",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{Username: "user1", Email: "same@example.com", Realname: "First", Password: "Pass1"},
 					{Username: "user2", Email: "same@example.com", Realname: "Second", Password: "Pass2"},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{Username: "user1", Email: "same@example.com", Realname: "First", Password: "Pass1"},
@@ -222,7 +228,7 @@ func TestCreateUsers(t *testing.T) {
 		},
 		{
 			name: "create user with empty comment succeeds",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{
 					{
 						Username: "testuser",
@@ -232,7 +238,7 @@ func TestCreateUsers(t *testing.T) {
 						Comment:  "",
 					},
 				}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{
 				{
@@ -247,9 +253,9 @@ func TestCreateUsers(t *testing.T) {
 		},
 		{
 			name: "no users to create",
-			setup: func() ([]*create.CreateView, *MockUserCreator) {
+			setup: func() ([]*create.CreateView, *mockUserCreator) {
 				views := []*create.CreateView{}
-				return views, initMockUserCreator(false)
+				return views, newMockUserCreator(false)
 			},
 			expectedUsers: []*create.CreateView{},
 			expectedErr:   "",
@@ -265,7 +271,7 @@ func TestCreateUsers(t *testing.T) {
 			opts, m := tt.setup()
 
 			for _, opt := range opts {
-				CreateUser(opt, m)
+				CreateUser(opt, m.userCreate)
 			}
 			logs := buf.String()
 			if tt.expectedErr != "" {
