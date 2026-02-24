@@ -23,15 +23,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockUserDeleter struct {
+type mockUserDeleter struct {
 	mu              sync.Mutex
 	id              map[string]int64
 	user            map[int64]string
-	userCnt         int
 	expectAuthError bool
 }
 
-func (m *MockUserDeleter) UserDelete(userID int64) error {
+func (m *mockUserDeleter) userDelete(userID int64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.expectAuthError {
@@ -44,7 +43,7 @@ func (m *MockUserDeleter) UserDelete(userID int64) error {
 	}
 	return fmt.Errorf("user %d not found", userID)
 }
-func (m *MockUserDeleter) GetUserIDByName(username string) (int64, error) {
+func (m *mockUserDeleter) getUserIDByName(username string) (int64, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if v, ok := m.id[username]; ok {
@@ -53,13 +52,12 @@ func (m *MockUserDeleter) GetUserIDByName(username string) (int64, error) {
 		return 0, fmt.Errorf(`Username %s not found`, username)
 	}
 }
-func (m *MockUserDeleter) GetUserIDFromUser() int64 {
+func (m *mockUserDeleter) getUserIDFromUser() int64 {
 	return 999
 }
 
-func initMockUserDeleter(userCnt int, expectAuthError bool) *MockUserDeleter {
-	m := &MockUserDeleter{
-		userCnt:         userCnt,
+func newMockUserDeleter(userCnt int, expectAuthError bool) *mockUserDeleter {
+	m := &mockUserDeleter{
 		expectAuthError: expectAuthError,
 		id:              make(map[string]int64),
 		user:            make(map[int64]string),
@@ -68,20 +66,31 @@ func initMockUserDeleter(userCnt int, expectAuthError bool) *MockUserDeleter {
 		m.id[fmt.Sprintf("test%d", i+1)] = int64(i + 1)
 		m.user[int64(i+1)] = fmt.Sprintf("test%d", i+1)
 	}
+	getUserIDByName = m.getUserIDByName
+	getUserIDFromUser = m.getUserIDFromUser
+	userDeleteAPI = m.userDelete
 	return m
 }
 func TestDeleteUser(t *testing.T) {
+	origUserDelete := userDeleteAPI
+	origGetUserIDByName := getUserIDByName
+	origGetUserIDFromUser := getUserIDFromUser
+	defer func() {
+		userDeleteAPI = origUserDelete
+		getUserIDByName = origGetUserIDByName
+		getUserIDFromUser = origGetUserIDFromUser
+	}()
 	tests := []struct {
 		name          string
-		setup         func() *MockUserDeleter
+		setup         func() *mockUserDeleter
 		args          []string
 		notExpectedID []int64
 		expectedErr   string
 	}{
 		{
 			name: "successfully delete single user",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(5, false)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(5, false)
 			},
 			args:          []string{"test1"},
 			notExpectedID: []int64{1},
@@ -89,8 +98,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "successfully delete multiple users",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(5, false)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(5, false)
 			},
 			args:          []string{"test1", "test3", "test5"},
 			notExpectedID: []int64{1, 3, 5},
@@ -98,8 +107,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "delete non-existent user logs error",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(5, false)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(5, false)
 			},
 			args:          []string{"nonexistent"},
 			notExpectedID: []int64{},
@@ -107,8 +116,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "permission denied error",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(5, true)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(5, true)
 			},
 			args:          []string{"test1"},
 			notExpectedID: []int64{},
@@ -116,8 +125,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "mixed existing and non-existing users",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(5, false)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(5, false)
 			},
 			args:          []string{"test1", "nonexistent", "test3"},
 			notExpectedID: []int64{1, 3},
@@ -125,8 +134,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "delete with empty args does not error",
-			setup: func() *MockUserDeleter {
-				m := initMockUserDeleter(5, false)
+			setup: func() *mockUserDeleter {
+				m := newMockUserDeleter(5, false)
 				m.user[999] = "promptuser"
 				m.id["promptuser"] = 999
 				return m
@@ -137,8 +146,8 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "delete all users",
-			setup: func() *MockUserDeleter {
-				return initMockUserDeleter(3, false)
+			setup: func() *mockUserDeleter {
+				return newMockUserDeleter(3, false)
 			},
 			args:          []string{"test1", "test2", "test3"},
 			notExpectedID: []int64{1, 2, 3},
@@ -154,7 +163,7 @@ func TestDeleteUser(t *testing.T) {
 			defer log.SetOutput(originalLogOutput)
 
 			m := tt.setup()
-			DeleteUser(tt.args, m)
+			DeleteUser(tt.args)
 
 			logs := buf.String()
 
