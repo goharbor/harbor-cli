@@ -23,27 +23,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type UserCreator interface {
-	FillUser(opts *create.CreateView)
-	UserCreate(opts create.CreateView) error
-}
-type DefaultUserCreator struct{}
+var fillUser = create.CreateUserView
 
-func (d *DefaultUserCreator) FillUser(opts *create.CreateView) {
-	create.CreateUserView(opts)
-}
-
-func (d *DefaultUserCreator) UserCreate(opts create.CreateView) error {
-	return api.CreateUser(opts)
-}
-func CreateUser(opts *create.CreateView, userCreator UserCreator) {
+func CreateUser(opts *create.CreateView, createUserAPI func(opts create.CreateView) error) {
 	var err error
 
 	if opts.Email == "" || opts.Realname == "" || opts.Password == "" || opts.Username == "" {
-		userCreator.FillUser(opts)
+		fillUser(opts)
 	}
 
-	err = userCreator.UserCreate(*opts)
+	err = createUserAPI(*opts)
 
 	if err != nil {
 		if isUnauthorizedError(err) {
@@ -63,8 +52,7 @@ func UserCreateCmd() *cobra.Command {
 		Short: "create user",
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			d := &DefaultUserCreator{}
-			CreateUser(&opts, d)
+			CreateUser(&opts, api.CreateUser)
 		},
 	}
 
