@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
@@ -475,32 +474,23 @@ func GetRunningGCJobIDFromUser() (int64, error) {
 	resultChan := make(chan result)
 
 	go func() {
-		opts := api.ListFlags{Page: 1, PageSize: 100}
+		opts := api.ListFlags{
+			Page:     1,
+			PageSize: 100,
+			Q:        "job_status={Running Pending In_Progress}",
+		}
 		history, err := api.GetGCHistory(opts)
 		if err != nil {
 			resultChan <- result{0, err}
 			return
 		}
 
-		// FIXME(#716): This client-side filtering should be replaced with server-side filtering
-		// using the `q` query parameter. Harbor supports multi-value exact match syntax:
-		// q=job_status={Running Pending In_Progress}
-		// However, our current query builder (pkg/utils/query.go) does not support
-		// the multi-value exact match format yet.
-		var runningJobs []*models.GCHistory
-		for _, job := range history {
-			status := strings.ToLower(job.JobStatus)
-			if status == "running" || status == "pending" || status == "in_progress" {
-				runningJobs = append(runningJobs, job)
-			}
-		}
-
-		if len(runningJobs) == 0 {
+		if len(history) == 0 {
 			resultChan <- result{0, errors.New("no running GC jobs found to stop")}
 			return
 		}
 
-		id, err := gcview.GCJobList(runningJobs)
+		id, err := gcview.GCJobList(history)
 		if err != nil {
 			if err == gcview.ErrUserAborted {
 				resultChan <- result{0, errors.New("user aborted GC job selection")}
