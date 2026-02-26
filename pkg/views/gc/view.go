@@ -17,7 +17,6 @@ package gc
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -40,7 +39,7 @@ var columns = []table.Column{
 	{Title: "Update Time", Width: 25},
 }
 
-func ListGC(history []*models.GCHistory) {
+func ListGC(history []*models.GCHistory) error {
 	var rows []table.Row
 	for _, job := range history {
 		creationTime, _ := utils.FormatCreatedTime(job.CreationTime.String())
@@ -69,7 +68,7 @@ func ListGC(history []*models.GCHistory) {
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return fmt.Errorf("error running program: %w", err)
 	}
+	return nil
 }
