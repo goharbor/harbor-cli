@@ -116,7 +116,9 @@ Examples:
 					return err
 				}
 			} else {
-				gc.ListGC(history)
+				if err := gc.ListGC(history); err != nil {
+					return err
+				}
 			}
 			return nil
 		},
