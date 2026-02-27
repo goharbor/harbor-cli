@@ -31,6 +31,10 @@ func ListRobotCommand() *cobra.Command {
 
 	var (
 		opts api.ListFlags
+		// For querying, opts.Q
+		fuzzy  []string
+		match  []string
+		ranges []string
 	)
 
 	projectQString := constants.ProjectQString
@@ -91,6 +95,19 @@ Examples:
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}
 
+			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
+					[]string{"id", "secret", "description", "name", "disable", "level", "duration", "editable"},
+				)
+				if qErr != nil {
+					log.Errorf("error while building query parameter: %v", qErr)
+				}
+				if opts.Q != "" {
+					opts.Q += ","
+				}
+				opts.Q += q
+			}
+
 			robots, err := api.ListRobot(opts)
 			if err != nil {
 				log.Errorf("failed to get robots list: %v", err)
@@ -115,6 +132,9 @@ Examples:
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.Int64VarP(&opts.ProjectID, "project-id", "", 0, "Project ID")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
+	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
+	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
 
 	return cmd
