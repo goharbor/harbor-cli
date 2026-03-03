@@ -32,4 +32,3 @@ func ArtifactTagsCmd() *cobra.Command {
 
 	return cmd
 }
-
