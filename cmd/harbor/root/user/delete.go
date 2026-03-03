@@ -29,8 +29,6 @@ func UserDeleteCmd() *cobra.Command {
 		Short: "delete user by name or id",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			// If there are command line arguments, process them concurrently.
-			log.SetOutput(cmd.OutOrStderr())
 			if len(args) > 0 {
 				var wg sync.WaitGroup
 				errChan := make(chan error, len(args)) // Channel to collect errors
