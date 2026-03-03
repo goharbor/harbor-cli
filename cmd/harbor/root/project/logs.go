@@ -35,9 +35,16 @@ func LogsProjectCommmand() *cobra.Command {
 		Short: "get project logs",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			log.Debug("Starting execution of 'logs' command")
 			var err error
-			var resp *proj.GetLogsOK
+			var resp *proj.GetLogExtsOK
 			var projectName string
 
 			if len(args) > 0 {
@@ -53,12 +60,14 @@ func LogsProjectCommmand() *cobra.Command {
 			}
 
 			log.Debugf("Checking if project '%s' exists...", projectName)
-			projectExists, err := api.CheckProject(projectName)
+			_, err = api.GetProject(projectName, false)
 			if err != nil {
-				return fmt.Errorf("failed to find project: %v ", utils.ParseHarborErrorMsg(err))
-			} else if !projectExists {
-				return fmt.Errorf("project %s does not exist", projectName)
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("project %s does not exist", projectName)
+				}
+				return fmt.Errorf("failed to verify project: %v", utils.ParseHarborErrorMsg(err))
 			}
+
 			log.Debugf("Fetching logs for project: %s", projectName)
 			resp, err = api.LogsProject(projectName)
 			if err != nil {
@@ -68,7 +77,7 @@ func LogsProjectCommmand() *cobra.Command {
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(resp, formatFlag)
+				err = utils.PrintFormat(resp.Payload, formatFlag)
 				if err != nil {
 					return err
 				}

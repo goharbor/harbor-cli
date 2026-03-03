@@ -187,13 +187,13 @@ func SearchProject(query string) (search.SearchOK, error) {
 	return *response, nil
 }
 
-func LogsProject(projectName string) (*project.GetLogsOK, error) {
+func LogsProject(projectName string) (*project.GetLogExtsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Project.GetLogs(ctx, &project.GetLogsParams{
+	response, err := client.Project.GetLogExts(ctx, &project.GetLogExtsParams{
 		ProjectName: projectName,
 		Context:     ctx,
 	})
@@ -202,24 +202,4 @@ func LogsProject(projectName string) (*project.GetLogsOK, error) {
 	}
 
 	return response, nil
-}
-
-func CheckProject(projectName string) (bool, error) {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return false, err
-	}
-
-	response, err := client.Project.HeadProject(ctx, &project.HeadProjectParams{
-		ProjectName: projectName,
-		Context:     ctx,
-	})
-	if err != nil {
-		if utils.ParseHarborErrorCode(err) == "404" {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return response.IsSuccess(), nil
 }

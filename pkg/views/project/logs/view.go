@@ -32,7 +32,7 @@ var columns = []table.Column{
 	{Title: "Timestamp", Width: tablelist.WidthL * 2},
 }
 
-func LogsProject(logs []*models.AuditLog) {
+func LogsProject(logs []*models.AuditLogExt) {
 	var rows []table.Row
 	for _, log := range logs {
 		createTime, _ := utils.FormatCreatedTime(log.OpTime.String())

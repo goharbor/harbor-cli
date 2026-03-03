@@ -36,7 +36,7 @@ func ListContexts(contexts []api.ContextListView, currentCredential string) {
 	rows := selectActiveContext(contexts, currentCredential)
 
 	var opts []tea.ProgramOption
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
+	if !term.IsTerminal(int(os.Stdout.Fd())) { // #nosec G115 - fd fits in int on all supported platforms
 		opts = append(opts, tea.WithoutRenderer(), tea.WithInput(nil))
 	}
 

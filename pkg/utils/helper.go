@@ -104,7 +104,7 @@ func ValidateFL(name string) bool {
 	return re.MatchString(name)
 }
 
-// check if the password format is vaild
+// check if the password format is valid
 func ValidatePassword(password string) error {
 	password = strings.TrimSpace(password)
 	if password == "" {
@@ -112,21 +112,21 @@ func ValidatePassword(password string) error {
 	}
 
 	if len(password) < 8 || len(password) > 256 {
-		return errors.New("worong! the password length must be at least 8 characters and at most 256 characters")
+		return errors.New("wrong! the password length must be at least 8 characters and at most 256 characters")
 	}
 	// checking the password has a minimum of one lower case letter
 	if done, _ := regexp.MatchString("([a-z])+", password); !done {
-		return errors.New("worong! the password doesn't have a lowercase letter")
+		return errors.New("wrong! the password doesn't have a lowercase letter")
 	}
 
-	// checking the password has a minimmum of one upper case letter
+	// checking the password has a minimum of one upper case letter
 	if done, _ := regexp.MatchString("([A-Z])+", password); !done {
-		return errors.New("worong! the password doesn't have an upppercase letter")
+		return errors.New("wrong! the password doesn't have an uppercase letter")
 	}
 
 	// checking if the password has a minimum of one digit
 	if done, _ := regexp.Match("([0-9])+", []byte(password)); !done {
-		return errors.New("worong! the password doesn't have a digit number")
+		return errors.New("wrong! the password doesn't have a digit number")
 	}
 
 	return nil
@@ -170,6 +170,8 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+// ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
+// Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
 	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
 
