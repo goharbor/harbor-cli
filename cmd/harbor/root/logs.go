@@ -48,6 +48,12 @@ harbor-cli logs --follow --refresh-interval 2s
 
 harbor-cli logs --output-format json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
 			if refreshInterval != "" && !follow {
 				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
 			}
