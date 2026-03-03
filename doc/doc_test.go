@@ -16,12 +16,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strings"
 	"testing"
-
-	"regexp"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -711,6 +712,178 @@ func TestMarkdownCustom(t *testing.T) {
 				if rgx.MatchString(output) {
 					t.Errorf("Expected output NOT to contain the regex %q, but got:\n%s", e, output)
 				}
+			}
+		})
+	}
+}
+func TestMarkdownTreeCustom(t *testing.T) {
+	mockPreblock := func(string) string {
+		return "before"
+	}
+	mockLinkHandler := func(s string) string { return s }
+	mockMarkdownCustom := func(cmd *cobra.Command, w io.Writer, linkHandler func(string) string) error {
+		buf := new(bytes.Buffer)
+		buf.WriteString("after")
+		_, err := buf.WriteTo(w)
+		return err
+	}
+	tests := []struct {
+		name              string
+		setup             func() *cobra.Command
+		expectedFilenames []string
+	}{
+		{
+			name: "Command tree with grandparent, parent and a child",
+			setup: func() *cobra.Command {
+				gparent := &cobra.Command{
+					Use: "gparent",
+					Run: func(cmd *cobra.Command, args []string) {},
+				}
+				parent := &cobra.Command{
+					Use: "parent",
+					Run: func(cmd *cobra.Command, args []string) {},
+				}
+				child := &cobra.Command{
+					Use: "child",
+					Run: func(cmd *cobra.Command, args []string) {},
+				}
+				gparent.AddCommand(parent)
+				parent.AddCommand(child)
+				return gparent
+			},
+			expectedFilenames: []string{
+				"gparent.md",
+				"gparent-parent.md",
+				"gparent-parent-child.md",
+			},
+		},
+		{
+			name: "Command tree with a hidden child",
+			setup: func() *cobra.Command {
+				parent := &cobra.Command{
+					Use: "parent",
+				}
+				child1 := &cobra.Command{
+					Use: "child1",
+					Run: func(cmd *cobra.Command, args []string) {},
+				}
+				child2 := &cobra.Command{
+					Use:    "child2",
+					Hidden: true,
+				}
+				parent.AddCommand(child1)
+				parent.AddCommand(child2)
+				return parent
+			},
+			expectedFilenames: []string{
+				"parent.md",
+				"parent-child1.md",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			root := tt.setup()
+			for i := 0; i < 2; i++ { //running twice to ensure that overwriting works without errors
+				err := MarkdownTreeCustom(root, dir, mockPreblock, mockLinkHandler, mockMarkdownCustom)
+				if err != nil {
+					t.Fatalf("MarkdownTreeCustom() returned error: %v", err)
+				}
+			}
+			files, err := os.ReadDir(dir)
+			if err != nil {
+				t.Fatalf("Failed to read the contents of the directory: %v", err)
+			}
+			filesFound := 0
+			for _, file := range files {
+				if !slices.Contains(tt.expectedFilenames, file.Name()) {
+					t.Errorf("Unexpected file created: %q", file.Name())
+				} else {
+					filesFound++
+					content, err := os.ReadFile(filepath.Join(dir, file.Name()))
+					if err != nil {
+						t.Fatalf("Error reading a doc file: %s", file.Name())
+					}
+					if string(content) != "beforeafter" { // preblock should appear before other content
+						t.Errorf("Expected frontmatter before other content")
+					}
+				}
+			}
+			if filesFound != len(tt.expectedFilenames) {
+				t.Errorf("Expected %d files, but found %d files", len(tt.expectedFilenames), filesFound)
+			}
+		})
+	}
+}
+func TestDoc(t *testing.T) {
+	tests := []struct {
+		name         string
+		dirPresent   bool
+		expectedLogs []string
+	}{
+		{
+			name:         "cli-docs folder exists already (no logs expected)",
+			dirPresent:   true,
+			expectedLogs: []string{},
+		},
+		{
+			name:         "cli-docs folder does not exist (log expected)",
+			dirPresent:   false,
+			expectedLogs: []string{"Folder cli-docs does not exist"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmp := t.TempDir()
+			originalDir, err := os.Getwd()
+			if err != nil {
+				t.Fatalf("Error occurred while fetching current directory: %v", err)
+			}
+			defer func() {
+				if err := os.Chdir(originalDir); err != nil {
+					t.Fatalf("Error occurred while changing to the original directory: %v", err)
+				}
+			}()
+			err = os.Chdir(tmp)
+			if err != nil {
+				t.Fatalf("Error occurred while changing to temp directory for testing: %v", err)
+			}
+			if tt.dirPresent {
+				err = os.Mkdir("cli-docs", 0755)
+				if err != nil {
+					t.Fatalf("Error occurred while creating directory: %v", err)
+				}
+			}
+			treeGeneratorCalled := false
+			mockTreeGenerator := func(cmd *cobra.Command, dir string, filePrepender, linkHandler func(string) string, generator MarkdownGenerator) error {
+				treeGeneratorCalled = true
+				return nil
+			}
+			var logBuf, outputBuf bytes.Buffer
+			originalLogOutput := log.StandardLogger().Out
+			log.SetOutput(&logBuf)
+			defer log.SetOutput(originalLogOutput)
+			err = Doc(&outputBuf, mockTreeGenerator)
+			if err != nil {
+				t.Fatalf("Doc() failed to run: %v", err)
+			}
+			if !treeGeneratorCalled {
+				t.Error("Expected the treeGenerator to be called, but it was not")
+			}
+			logs := logBuf.String()
+			for _, e := range tt.expectedLogs {
+				if !strings.Contains(logs, e) {
+					t.Errorf("Expected logs to contain: %s but found %s", e, logs)
+				}
+			}
+			if _, err := os.Stat("cli-docs"); os.IsNotExist(err) {
+				t.Error("The cli-docs directory should exist, but it was not found")
+			}
+			output := outputBuf.String()
+			expectedMsg := "Documentation generated at"
+			if !strings.Contains(output, expectedMsg) {
+				t.Errorf("Expected to contain final success message: %q, but got %q", expectedMsg, output)
 			}
 		})
 	}
