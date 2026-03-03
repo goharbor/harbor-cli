@@ -14,8 +14,8 @@
 package user
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,26 +23,28 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func UserList(users []*models.UserResp, choice chan<- int64) {
-	itemsList := make([]list.Item, len(users))
-
+func UserList(users []*models.UserResp) (int64, error) {
+	var itemList []list.Item
 	items := map[string]int64{}
 
-	for i, r := range users {
-		items[r.Username] = r.UserID
-		itemsList[i] = selection.Item(r.Username)
+	if len(users) == 0 {
+		return 0, errors.New("No users found in the registry.")
 	}
 
-	m := selection.NewModel(itemsList, "User")
+	for _, r := range users {
+		items[r.Username] = r.UserID
+		itemList = append(itemList, selection.Item(r.Username))
+	}
+
+	m := selection.NewModel(itemList, "User")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return 0, err
 	}
-
 	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+		return items[p.Choice], nil
 	}
+	return 0, fmt.Errorf("failed to get user selection")
 }
