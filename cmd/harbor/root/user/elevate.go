@@ -14,6 +14,9 @@
 package user
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
@@ -27,40 +30,51 @@ func ElevateUserCmd() *cobra.Command {
 		Short: "elevate user",
 		Long:  "elevate user to admin role",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var userId int64
 			if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
 				if err != nil {
-					log.Errorf("failed to get user id for '%s': %v", args[0], err)
-					return
+					err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
+					log.Error(err.Error())
+					return err
 				}
 				if userId == 0 {
-					log.Errorf("User with name '%s' not found", args[0])
-					return
+					err = fmt.Errorf("User with name '%s' not found", args[0])
+					log.Error(err.Error())
+					return err
 				}
 			} else {
-				userId = prompt.GetUserIdFromUser()
+				userId, err = prompt.GetUserIdFromUser()
+				if err != nil {
+					log.Errorf("failed to get user id: %v", err)
+					return err
+				}
 			}
 			confirm, err := views.ConfirmElevation()
 			if err != nil {
-				log.Errorf("failed to confirm elevation: %v", err)
-				return
+				err = fmt.Errorf("failed to confirm elevation: %v", err)
+				log.Error(err.Error())
+				return err
 			}
 			if !confirm {
-				log.Error("User did not confirm elevation. Aborting command.")
-				return
+				err = errors.New("User did not confirm elevation. Aborting command.")
+				log.Error(err.Error())
+				return err
 			}
 
 			err = api.ElevateUser(userId)
 			if err != nil {
 				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
+					err = errors.New("Permission denied: Admin privileges are required to execute this command.")
 				} else {
-					log.Errorf("failed to elevate user: %v", err)
+					err = fmt.Errorf("failed to elevate user: %v", err)
 				}
+				log.Error(err.Error())
+				return err
 			}
+			return nil
 		},
 	}
 
