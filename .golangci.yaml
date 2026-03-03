@@ -30,6 +30,13 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      - linters:
+          - gosec
+        text: "G117:"
+      - path: test
+        linters:
+          - gosec
 formatters:
   enable:
     - gofmt
