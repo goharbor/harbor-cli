@@ -61,7 +61,7 @@ func UserDeleteCmd() *cobra.Command {
 					if isUnauthorizedError(err) {
 						return fmt.Errorf("permission denied: admin privileges are required to execute this command")
 					} else {
-					return fmt.Errorf("failed to delete user: %w", err)
+						return fmt.Errorf("failed to delete user: %w", err)
 					}
 				}
 			} else {
