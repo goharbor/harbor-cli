@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -53,7 +54,10 @@ func ParseHarborErrorMsg(err error) string {
 }
 
 func ParseHarborErrorCode(err error) string {
-	parts := strings.Split(err.Error(), "]")
+	errStr := err.Error()
+
+	// Try format: [METHOD /path][CODE] - e.g., [GET /projects][404]
+	parts := strings.Split(errStr, "]")
 	if len(parts) >= 2 {
 		codePart := strings.TrimSpace(parts[1])
 		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
@@ -61,5 +65,12 @@ func ParseHarborErrorCode(err error) string {
 			return code
 		}
 	}
+
+	// Try format: (status CODE) - e.g., (status 404)
+	re := regexp.MustCompile(`\(status\s+(\d{3})\)`)
+	if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
+		return matches[1]
+	}
+
 	return ""
 }
