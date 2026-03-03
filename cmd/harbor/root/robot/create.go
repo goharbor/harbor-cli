@@ -228,7 +228,7 @@ func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[st
 }
 
 func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models.Permission) error {
-	selectedProjects, err := getMultipleProjectsFromUser()
+	selectedProjects, err := prompt.GetProjectNamesFromUser()
 	if err != nil {
 		return fmt.Errorf("error selecting projects: %v", err)
 	}
@@ -263,7 +263,7 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			moreProjects, err := promptMoreProjects()
+			moreProjects, err := prompt.PromptForMoreProjects()
 			if err != nil {
 				return fmt.Errorf("error asking for more projects: %v", err)
 			}
@@ -378,55 +378,6 @@ func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
 	}
 
 	fmt.Printf("Secret saved to %s\n", filename)
-}
-
-func getMultipleProjectsFromUser() ([]string, error) {
-	allProjects, err := api.ListAllProjects()
-	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %v", err)
-	}
-
-	var selectedProjects []string
-	var projectOptions []huh.Option[string]
-
-	for _, p := range allProjects.Payload {
-		projectOptions = append(projectOptions, huh.NewOption(p.Name, p.Name))
-	}
-
-	err = huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Multiple Project Selection").
-				Description("Select the projects to assign the same permissions to this robot account."),
-			huh.NewMultiSelect[string]().
-				Title("Select projects").
-				Options(projectOptions...).
-				Value(&selectedProjects),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
-
-	return selectedProjects, err
-}
-
-func promptMoreProjects() (bool, error) {
-	var addMore bool
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Project Selection").
-				Description("You can add permissions for multiple projects to this robot account."),
-			huh.NewSelect[bool]().
-				Title("Do you want to select (more) projects?").
-				Description("Select 'Yes' to add (another) project, 'No' to continue with current selection.").
-				Options(
-					huh.NewOption("No", false),
-					huh.NewOption("Yes", true),
-				).
-				Value(&addMore),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
-
-	return addMore, err
 }
 
 func promptPermissionMode() (string, error) {

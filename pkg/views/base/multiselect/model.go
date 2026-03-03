@@ -23,8 +23,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 )
 
-const useHighPerformanceRenderer = false
-
 var (
 	titleStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
@@ -99,17 +97,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !m.ready {
 			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
 			m.viewport.YPosition = headerHeight
-			m.viewport.HighPerformanceRendering = useHighPerformanceRenderer
 			m.viewport.SetContent(m.listView())
 			m.ready = true
 			m.viewport.YPosition = headerHeight - 1
 		} else {
 			m.viewport.Width = msg.Width
 			m.viewport.Height = msg.Height - verticalMarginHeight - 1
-		}
-
-		if useHighPerformanceRenderer {
-			cmds = append(cmds, viewport.Sync(m.viewport))
 		}
 	}
 
@@ -189,13 +182,6 @@ func (m Model) GetSelectedPermissions() *[]models.Permission {
 	}
 	*m.selects = selectedPermissions
 	return m.selects
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func NewModel(choices []models.Permission, selects *[]models.Permission) Model {

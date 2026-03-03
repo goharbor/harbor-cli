@@ -373,7 +373,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 		}
 	}
 
-	selectedProjects, err := getMultipleProjectsFromUser()
+	selectedProjects, err := prompt.GetProjectNamesFromUser()
 	if err != nil {
 		return fmt.Errorf("error selecting projects: %v", err)
 	}
@@ -496,7 +496,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 
 		projectPermissionsMap[projectName] = validProjectPerms
 
-		moreProjects, err := promptMoreProjects()
+		moreProjects, err := prompt.PromptForMoreProjects()
 		if err != nil {
 			return fmt.Errorf("error asking for more projects: %v", err)
 		}
