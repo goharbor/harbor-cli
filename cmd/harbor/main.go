@@ -14,14 +14,15 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 )
 
 func main() {
-	err := root.RootCmd().Execute()
-	if err != nil {
+	if err := root.RootCmd().Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
