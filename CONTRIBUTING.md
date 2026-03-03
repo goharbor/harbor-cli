@@ -121,6 +121,14 @@ Then, [Open a Pull Request](https://docs.github.com/en/pull-requests/collaborati
 go test ./...
 ```
 
+### Running Integration Tests with Dagger
+
+Run integration tests with a local Harbor service (requires Dagger):
+
+```bash
+dagger call test-integration
+```
+
 ## 🧹 Code Guidelines
 
 - Use `go fmt ./...` to format your code.
