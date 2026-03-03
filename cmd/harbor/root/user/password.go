@@ -51,8 +51,7 @@ func UserPasswordChangeCmd() *cobra.Command {
 			} else {
 				userId, err = prompt.GetUserIdFromUser()
 				if err != nil {
-					log.Errorf("failed to get user id: %v", err)
-					return
+					return fmt.Errorf("failed to get user id: %v", err)
 				}
 			}
 
