@@ -1,0 +1,51 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-tag-retention - Manage tag retention rules in the project
+
+
+.SH SYNOPSIS
+\fBharbor tag retention [flags]\fP
+
+
+.SH DESCRIPTION
+Manage tag retention rules in the project in Harbor.
+
+.PP
+The 'retention' command allows users to create, list, and delete tag retention rules
+within a project. Tag retention rules help in managing and controlling the lifecycle
+of tags by defining rules for automatic cleanup and retention.
+
+.PP
+A user can only create up to 15 tag retention rules per project.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for retention
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor tag retention create    # Create a new tag retention rule
+  harbor tag retention list      # List all tag retention rules in the project
+  harbor tag retention delete    # Delete a specific tag retention rules
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-tag(1)\fP, \fBharbor-tag-retention-create(1)\fP, \fBharbor-tag-retention-delete(1)\fP, \fBharbor-tag-retention-list(1)\fP
