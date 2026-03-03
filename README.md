@@ -270,7 +270,7 @@ Harbor <2.0.0 is not supported.
 * **User Group:** Join Harbor user email group: [harbor-users@lists.cncf.io](https://lists.cncf.io/g/harbor-users) to get update of Harbor's news, features, releases, or to provide suggestion and feedback.
 * **Developer Group:** Join Harbor developer group: [harbor-dev@lists.cncf.io](https://lists.cncf.io/g/harbor-dev) for discussion on Harbor development and contribution.
 * **Slack:** Join Harbor's community for discussion and ask questions: [Cloud Native Computing Foundation](https://slack.cncf.io/), channel: [#harbor](https://cloud-native.slack.com/messages/harbor/), [#harbor-dev](https://cloud-native.slack.com/messages/harbor-dev/) and [#harbor-cli](https://cloud-native.slack.com/archives/C078LCGU9K6).
-* **Community Calls:** Every Tuesday at 15:00 CET/CEST or 19:30 IST - [Join Meeting](https://zoom.us/j/99658352431)
+* **Community Calls:** Every Tuesday at 15:00 CET/CEST or 19:30 IST - [Join Meeting](https://zoom.us/j/99658352431). View [Meeting Notes](https://hackmd.io/@YvLTAInfRdO2rlxkLg9G4w/S1QeYi_uxx) for details.
 
 # License
 
@@ -287,4 +287,3 @@ This project is maintained by the Harbor community. We thank all our contributor
 
 For any questions or issues, please open an issue on our [GitHub Issues](https://github.com/goharbor/harbor-cli/issues) page.<br>
 Give a ⭐ if this project helped you, Thank YOU!
-
