@@ -13,7 +13,11 @@
 // limitations under the License.
 package artifactscan
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/spf13/cobra"
+)
 
 func ScanArtifactCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -30,4 +34,19 @@ func ScanArtifactCommand() *cobra.Command {
 	)
 
 	return cmd
+}
+
+func parseArgs(args []string) (string, string, string, error) {
+	if len(args) > 0 {
+		return utils.ParseProjectRepoReference(args[0])
+	} else {
+		projectName, err := prompt.GetProjectNameFromUser()
+		if err != nil {
+			return "", "", "", err
+		}
+		repoName := prompt.GetRepoNameFromUser(projectName)
+		reference := prompt.GetReferenceFromUser(repoName, projectName)
+
+		return projectName, repoName, reference, nil
+	}
 }
