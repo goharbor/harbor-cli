@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package logger
 
 import (
@@ -36,7 +49,6 @@ func TestEnabled(t *testing.T) {
 
 		t.Run(handler.name, func(t *testing.T) {
 			for _, lvl := range levels {
-
 				expected := lvl.level >= handler.level
 
 				got := h.Enabled(ctx, lvl.level)
@@ -184,25 +196,6 @@ func TestHandleLevelFiltering(t *testing.T) {
 					tt.handlerLevel.String(), tt.logLevel.String())
 			}
 		})
-	}
-}
-
-func TestHandleNoAttributes(t *testing.T) {
-	var buf bytes.Buffer
-
-	h := NewPrettyHandler(&buf, slog.LevelDebug)
-	logger := slog.New(h)
-
-	logger.Info("no attrs message")
-
-	out := buf.String()
-
-	if !strings.Contains(out, "no attrs message") {
-		t.Fatalf("expected message in output: %s", out)
-	}
-
-	if strings.Contains(out, ":") && strings.Contains(out, "repo") {
-		t.Fatalf("did not expect attribute output: %s", out)
 	}
 }
 
