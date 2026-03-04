@@ -233,6 +233,7 @@ func TestFormatLevel(t *testing.T) {
 		{"info", slog.LevelInfo, "INFO"},
 		{"warn", slog.LevelWarn, "WARN"},
 		{"error", slog.LevelError, "ERROR"},
+		{"unknown", slog.Level(999), slog.Level(999).String()},
 	}
 
 	for _, tt := range tests {
