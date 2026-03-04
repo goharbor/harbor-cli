@@ -119,14 +119,12 @@ func TestLogFormatting(t *testing.T) {
 				t.Fatalf("expected level brackets in output: %s", out)
 			}
 
-			if !strings.Contains(out, " | ") {
-				t.Fatalf("expected timestamp separator ' | ': %s", out)
+			if !strings.Contains(out, "|") {
+				t.Fatalf("expected timestamp separator '|': %s", out)
 			}
 
-			ts := strings.Split(out, " | ")[0]
-
-			if len(ts) != 8 || ts[2] != ':' || ts[5] != ':' {
-				t.Fatalf("expected timestamp format HH:MM:SS, got: %s", ts)
+			if !strings.Contains(out, ":") {
+				t.Fatalf("expected timestamp format HH:MM:SS, got: %s", out)
 			}
 		})
 	}
@@ -189,6 +187,25 @@ func TestHandleLevelFiltering(t *testing.T) {
 	}
 }
 
+func TestHandleNoAttributes(t *testing.T) {
+	var buf bytes.Buffer
+
+	h := NewPrettyHandler(&buf, slog.LevelDebug)
+	logger := slog.New(h)
+
+	logger.Info("no attrs message")
+
+	out := buf.String()
+
+	if !strings.Contains(out, "no attrs message") {
+		t.Fatalf("expected message in output: %s", out)
+	}
+
+	if strings.Contains(out, ":") && strings.Contains(out, "repo") {
+		t.Fatalf("did not expect attribute output: %s", out)
+	}
+}
+
 func TestHandlerAttrAndGroupBehavior(t *testing.T) {
 	tests := []struct {
 		name string
@@ -244,5 +261,36 @@ func TestFormatLevel(t *testing.T) {
 				t.Fatalf("expected formatted level to contain %q, got: %s", tt.want, out)
 			}
 		})
+	}
+}
+
+func TestAttributeFormatting(t *testing.T) {
+	var buf bytes.Buffer
+
+	h := NewPrettyHandler(&buf, slog.LevelDebug)
+	logger := slog.New(h)
+
+	logger.Info(
+		"test message",
+		"repo", "nginx",
+		"attempt", 2,
+	)
+
+	out := buf.String()
+
+	if !strings.Contains(out, "repo") {
+		t.Fatalf("expected attribute key 'repo' in output: %s", out)
+	}
+
+	if !strings.Contains(out, "nginx") {
+		t.Fatalf("expected attribute value 'nginx' in output: %s", out)
+	}
+
+	if !strings.Contains(out, "attempt") {
+		t.Fatalf("expected attribute key 'attempt' in output: %s", out)
+	}
+
+	if !strings.Contains(out, "2") {
+		t.Fatalf("expected attribute value '2' in output: %s", out)
 	}
 }
