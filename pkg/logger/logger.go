@@ -11,24 +11,31 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package main
+package logger
 
 import (
 	"log/slog"
-
-	"github.com/goharbor/harbor-cli/cmd/harbor/root"
-	"github.com/goharbor/harbor-cli/pkg/logger"
+	"os"
 )
 
-func main() {
-	// The default logger for when the error happens in flag parsing
-	//
-	// Since the flag parsing happen's first before the PersistentPreRunE in the RootCmd()
-	// We need to setup a minimal logger for maintaining format
-	logger.Setup(false, "")
-
-	err := root.RootCmd().Execute()
-	if err != nil {
-		slog.Error(err.Error())
+func Setup(verbose bool, format string) {
+	level := slog.LevelWarn
+	if verbose {
+		level = slog.LevelDebug
 	}
+
+	opts := slog.HandlerOptions{
+		Level: level,
+	}
+
+	var handler slog.Handler
+	if format == "json" {
+		handler = slog.NewJSONHandler(os.Stderr, &opts)
+	} else {
+		// Custom Text Handler
+		handler = NewPrettyHandler(os.Stderr, level)
+	}
+
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 }
