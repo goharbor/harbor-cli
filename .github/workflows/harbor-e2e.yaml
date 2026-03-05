@@ -37,6 +37,9 @@ jobs:
           sudo apt-get install -y \
             podman podman-docker podman-compose \
             git tar gzip wget openssl curl golang-go
+          # Install yq for reliable YAML manipulation
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
 
       - name: Configure hostname in /etc/hosts
         run: |
@@ -60,7 +63,10 @@ jobs:
           podman-compose --version
 
       - name: Clone Harbor Podman repo
-        run: git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
+        run: |
+          git clone https://github.com/bupd/harbor-podman.git /tmp/harbor-podman
+          cd /tmp/harbor-podman
+          git checkout eebea2db153fd75b2d16ffaaca1055a400e8ed64
 
       - name: Prepare harbor config and TLS
         working-directory: /tmp/harbor-podman
@@ -79,13 +85,13 @@ jobs:
           sed -i "s|^hostname:.*|hostname: ${HOSTNAME}|" harbor.yml
 
           # set the passwords for admin and databases
-          sed -i "s|^harbor_admin_password:.*|harbor_admin_password: \"${ADMIN_PW}\"|" harbor.yml
-          sed -i "/^database:/ { n; n; s|^  password:.*|  password: \"$(openssl rand -base64 30)\"| }" harbor.yml
+          yq eval -i ".harbor_admin_password = \"${ADMIN_PW}\"" harbor.yml
+          yq eval -i ".database.password = \"$(openssl rand -base64 30)\"" harbor.yml
 
-          # create self-signed ssl certificate valid for 10 years
+          # create self-signed ssl certificate valid for 90 days
           # Use absolute paths because the prepare script runs in a container that mounts / -> /hostfs/
           mkdir -p /tmp/harbor-podman/cert
-          openssl req -newkey rsa:4096 -nodes -x509 -days 3650 \
+          openssl req -newkey rsa:4096 -nodes -x509 -days 90 \
             -subj "/C=US/ST=CA/L=SF/O=harbor-cli/CN=${HOSTNAME}" \
             -keyout /tmp/harbor-podman/cert/harbor.key \
             -out    /tmp/harbor-podman/cert/harbor.crt
@@ -94,7 +100,7 @@ jobs:
           sed -i "s|certificate:.*|certificate: /tmp/harbor-podman/cert/harbor.crt|" harbor.yml
           sed -i "s|private_key:.*|private_key: /tmp/harbor-podman/cert/harbor.key|" harbor.yml
 
-          sudo chown -R 1000:1000 .
+          sudo chown -R "$(id -u)":"$(id -g)" .
 
       - name: Start Harbor
         working-directory: /tmp/harbor-podman
@@ -118,9 +124,10 @@ jobs:
           HOST="${HARBOR_HOSTNAME:-harbor.local}"
           for i in $(seq 1 40); do
             if curl -sk https://${HOST}/api/v2.0/health >/dev/null; then
-              echo "Harbor is ready"
+              echo "Harbor is ready after $((i * 5)) seconds"
               exit 0
             fi
+            echo "Waiting for Harbor to be ready... (attempt $i/40)"
             sleep 5
           done
           echo "Harbor failed to become ready" >&2
@@ -137,7 +144,7 @@ jobs:
           HOST="${HARBOR_HOSTNAME:-harbor.local}"
           ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
           if [ -z "$ADMIN_PW" ]; then
-             ADMIN_PW=$(grep '^harbor_admin_password:' /tmp/harbor-podman/harbor.yml | awk '{print $2}' | tr -d '"')
+             ADMIN_PW=$(yq eval '.harbor_admin_password' /tmp/harbor-podman/harbor.yml)
           fi
           echo "harbor_url=https://${HOST}" >> $GITHUB_OUTPUT
           echo "harbor_username=admin" >> $GITHUB_OUTPUT
@@ -150,6 +157,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go
+        if: ${{ inputs.run_tests }}
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
       - name: Run E2E Tests
         if: ${{ inputs.run_tests }}
         env:
@@ -159,4 +173,4 @@ jobs:
           HARBOR_REQUIRED: "true"
         run: |
           echo "Running e2e tests against Harbor at ${HARBOR_URL}"
-          go test -v ./...
+          go test -v ./test/e2e/... ./cmd/harbor/root/...

@@ -81,13 +81,47 @@ func GetHarborConfig(t *testing.T) *HarborTestConfig {
 }
 
 // GetHarborServerAddresses returns a list of valid server address formats for the current Harbor instance.
-// Useful for testing different URL formats (with/without port, http/https).
+// This tests different URL format variations (with/without explicit port) to ensure robust URL handling.
 func GetHarborServerAddresses(t *testing.T) []string {
 	t.Helper()
 	cfg := GetHarborConfig(t)
 
-	// Local instance typically runs on a single address
-	return []string{cfg.URL}
+	addresses := []string{cfg.URL}
+
+	// Add explicit port variations if not already present
+	if !containsPort(cfg.URL) {
+		if isHTTPS(cfg.URL) {
+			addresses = append(addresses, cfg.URL+":443")
+		} else {
+			addresses = append(addresses, cfg.URL+":80")
+		}
+	}
+
+	return addresses
+}
+
+// containsPort checks if a URL already includes an explicit port.
+func containsPort(url string) bool {
+	// Simple check: look for colon followed by digits at the end
+	lastColon := len(url) - 1
+	for lastColon >= 0 && url[lastColon] != ':' {
+		lastColon--
+	}
+	if lastColon < 0 {
+		return false
+	}
+	// Check if everything after the colon is digits (port)
+	for i := lastColon + 1; i < len(url); i++ {
+		if url[i] < '0' || url[i] > '9' {
+			return false
+		}
+	}
+	return lastColon > 0 // Must have scheme before the port
+}
+
+// isHTTPS checks if a URL uses the HTTPS scheme.
+func isHTTPS(url string) bool {
+	return len(url) >= 6 && url[:6] == "https:"
 }
 
 // isHarborHealthy checks if a Harbor instance is responding to health checks.
