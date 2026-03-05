@@ -1,55 +1,36 @@
-.nh
-.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+---
+title: harbor user create
+weight: 170
+---
+## harbor user create
 
-.SH NAME
-harbor-user-create - create user
+### Description
 
+##### create user
 
-.SH SYNOPSIS
-\fBharbor user create [flags]\fP
+```sh
+harbor user create [flags]
+```
 
+### Options
 
-.SH DESCRIPTION
-create user
+```sh
+      --comment string    Comment (optional)
+      --email string      Email
+  -h, --help              help for create
+      --password string   Password
+      --realname string   Realname
+      --username string   Username
+```
 
+### Options inherited from parent commands
 
-.SH OPTIONS
-\fB--comment\fP=""
-	Comment (optional)
+```sh
+  -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+  -o, --output-format string   Output format. One of: json|yaml
+  -v, --verbose                verbose output
+```
 
-.PP
-\fB--email\fP=""
-	Email
+### SEE ALSO
 
-.PP
-\fB-h\fP, \fB--help\fP[=false]
-	help for create
-
-.PP
-\fB--password\fP=""
-	Password
-
-.PP
-\fB--realname\fP=""
-	Realname
-
-.PP
-\fB--username\fP=""
-	Username
-
-
-.SH OPTIONS INHERITED FROM PARENT COMMANDS
-\fB-c\fP, \fB--config\fP=""
-	config file (default is $HOME/.config/harbor-cli/config.yaml)
-
-.PP
-\fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
-
-.PP
-\fB-v\fP, \fB--verbose\fP[=false]
-	verbose output
-
-
-.SH SEE ALSO
-\fBharbor-user(1)\fP
+* [harbor user](harbor-user.md)	 - Manage users
