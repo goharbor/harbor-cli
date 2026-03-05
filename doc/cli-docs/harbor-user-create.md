@@ -15,7 +15,7 @@ harbor user create [flags]
 ### Options
 
 ```sh
-      --comment string    Comment (optional)
+      --comment string    Comment
       --email string      Email
   -h, --help              help for create
       --password string   Password
@@ -34,3 +34,4 @@ harbor user create [flags]
 ### SEE ALSO
 
 * [harbor user](harbor-user.md)	 - Manage users
+
