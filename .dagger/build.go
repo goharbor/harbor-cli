@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"dagger/harbor-cli/internal/dagger"
@@ -20,6 +21,16 @@ func (m *HarborCli) Build(ctx context.Context,
 			return nil, err
 		}
 	}
+
+	temp := dag.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/src", source).
+		WithExec([]string{"apk", "add", "--no-cache", "git"}).
+		WithWorkdir("/src")
+
+	gitCommit, _ := temp.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
+	gitCommit = strings.TrimSpace(gitCommit)
+	buildTime := time.Now().UTC().Format(time.RFC3339)
 
 	goos := []string{"linux", "darwin", "windows"}
 	goarch := []string{"amd64", "arm64"}
@@ -42,9 +53,6 @@ func (m *HarborCli) Build(ctx context.Context,
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", os).
 				WithEnvVariable("GOARCH", arch)
-
-			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
-			buildTime := time.Now().UTC().Format(time.RFC3339)
 
 			ldflagsArgs := LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
 

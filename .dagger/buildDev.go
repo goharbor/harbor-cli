@@ -27,6 +27,16 @@ func (m *HarborCli) BuildDev(ctx context.Context, platform string,
 		log.Fatalf("Error parsing platform: %v", err)
 	}
 
+	temp := dag.Container().
+		From("alpine:latest").
+		WithMountedDirectory("/src", m.Source).
+		WithExec([]string{"apk", "add", "--no-cache", "git"}).
+		WithWorkdir("/src")
+
+	gitCommit, _ := temp.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
+	gitCommit = strings.TrimSpace(gitCommit)
+	buildTime := time.Now().UTC().Format(time.RFC3339)
+
 	builder := dag.Container().
 		From("golang:"+m.GoVersion).
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("go-mod-"+m.GoVersion)).
@@ -37,9 +47,6 @@ func (m *HarborCli) BuildDev(ctx context.Context, platform string,
 		WithWorkdir("/src").
 		WithEnvVariable("GOOS", os).
 		WithEnvVariable("GOARCH", arch)
-
-	gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
-	buildTime := time.Now().UTC().Format(time.RFC3339)
 
 	ldflagsArgs := LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
 
