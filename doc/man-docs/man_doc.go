@@ -106,7 +106,7 @@ func cleanManPages(docDir string) error {
 			cleanedContent := strings.Split(updatedContent, "\n.SH HISTORY")[0]
 			cleanedContent = strings.TrimRight(cleanedContent, "\n")
 
-			wf, err := root.OpenFile(relPath, os.O_WRONLY|os.O_TRUNC, 0600)
+			wf, err := root.OpenFile(relPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
 			if err != nil {
 				return err
 			}
