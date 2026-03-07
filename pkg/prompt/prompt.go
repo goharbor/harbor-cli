@@ -46,6 +46,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var ErrNoRunningGCJobs = errors.New("no running GC jobs found to stop")
+
 func GetRegistryNameFromUser() int64 {
 	registryId := make(chan int64)
 	go func() {
@@ -477,7 +479,7 @@ func GetRunningGCJobIDFromUser() (int64, error) {
 		opts := api.ListFlags{
 			Page:     1,
 			PageSize: 100,
-			Q:        "job_status={Running Pending In_Progress}",
+			Q:        "status={Running Pending In_Progress}",
 		}
 		history, err := api.GetGCHistory(opts)
 		if err != nil {
@@ -486,7 +488,7 @@ func GetRunningGCJobIDFromUser() (int64, error) {
 		}
 
 		if len(history) == 0 {
-			resultChan <- result{0, errors.New("no running GC jobs found to stop")}
+			resultChan <- result{0, ErrNoRunningGCJobs}
 			return
 		}
 

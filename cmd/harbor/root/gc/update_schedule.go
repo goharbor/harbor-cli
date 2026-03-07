@@ -103,12 +103,12 @@ func updateGCCustomSchedule(cron string) error {
 		if err := update.UpdateSchedule(&cron); err != nil {
 			return err
 		}
-		// re-validate after interactive input
-		var err error
-		cron, err = validateCron(cron)
-		if err != nil {
-			return err
-		}
+	}
+
+	var err error
+	cron, err = validateCron(cron)
+	if err != nil {
+		return err
 	}
 
 	schedule := &models.Schedule{
@@ -118,7 +118,7 @@ func updateGCCustomSchedule(cron string) error {
 		},
 	}
 
-	err := api.UpdateGCSchedule(schedule)
+	err = api.UpdateGCSchedule(schedule)
 	if err != nil {
 		errMsg := utils.ParseHarborErrorMsg(err)
 		if strings.Contains(errMsg, "400") {

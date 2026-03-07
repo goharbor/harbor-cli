@@ -15,6 +15,7 @@
 package gc
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -47,12 +48,11 @@ Notes:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			gcID, err := prompt.GetRunningGCJobIDFromUser()
 			if err != nil {
-				if err.Error() == "no running GC jobs found to stop" {
+				if errors.Is(err, prompt.ErrNoRunningGCJobs) {
 					logrus.Info(err.Error())
 					return nil
 				}
-				logrus.Errorf("Failed to select GC job: %v", err)
-				return err
+				return fmt.Errorf("failed to select GC job: %w", err)
 			}
 
 			logrus.Infof("Stopping GC job %d", gcID)
