@@ -15,6 +15,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -109,7 +110,7 @@ func DeleteAllMember(projectName string, xIsResourceName bool) error {
 	length := len(response.Payload)
 	if length < 1 {
 		log.Info("No members found in project")
-		return nil
+		return fmt.Errorf("no members found in project %s", projectName)
 	}
 
 	errChan := make(chan error, length)
@@ -140,7 +141,7 @@ func DeleteAllMember(projectName string, xIsResourceName bool) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("failed to delete %d member(s): %v", len(errs), errs[0])
+		return fmt.Errorf("failed to delete %d member(s): %w", len(errs), errors.Join(errs...))
 	}
 
 	return nil

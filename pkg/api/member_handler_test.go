@@ -53,7 +53,8 @@ func TestDeleteAllMember_NoMembers(t *testing.T) {
 
 	err := DeleteAllMember("test-project", true)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no members found in project")
 }
 
 func TestDeleteAllMember_Success(t *testing.T) {
