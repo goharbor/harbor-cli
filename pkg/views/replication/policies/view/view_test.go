@@ -25,9 +25,28 @@ func TestFormatCopyByChunk(t *testing.T) {
 		assert.Equal(t, "N/A", got)
 	})
 
-	t.Run("non-nil CopyByChunk", func(t *testing.T) {
+	t.Run("true CopyByChunk", func(t *testing.T) {
 		v := true
 		got := formatCopyByChunk(&v)
 		assert.Equal(t, "true", got)
+	})
+
+	t.Run("false CopyByChunk", func(t *testing.T) {
+		v := false
+		got := formatCopyByChunk(&v)
+		assert.Equal(t, "false", got)
+	})
+}
+
+func TestFormatSpeed(t *testing.T) {
+	t.Run("nil Speed", func(t *testing.T) {
+		got := formatSpeed(nil)
+		assert.Equal(t, "N/A", got)
+	})
+
+	t.Run("non-nil Speed", func(t *testing.T) {
+		v := int32(1024)
+		got := formatSpeed(&v)
+		assert.Equal(t, "1024 B/s", got)
 	})
 }
