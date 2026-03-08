@@ -23,6 +23,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var fillUser = create.CreateUserView
+
+func CreateUser(opts *create.CreateView, createUserAPI func(opts create.CreateView) error) {
+	var err error
+
+	if opts.Email == "" || opts.Realname == "" || opts.Password == "" || opts.Username == "" {
+		fillUser(opts)
+	}
+
+	err = createUserAPI(*opts)
+
+	if err != nil {
+		if isUnauthorizedError(err) {
+			log.WithFields(log.Fields{
+				"action": "user create",
+			}).Error("Permission denied: The current account does not have the required permissions to create users.")
+		} else {
+			log.Errorf("failed to create user: %v", err)
+		}
+	}
+}
 func UserCreateCmd() *cobra.Command {
 	var opts create.CreateView
 
@@ -31,30 +52,7 @@ func UserCreateCmd() *cobra.Command {
 		Short: "create user",
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			createView := &create.CreateView{
-				Email:    opts.Email,
-				Realname: opts.Realname,
-				Comment:  opts.Comment,
-				Password: opts.Password,
-				Username: opts.Username,
-			}
-
-			if opts.Email != "" && opts.Realname != "" && opts.Password != "" && opts.Username != "" {
-				err = api.CreateUser(opts)
-			} else {
-				err = createUserView(createView)
-			}
-
-			// Check if the error is due to unauthorized access.
-
-			if err != nil {
-				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					log.Errorf("failed to create user: %v", err)
-				}
-			}
+			CreateUser(&opts, api.CreateUser)
 		},
 	}
 
@@ -67,12 +65,9 @@ func UserCreateCmd() *cobra.Command {
 
 	return cmd
 }
-
-func createUserView(createView *create.CreateView) error {
-	create.CreateUserView(createView)
-	return api.CreateUser(*createView)
-}
-
 func isUnauthorizedError(err error) bool {
+	if err == nil {
+		return false
+	}
 	return strings.Contains(err.Error(), "403")
 }
