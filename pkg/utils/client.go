@@ -38,7 +38,7 @@ func GetClient() (*v2client.HarborAPI, error) {
 		}
 		credentialName := config.CurrentCredentialName
 		if credentialName == "" {
-			ClientErr = fmt.Errorf("current-credential-name is not set in config file")
+			ClientErr = fmt.Errorf("no Harbor credentials found. Please run `harbor login` to configure access")
 			return
 		}
 

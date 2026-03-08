@@ -385,7 +385,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 		fmt.Println("Select permissions to apply to all selected projects:")
 		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
 		if err != nil {
-			return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 		}
 
 		// Validate project permissions
@@ -460,7 +460,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 				fmt.Printf("Updating permissions for project: %s\n", project)
 				projectPerms, err := prompt.GetRobotPermissionsFromUser("project")
 				if err != nil {
-					return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 				}
 
 				// Validate project permissions
@@ -488,7 +488,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 
 		projectPerms, err := prompt.GetRobotPermissionsFromUser("project")
 		if err != nil {
-			return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 		}
 
 		// Validate project permissions

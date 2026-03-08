@@ -200,7 +200,7 @@ func getSystemPermissions(all bool, permissions *[]models.Permission) error {
 			var err error
 			*permissions, err = prompt.GetRobotPermissionsFromUser("system")
 			if err != nil {
-				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 			}
 			if len(*permissions) == 0 {
 				return fmt.Errorf("failed to create robot: %v",
@@ -240,7 +240,7 @@ func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models
 		fmt.Println("Select permissions to apply to all selected projects:")
 		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
 		if err != nil {
-			return fmt.Errorf("failed to get project permissions: %v", err)
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 		}
 		for _, projectName := range selectedProjects {
 			projectPermissionsMap[projectName] = projectPermissions
@@ -263,7 +263,7 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 
 			projectPermissionsMap[projectName], err = prompt.GetRobotPermissionsFromUser("project")
 			if err != nil {
-				return fmt.Errorf("failed to get project permissions: %v", err)
+				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			moreProjects, err := promptMoreProjects()
@@ -277,7 +277,7 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 	} else {
 		projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
 		if err != nil {
-			return fmt.Errorf("failed to get project permissions: %v", err)
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 		}
 		projectPermissionsMap[opts.ProjectName] = projectPermissions
 	}

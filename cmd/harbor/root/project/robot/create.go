@@ -150,7 +150,7 @@ Examples:
 					} else {
 						permissions, err = prompt.GetRobotPermissionsFromUser("project")
 						if err != nil {
-							return fmt.Errorf("failed to get project permissions: %v", err)
+							return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 						}
 						if len(permissions) == 0 {
 							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")

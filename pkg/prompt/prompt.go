@@ -317,24 +317,20 @@ func GetActiveContextFromUser() (string, error) {
 }
 
 func GetRobotPermissionsFromUser(kind string) ([]models.Permission, error) {
-	type result struct {
-		permissions []models.Permission
-		err         error
-	}
-	permissions := make(chan []models.Permission)
-	results := make(chan result)
+	permissions := make(chan robotView.PermissionSelectResult)
 	go func() {
 		response, err := api.GetPermissions()
 		if err != nil {
-			fmt.Println("Permission denied: (Project) Admin privileges are required to execute this command.")
-			results <- result{nil, err}
+			permissions <- robotView.PermissionSelectResult{
+				Permissions: nil,
+				Err:         err,
+			}
 			return
 		}
 		robotView.ListPermissions(response.Payload, kind, permissions)
-		results <- result{<-permissions, nil}
 	}()
-	res := <-results
-	return res.permissions, res.err
+	result := <-permissions
+	return result.Permissions, result.Err
 }
 
 func GetRobotIDFromUser(projectID int64) (int64, error) {
