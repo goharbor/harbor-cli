@@ -21,7 +21,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/immutable/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,18 +29,18 @@ func ListImmutableCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list [PROJECT_NAME]",
 		Short: "Display all immutable tag rules for a project",
-		Long: `Retrieve and display a list of immutable tag rules configured for a specified project in Harbor. 
+		Long: `Retrieve and display a list of immutable tag rules configured for a specified project in Harbor.
 Immutable tag rules prevent specific tags from being deleted or overwritten, ensuring better security and compliance.
 You can specify the project name as an argument or, if omitted, you will be prompted to select one interactively.`,
-		Example: `  
-  # List immutable tag rules for a specific project  
-  harbor tag immutable list my-project  
+		Example: `
+  # List immutable tag rules for a specific project
+  harbor tag immutable list my-project
 
-  # List immutable tag rules interactively (if no project name is provided)  
-  harbor tag immutable list  
+  # List immutable tag rules interactively (if no project name is provided)
+  harbor tag immutable list
   `,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var resp immutable.ListImmuRulesOK
 			var projectName string
@@ -51,26 +50,31 @@ You can specify the project name as an argument or, if omitted, you will be prom
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					log.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-					return
+					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
 			resp, err = api.ListImmutable(projectName)
 			if err != nil {
-				log.Errorf("failed to list immutablility rule: %v", err)
+				return fmt.Errorf("failed to list immutablility rule: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				utils.PrintPayloadInJSONFormat(resp)
-				return
+				err = utils.PrintFormat(resp.Payload, FormatFlag)
+				if err != nil {
+					return err
+				}
+				return nil
 			}
+
 			if len(resp.Payload) == 0 {
 				fmt.Println("No immutable tag rules found.")
-				return
+				return nil
 			}
 			list.ListImmuRules(resp.Payload)
+
+			return nil
 		},
 	}
 	return cmd

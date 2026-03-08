@@ -14,11 +14,11 @@
 package registry
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ func DeleteRegistryCommand() *cobra.Command {
 		Short:   "delete registry by name or id",
 		Example: "harbor registry delete [registryname]",
 		Args:    cobra.MinimumNArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var wg sync.WaitGroup
 			errChan := make(chan error, len(args))
 			if len(args) > 0 {
@@ -46,7 +46,7 @@ func DeleteRegistryCommand() *cobra.Command {
 				registryId := prompt.GetRegistryNameFromUser()
 				err := api.DeleteRegistry(registryId)
 				if err != nil {
-					log.Errorf("failed to delete registry: %v", err)
+					return fmt.Errorf("failed to delete registry: %v", err)
 				}
 			}
 
@@ -62,13 +62,14 @@ func DeleteRegistryCommand() *cobra.Command {
 				if finalErr == nil {
 					finalErr = err
 				} else {
-					log.Errorf("Error: %v", err)
+					return fmt.Errorf("Error: %v", err)
 				}
 			}
 
 			if finalErr != nil {
-				log.Errorf("failed to delete registry: %v", finalErr)
+				return fmt.Errorf("failed to delete registry: %v", finalErr)
 			}
+			return nil
 		},
 	}
 

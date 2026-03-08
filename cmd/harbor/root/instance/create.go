@@ -28,7 +28,7 @@ func CreateInstanceCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new preheat provider instance in Harbor",
-		Long: `Create a new preheat provider instance within Harbor for distributing container images. 
+		Long: `Create a new preheat provider instance within Harbor for distributing container images.
 The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
 You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.`,
 		Example: `  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true`,

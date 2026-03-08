@@ -14,10 +14,10 @@
 package user
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 	"github.com/spf13/cobra"
@@ -30,7 +30,7 @@ func UserCreateCmd() *cobra.Command {
 		Use:   "create",
 		Short: "create user",
 		Args:  cobra.ExactArgs(0),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			createView := &create.CreateView{
 				Email:    opts.Email,
@@ -50,11 +50,12 @@ func UserCreateCmd() *cobra.Command {
 
 			if err != nil {
 				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
+					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
 				} else {
-					log.Errorf("failed to create user: %v", err)
+					return fmt.Errorf("failed to create user: %v", err)
 				}
 			}
+			return nil
 		},
 	}
 

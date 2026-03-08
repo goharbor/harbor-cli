@@ -14,13 +14,13 @@
 package robot
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/view"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -56,7 +56,7 @@ Examples:
   # Interactive selection (will prompt for robot)
   harbor-cli robot view`,
 		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				robot   *robot.GetRobotByIDOK
 				robotID int64
@@ -66,7 +66,7 @@ Examples:
 			if len(args) == 1 {
 				robotID, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
-					log.Fatalf("failed to parse robot ID: %v", err)
+					return fmt.Errorf("failed to parse robot ID: %v", err)
 				}
 			} else {
 				robotID = prompt.GetRobotIDFromUser(-1)
@@ -74,12 +74,14 @@ Examples:
 
 			robot, err = api.GetRobot(robotID)
 			if err != nil {
-				log.Fatalf("failed to get robot: %v", err)
+				return fmt.Errorf("failed to get robot: %v", err)
 			}
 
 			// Convert to a list and display
 			// robots := &models.Robot{robot.Payload}
 			view.ViewRobot(robot.Payload)
+
+			return nil
 		},
 	}
 
