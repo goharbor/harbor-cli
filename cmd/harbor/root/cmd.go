@@ -15,8 +15,6 @@ package root
 
 import (
 	"fmt"
-	"io"
-	"time"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
@@ -37,8 +35,8 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
+	"github.com/goharbor/harbor-cli/pkg/logger"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,10 +49,11 @@ var (
 
 func RootCmd() *cobra.Command {
 	root := &cobra.Command{
-		Use:          "harbor",
-		Short:        "Official Harbor CLI",
-		SilenceUsage: true,
-		Long:         "Official Harbor CLI",
+		Use:           "harbor",
+		Short:         "Official Harbor CLI",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		Long:          "Official Harbor CLI",
 		Example: `
 // Base command:
 harbor
@@ -68,17 +67,8 @@ harbor help
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
-			// Conditionally set the timestamp format only in verbose mode
-			formatter := &logrus.TextFormatter{}
-
-			if verbose {
-				formatter.FullTimestamp = true
-				formatter.TimestampFormat = time.RFC3339
-				logrus.SetLevel(logrus.DebugLevel)
-			} else {
-				logrus.SetOutput(io.Discard)
-			}
-			logrus.SetFormatter(formatter)
+			// Sets up logging
+			logger.Setup(verbose, output)
 
 			return nil
 		},
