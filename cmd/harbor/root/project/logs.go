@@ -58,7 +58,9 @@ func LogsProjectCommmand() *cobra.Command {
 				}
 				log.Debugf("Project name received from prompt: %s", projectName)
 			}
-
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
 			log.Debugf("Checking if project '%s' exists...", projectName)
 			_, err = api.GetProject(projectName, false)
 			if err != nil {
@@ -69,7 +71,7 @@ func LogsProjectCommmand() *cobra.Command {
 			}
 
 			log.Debugf("Fetching logs for project: %s", projectName)
-			resp, err = api.LogsProject(projectName)
+			resp, err = api.LogsProject(projectName, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get project logs: %v", utils.ParseHarborErrorMsg(err))
 			}
