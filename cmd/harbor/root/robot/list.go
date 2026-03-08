@@ -64,6 +64,13 @@ Examples:
   harbor-cli robot list --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
+
 			robots, err := api.ListRobot(opts)
 			if err != nil {
 				errorCode := utils.ParseHarborErrorCode(err)

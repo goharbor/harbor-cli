@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -53,34 +54,22 @@ func ParseHarborErrorMsg(err error) string {
 }
 
 func ParseHarborErrorCode(err error) string {
-	if err == nil {
-		return ""
-	}
+	errStr := err.Error()
 
-	errMsg := err.Error()
-
-	// Handle: "response status code does not match any response statuses defined for this endpoint in the swagger spec (status 403): {}"
-	if strings.Contains(errMsg, "(status ") {
-		// Extract content between "(status " and ")"
-		startIdx := strings.Index(errMsg, "(status ")
-		if startIdx != -1 {
-			startIdx += len("(status ")
-			endIdx := strings.Index(errMsg[startIdx:], ")")
-			if endIdx != -1 {
-				statusCode := strings.TrimSpace(errMsg[startIdx : startIdx+endIdx])
-				return statusCode
-			}
-		}
-	}
-
-	// Handle: "[code] message" format
-	parts := strings.Split(errMsg, "]")
+	// Try format: [METHOD /path][CODE] - e.g., [GET /projects][404]
+	parts := strings.Split(errStr, "]")
 	if len(parts) >= 2 {
 		codePart := strings.TrimSpace(parts[1])
 		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
 			code := codePart[1:4]
 			return code
 		}
+	}
+
+	// Try format: (status CODE) - e.g., (status 404)
+	re := regexp.MustCompile(`\(status\s+(\d{3})\)`)
+	if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
+		return matches[1]
 	}
 
 	return ""

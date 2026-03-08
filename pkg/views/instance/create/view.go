@@ -59,8 +59,8 @@ func CreateInstanceView(createView *CreateView) {
 				Title("Name").
 				Value(&createView.Name).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("name cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("name cannot be empty or only spaces")
 					}
 					return nil
 				}),
@@ -74,8 +74,15 @@ func CreateInstanceView(createView *CreateView) {
 				Title("Endpoint").
 				Value(&createView.Endpoint).
 				Validate(func(str string) error {
-					err := utils.ValidateURL(str)
-					return err
+					if strings.TrimSpace(str) == "" {
+						return errors.New("endpoint cannot be empty or only spaces")
+					}
+					formattedUrl := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedUrl); err != nil {
+						return err
+					}
+					createView.Endpoint = formattedUrl
+					return nil
 				}),
 			huh.NewConfirm().
 				Title("Enable").
@@ -133,8 +140,8 @@ func CreateInstanceView(createView *CreateView) {
 				Title("Token").
 				Value(&token).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("token cannot be empty")
+					if strings.TrimSpace(str) == "" {
+						return errors.New("token cannot be empty or only spaces")
 					}
 					return nil
 				}),

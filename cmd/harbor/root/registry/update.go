@@ -14,11 +14,13 @@
 package registry
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -31,15 +33,14 @@ func UpdateRegistryCommand() *cobra.Command {
 		Use:   "update [registry_name]",
 		Short: "update registry",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var registryId int64
 
 			if len(args) > 0 {
 				registryId, err = api.GetRegistryIdByName(args[0])
 				if err != nil {
-					log.Errorf("failed to get registry id: %v", err)
-					return
+					return fmt.Errorf("failed to get registry id: %v", err)
 				}
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
@@ -47,12 +48,10 @@ func UpdateRegistryCommand() *cobra.Command {
 
 			existingRegistry, err := api.GetRegistryResponse(registryId)
 			if err != nil {
-				log.Errorf("failed to get registry with ID %d: %v", registryId, err)
-				return
+				return fmt.Errorf("failed to get registry with ID %d: %v", registryId, err)
 			}
 			if existingRegistry == nil {
-				log.Errorf("registry is not found")
-				return
+				return fmt.Errorf("registry is not found")
 			}
 
 			updateView := &models.Registry{
@@ -79,7 +78,11 @@ func UpdateRegistryCommand() *cobra.Command {
 				updateView.Description = opts.Description
 			}
 			if flags.Changed("url") {
-				updateView.URL = opts.URL
+				formattedUrl := utils.FormatUrl(opts.URL)
+				if err := utils.ValidateURL(formattedUrl); err != nil {
+					return err
+				}
+				updateView.URL = formattedUrl
 			}
 			if flags.Changed("insecure") {
 				updateView.Insecure = opts.Insecure
@@ -97,9 +100,9 @@ func UpdateRegistryCommand() *cobra.Command {
 			update.UpdateRegistryView(updateView)
 			err = api.UpdateRegistry(updateView, registryId)
 			if err != nil {
-				log.Errorf("failed to update registry: %v", err)
-				return
+				return fmt.Errorf("failed to update registry: %v", err)
 			}
+			return nil
 		},
 	}
 
