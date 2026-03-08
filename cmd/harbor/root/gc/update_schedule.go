@@ -29,6 +29,12 @@ import (
 	"golang.org/x/text/language"
 )
 
+var predefinedCron = map[string]string{
+	"Hourly": "0 0 * * * *",
+	"Daily":  "0 0 0 * * *",
+	"Weekly": "0 0 0 * * 0",
+}
+
 func UpdateGCScheduleCommand() *cobra.Command {
 	var scheduleType string
 	var cron string
@@ -86,6 +92,7 @@ func updateGCPredefinedSchedule(scheduleType string) error {
 	schedule := &models.Schedule{
 		Schedule: &models.ScheduleObj{
 			Type: scheduleType,
+			Cron: predefinedCron[scheduleType],
 		},
 	}
 
