@@ -34,12 +34,7 @@ var validGCSortFields = []string{
 
 var validGCQueryKeys = []string{
 	"id",
-	"job_status",
-	"job_name",
-	"job_kind",
-	"creation_time",
-	"update_time",
-	"deleted",
+	"status",
 }
 
 func ListGCCommand() *cobra.Command {
@@ -70,13 +65,10 @@ Examples:
   harbor gc list --sort -creation_time
 
   # List GC history with multiple sort fields
-  harbor gc list --sort creation_time --sort -job_status
+  harbor gc list --sort creation_time --sort -update_time
 
   # Filter GC history by status (exact match)
-  harbor gc list --match job_status=Success
-
-  # Filter GC history by fuzzy match
-  harbor gc list --fuzzy job_name=gc`,
+  harbor gc list --match status=Success`,
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.PageSize > 100 {
