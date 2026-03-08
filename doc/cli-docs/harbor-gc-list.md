@@ -26,13 +26,10 @@ Examples:
   harbor gc list --sort -creation_time
 
   # List GC history with multiple sort fields
-  harbor gc list --sort creation_time --sort -job_status
+  harbor gc list --sort creation_time --sort -update_time
 
   # Filter GC history by status (exact match)
-  harbor gc list --match job_status=Success
-
-  # Filter GC history by fuzzy match
-  harbor gc list --fuzzy job_name=gc
+  harbor gc list --match status=Success
 
 ```sh
 harbor gc list [flags]

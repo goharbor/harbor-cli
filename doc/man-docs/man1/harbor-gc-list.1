@@ -31,15 +31,11 @@ Examples:
 
 .PP
 # List GC history with multiple sort fields
-  harbor gc list --sort creation_time --sort -job_status
+  harbor gc list --sort creation_time --sort -update_time
 
 .PP
 # Filter GC history by status (exact match)
-  harbor gc list --match job_status=Success
-
-.PP
-# Filter GC history by fuzzy match
-  harbor gc list --fuzzy job_name=gc
+  harbor gc list --match status=Success
 
 
 .SH OPTIONS
