@@ -94,7 +94,7 @@ Examples:
 				}
 				robotID, err = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
 				if err != nil {
-					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
 				}
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
@@ -103,7 +103,7 @@ Examples:
 				}
 				robotID, err = prompt.GetRobotIDFromUser(projectID)
 				if err != nil {
-					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
