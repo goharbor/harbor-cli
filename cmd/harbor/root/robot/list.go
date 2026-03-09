@@ -72,7 +72,12 @@ Examples:
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				return fmt.Errorf("failed to get robots list: %v", utils.ParseHarborErrorMsg(err))
+				errorCode := utils.ParseHarborErrorCode(err)
+				if errorCode == "403" {
+					return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+				} else {
+					return fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			formatFlag := viper.GetString("output-format")

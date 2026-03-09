@@ -15,6 +15,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -63,12 +64,27 @@ func ManDoc() error {
 }
 
 func cleanManPages(docDir string) error {
-	return filepath.Walk(docDir, func(path string, info os.FileInfo, err error) error {
+	root, err := os.OpenRoot(docDir)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+
+	return filepath.WalkDir(docDir, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".1") {
-			content, err := os.ReadFile(path)
+			relPath, err := filepath.Rel(docDir, path)
+			if err != nil {
+				return err
+			}
+			f, err := root.Open(relPath)
+			if err != nil {
+				return err
+			}
+			content, err := io.ReadAll(f)
+			f.Close()
 			if err != nil {
 				return err
 			}
@@ -90,7 +106,12 @@ func cleanManPages(docDir string) error {
 			cleanedContent := strings.Split(updatedContent, "\n.SH HISTORY")[0]
 			cleanedContent = strings.TrimRight(cleanedContent, "\n")
 
-			err = os.WriteFile(path, []byte(cleanedContent), 0600)
+			wf, err := root.OpenFile(relPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+			if err != nil {
+				return err
+			}
+			_, err = wf.Write([]byte(cleanedContent))
+			wf.Close()
 			if err != nil {
 				return err
 			}

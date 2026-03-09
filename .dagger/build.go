@@ -24,6 +24,14 @@ func (m *HarborCli) Build(ctx context.Context,
 	goos := []string{"linux", "darwin", "windows"}
 	goarch := []string{"amd64", "arm64"}
 
+	temp := dag.Container().
+		From("alpine:latest").
+		WithExec([]string{"apk", "add", "--no-cache", "git"}).
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src")
+	gitCommit, _ := temp.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
+	buildTime := time.Now().UTC().Format(time.RFC3339)
+
 	for _, os := range goos {
 		for _, arch := range goarch {
 			// Defining binary file name
@@ -42,9 +50,6 @@ func (m *HarborCli) Build(ctx context.Context,
 				WithWorkdir("/src").
 				WithEnvVariable("GOOS", os).
 				WithEnvVariable("GOARCH", arch)
-
-			gitCommit, _ := builder.WithExec([]string{"git", "rev-parse", "--short", "HEAD", "--always"}).Stdout(ctx)
-			buildTime := time.Now().UTC().Format(time.RFC3339)
 
 			ldflagsArgs := LDFlags(ctx, m.AppVersion, m.GoVersion, buildTime, gitCommit)
 
