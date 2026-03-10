@@ -14,21 +14,14 @@
 package main
 
 import (
-	"log/slog"
+	"os"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
-	"github.com/goharbor/harbor-cli/pkg/logger"
 )
 
 func main() {
-	// The default logger for when the error happens in flag parsing
-	//
-	// Since the flag parsing happen's first before the PersistentPreRunE in the RootCmd()
-	// We need to setup a minimal logger for maintaining format
-	logger.Setup(false, "")
-
 	err := root.RootCmd().Execute()
 	if err != nil {
-		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }

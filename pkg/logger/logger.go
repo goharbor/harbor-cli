@@ -14,26 +14,23 @@
 package logger
 
 import (
+	"io"
 	"log/slog"
 	"os"
 )
 
 func Setup(verbose bool, format string) {
-	level := slog.LevelWarn
+	outp := io.Discard
 	if verbose {
-		level = slog.LevelDebug
-	}
-
-	opts := slog.HandlerOptions{
-		Level: level,
+		outp = os.Stderr
 	}
 
 	var handler slog.Handler
 	if format == "json" {
-		handler = slog.NewJSONHandler(os.Stderr, &opts)
+		handler = slog.NewJSONHandler(outp, &slog.HandlerOptions{Level: slog.LevelDebug})
 	} else {
 		// Custom Text Handler
-		handler = NewPrettyHandler(os.Stderr, level)
+		handler = NewPrettyHandler(outp, slog.LevelDebug)
 	}
 
 	logger := slog.New(handler)

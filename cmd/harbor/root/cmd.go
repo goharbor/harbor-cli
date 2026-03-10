@@ -15,6 +15,7 @@ package root
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
@@ -38,6 +39,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/logger"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -49,11 +51,10 @@ var (
 
 func RootCmd() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "harbor",
-		Short:         "Official Harbor CLI",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		Long:          "Official Harbor CLI",
+		Use:          "harbor",
+		Short:        "Official Harbor CLI",
+		SilenceUsage: true,
+		Long:         "Official Harbor CLI",
 		Example: `
 // Base command:
 harbor
@@ -69,6 +70,13 @@ harbor help
 
 			// Sets up logging
 			logger.Setup(verbose, output)
+
+			// Logging Flags
+			arr := make([]any, 0) // slog requires any since the slog.Debug takes in (string, ...any)
+			cmd.Flags().VisitAll(func(f *pflag.Flag) {
+				arr = append(arr, f.Name, f.Value.String())
+			})
+			slog.Debug("Flags: ", arr...)
 
 			return nil
 		},
