@@ -24,13 +24,10 @@ import (
 
 // Needs to be functions, otherwise doesn't work
 var (
-	debugStyle  = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("8")) }
-	infoStyle   = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("10")) }
-	warnStyle   = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("11")) }
-	errorStyle  = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("9")) }
-	headerStyle = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Bold(true) }
-	keyStyle    = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("6")) }
-	valueStyle  = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("7")) }
+	debugStyle = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("8")) }
+	infoStyle  = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("10")) }
+	warnStyle  = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("11")) }
+	errorStyle = func() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("9")) }
 )
 
 type PrettyHandler struct {
@@ -57,7 +54,7 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	_, err := fmt.Fprintf(
 		h.out,
 		"%s %s %s\n",
-		headerStyle().Render(fmt.Sprintf("%s |", timestamp)),
+		fmt.Sprintf("%s |", timestamp),
 		level,
 		r.Message,
 	)
@@ -84,15 +81,12 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 
 	// Print attributes
 	for _, a := range attrs {
-		_, err = fmt.Fprintf(h.out, "  %s : %v\n", keyStyle().Render(fmt.Sprintf("%-*s", maxKey, a.Key)),
-			valueStyle().Render(a.Value.String()))
+		_, err = fmt.Fprintf(h.out, "  %s : %v\n", fmt.Sprintf("%-*s", maxKey, a.Key),
+			a.Value.String())
 		if err != nil {
 			return err
 		}
 	}
-
-	// Adding another newline just for UX
-	fmt.Fprintf(h.out, "\n")
 
 	return nil
 }
