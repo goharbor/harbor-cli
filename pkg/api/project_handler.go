@@ -187,14 +187,23 @@ func SearchProject(query string) (search.SearchOK, error) {
 	return *response, nil
 }
 
-func LogsProject(projectName string) (*project.GetLogExtsOK, error) {
+func LogsProject(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
 	response, err := client.Project.GetLogExts(ctx, &project.GetLogExtsParams{
 		ProjectName: projectName,
+		Page:        &listFlags.Page,
+		PageSize:    &listFlags.PageSize,
+		Q:           &listFlags.Q,
+		Sort:        &listFlags.Sort,
 		Context:     ctx,
 	})
 	if err != nil {
