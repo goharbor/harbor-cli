@@ -21,6 +21,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	"github.com/goharbor/harbor-cli/pkg/oauth"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
 	log "github.com/sirupsen/logrus"
@@ -33,7 +34,14 @@ var (
 	Username      string
 	Password      string
 	Name          string
+	tokenFileFlag string
 	passwordStdin bool
+	ssoFlag       bool
+
+	issuerURL    string
+	clientID     string
+	clientSecret string
+	scopesFlag   string
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -46,6 +54,20 @@ func LoginCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				serverAddress = args[0]
+			}
+
+			if ssoFlag {
+				fmt.Println("OAuth/SSO authentication selected")
+
+				config := buildOAuthConfig()
+
+				fmt.Println(config)
+
+				if tokenFileFlag != "" {
+					fmt.Printf("Token file specified: %s\n", tokenFileFlag)
+					return fmt.Errorf("token file authentication not yet implemented")
+				}
+				return fmt.Errorf("OAuth/SSO authentication not yet implemented")
 			}
 
 			if passwordStdin {
@@ -83,8 +105,30 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.BoolVar(&ssoFlag, "sso", false, "Use OAuth/SSO authentication")
+	flags.StringVar(&tokenFileFlag, "token-file", "", "Path to JWT token file for non-interactive auth")
+	flags.StringVar(&issuerURL, "issuer-url", "", "OAuth issuer URL (overrides config)")
+	flags.StringVar(&clientID, "client-id", "", "OAuth client ID (overrides config)")
+	flags.StringVar(&clientSecret, "client-secret", "", "OAuth client secret (overrides config)")
+	flags.StringVar(&scopesFlag, "scopes", "", "OAuth scopes, comma-separated (overrides config)")
 
 	return cmd
+}
+
+func buildOAuthConfig() *oauth.OAuthConfig {
+	config := &oauth.OAuthConfig{
+		IssuerURL:    issuerURL,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	}
+
+	if scopesFlag != "" {
+		for _, s := range strings.Split(scopesFlag, ",") {
+			config.Scopes = append(config.Scopes, strings.TrimSpace(s))
+		}
+	}
+
+	return config
 }
 
 // ProcessLogin applies a simplified decision logic to run login or launch an interactive view.
