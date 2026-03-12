@@ -26,6 +26,9 @@ var (
 	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	PaginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	HelpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("2")) // ANSI 32
+	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("1")) // ANSI 31
+	BoldStyle         = lipgloss.NewStyle().Bold(true)                      // ANSI 1
 )
 
 var BaseStyle = lipgloss.NewStyle().
@@ -36,12 +39,5 @@ func RedText(strs ...string) string {
 	for _, str := range strs {
 		msg.WriteString(str)
 	}
-	return RedANSI + msg.String() + ResetANSI
+	return RedStyle.Render(msg.String())
 }
-
-const (
-	GreenANSI = "\033[32m"
-	RedANSI   = "\033[31m"
-	BoldANSI  = "\033[1m"
-	ResetANSI = "\033[0m"
-)

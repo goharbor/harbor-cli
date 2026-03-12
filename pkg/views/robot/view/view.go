@@ -82,9 +82,9 @@ func ViewRobot(robot *models.Robot) {
 	var expires string
 
 	if robot.Disable {
-		enabledStatus = views.GreenANSI + "Disabled" + views.ResetANSI
+		enabledStatus = views.GreenStyle.Render("Disabled")
 	} else {
-		enabledStatus = views.GreenANSI + "Enabled" + views.ResetANSI
+		enabledStatus = views.GreenStyle.Render("Enabled")
 	}
 
 	TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
@@ -112,7 +112,7 @@ func ViewRobot(robot *models.Robot) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("\n%sRobot Permissions:%s\n\n", views.BoldANSI, views.ResetANSI)
+	fmt.Printf("\n%s\n\n", views.BoldStyle.Render("Robot Permissions:"))
 
 	var permissionsColumns []table.Column
 	var resourceStrings []string
@@ -122,12 +122,12 @@ func ViewRobot(robot *models.Robot) {
 		permissionsColumns = systemPermissionsColumns
 		resourceStrings = systemResourceStrings
 		systemLevel = true
-		fmt.Printf("%sSystem-level robot with access across projects%s\n\n", views.BoldANSI, views.ResetANSI)
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render("System-level robot with access across projects"))
 	} else {
 		permissionsColumns = projectPermissionsColumns
 		resourceStrings = projectResourceStrings
 		systemLevel = false
-		fmt.Printf("%sProject-level robot for project: %s%s\n\n", views.BoldANSI, robot.Permissions[0].Namespace, views.ResetANSI)
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("System-level robot with access across projects: %s", robot.Permissions[0].Namespace)))
 	}
 
 	var permissionRows []table.Row
@@ -194,11 +194,11 @@ func ViewRobot(robot *models.Robot) {
 			os.Exit(1)
 		}
 
-		fmt.Printf("\n%sProject-specific Permissions:%s\n", views.BoldANSI, views.ResetANSI)
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render("Project-specific Permissions:"))
 
 		for _, perm := range robot.Permissions {
 			if perm.Kind == "project" && perm.Namespace != "/" {
-				fmt.Printf("\n%sProject: %s%s\n\n", views.BoldANSI, perm.Namespace, views.ResetANSI)
+				fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("Project: %s", perm.Namespace)))
 				projectRows := createProjectPermissionRows(perm, perms.Project)
 				pt := tablelist.NewModel(projectPermissionsColumns, projectRows, len(projectRows))
 				if _, err := tea.NewProgram(pt).Run(); err != nil {
