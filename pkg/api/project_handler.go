@@ -187,14 +187,23 @@ func SearchProject(query string) (search.SearchOK, error) {
 	return *response, nil
 }
 
-func LogsProject(projectName string) (*project.GetLogExtsOK, error) {
+func LogsProject(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
 	}
 
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
 	response, err := client.Project.GetLogExts(ctx, &project.GetLogExtsParams{
 		ProjectName: projectName,
+		Page:        &listFlags.Page,
+		PageSize:    &listFlags.PageSize,
+		Q:           &listFlags.Q,
+		Sort:        &listFlags.Sort,
 		Context:     ctx,
 	})
 	if err != nil {
@@ -202,24 +211,4 @@ func LogsProject(projectName string) (*project.GetLogExtsOK, error) {
 	}
 
 	return response, nil
-}
-
-func CheckProject(projectName string) (bool, error) {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return false, err
-	}
-
-	response, err := client.Project.HeadProject(ctx, &project.HeadProjectParams{
-		ProjectName: projectName,
-		Context:     ctx,
-	})
-	if err != nil {
-		if utils.ParseHarborErrorCode(err) == "404" {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return response.IsSuccess(), nil
 }

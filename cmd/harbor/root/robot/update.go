@@ -95,7 +95,10 @@ Examples:
 					return fmt.Errorf("failed to parse robot ID: %v", err)
 				}
 			} else {
-				robotID = prompt.GetRobotIDFromUser(-1)
+				robotID, err = prompt.GetRobotIDFromUser(-1)
+				if err != nil {
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			// Get current robot configuration
