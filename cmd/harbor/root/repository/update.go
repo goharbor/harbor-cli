@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/repository/update"
 	"github.com/spf13/cobra"
 )
 
@@ -54,13 +55,23 @@ Examples:
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
 
-			if !cmd.Flags().Changed("description") {
-				return fmt.Errorf("--description flag is required")
-			}
+			existingRepo, err := api.RepoView(projectName, repoName)
 
-			err = api.UpdateRepository(projectName, repoName, description)
-			if err != nil {
-				return fmt.Errorf("failed to update repository: %w", err)
+			if cmd.Flags().Changed("description") {
+				err = api.UpdateRepository(projectName, repoName, description, existingRepo.Payload)
+				if err != nil {
+					return fmt.Errorf("failed to update repository: %w", err)
+				}
+			} else {
+				updatedDescription, err := update.UpdateRepositoryView(existingRepo.Payload)
+				if err != nil {
+					return fmt.Errorf("update cancelled or failed: %w", err)
+				}
+
+				err = api.UpdateRepository(projectName, repoName, updatedDescription, existingRepo.Payload)
+				if err != nil {
+					return fmt.Errorf("failed to update repository: %w", err)
+				}
 			}
 
 			fmt.Printf("Repository %s/%s updated successfully\n", projectName, repoName)
