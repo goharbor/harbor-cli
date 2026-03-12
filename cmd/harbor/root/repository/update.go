@@ -56,6 +56,9 @@ Examples:
 			}
 
 			existingRepo, err := api.RepoView(projectName, repoName)
+			if err != nil {
+				return fmt.Errorf("failed to get existing repository: %w", err)
+			}
 
 			if cmd.Flags().Changed("description") {
 				err = api.UpdateRepository(projectName, repoName, description, existingRepo.Payload)
