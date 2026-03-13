@@ -44,9 +44,9 @@ func ListRobots(robots []*models.Robot) {
 		var expires string
 
 		if robot.Disable {
-			enabledStatus = views.GreenANSI + "Disabled" + views.ResetANSI
+			enabledStatus = views.GreenStyle.Render("Disabled")
 		} else {
-			enabledStatus = views.GreenANSI + "Enabled" + views.ResetANSI
+			enabledStatus = views.GreenStyle.Render("Enabled")
 		}
 
 		var TotalPermissions int = 0
