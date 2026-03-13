@@ -34,10 +34,14 @@ func ListProjectCommand() *cobra.Command {
 		allProjects []*models.Project
 		err         error
 		// For querying, opts.Q
-		fuzzy  []string
-		match  []string
-		ranges []string
+		fuzzy     []string
+		match     []string
+		ranges    []string
+		and       []string
+		or        []string
+		validKeys = []string{"name", "project_id", "public", "creation_time", "owner_id"}
 	)
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List projects",
@@ -72,9 +76,7 @@ func ListProjectCommand() *cobra.Command {
 			}
 
 			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
-				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"name", "project_id", "public", "creation_time", "owner_id"},
-				)
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges, validKeys)
 				if qErr != nil {
 					return qErr
 				}
@@ -108,6 +110,15 @@ func ListProjectCommand() *cobra.Command {
 		},
 	}
 
+	// Adding Query Description
+	var qDesc string
+	if cmd.Long != "" {
+		qDesc = "\n\n" + utils.GenerateQueryDocs(validKeys)
+	} else {
+		qDesc = utils.GenerateQueryDocs(validKeys)
+	}
+	cmd.Long += qDesc
+
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Name, "name", "", "", "Name of the project")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
@@ -115,9 +126,7 @@ func ListProjectCommand() *cobra.Command {
 	flags.BoolVarP(&private, "private", "", false, "Show only private projects")
 	flags.BoolVarP(&public, "public", "", false, "Show only public projects")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
-	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
-	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
-	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
+	utils.SetQueryFlags(flags, &match, &fuzzy, &ranges, &and, &or) // Adds the 5 query flags
 
 	return cmd
 }

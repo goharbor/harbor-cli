@@ -16,6 +16,8 @@ package utils
 import (
 	"fmt"
 	"strings"
+
+	"github.com/spf13/pflag"
 )
 
 // Builds the `q` param for List API's
@@ -71,6 +73,55 @@ func BuildQueryParam(fuzzy, match, ranges []string, validKeys []string) (string,
 	}
 
 	return strings.Join(parts, ","), nil
+}
+
+func GenerateQueryDocs(validKeys []string) string {
+	keys := strings.Join(validKeys, ", ")
+
+	doc := fmt.Sprintf(`
+Query Filters
+
+The following flags can be used to filter results.
+
+Supported query types:
+
+  --exact key=value
+      Match an exact value.
+
+  --fuzzy key=value
+      Perform a fuzzy match (partial match).
+
+  --range key=min:max
+      Match values within a range.
+
+  --all key=v1,v2
+      Match resources that contain ALL specified values.
+
+  --any key=v1,v2
+      Match resources that contain ANY of the specified values.
+
+Examples:
+
+  --exact project_id=12
+  --fuzzy name=test
+  --range update_time=2024-01-01:2024-02-01
+  --any tag=v1,v2
+  --all label=prod,stable
+
+Valid keys for this command:
+
+  %s
+`, keys)
+
+	return strings.TrimSpace(doc)
+}
+
+func SetQueryFlags(f *pflag.FlagSet, match, fuzzy, ranges, and, or *[]string) {
+	f.StringSliceVar(fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
+	f.StringSliceVar(match, "match", nil, "exact match filter (key=value)")
+	f.StringSliceVar(ranges, "range", nil, "range filter (key=min~max)")
+	f.StringSliceVar(and, "all", nil, "match-all filter (key=v1,v2,v3)")
+	f.StringSliceVar(or, "any", nil, "match-any filter (key=v1,v2,v3)")
 }
 
 // Validates Key provided by user for ListFlags.Q
