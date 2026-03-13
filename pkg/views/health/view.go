@@ -51,9 +51,9 @@ func styleStatus(status string) string {
 	var colored string
 
 	if status == "healthy" {
-		colored = views.GreenANSI + status + views.ResetANSI
+		colored = views.GreenStyle.Render(status)
 	} else {
-		colored = views.RedANSI + status + views.ResetANSI
+		colored = views.RedStyle.Render(status)
 	}
 	return colored
 }
