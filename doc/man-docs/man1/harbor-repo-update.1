@@ -1,0 +1,48 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-repo-update - Update a repository
+
+
+.SH SYNOPSIS
+\fBharbor repo update [flags]\fP
+
+
+.SH DESCRIPTION
+Update the description of a repository.
+
+.PP
+This command updates the description associated with a repository
+within a Harbor project.
+
+.PP
+Examples:
+  # Update repository description using project/repository format
+  	harbor repository update library/nginx --description "Official nginx image"
+
+
+.SH OPTIONS
+\fB-d\fP, \fB--description\fP=""
+	Repository description
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-repo(1)\fP
