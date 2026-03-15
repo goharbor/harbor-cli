@@ -37,6 +37,7 @@ import (
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
+	gcview "github.com/goharbor/harbor-cli/pkg/views/gc/select"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
@@ -44,6 +45,8 @@ import (
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
 	log "github.com/sirupsen/logrus"
 )
+
+var ErrNoRunningGCJobs = errors.New("no running GC jobs found to stop")
 
 func GetRegistryNameFromUser() int64 {
 	registryId := make(chan int64)
@@ -441,4 +444,82 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func GetGCJobIDFromUser() (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		opts := api.ListFlags{Page: 1, PageSize: 100}
+		history, err := api.GetGCHistory(opts)
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+
+		if len(history) == 0 {
+			resultChan <- result{0, errors.New("no GC jobs found")}
+			return
+		}
+
+		id, err := gcview.GCJobList(history)
+		if err != nil {
+			if err == gcview.ErrUserAborted {
+				resultChan <- result{0, errors.New("user aborted GC job selection")}
+			} else {
+				resultChan <- result{0, fmt.Errorf("error during GC job selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{id, nil}
+	}()
+
+	res := <-resultChan
+	return res.id, res.err
+}
+
+func GetRunningGCJobIDFromUser() (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		opts := api.ListFlags{
+			Page:     1,
+			PageSize: 100,
+			Q:        "status={Running Pending In_Progress}",
+		}
+		history, err := api.GetGCHistory(opts)
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+
+		if len(history) == 0 {
+			resultChan <- result{0, ErrNoRunningGCJobs}
+			return
+		}
+
+		id, err := gcview.GCJobList(history)
+		if err != nil {
+			if err == gcview.ErrUserAborted {
+				resultChan <- result{0, errors.New("user aborted GC job selection")}
+			} else {
+				resultChan <- result{0, fmt.Errorf("error during GC job selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{id, nil}
+	}()
+
+	res := <-resultChan
+	return res.id, res.err
 }
