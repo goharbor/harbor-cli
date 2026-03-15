@@ -37,6 +37,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/vulnerability"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -200,6 +201,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = jobservice.JobService()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = vulnerability.Vulnerability()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 

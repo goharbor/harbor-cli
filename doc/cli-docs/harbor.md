@@ -59,5 +59,6 @@ harbor help
 * [harbor tag](harbor-tag.md)	 - Manage tags in Harbor registry
 * [harbor user](harbor-user.md)	 - Manage users
 * [harbor version](harbor-version.md)	 - Version of Harbor CLI
+* [harbor vulnerability](harbor-vulnerability.md)	 - Manage vulnerabilities in Security Hub
 * [harbor webhook](harbor-webhook.md)	 - Manage webhook policies in Harbor
 
