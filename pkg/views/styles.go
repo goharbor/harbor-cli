@@ -29,6 +29,9 @@ var (
 	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("2")) // ANSI 32
 	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("1")) // ANSI 31
 	BoldStyle         = lipgloss.NewStyle().Bold(true)                      // ANSI 1
+	YellowStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("3")) // ANSI 33
+	BlueStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("4")) // ANSI 34
+	GrayStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("8")) // ANSI 37
 )
 
 var BaseStyle = lipgloss.NewStyle().
