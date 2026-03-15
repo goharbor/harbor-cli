@@ -25,6 +25,13 @@ import (
 	"unicode"
 )
 
+func pluralise(value int, unit string) string {
+	if value == 1 {
+		return fmt.Sprintf("%d %s ago", value, unit)
+	}
+	return fmt.Sprintf("%d %ss ago", value, unit)
+}
+
 func FormatCreatedTime(timestamp string) (string, error) {
 	t, err := time.Parse(time.RFC3339Nano, timestamp)
 	if err != nil {
@@ -38,11 +45,11 @@ func FormatCreatedTime(timestamp string) (string, error) {
 	days := int(duration.Hours() / 24)
 
 	if minutes < 60 {
-		return fmt.Sprintf("%d minute ago", minutes), nil
+		return pluralise(minutes, "minute"), nil
 	} else if hours < 24 {
-		return fmt.Sprintf("%d hour ago", hours), nil
+		return pluralise(hours, "hour"), nil
 	} else {
-		return fmt.Sprintf("%d day ago", days), nil
+		return pluralise(days, "day"), nil
 	}
 }
 
