@@ -10,7 +10,7 @@ weight: 10
 
 ### Synopsis
 
-Set/update the value of a specific CLI config item. 
+Set/update the value of a specific CLI config item.
 Case-insensitive field lookup, but uses the canonical (Go) field name internally.
 If you specify --name, that credential (rather than the "current" one) will be updated.
 
