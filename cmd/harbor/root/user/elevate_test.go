@@ -16,6 +16,7 @@ package user
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -37,8 +38,8 @@ func (m *mockUserElevator) getUserIDByName(username string) (int64, error) {
 	return 0, fmt.Errorf("username %s not found", username)
 }
 
-func (m *mockUserElevator) getUserIDFromUser() (int64,error) {
-	return 999,nil
+func (m *mockUserElevator) getUserIDFromUser() (int64, error) {
+	return 999, nil
 }
 
 func (m *mockUserElevator) confirmElevation() (bool, error) {
@@ -181,9 +182,10 @@ func TestElevateUser(t *testing.T) {
 
 			m := tt.setup()
 
-			ElevateUser(tt.args)
+			_ = ElevateUser(tt.args)
 
 			logs := buf.String()
+			logs = strings.ToLower(logs)
 
 			if tt.expectedErr != "" {
 				assert.Contains(t, logs, tt.expectedErr, "Expected error logs to contain %s but got %s", tt.expectedErr, logs)
