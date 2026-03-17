@@ -11,31 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package artifact
+package artifactscan
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/label"
-	artifactscan "github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/scan"
-	artifacttags "github.com/goharbor/harbor-cli/cmd/harbor/root/artifact/tags"
+	"fmt"
+
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/spf13/cobra"
 )
 
-func Artifact() *cobra.Command {
+func StartScanArtifactCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "artifact",
-		Short:   "Manage artifacts",
-		Long:    `Manage artifacts in Harbor Repository`,
-		Example: `  harbor artifact list`,
+		Use:     "start",
+		Short:   "Start a scan of an artifact",
+		Long:    `Start a scan of an artifact in Harbor Repository`,
+		Example: `harbor artifact scan start <project>/<repository>/<reference>`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projectName, repoName, reference, err := parseArgs(args)
+			if err != nil {
+				return err
+			}
+
+			err = api.StartScanArtifact(projectName, repoName, reference)
+			if err != nil {
+				return fmt.Errorf("failed to start scan of artifact: %v", err)
+			}
+			return nil
+		},
 	}
-
-	cmd.AddCommand(
-		ListArtifactCommand(),
-		ViewArtifactCommmand(),
-		DeleteArtifactCommand(),
-		artifactscan.ScanArtifactCommand(),
-		artifacttags.ArtifactTagsCmd(),
-		label.LabelsArtifactCommmand(),
-	)
-
 	return cmd
 }
