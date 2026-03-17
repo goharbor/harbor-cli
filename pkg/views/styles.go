@@ -37,6 +37,18 @@ var (
 var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
 
+var (
+	ErrCauseStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("203")).
+			Bold(true)
+	ErrTitleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("214"))
+	ErrHintStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("44"))
+	ErrEnumeratorStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("242")).MarginRight(1)
+)
+
 func RedText(strs ...string) string {
 	var msg strings.Builder
 	for _, str := range strs {

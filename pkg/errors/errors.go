@@ -16,6 +16,10 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/lipgloss/tree"
+	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
 var (
@@ -32,9 +36,9 @@ type Error struct {
 	cause  error
 }
 
-func New(message string) *Error {
+func New(message string, hints ...string) *Error {
 	return &Error{
-		frames: []Frame{{Message: message}},
+		frames: []Frame{{Message: message, Hints: hints}},
 	}
 }
 
@@ -44,27 +48,15 @@ func Newf(format string, args ...any) *Error {
 	}
 }
 
-func Wrap(err error, message string) *Error {
-	e := AsError(err)
-	e.frames = append([]Frame{{Message: message}}, e.frames...)
-	return e
-}
-
-func Wrapf(err error, format string, args ...any) *Error {
-	return Wrap(err, fmt.Sprintf(format, args...))
-}
-
-func (e *Error) WithHint(hint string) *Error {
-	if len(e.frames) > 0 {
-		e.frames[0].Hints = append(e.frames[0].Hints, hint)
+func NewWithCause(cause error, message string, hints ...string) *Error {
+	return &Error{
+		cause:  cause,
+		frames: []Frame{{Message: message, Hints: hints}},
 	}
-	return e
 }
 
-func (e *Error) WithCause(cause error) *Error {
-	if e.cause == nil {
-		e.cause = cause
-	}
+func (e *Error) WithMessage(message string, hints ...string) *Error {
+	e.frames = append(e.frames, Frame{Message: message, Hints: hints})
 	return e
 }
 
@@ -72,7 +64,78 @@ func (e *Error) Error() string {
 	if len(e.frames) == 0 {
 		return ""
 	}
-	return e.frames[len(e.frames)-1].Message
+
+	var parts []string
+
+	rootFrame := e.frames[0]
+	parts = append(parts, views.ErrCauseStyle.Render(rootFrame.Message))
+
+	if e.cause != nil {
+		if code := parseHarborErrorCode(e.cause); code != "" {
+			parts = append(parts,
+				views.ErrTitleStyle.Render("Code: ")+views.ErrCauseStyle.Render(code),
+			)
+		}
+	}
+
+	if e.cause != nil {
+		causeText := e.cause.Error()
+		if he := isHarborError(e.cause); he != nil {
+			causeText = he.Message()
+		}
+
+		cause := views.ErrTitleStyle.Render("Cause: ")
+		causeText = views.ErrCauseStyle.Render(causeText)
+		causeTree := tree.Root(cause + causeText).
+			Enumerator(tree.RoundedEnumerator).
+			EnumeratorStyle(views.ErrEnumeratorStyle).
+			ItemStyle(views.ErrHintStyle)
+
+		if he := isHarborError(e.cause); he != nil {
+			for _, h := range he.Hints() {
+				causeTree.Child(h)
+			}
+		}
+		parts = append(parts, causeTree.String())
+	}
+
+	if len(rootFrame.Hints) > 0 {
+		hintsTree := tree.New().
+			Root("Hints:").
+			RootStyle(views.ErrTitleStyle).
+			Enumerator(tree.RoundedEnumerator).
+			EnumeratorStyle(views.ErrEnumeratorStyle).
+			ItemStyle(views.ErrHintStyle)
+
+		for _, h := range rootFrame.Hints {
+			hintsTree.Child(h)
+		}
+		parts = append(parts, hintsTree.String())
+	}
+
+	if len(e.frames) > 1 {
+		msgTree := tree.New().
+			Root("Messages:").
+			RootStyle(views.ErrTitleStyle).
+			Enumerator(tree.RoundedEnumerator).
+			EnumeratorStyle(views.ErrEnumeratorStyle).
+			ItemStyle(views.ErrTitleStyle)
+
+		for _, f := range e.frames[1:] {
+			msgWithHints := tree.Root(f.Message).
+				RootStyle(views.ErrTitleStyle).
+				Enumerator(tree.RoundedEnumerator).
+				EnumeratorStyle(views.ErrEnumeratorStyle).
+				ItemStyle(views.ErrHintStyle)
+			for _, h := range f.Hints {
+				msgWithHints.Child(h)
+			}
+			msgTree.Child(msgWithHints)
+		}
+		parts = append(parts, msgTree.String())
+	}
+
+	return strings.Join(parts, "\n")
 }
 
 func (e *Error) Message() string {
@@ -112,7 +175,6 @@ func (e *Error) Status() string {
 }
 
 func (e *Error) Unwrap() error { return e.cause }
-
 func AsError(err error) *Error {
 	var e *Error
 	if errors.As(err, &e) {

@@ -14,7 +14,6 @@
 package errors_test
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -24,97 +23,218 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNew_SingleFrame(t *testing.T) {
+func TestNew_MessageOnly(t *testing.T) {
 	err := harborerr.New("something went wrong")
 	require.NotNil(t, err)
-	assert.Equal(t, "something went wrong", err.Error())
+
+	output := err.Error()
+	assert.Contains(t, output, "something went wrong")
 	assert.Equal(t, "something went wrong", err.Message())
 	assert.Equal(t, []string{"something went wrong"}, err.Errors())
 	assert.Empty(t, err.Hints())
 	assert.Nil(t, err.Cause())
 }
 
+func TestNew_MessageWithHints(t *testing.T) {
+	err := harborerr.New("auth failed", "check your credentials", "ensure token is not expired")
+	require.NotNil(t, err)
+
+	output := err.Error()
+	assert.Contains(t, output, "auth failed")
+	assert.Contains(t, output, "check your credentials")
+	assert.Contains(t, output, "ensure token is not expired")
+
+	assert.Equal(t, "auth failed", err.Message())
+	assert.Equal(t, []string{"check your credentials", "ensure token is not expired"}, err.Hints())
+	assert.Nil(t, err.Cause())
+}
+
 func TestNewf_FormatsMessage(t *testing.T) {
 	err := harborerr.Newf("resource %q not found", "project-x")
 	require.NotNil(t, err)
-	assert.Equal(t, `resource "project-x" not found`, err.Error())
+
+	output := err.Error()
+	assert.Contains(t, output, `resource "project-x" not found`)
 	assert.Equal(t, `resource "project-x" not found`, err.Message())
+	assert.Empty(t, err.Hints())
 }
 
-func TestWrap_PushesOutermostFrame(t *testing.T) {
-	root := harborerr.New("root problem")
-	wrapped := harborerr.Wrap(root, "operation failed")
+func TestNewWithCause_Basic(t *testing.T) {
+	cause := errors.New("connection refused")
+	err := harborerr.NewWithCause(cause, "could not reach registry")
 
-	assert.Equal(t, "root problem", wrapped.Error())
-	assert.Equal(t, "operation failed", wrapped.Message())
-	assert.Equal(t, []string{"operation failed", "root problem"}, wrapped.Errors())
+	output := err.Error()
+	assert.Contains(t, output, "could not reach registry")
+	assert.Contains(t, output, "Cause:")
+	assert.Contains(t, output, "connection refused")
+	assert.NotContains(t, output, "Messages:")
+
+	assert.Equal(t, cause, err.Cause())
+	assert.Equal(t, "could not reach registry", err.Message())
 }
 
-func TestWrapf_FormatsOutermostFrame(t *testing.T) {
-	root := harborerr.New("auth failed")
-	wrapped := harborerr.Wrapf(root, "login for user %q", "alice")
+func TestNewWithCause_WithHints(t *testing.T) {
+	cause := errors.New("401 Unauthorized")
+	err := harborerr.NewWithCause(cause, "authentication failed",
+		"ensure your credentials are correct",
+		"run `harbor login` to re-authenticate",
+	)
 
-	assert.Equal(t, "auth failed", wrapped.Error())
-	assert.Equal(t, `login for user "alice"`, wrapped.Message())
-	assert.Equal(t, []string{`login for user "alice"`, "auth failed"}, wrapped.Errors())
+	output := err.Error()
+	assert.Contains(t, output, "authentication failed")
+	assert.Contains(t, output, "ensure your credentials are correct")
+	assert.Contains(t, output, "run `harbor login` to re-authenticate")
+	assert.Contains(t, output, "Cause:")
+	assert.Contains(t, output, "401 Unauthorized")
+	assert.NotContains(t, output, "Messages:")
+
+	assert.Equal(t, cause, err.Cause())
+	assert.Equal(t, []string{
+		"ensure your credentials are correct",
+		"run `harbor login` to re-authenticate",
+	}, err.Hints())
 }
 
-func TestWrap_ThreeLevels(t *testing.T) {
-	root := harborerr.New("db timeout")
-	mid := harborerr.Wrap(root, "repository unavailable")
-	top := harborerr.Wrap(mid, "delete artifact failed")
+func TestNewWithCause_CauseIsHarborError_ShowsCauseHintsInHeader(t *testing.T) {
+	inner := harborerr.New("db connection lost", "check that the database is running")
+	outer := harborerr.NewWithCause(inner, "repository unavailable")
 
-	assert.Equal(t, "db timeout", top.Error())
-	assert.Equal(t, "delete artifact failed", top.Message())
-	assert.Equal(t, []string{"delete artifact failed", "repository unavailable", "db timeout"}, top.Errors())
+	output := outer.Error()
+	assert.Contains(t, output, "repository unavailable")
+	assert.Contains(t, output, "check that the database is running")
+	assert.NotContains(t, output, "Messages:")
 }
 
-func TestWrap_PlainStdlibError(t *testing.T) {
-	plain := errors.New("network error")
-	wrapped := harborerr.Wrap(plain, "could not reach registry")
+func TestWithMessage_AppendsFrame(t *testing.T) {
+	err := harborerr.NewWithCause(
+		errors.New("dial tcp 127.0.0.1:5432: connect: connection refused"),
+		"repository unavailable", "check that the database is running",
+	).WithMessage("failed to delete artifact",
+		"retry after resolving the underlying issue",
+		"use --force to skip confirmation prompts",
+	)
 
-	assert.Equal(t, "network error", wrapped.Error())
-	assert.Equal(t, "could not reach registry", wrapped.Message())
-	assert.Equal(t, []string{"could not reach registry", "network error"}, wrapped.Errors())
+	output := err.Error()
+	assert.Contains(t, output, "repository unavailable")
+	assert.Contains(t, output, "check that the database is running")
+	assert.Contains(t, output, "Cause:")
+	assert.Contains(t, output, "connection refused")
+	assert.Contains(t, output, "Messages:")
+	assert.Contains(t, output, "failed to delete artifact")
+	assert.Contains(t, output, "retry after resolving the underlying issue")
+	assert.Contains(t, output, "use --force to skip confirmation prompts")
+
+	assert.Equal(t, "repository unavailable", err.Message())
+	assert.Len(t, err.Frames(), 2)
 }
 
-func TestErrors_SingleFrame(t *testing.T) {
+func TestWithMessage_MultipleFrames(t *testing.T) {
+	err := harborerr.New("step 1").
+		WithMessage("step 2", "hint A").
+		WithMessage("step 3", "hint B", "hint C")
+
+	assert.Len(t, err.Frames(), 3)
+	assert.Equal(t, "step 1", err.Frames()[0].Message)
+	assert.Equal(t, "step 2", err.Frames()[1].Message)
+	assert.Equal(t, []string{"hint A"}, err.Frames()[1].Hints)
+	assert.Equal(t, "step 3", err.Frames()[2].Message)
+	assert.Equal(t, []string{"hint B", "hint C"}, err.Frames()[2].Hints)
+}
+
+func TestWithMessage_NoCause_NoRootHeader(t *testing.T) {
+	err := harborerr.New("first").WithMessage("second", "a hint")
+
+	output := err.Error()
+	assert.NotContains(t, output, "Root:")
+	assert.NotContains(t, output, "Code:")
+	assert.Contains(t, output, "first")
+	assert.Contains(t, output, "second")
+	assert.Contains(t, output, "a hint")
+}
+
+func TestError_EmptyFrames(t *testing.T) {
+	err := &harborerr.Error{}
+	assert.Equal(t, "", err.Error())
+}
+
+func TestError_NoCause_SingleFrameNoHints(t *testing.T) {
+	err := harborerr.New("operation not supported")
+	output := err.Error()
+
+	assert.NotContains(t, output, "Root:")
+	assert.NotContains(t, output, "Code:")
+	assert.Contains(t, output, "operation not supported")
+}
+
+func TestError_NoCause_SingleFrameWithHints(t *testing.T) {
+	err := harborerr.New("plugin system not implemented",
+		"this command is a placeholder for future plugin management",
+	)
+
+	output := err.Error()
+	assert.NotContains(t, output, "Root:")
+	assert.Contains(t, output, "plugin system not implemented")
+	assert.Contains(t, output, "this command is a placeholder for future plugin management")
+}
+
+func TestMessage_ReturnsFirstFrame(t *testing.T) {
+	err := harborerr.New("first").WithMessage("second")
+	assert.Equal(t, "first", err.Message())
+}
+
+func TestErrors_AllMessages(t *testing.T) {
+	err := harborerr.New("a").WithMessage("b").WithMessage("c")
+	assert.Equal(t, []string{"a", "b", "c"}, err.Errors())
+}
+
+func TestHints_AcrossAllFrames(t *testing.T) {
+	err := harborerr.New("m1", "h1", "h2").WithMessage("m2", "h3")
+	assert.Equal(t, []string{"h1", "h2", "h3"}, err.Hints())
+}
+
+func TestFrames_ReturnsAll(t *testing.T) {
+	err := harborerr.New("root", "hint-a")
+	frames := err.Frames()
+	require.Len(t, frames, 1)
+	assert.Equal(t, "root", frames[0].Message)
+	assert.Equal(t, []string{"hint-a"}, frames[0].Hints)
+}
+
+func TestCause_ReturnsUnderlyingError(t *testing.T) {
+	sentinel := errors.New("sentinel")
+	err := harborerr.NewWithCause(sentinel, "wrapper")
+	assert.Equal(t, sentinel, err.Cause())
+}
+
+func TestCause_NilWhenNoCause(t *testing.T) {
 	err := harborerr.New("standalone")
-	assert.Equal(t, []string{"standalone"}, err.Errors())
+	assert.Nil(t, err.Cause())
 }
 
-func TestErrors_OutermostFirst(t *testing.T) {
-	err := harborerr.Wrap(harborerr.Wrap(harborerr.New("level-0"), "level-1"), "level-2")
-	assert.Equal(t, []string{"level-2", "level-1", "level-0"}, err.Errors())
+func TestStatus_NoCause_ReturnsEmpty(t *testing.T) {
+	assert.Equal(t, "", harborerr.Status(harborerr.New("no cause")))
 }
 
-func TestWithHint_AttachesToOutermostFrame(t *testing.T) {
-	err := harborerr.New("error").WithHint("try again later")
-	assert.Equal(t, []string{"try again later"}, err.Hints())
+func TestStatus_PlainError_ReturnsEmpty(t *testing.T) {
+	assert.Equal(t, "", harborerr.Status(errors.New("plain")))
 }
 
-func TestWithHint_MultipleHintsOnSameFrame(t *testing.T) {
-	err := harborerr.New("error").
-		WithHint("hint one").
-		WithHint("hint two").
-		WithHint("hint three")
-	assert.Equal(t, []string{"hint one", "hint two", "hint three"}, err.Hints())
+func TestUnwrap_ReturnsTheCause(t *testing.T) {
+	sentinel := errors.New("sentinel")
+	err := harborerr.NewWithCause(sentinel, "wrapper")
+
+	assert.Equal(t, sentinel, err.Unwrap())
+	assert.True(t, errors.Is(err, sentinel))
 }
 
-func TestHints_AcrossFrames_OutermostFirst(t *testing.T) {
-	root := harborerr.New("root").WithHint("root-hint")
-	top := harborerr.Wrap(root, "top").WithHint("top-hint")
+func TestErrorsAs_FindsHarborError(t *testing.T) {
+	inner := harborerr.New("inner")
+	outer := harborerr.NewWithCause(inner, "outer")
 
-	assert.Equal(t, []string{"top-hint", "root-hint"}, top.Hints())
-}
-
-func TestHints_PackageLevel_HarborError(t *testing.T) {
-	err := harborerr.New("error").WithHint("check config")
-	assert.Equal(t, []string{"check config"}, harborerr.Hints(err))
-}
-
-func TestHints_PackageLevel_PlainError(t *testing.T) {
-	assert.Nil(t, harborerr.Hints(errors.New("plain")))
+	var target *harborerr.Error
+	assert.True(t, errors.As(outer, &target))
+	assert.Contains(t, target.Error(), "inner")
+	assert.Contains(t, target.Error(), "outer")
 }
 
 func TestIsError_True_DirectHarborError(t *testing.T) {
@@ -136,36 +256,22 @@ func TestAsError_FromHarborError_ReturnsSame(t *testing.T) {
 
 	result := harborerr.AsError(wrapped)
 	require.NotNil(t, result)
-	assert.Equal(t, "original", result.Error())
+	assert.Contains(t, result.Error(), "original")
 }
 
 func TestAsError_FromPlainError_WrapsIntoSingleFrame(t *testing.T) {
 	plain := errors.New("plain error")
 	result := harborerr.AsError(plain)
 	require.NotNil(t, result)
-	assert.Equal(t, "plain error", result.Error())
+
+	assert.Contains(t, result.Error(), "plain error")
 	assert.Equal(t, []string{"plain error"}, result.Errors())
 	assert.Equal(t, plain, result.Cause())
 }
 
-func TestWithCause_AttachesCauseForUnwrap(t *testing.T) {
-	sentinel := errors.New("sentinel")
-	err := harborerr.New("wrapper").WithCause(sentinel)
-
-	assert.Equal(t, sentinel, err.Cause())
-	assert.True(t, errors.Is(err, sentinel))
-}
-
-func TestWithCause_OnlyFirstCauseIsStored(t *testing.T) {
-	first := errors.New("first")
-	second := errors.New("second")
-	err := harborerr.New("e").WithCause(first).WithCause(second)
-	assert.Equal(t, first, err.Cause())
-}
-
 func TestCause_PackageLevel_HarborError(t *testing.T) {
 	sentinel := errors.New("root")
-	err := harborerr.New("top").WithCause(sentinel)
+	err := harborerr.NewWithCause(sentinel, "top")
 	assert.Equal(t, sentinel, harborerr.Cause(err))
 }
 
@@ -173,96 +279,11 @@ func TestCause_PackageLevel_PlainError(t *testing.T) {
 	assert.Nil(t, harborerr.Cause(errors.New("plain")))
 }
 
-func TestUnwrap_ErrorsAs_FindsOuterFrame(t *testing.T) {
-	inner := harborerr.New("inner")
-	outer := harborerr.New("outer").WithCause(inner)
-
-	var target *harborerr.Error
-	assert.True(t, errors.As(outer, &target))
-	assert.Equal(t, "outer", target.Error())
+func TestHints_PackageLevel_HarborError(t *testing.T) {
+	err := harborerr.New("error", "check config")
+	assert.Equal(t, []string{"check config"}, harborerr.Hints(err))
 }
 
-func TestStatus_PlainError_ReturnsEmpty(t *testing.T) {
-	assert.Equal(t, "", harborerr.Status(errors.New("plain")))
-}
-
-func TestStatus_NoCause_ReturnsEmpty(t *testing.T) {
-	assert.Equal(t, "", harborerr.Status(harborerr.New("no cause")))
-}
-
-type harborPayloadError struct {
-	Payload *harborPayloadBody
-}
-
-type harborPayloadBody struct {
-	Errors []harborPayloadEntry `json:"errors"`
-}
-
-type harborPayloadEntry struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
-func (h *harborPayloadError) Error() string {
-	if h.Payload != nil && len(h.Payload.Errors) > 0 {
-		b, _ := json.Marshal(h.Payload)
-		return fmt.Sprintf("[%s] %s", h.Payload.Errors[0].Code, string(b))
-	}
-	return "harbor error"
-}
-
-func TestWrap_HarborPayloadCause_ExtractsMessage(t *testing.T) {
-	apiErr := &harborPayloadError{
-		Payload: &harborPayloadBody{
-			Errors: []harborPayloadEntry{
-				{Code: "NOT_FOUND", Message: "repository does not exist"},
-			},
-		},
-	}
-	err := harborerr.Wrap(apiErr, "delete artifact failed")
-
-	assert.Equal(t, "repository does not exist", err.Error())
-	assert.Equal(t, "delete artifact failed", err.Message())
-	assert.Equal(t, []string{"delete artifact failed", "repository does not exist"}, err.Errors())
-}
-
-func TestFrames_SingleFrame(t *testing.T) {
-	err := harborerr.New("root").WithHint("hint-a")
-	frames := err.Frames()
-	require.Len(t, frames, 1)
-	assert.Equal(t, "root", frames[0].Message)
-	assert.Equal(t, []string{"hint-a"}, frames[0].Hints)
-}
-
-func TestFrames_MultipleFrames_OutermostFirst(t *testing.T) {
-	root := harborerr.New("root").WithHint("root-hint")
-	mid := harborerr.Wrap(root, "mid").WithHint("mid-hint")
-	top := harborerr.Wrap(mid, "top").WithHint("top-hint")
-
-	frames := top.Frames()
-	require.Len(t, frames, 3)
-	assert.Equal(t, "top", frames[0].Message)
-	assert.Equal(t, []string{"top-hint"}, frames[0].Hints)
-	assert.Equal(t, "mid", frames[1].Message)
-	assert.Equal(t, []string{"mid-hint"}, frames[1].Hints)
-	assert.Equal(t, "root", frames[2].Message)
-	assert.Equal(t, []string{"root-hint"}, frames[2].Hints)
-}
-
-func TestFrames_NoHints(t *testing.T) {
-	err := harborerr.Wrap(harborerr.New("root"), "top")
-	frames := err.Frames()
-	require.Len(t, frames, 2)
-	assert.Empty(t, frames[0].Hints)
-	assert.Empty(t, frames[1].Hints)
-}
-
-func TestChaining_WrapWithHints(t *testing.T) {
-	root := harborerr.New("connection refused").WithHint("check firewall rules")
-	top := harborerr.Wrap(root, "could not reach registry").WithHint("verify server URL")
-
-	assert.Equal(t, "connection refused", top.Error())
-	assert.Equal(t, "could not reach registry", top.Message())
-	assert.Equal(t, []string{"could not reach registry", "connection refused"}, top.Errors())
-	assert.Equal(t, []string{"verify server URL", "check firewall rules"}, top.Hints())
+func TestHints_PackageLevel_PlainError(t *testing.T) {
+	assert.Nil(t, harborerr.Hints(errors.New("plain")))
 }
