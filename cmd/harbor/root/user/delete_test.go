@@ -52,8 +52,8 @@ func (m *mockUserDeleter) getUserIDByName(username string) (int64, error) {
 		return 0, fmt.Errorf(`Username %s not found`, username)
 	}
 }
-func (m *mockUserDeleter) getUserIDFromUser() (int64,error) {
-	return 999,nil
+func (m *mockUserDeleter) getUserIDFromUser() (int64, error) {
+	return 999, nil
 }
 
 func newMockUserDeleter(userCnt int, expectAuthError bool) *mockUserDeleter {
