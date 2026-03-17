@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"sync"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -31,6 +32,7 @@ var (
 )
 
 type PrettyHandler struct {
+	mu    sync.Mutex
 	out   io.Writer
 	level slog.Leveler
 }
@@ -47,6 +49,9 @@ func (h *PrettyHandler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	timestamp := r.Time.Format("15:04:05")
 	level := formatLevel(r.Level)
 
