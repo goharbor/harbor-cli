@@ -477,9 +477,9 @@ func GetCredentials(credentialName string) (Credential, error) {
 
 func AddCredentialsToConfigFile(credential Credential, configPath string) error {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("config file does not exist at %s", configPath)
+		return fmt.Errorf("config file does not exist at %s", configPath)
 	} else if err != nil {
-		log.Fatalf("error checking config file: %v", err)
+		return fmt.Errorf("error checking config file: %w", err)
 	}
 
 	v := viper.New()
@@ -487,12 +487,12 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 	v.SetConfigType("yaml")
 
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("failed to read config file: %v", err)
+		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var c HarborConfig
 	if err := v.Unmarshal(&c); err != nil {
-		log.Fatalf("failed to unmarshal config file: %v", err)
+		return fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
 
 	c.Credentials = append(c.Credentials, credential)
@@ -502,7 +502,7 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 	v.Set("credentials", c.Credentials)
 
 	if err := v.WriteConfig(); err != nil {
-		log.Fatalf("failed to write updated config file: %v", err)
+		return fmt.Errorf("failed to write updated config file: %w", err)
 	}
 
 	log.Infof("Added credential '%s' to config file at %s", credential.Name, configPath)
@@ -511,9 +511,9 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 
 func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath string) error {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("config file does not exist at %s", configPath)
+		return fmt.Errorf("config file does not exist at %s", configPath)
 	} else if err != nil {
-		log.Fatalf("error checking config file: %v", err)
+		return fmt.Errorf("error checking config file: %w", err)
 	}
 
 	v := viper.New()
@@ -521,12 +521,12 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	v.SetConfigType("yaml")
 
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("failed to read config file: %v", err)
+		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var c HarborConfig
 	if err := v.Unmarshal(&c); err != nil {
-		log.Fatalf("failed to unmarshal config file: %v", err)
+		return fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
 
 	updated := false
@@ -540,14 +540,14 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 	}
 
 	if !updated {
-		log.Fatalf("credential with name '%s' not found", updatedCredential.Name)
+		return fmt.Errorf("credential with name '%s' not found", updatedCredential.Name)
 	}
 
 	v.Set("current-credential-name", c.CurrentCredentialName)
 	v.Set("credentials", c.Credentials)
 
 	if err := v.WriteConfig(); err != nil {
-		log.Fatalf("failed to write updated config file: %v", err)
+		return fmt.Errorf("failed to write updated config file: %w", err)
 	}
 
 	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)

@@ -86,7 +86,10 @@ func UpdatePassword(opts *change.PasswordChangeView) error {
 
 	credentialName := config.CurrentCredentialName
 
-	existingCred, _ := utils.GetCredentials(credentialName)
+	existingCred, err := utils.GetCredentials(credentialName)
+	if err != nil {
+		return fmt.Errorf("failed to get current credential '%s': %w", credentialName, err)
+	}
 	cred := utils.Credential{
 		Name:          existingCred.Name,
 		Username:      existingCred.Username,
