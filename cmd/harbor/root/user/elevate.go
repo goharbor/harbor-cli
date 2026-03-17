@@ -24,6 +24,60 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	getUsersIDByName  = api.GetUsersIdByName
+	getUserIDFromUser = prompt.GetUserIdFromUser
+	confirmElevation  = views.ConfirmElevation
+	elevateUserAPI    = api.ElevateUser
+)
+
+func ElevateUser(args []string) error {
+	var err error
+	var userId int64
+	if len(args) > 0 {
+		userId, err = getUsersIDByName(args[0])
+		if err != nil {
+			err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
+			log.Error(err.Error())
+			return err
+		}
+		if userId == 0 {
+			err = fmt.Errorf("User with name '%s' not found", args[0])
+			log.Error(err.Error())
+			return err
+		}
+	} else {
+		userId, err = getUserIDFromUser()
+		if err != nil {
+			log.Errorf("failed to get user id: %v", err)
+			return err
+		}
+	}
+	confirm, err := confirmElevation()
+	if err != nil {
+		err = fmt.Errorf("failed to confirm elevation: %v", err)
+		log.Error(err.Error())
+		return err
+	}
+	if !confirm {
+		err = errors.New("User did not confirm elevation. Aborting command.")
+		log.Error(err.Error())
+		return err
+	}
+
+	err = elevateUserAPI(userId)
+	if err != nil {
+		if isUnauthorizedError(err) {
+			err = errors.New("Permission denied: Admin privileges are required to execute this command.")
+		} else {
+			err = fmt.Errorf("failed to elevate user: %v", err)
+		}
+		log.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
 func ElevateUserCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "elevate",
@@ -31,50 +85,7 @@ func ElevateUserCmd() *cobra.Command {
 		Long:  "elevate user to admin role",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var userId int64
-			if len(args) > 0 {
-				userId, err = api.GetUsersIdByName(args[0])
-				if err != nil {
-					err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-					log.Error(err.Error())
-					return err
-				}
-				if userId == 0 {
-					err = fmt.Errorf("User with name '%s' not found", args[0])
-					log.Error(err.Error())
-					return err
-				}
-			} else {
-				userId, err = prompt.GetUserIdFromUser()
-				if err != nil {
-					log.Errorf("failed to get user id: %v", err)
-					return err
-				}
-			}
-			confirm, err := views.ConfirmElevation()
-			if err != nil {
-				err = fmt.Errorf("failed to confirm elevation: %v", err)
-				log.Error(err.Error())
-				return err
-			}
-			if !confirm {
-				err = errors.New("User did not confirm elevation. Aborting command.")
-				log.Error(err.Error())
-				return err
-			}
-
-			err = api.ElevateUser(userId)
-			if err != nil {
-				if isUnauthorizedError(err) {
-					err = errors.New("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					err = fmt.Errorf("failed to elevate user: %v", err)
-				}
-				log.Error(err.Error())
-				return err
-			}
-			return nil
+			return ElevateUser(args)
 		},
 	}
 
