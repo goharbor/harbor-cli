@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"strings"
 	"sync"
 
 	"github.com/charmbracelet/lipgloss"
@@ -32,9 +33,11 @@ var (
 )
 
 type PrettyHandler struct {
-	mu    sync.Mutex
-	out   io.Writer
-	level slog.Leveler
+	mu       sync.Mutex
+	out      io.Writer
+	level    slog.Leveler
+	preAttrs []slog.Attr // retained from WithAttrs calls
+	groups   []string    // retained from WithGroup calls
 }
 
 func NewPrettyHandler(out io.Writer, level slog.Leveler) *PrettyHandler {
@@ -55,7 +58,6 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	timestamp := r.Time.Format("15:04:05")
 	level := formatLevel(r.Level)
 
-	// Print main log line
 	_, err := fmt.Fprintf(
 		h.out,
 		"%s %s %s\n",
@@ -67,16 +69,11 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 		return err
 	}
 
+	// Merge pre-attached attrs with record attrs.
 	var attrs []slog.Attr
-	maxKey := 0
-
+	attrs = append(attrs, h.preAttrs...)
 	r.Attrs(func(a slog.Attr) bool {
 		attrs = append(attrs, a)
-
-		if len(a.Key) > maxKey {
-			maxKey = len(a.Key)
-		}
-
 		return true
 	})
 
@@ -84,24 +81,50 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 		return nil
 	}
 
-	// Print attributes
+	// Compute column width across all attrs.
+	maxKey := 0
 	for _, a := range attrs {
-		_, err = fmt.Fprintf(h.out, "  %s : %v\n", fmt.Sprintf("%-*s", maxKey, a.Key),
-			a.Value.String())
+		if k := len(h.qualifiedKey(a.Key)); k > maxKey {
+			maxKey = k
+		}
+	}
+
+	for _, a := range attrs {
+		_, err = fmt.Fprintf(h.out, "  %s : %v\n",
+			fmt.Sprintf("%-*s", maxKey, h.qualifiedKey(a.Key)),
+			a.Value.String(),
+		)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func (h *PrettyHandler) WithAttrs(_ []slog.Attr) slog.Handler {
-	return h
+func (h *PrettyHandler) qualifiedKey(key string) string {
+	if len(h.groups) == 0 {
+		return key
+	}
+	return strings.Join(h.groups, ".") + "." + key
 }
 
-func (h *PrettyHandler) WithGroup(_ string) slog.Handler {
-	return h
+func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	clone := *h
+	clone.preAttrs = make([]slog.Attr, len(h.preAttrs)+len(attrs))
+	copy(clone.preAttrs, h.preAttrs)
+	copy(clone.preAttrs[len(h.preAttrs):], attrs)
+	return &clone
+}
+
+func (h *PrettyHandler) WithGroup(name string) slog.Handler {
+	if name == "" {
+		return h
+	}
+	clone := *h
+	clone.groups = make([]string, len(h.groups)+1)
+	copy(clone.groups, h.groups)
+	clone.groups[len(h.groups)] = name
+	return &clone
 }
 
 func formatLevel(level slog.Level) string {
