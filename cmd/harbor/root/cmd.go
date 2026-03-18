@@ -46,9 +46,10 @@ import (
 )
 
 var (
-	output  string
-	cfgFile string
-	verbose bool
+	logFormat string
+	output    string
+	cfgFile   string
+	verbose   bool
 )
 
 func RootCmd() *cobra.Command {
@@ -71,7 +72,7 @@ harbor help
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
 			// Sets up logging
-			logger.Setup(verbose, output)
+			logger.Setup(verbose, logFormat)
 
 			// Logging Flags
 			arr := make([]any, 0) // slog requires any since the slog.Debug takes in (string, ...any)
@@ -85,10 +86,16 @@ harbor help
 	}
 
 	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml|csv")
+	root.PersistentFlags().StringVarP(&logFormat, "log-format", "l", "text", "Output format for logging. One of: json|text")
 	root.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	err = viper.BindPFlag("log-format", root.PersistentFlags().Lookup("log-format"))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
