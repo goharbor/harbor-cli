@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
@@ -37,7 +37,7 @@ func ContextList(contexts []api.ContextListView, activeContext string) (string, 
 	}
 	m := selection.NewModel(itemsList, "Context")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		fmt.Println("Error running program:", err)

@@ -16,16 +16,16 @@ package views
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	"charm.land/lipgloss/v2"
 )
 
 var (
 	TitleStyle        = lipgloss.NewStyle().MarginLeft(2)
 	ItemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	PaginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	HelpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	PaginationStyle   = list.DefaultStyles(true).PaginationStyle.PaddingLeft(4)
+	HelpStyle         = list.DefaultStyles(true).HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("2")) // ANSI 32
 	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("1")) // ANSI 31
 	BoldStyle         = lipgloss.NewStyle().Bold(true)                      // ANSI 1
