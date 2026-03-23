@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -25,7 +25,7 @@ import (
 )
 
 func UpdateScannerView(scanner *models.ScannerRegistration) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

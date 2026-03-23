@@ -82,8 +82,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyPressMsg:
-		switch keypress := msg.String(); keypress {
-		case "enter":
+		switch msg.Code {
+		case tea.KeyEnter:
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
 				m.Choice = string(i)

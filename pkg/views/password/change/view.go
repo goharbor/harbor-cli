@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,7 +29,7 @@ type PasswordChangeView struct {
 }
 
 func ChangePasswordView(view *PasswordChangeView) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 
 	err := huh.NewForm(
 		huh.NewGroup(

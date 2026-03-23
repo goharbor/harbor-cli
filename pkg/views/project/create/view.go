@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -52,7 +52,7 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 }
 
 func CreateProjectView(createView *CreateView) error {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	// I want it to be a map of registry ID to registry name
 	registries, err := getRegistryList()
 	if err != nil {

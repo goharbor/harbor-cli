@@ -19,8 +19,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/huh/v2"
+	"charm.land/lipgloss/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -54,7 +54,7 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 	}
 
 	createView.Override = true
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 
 	// Step 1: Basic information
 	var basicGroup *huh.Group

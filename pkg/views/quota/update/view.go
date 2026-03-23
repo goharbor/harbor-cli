@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
 	log "github.com/sirupsen/logrus"
@@ -60,7 +60,7 @@ func UpdateQuotaView(quta *models.Quota) string {
 		)
 	}
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

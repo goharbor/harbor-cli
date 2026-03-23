@@ -16,7 +16,7 @@ package update
 import (
 	"errors"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,7 +27,7 @@ type UpdateView struct {
 }
 
 func UpdateCveView(updateView *UpdateView) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

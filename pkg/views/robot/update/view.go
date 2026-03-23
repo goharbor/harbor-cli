@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	log "github.com/sirupsen/logrus"
@@ -53,7 +53,7 @@ type Access struct {
 func UpdateRobotView(updateView *UpdateView) {
 	duration := strconv.FormatInt(updateView.Duration, 10)
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

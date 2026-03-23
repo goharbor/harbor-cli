@@ -19,12 +19,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	log "github.com/sirupsen/logrus"
 )
 
 func UpdateSchedule(cron *string) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeCharm(true)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
