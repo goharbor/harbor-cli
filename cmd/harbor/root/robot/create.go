@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/atotto/clipboard"
 	"charm.land/huh/v2"
+	"github.com/atotto/clipboard"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
