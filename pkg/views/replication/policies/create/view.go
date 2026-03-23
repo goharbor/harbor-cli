@@ -54,7 +54,7 @@ func CreateRPolicyView(createView *CreateView, update bool) {
 	}
 
 	createView.Override = true
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	// Step 1: Basic information
 	var basicGroup *huh.Group

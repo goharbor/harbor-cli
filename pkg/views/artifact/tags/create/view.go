@@ -23,7 +23,7 @@ import (
 )
 
 func CreateTagView(tagName *string) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

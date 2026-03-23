@@ -28,7 +28,7 @@ type PasswordChangeView struct {
 }
 
 func ChangePasswordView(view *PasswordChangeView) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

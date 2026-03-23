@@ -31,7 +31,7 @@ type LoginView struct {
 }
 
 func CreateView(loginView *LoginView) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

@@ -53,7 +53,7 @@ type Access struct {
 func UpdateRobotView(updateView *UpdateView) {
 	duration := strconv.FormatInt(updateView.Duration, 10)
 
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

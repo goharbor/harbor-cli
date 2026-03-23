@@ -46,7 +46,7 @@ func isSelected(selected []string, option string) bool {
 }
 
 func WebhookEditView(editView *EditView) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	var verifyCert string
 	var enable string
 	err := huh.NewForm(

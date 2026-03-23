@@ -52,7 +52,7 @@ func CreateRobotView(createView *CreateView) {
 		duration = "-1"
 	}
 
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -93,7 +93,7 @@ func CreateRobotView(createView *CreateView) {
 }
 
 func CreateRobotSecretView(name string, secret string) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

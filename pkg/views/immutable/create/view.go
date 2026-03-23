@@ -31,7 +31,7 @@ type ImmutableSelector struct {
 }
 
 func CreateImmutableView(createView *CreateView) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

@@ -27,7 +27,7 @@ type UpdateView struct {
 }
 
 func UpdateCveView(updateView *UpdateView) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

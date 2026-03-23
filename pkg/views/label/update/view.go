@@ -22,7 +22,7 @@ import (
 )
 
 func UpdateLabelView(updateView *models.Label) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

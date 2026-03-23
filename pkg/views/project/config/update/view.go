@@ -28,7 +28,7 @@ func validateValue(value *string) *string {
 }
 
 func UpdateProjectMetadataView(config *models.ProjectMetadata) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

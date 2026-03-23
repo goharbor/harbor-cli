@@ -55,7 +55,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 		)
 	}
 
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

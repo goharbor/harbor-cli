@@ -131,7 +131,7 @@ func CreateMemberView(createView *CreateView) {
 		))
 	}
 
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(groups...).WithTheme(theme).Run()
 	if err != nil {
 		log.Fatal(err)

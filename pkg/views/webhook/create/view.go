@@ -33,7 +33,7 @@ type CreateView struct {
 }
 
 func WebhookCreateView(createView *CreateView) error {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

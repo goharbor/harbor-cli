@@ -411,7 +411,7 @@ func getMultipleProjectsFromUser() ([]string, error) {
 				Options(projectOptions...).
 				Value(&selectedProjects),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(80).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(80).Run()
 
 	return selectedProjects, err
 }
@@ -432,7 +432,7 @@ func promptMoreProjects() (bool, error) {
 				).
 				Value(&addMore),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return addMore, err
 }
@@ -454,7 +454,7 @@ func promptPermissionMode() (string, error) {
 				).
 				Value(&permissionMode),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return permissionMode, err
 }

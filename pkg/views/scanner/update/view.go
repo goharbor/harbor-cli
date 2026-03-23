@@ -25,7 +25,7 @@ import (
 )
 
 func UpdateScannerView(scanner *models.ScannerRegistration) {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().

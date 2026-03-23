@@ -44,7 +44,7 @@ func CreateInstanceView(createView *CreateView) {
 	username := cv.AuthInfo["username"]
 	password := cv.AuthInfo["password"]
 	token := cv.AuthInfo["token"]
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

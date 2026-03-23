@@ -52,7 +52,7 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 }
 
 func CreateProjectView(createView *CreateView) error {
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	// I want it to be a map of registry ID to registry name
 	registries, err := getRegistryList()
 	if err != nil {

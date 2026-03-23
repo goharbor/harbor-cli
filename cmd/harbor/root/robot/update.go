@@ -259,7 +259,7 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 				).
 				Value(&updatePerms),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(60).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 	if err != nil {
 		return fmt.Errorf("error asking about permission updates: %v", err)
@@ -291,7 +291,7 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 				).
 				Value(&updateSystem),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(60).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 	if err != nil {
 		return fmt.Errorf("error asking about system permission updates: %v", err)
@@ -362,7 +362,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 					).
 					Value(&replaceExisting),
 			),
-		).WithTheme(huh.ThemeCharm(true)).WithWidth(60).Run()
+		).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 		if err != nil {
 			return fmt.Errorf("error asking about existing permissions: %v", err)
@@ -417,7 +417,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 					).
 					Value(&modifyMode),
 			),
-		).WithTheme(huh.ThemeCharm(true)).WithWidth(60).Run()
+		).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 		if err != nil {
 			return fmt.Errorf("error asking about permission modification: %v", err)
@@ -449,7 +449,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 						Options(projectOptions...).
 						Value(&selectedProjects),
 				),
-			).WithTheme(huh.ThemeCharm(true)).WithWidth(80).Run()
+			).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(80).Run()
 
 			if err != nil {
 				return fmt.Errorf("error selecting projects to modify: %v", err)
@@ -634,7 +634,7 @@ func promptPermissionModeForUpdate(hasExistingProjectPerms bool) (string, error)
 				Options(options...).
 				Value(&permissionMode),
 		),
-	).WithTheme(huh.ThemeCharm(true)).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return permissionMode, err
 }

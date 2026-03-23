@@ -60,7 +60,7 @@ func UpdateQuotaView(quta *models.Quota) string {
 		)
 	}
 
-	theme := huh.ThemeCharm(true)
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
