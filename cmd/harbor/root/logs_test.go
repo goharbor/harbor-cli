@@ -13,7 +13,10 @@
 // limitations under the License.
 package root
 
-import "testing"
+import (
+	"regexp"
+	"testing"
+)
 
 func TestBuildAuditLogQuery(t *testing.T) {
 	tests := []struct {
@@ -25,13 +28,13 @@ func TestBuildAuditLogQuery(t *testing.T) {
 		username     string
 		fromTime     string
 		toTime       string
-		expected     string
+		expectedRx   string // regex pattern to match (for times that vary)
 		wantErr      bool
 	}{
 		{
-			name:      "returns base query only",
-			baseQuery: "operation=push",
-			expected:  "operation=push",
+			name:       "returns base query only",
+			baseQuery:  "operation=push",
+			expectedRx: "^operation=push$",
 		},
 		{
 			name:         "builds query with convenience filters",
@@ -40,16 +43,21 @@ func TestBuildAuditLogQuery(t *testing.T) {
 			resourceType: "artifact",
 			resource:     "library/nginx",
 			username:     "admin",
-			expected:     "operation_result=true,operation=create_artifact,resource_type=artifact,resource=library/nginx,username=admin",
+			expectedRx:   "^operation_result=true,operation=create_artifact,resource_type=artifact,resource=library/nginx,username=admin$",
 		},
 		{
-			name:     "builds range query with normalized times",
-			fromTime: "2025-01-01T01:02:03Z",
-			toTime:   "2025-01-01 05:06:07",
-			expected: "op_time=[2025-01-01 01:02:03~2025-01-01 05:06:07]",
+			name:       "builds range query with both times specified",
+			fromTime:   "2025-01-01T01:02:03Z",
+			toTime:     "2025-01-01 05:06:07",
+			expectedRx: "^op_time=\\[2025-01-01 01:02:03~2025-01-01 05:06:07\\]$",
 		},
 		{
-			name:    "fails when one range bound is missing",
+			name:       "from-time alone defaults to-time to current time",
+			fromTime:   "2025-01-01T01:02:03Z",
+			expectedRx: "^op_time=\\[2025-01-01 01:02:03~.*\\]$", // matches any end time
+		},
+		{
+			name:    "to-time alone is rejected",
 			toTime:  "2025-01-01 05:06:07",
 			wantErr: true,
 		},
@@ -57,6 +65,12 @@ func TestBuildAuditLogQuery(t *testing.T) {
 			name:     "fails for invalid from time",
 			fromTime: "invalid-time",
 			toTime:   "2025-01-01 05:06:07",
+			wantErr:  true,
+		},
+		{
+			name:     "fails for invalid to time",
+			fromTime: "2025-01-01T01:02:03Z",
+			toTime:   "invalid-time",
 			wantErr:  true,
 		},
 	}
@@ -84,8 +98,9 @@ func TestBuildAuditLogQuery(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if query != tt.expected {
-				t.Fatalf("expected query %q, got %q", tt.expected, query)
+			matched, _ := regexp.MatchString(tt.expectedRx, query)
+			if !matched {
+				t.Fatalf("expected query to match regex %q, got %q", tt.expectedRx, query)
 			}
 		})
 	}

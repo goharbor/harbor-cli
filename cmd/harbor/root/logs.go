@@ -197,19 +197,28 @@ func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, 
 
 	from := strings.TrimSpace(fromTime)
 	to := strings.TrimSpace(toTime)
-	if (from != "" && to == "") || (from == "" && to != "") {
-		return "", fmt.Errorf("both --from-time and --to-time must be provided together")
+
+	// --to-time alone is not allowed; if provided, --from-time must also be present
+	if from == "" && to != "" {
+		return "", fmt.Errorf("--to-time cannot be used without --from-time")
 	}
 
-	if from != "" && to != "" {
+	// If --from-time is present, use it with either provided --to-time or default to current time
+	if from != "" {
 		normalizedFrom, err := normalizeAuditTime(from)
 		if err != nil {
 			return "", fmt.Errorf("invalid --from-time: %w", err)
 		}
 
-		normalizedTo, err := normalizeAuditTime(to)
-		if err != nil {
-			return "", fmt.Errorf("invalid --to-time: %w", err)
+		normalizedTo := to
+		if to == "" {
+			normalizedTo = time.Now().Format("2006-01-02 15:04:05")
+		} else {
+			var err error
+			normalizedTo, err = normalizeAuditTime(to)
+			if err != nil {
+				return "", fmt.Errorf("invalid --to-time: %w", err)
+			}
 		}
 
 		parts = append(parts, fmt.Sprintf("op_time=[%s~%s]", normalizedFrom, normalizedTo))
