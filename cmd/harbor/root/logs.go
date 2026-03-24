@@ -34,6 +34,12 @@ func Logs() *cobra.Command {
 	var opts api.ListFlags
 	var follow bool
 	var refreshInterval string
+	var operationFilter string
+	var resourceTypeFilter string
+	var resourceFilter string
+	var usernameFilter string
+	var fromTimeFilter string
+	var toTimeFilter string
 
 	cmd := &cobra.Command{
 		Use:   "logs",
@@ -41,6 +47,13 @@ func Logs() *cobra.Command {
 		Args:  cobra.NoArgs,
 		Long: `Get recent logs of the projects which the user is a member of.
 This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
+
+Convenience filter flags are available to build query expressions:
+- --operation
+- --resource-type
+- --resource
+- --username
+- --from-time and --to-time (for op_time range)
 
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
 
@@ -58,9 +71,22 @@ harbor-cli logs --output-format json`,
 				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
 			}
 
+			query, err := buildAuditLogQuery(
+				opts.Q,
+				operationFilter,
+				resourceTypeFilter,
+				resourceFilter,
+				usernameFilter,
+				fromTimeFilter,
+				toTimeFilter,
+			)
+			if err != nil {
+				return err
+			}
+			opts.Q = query
+
 			if follow {
 				var interval time.Duration = 5 * time.Second
-				var err error
 				if refreshInterval != "" {
 					interval, err = time.ParseDuration(refreshInterval)
 					if err != nil {
@@ -107,8 +133,101 @@ harbor-cli logs --output-format json`,
 	flags.BoolVarP(&follow, "follow", "f", false, "Follow log output (tail -f behavior)")
 	flags.StringVarP(&refreshInterval, "refresh-interval", "n", "",
 		"Interval to refresh logs when following (default: 5s)")
+	flags.StringVar(&operationFilter, "operation", "", "Filter by operation")
+	flags.StringVar(&resourceTypeFilter, "resource-type", "", "Filter by resource type")
+	flags.StringVar(&resourceFilter, "resource", "", "Filter by resource name")
+	flags.StringVar(&usernameFilter, "username", "", "Filter by username")
+	flags.StringVar(&fromTimeFilter, "from-time", "", "Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS')")
+	flags.StringVar(&toTimeFilter, "to-time", "", "End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS')")
+
+	cmd.AddCommand(LogsEventTypesCommand())
 
 	return cmd
+}
+
+func LogsEventTypesCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "events",
+		Short: "List supported Harbor audit log event types",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			response, err := api.AuditLogEventTypes()
+			if err != nil {
+				return fmt.Errorf("failed to retrieve audit log event types: %w", err)
+			}
+
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				return utils.PrintFormat(response.Payload, formatFlag)
+			}
+
+			for _, eventType := range response.Payload {
+				fmt.Println(eventType)
+			}
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, fromTime, toTime string) (string, error) {
+	parts := []string{}
+
+	baseQuery = strings.TrimSpace(baseQuery)
+	if baseQuery != "" {
+		parts = append(parts, baseQuery)
+	}
+
+	if strings.TrimSpace(operation) != "" {
+		parts = append(parts, fmt.Sprintf("operation=%s", operation))
+	}
+	if strings.TrimSpace(resourceType) != "" {
+		parts = append(parts, fmt.Sprintf("resource_type=%s", resourceType))
+	}
+	if strings.TrimSpace(resource) != "" {
+		parts = append(parts, fmt.Sprintf("resource=%s", resource))
+	}
+	if strings.TrimSpace(username) != "" {
+		parts = append(parts, fmt.Sprintf("username=%s", username))
+	}
+
+	from := strings.TrimSpace(fromTime)
+	to := strings.TrimSpace(toTime)
+	if (from != "" && to == "") || (from == "" && to != "") {
+		return "", fmt.Errorf("both --from-time and --to-time must be provided together")
+	}
+
+	if from != "" && to != "" {
+		normalizedFrom, err := normalizeAuditTime(from)
+		if err != nil {
+			return "", fmt.Errorf("invalid --from-time: %w", err)
+		}
+
+		normalizedTo, err := normalizeAuditTime(to)
+		if err != nil {
+			return "", fmt.Errorf("invalid --to-time: %w", err)
+		}
+
+		parts = append(parts, fmt.Sprintf("op_time=[%s~%s]", normalizedFrom, normalizedTo))
+	}
+
+	return strings.Join(parts, ","), nil
+}
+
+func normalizeAuditTime(input string) (string, error) {
+	layouts := []string{
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+	}
+
+	for _, layout := range layouts {
+		if parsed, err := time.Parse(layout, input); err == nil {
+			return parsed.Format("2006-01-02 15:04:05"), nil
+		}
+	}
+
+	return "", fmt.Errorf("expected RFC3339 or 'YYYY-MM-DD HH:MM:SS'")
 }
 
 func followLogs(opts api.ListFlags, interval time.Duration) {
