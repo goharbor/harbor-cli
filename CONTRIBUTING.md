@@ -41,6 +41,48 @@ dagger call build-dev --platform darwin/arm64 export --path=./harbor-cli
 ./harbor-dev --help
 ```
 
+## Local Development Hooks (Lefthook)
+
+This project uses [Lefthook](https://github.com/evilmartians/lefthook) to enforce code quality checks automatically on every commit — similar to Husky in JavaScript projects.
+
+### Install Lefthook
+
+```bash
+# macOS
+brew install lefthook
+
+# Linux / other (via Go)
+go install github.com/evilmartians/lefthook@latest
+
+# Or download a binary: https://github.com/evilmartians/lefthook/releases
+```
+
+### Activate the hooks (one-time, after cloning)
+
+```bash
+lefthook install
+```
+
+This registers the Git hooks defined in [`lefthook.yml`](./lefthook.yml). From that point on, every `git commit` will automatically run:
+
+| Hook | What it checks |
+|------|---------------|
+| `gofmt` | All `.go` files are `gofmt`-formatted |
+| `golangci-lint` | Linting via the project's `.golangci.yaml` config |
+| `go build ./...` | Project compiles without errors |
+| `go test ./...` | Full test suite passes |
+| DCO sign-off | Commit message contains a `Signed-off-by:` line (requires `git commit -s`) |
+
+### Skipping hooks (use sparingly)
+
+If you need to bypass the hooks for a work-in-progress commit:
+
+```bash
+git commit --no-verify -m "wip: ..."
+```
+
+> ⚠️ All of the above checks also run in CI. Skipping locally does not bypass CI.
+
 ## Project Structure
 
 ```

@@ -1,0 +1,57 @@
+# Lefthook — Git hooks manager for harbor-cli
+# Install: https://github.com/evilmartians/lefthook#installation
+# Activate: lefthook install
+
+pre-commit:
+  parallel: false
+  commands:
+    # 1. Format check — ensure code is properly formatted
+    gofmt:
+      glob: "**/*.go"
+      run: |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "❌ The following files are not gofmt-formatted:"
+          echo "$unformatted"
+          echo ""
+          echo "Run: gofmt -s -w ."
+          exit 1
+        fi
+        echo "✅ gofmt: all files are properly formatted"
+
+    # 2. Lint — run golangci-lint with the project's existing config
+    golangci-lint:
+      glob: "**/*.go"
+      run: golangci-lint run ./...
+      fail_text: "❌ golangci-lint found issues. Fix them before committing."
+
+    # 3. Build — ensure the project compiles cleanly
+    build:
+      run: go build ./...
+      fail_text: "❌ Build failed. Fix compilation errors before committing."
+
+    # 4. Test — run the full test suite
+    test:
+      run: go test ./...
+      fail_text: "❌ Tests failed. Fix failing tests before committing."
+
+commit-msg:
+  commands:
+    # Enforce DCO (Developer Certificate of Origin) sign-off
+    # Contributors must use: git commit -s -m "..."
+    dco-check:
+      run: |
+        commit_msg_file="{1}"
+        if ! grep -qE "^Signed-off-by: .+ <.+@.+>$" "$commit_msg_file"; then
+          echo ""
+          echo "❌ DCO sign-off missing!"
+          echo ""
+          echo "All commits must include a Signed-off-by line, e.g.:"
+          echo "   Signed-off-by: Your Name <your@email.com>"
+          echo ""
+          echo "Fix: use 'git commit -s' to automatically add the sign-off,"
+          echo "     or amend with: git commit --amend -s"
+          echo ""
+          exit 1
+        fi
+        echo "✅ DCO sign-off found"

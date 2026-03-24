@@ -25,3 +25,6 @@ go.work
 dist/
 /dagger.gen.go
 /internal/*
+
+# Lefthook state (local only)
+.lefthook/
