@@ -15,6 +15,8 @@
 package user
 
 import (
+	"io"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
@@ -22,51 +24,57 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func UserPasswordChangeCmd() *cobra.Command {
-	var opts reset.PasswordChangeView
+var (
+	getUserIDByName   = api.GetUsersIdByName
+	getUserIDFromUser = prompt.GetUserIdFromUser
+	fillPasswordView  = reset.ChangePasswordView
+	resetPassword     = api.ResetPassword
+)
 
+func ChangePassword(cmd *cobra.Command, args []string, w io.Writer) {
+	var userId int64
+	var err error
+	log.SetOutput(w)
+	resetView := &reset.PasswordChangeView{}
+
+	if len(args) > 0 {
+		userId, err = getUserIDByName(args[0])
+		if err != nil {
+			log.Errorf("failed to get user id for '%s': %v", args[0], err)
+			return
+		}
+		if userId == 0 {
+			log.Errorf("User with name '%s' not found", args[0])
+			return
+		}
+	} else {
+		userId, err = getUserIDFromUser()
+		if err != nil {
+			log.Errorf("failed to get user id: %v", err)
+			return
+		}
+	}
+
+	fillPasswordView(resetView)
+
+	err = resetPassword(userId, *resetView)
+	if err != nil {
+		if isUnauthorizedError(err) {
+			log.Error("Permission denied: Admin privileges are required to execute this command.")
+		} else {
+			log.Errorf("failed to reset user password: %v", err)
+		}
+	}
+}
+
+func UserPasswordChangeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "password",
 		Short: "Reset user password by name or id",
 		Long:  "Allows admin to reset the password for a specified user or select interactively if no username is provided.",
-		Args:  cobra.MinimumNArgs(0),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var userId int64
-			var err error
-			log.SetOutput(cmd.OutOrStderr())
-			resetView := &reset.PasswordChangeView{
-				NewPassword:     opts.NewPassword,
-				ConfirmPassword: opts.ConfirmPassword,
-			}
-
-			if len(args) > 0 {
-				userId, err = api.GetUsersIdByName(args[0])
-				if err != nil {
-					log.Errorf("failed to get user id for '%s': %v", args[0], err)
-					return
-				}
-				if userId == 0 {
-					log.Errorf("User with name '%s' not found", args[0])
-					return
-				}
-			} else {
-				userId, err = prompt.GetUserIdFromUser()
-				if err != nil {
-					log.Errorf("failed to get user id: %v", err)
-					return
-				}
-			}
-
-			reset.ChangePasswordView(resetView)
-
-			err = api.ResetPassword(userId, *resetView)
-			if err != nil {
-				if isUnauthorizedError(err) {
-					log.Error("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					log.Errorf("failed to reset user password: %v", err)
-				}
-			}
+			ChangePassword(cmd, args, cmd.OutOrStderr())
 		},
 	}
 	return cmd
