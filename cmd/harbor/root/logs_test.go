@@ -16,6 +16,8 @@ package root
 import (
 	"regexp"
 	"testing"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 )
 
 func TestBuildAuditLogQuery(t *testing.T) {
@@ -147,6 +149,120 @@ func TestNormalizeAuditTime(t *testing.T) {
 
 			if got != tt.expected {
 				t.Fatalf("expected normalized time %q, got %q", tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestPaginateAuditLogEventTypes(t *testing.T) {
+	eventTypes := []*models.AuditLogEventType{
+		{EventType: "event-1"},
+		{EventType: "event-2"},
+		{EventType: "event-3"},
+		{EventType: "event-4"},
+	}
+
+	tests := []struct {
+		name      string
+		page      int64
+		pageSize  int64
+		wantLen   int
+		firstItem string
+		wantErr   bool
+	}{
+		{
+			name:      "first page",
+			page:      1,
+			pageSize:  2,
+			wantLen:   2,
+			firstItem: "event-1",
+		},
+		{
+			name:      "second page",
+			page:      2,
+			pageSize:  2,
+			wantLen:   2,
+			firstItem: "event-3",
+		},
+		{
+			name:     "page out of range",
+			page:     3,
+			pageSize: 2,
+			wantLen:  0,
+		},
+		{
+			name:     "invalid page",
+			page:     0,
+			pageSize: 2,
+			wantErr:  true,
+		},
+		{
+			name:     "invalid page size",
+			page:     1,
+			pageSize: 0,
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := paginateAuditLogEventTypes(eventTypes, tt.page, tt.pageSize)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(got) != tt.wantLen {
+				t.Fatalf("expected len %d, got %d", tt.wantLen, len(got))
+			}
+
+			if tt.firstItem != "" && got[0].EventType != tt.firstItem {
+				t.Fatalf("expected first item %q, got %q", tt.firstItem, got[0].EventType)
+			}
+		})
+	}
+}
+
+func TestAuditLogEventTypeName(t *testing.T) {
+	tests := []struct {
+		name      string
+		eventType *models.AuditLogEventType
+		expected  string
+	}{
+		{
+			name:      "returns event type name",
+			eventType: &models.AuditLogEventType{EventType: "create_artifact"},
+			expected:  "create_artifact",
+		},
+		{
+			name:      "trims whitespace",
+			eventType: &models.AuditLogEventType{EventType: "  login_user  "},
+			expected:  "login_user",
+		},
+		{
+			name:      "nil event type",
+			eventType: nil,
+			expected:  "-",
+		},
+		{
+			name:      "empty event type",
+			eventType: &models.AuditLogEventType{EventType: "   "},
+			expected:  "-",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := auditLogEventTypeName(tt.eventType)
+			if got != tt.expected {
+				t.Fatalf("expected %q, got %q", tt.expected, got)
 			}
 		})
 	}

@@ -48,6 +48,8 @@ func Logs() *cobra.Command {
 		Long: `Get recent logs of the projects which the user is a member of.
 This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
 
+When --page and/or --page-size are explicitly provided, a pagination summary (for example: "Showing 6-10 of 14") is shown in default table output.
+
 Convenience filter flags are available to build query expressions:
 - --operation
 - --resource-type
@@ -117,6 +119,9 @@ harbor-cli logs --output-format json`,
 				}
 			} else {
 				list.ListLogs(logs.Payload)
+				if shouldShowPaginationSummary(cmd, "page", "page-size") {
+					printPaginationSummary(opts.Page, opts.PageSize, int64(len(logs.Payload)), logs.XTotalCount)
+				}
 			}
 			return nil
 		},
@@ -149,29 +154,155 @@ harbor-cli logs --output-format json`,
 }
 
 func LogsEventTypesCommand() *cobra.Command {
+	var page int64
+	var pageSize int64
+
 	cmd := &cobra.Command{
 		Use:   "events",
 		Short: "List supported Harbor audit log event types",
-		Args:  cobra.NoArgs,
+		Long: `List supported Harbor audit log event types.
+
+By default, all event types are shown.
+Use --page and --page-size to paginate the result.
+
+Examples:
+  harbor-cli logs events
+  harbor-cli logs events --page 2 --page-size 5
+  harbor-cli logs events --output-format json --page 2 --page-size 5`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			showPaginationSummary := shouldShowPaginationSummary(cmd, "page", "page-size")
+			if showPaginationSummary {
+				if page < 1 {
+					return fmt.Errorf("page number must be greater than or equal to 1")
+				}
+				if pageSize < 1 {
+					return fmt.Errorf("page size must be greater than or equal to 1")
+				}
+				if pageSize > 100 {
+					return fmt.Errorf("page size should be less than or equal to 100")
+				}
+			}
+
 			response, err := api.AuditLogEventTypes()
 			if err != nil {
 				return fmt.Errorf("failed to retrieve audit log event types: %w", err)
 			}
 
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				return utils.PrintFormat(response.Payload, formatFlag)
+			pagedPayload := response.Payload
+			if showPaginationSummary {
+				pagedPayload, err = paginateAuditLogEventTypes(response.Payload, page, pageSize)
+				if err != nil {
+					return err
+				}
 			}
 
-			for _, eventType := range response.Payload {
-				fmt.Println(eventType)
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				return utils.PrintFormat(pagedPayload, formatFlag)
 			}
+
+			printAuditLogEventTypesTable(pagedPayload, page, pageSize, len(response.Payload), showPaginationSummary)
 			return nil
 		},
 	}
 
+	flags := cmd.Flags()
+	flags.Int64VarP(&page, "page", "", 1, "Page number")
+	flags.Int64VarP(&pageSize, "page-size", "", 10, "Size of per page")
+
 	return cmd
+}
+
+func paginateAuditLogEventTypes(eventTypes []*models.AuditLogEventType, page, pageSize int64) ([]*models.AuditLogEventType, error) {
+	if page < 1 {
+		return nil, fmt.Errorf("page number must be greater than or equal to 1")
+	}
+	if pageSize < 1 {
+		return nil, fmt.Errorf("page size must be greater than or equal to 1")
+	}
+
+	start := (page - 1) * pageSize
+	if start >= int64(len(eventTypes)) {
+		return []*models.AuditLogEventType{}, nil
+	}
+
+	end := start + pageSize
+	if end > int64(len(eventTypes)) {
+		end = int64(len(eventTypes))
+	}
+
+	return eventTypes[start:end], nil
+}
+
+func printAuditLogEventTypesTable(eventTypes []*models.AuditLogEventType, page, pageSize int64, total int, showPaginationSummary bool) {
+	if len(eventTypes) == 0 {
+		if showPaginationSummary {
+			fmt.Println("No audit log event types found for the requested page.")
+			return
+		}
+		fmt.Println("No audit log event types found.")
+		return
+	}
+
+	fmt.Printf("%-6s %-40s\n", "INDEX", "EVENT_TYPE")
+	fmt.Printf("%-6s %-40s\n", "-----", "----------------------------------------")
+
+	startIndex := int64(1)
+	if showPaginationSummary {
+		startIndex = (page-1)*pageSize + 1
+	}
+	for i, eventType := range eventTypes {
+		fmt.Printf("%-6d %-40s\n", startIndex+int64(i), auditLogEventTypeName(eventType))
+	}
+
+	if showPaginationSummary {
+		endIndex := startIndex + int64(len(eventTypes)) - 1
+		fmt.Printf("\nShowing %d-%d of %d\n", startIndex, endIndex, total)
+	}
+}
+
+func auditLogEventTypeName(eventType *models.AuditLogEventType) string {
+	if eventType == nil {
+		return "-"
+	}
+
+	name := strings.TrimSpace(eventType.EventType)
+	if name == "" {
+		return "-"
+	}
+
+	return name
+}
+
+func shouldShowPaginationSummary(cmd *cobra.Command, pageFlagName, pageSizeFlagName string) bool {
+	return cmd.Flags().Changed(pageFlagName) || cmd.Flags().Changed(pageSizeFlagName)
+}
+
+func printPaginationSummary(page, pageSize, currentCount, totalCount int64) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = currentCount
+	}
+
+	if totalCount < currentCount {
+		totalCount = currentCount
+	}
+
+	if currentCount == 0 {
+		fmt.Printf("\nShowing 0-0 of %d\n", totalCount)
+		return
+	}
+
+	start := (page-1)*pageSize + 1
+	end := start + currentCount - 1
+	if totalCount > 0 && end > totalCount {
+		end = totalCount
+	}
+
+	fmt.Printf("\nShowing %d-%d of %d\n", start, end, totalCount)
 }
 
 func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, fromTime, toTime string) (string, error) {
