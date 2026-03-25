@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gc
+package utils
 
 import (
 	"strings"
@@ -22,7 +22,7 @@ import (
 )
 
 func TestValidateCron_Empty(t *testing.T) {
-	result, err := validateCron("")
+	result, err := ValidateCron("")
 	assert.Error(t, err)
 	assert.Equal(t, "", result)
 	assert.Contains(t, err.Error(), "cron expression cannot be empty")
@@ -30,14 +30,14 @@ func TestValidateCron_Empty(t *testing.T) {
 
 func TestValidateCron_Valid6Field(t *testing.T) {
 	cron := "0 0 12 * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, cron, result)
 }
 
 func TestValidateCron_Valid6FieldWithSeconds(t *testing.T) {
 	cron := "30 15 10 * * 1"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, cron, result)
 }
@@ -46,14 +46,14 @@ func TestValidateCron_5FieldConversion(t *testing.T) {
 	fiveFieldCron := "0 12 * * 1"
 	expectedResult := "0 " + fiveFieldCron
 
-	result, err := validateCron(fiveFieldCron)
+	result, err := ValidateCron(fiveFieldCron)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedResult, result)
 }
 
 func TestValidateCron_TooFewFields(t *testing.T) {
 	cron := "0 12 *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.Error(t, err)
 	assert.Equal(t, "", result)
 	assert.Contains(t, err.Error(), "6-field cron format")
@@ -61,7 +61,7 @@ func TestValidateCron_TooFewFields(t *testing.T) {
 
 func TestValidateCron_TooManyFields(t *testing.T) {
 	cron := "0 0 12 * * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.Error(t, err)
 	assert.Equal(t, "", result)
 	assert.Contains(t, err.Error(), "too many fields")
@@ -69,7 +69,7 @@ func TestValidateCron_TooManyFields(t *testing.T) {
 
 func TestValidateCron_SingleField(t *testing.T) {
 	cron := "0"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.Error(t, err)
 	assert.Equal(t, "", result)
 	assert.Contains(t, err.Error(), "6-field cron format")
@@ -77,42 +77,42 @@ func TestValidateCron_SingleField(t *testing.T) {
 
 func TestValidateCron_Weekly(t *testing.T) {
 	cron := "0 0 * * 0"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, "0 0 0 * * 0", result)
 }
 
 func TestValidateCron_Monthly(t *testing.T) {
 	cron := "0 0 1 * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, "0 0 0 1 * *", result)
 }
 
 func TestValidateCron_Daily(t *testing.T) {
 	cron := "0 0 * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, "0 0 0 * * *", result)
 }
 
 func TestValidateCron_Hourly(t *testing.T) {
 	cron := "* * * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, "0 * * * * *", result)
 }
 
 func TestValidateCron_NonStandardSeconds(t *testing.T) {
 	cron := "30 * * * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, cron, result)
 }
 
 func TestValidateCron_Midnight(t *testing.T) {
 	cron := "0 0 0 * * *"
-	result, err := validateCron(cron)
+	result, err := ValidateCron(cron)
 	assert.NoError(t, err)
 	assert.Equal(t, cron, result)
 }
@@ -137,7 +137,7 @@ func TestValidateCron_FieldsCount(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := validateCron(tc.cron)
+			result, err := ValidateCron(tc.cron)
 			if tc.expectError {
 				assert.Error(t, err, "Expected error for cron: %s", tc.cron)
 				assert.Equal(t, "", result)

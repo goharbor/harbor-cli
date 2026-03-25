@@ -26,6 +26,7 @@ import (
 
 func RunGCCommand() *cobra.Command {
 	var dryRun, deleteUntagged bool
+	var workers int
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -39,6 +40,7 @@ func RunGCCommand() *cobra.Command {
 			params := map[string]interface{}{
 				"dry_run":         dryRun,
 				"delete_untagged": deleteUntagged,
+				"workers":         workers,
 			}
 
 			scheduleBody := &models.Schedule{
@@ -57,6 +59,7 @@ func RunGCCommand() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "", false, "Simulate GC without deleting artifacts")
 	cmd.Flags().BoolVarP(&deleteUntagged, "delete-untagged", "", true, "Delete untagged artifacts")
+	cmd.Flags().IntVar(&workers, "workers", 1, "Number of workers for GC job")
 
 	return cmd
 }

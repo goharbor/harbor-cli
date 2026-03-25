@@ -43,7 +43,11 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 
-			if gcID <= 0 {
+			if gcID < 0 {
+				return fmt.Errorf("invalid GC job ID: %d. ID must be a positive number", gcID)
+			}
+
+			if gcID == 0 {
 				gcID, err = prompt.GetGCJobIDFromUser()
 				if err != nil {
 					return err

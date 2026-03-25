@@ -15,7 +15,6 @@
 package gc
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -113,7 +112,7 @@ func updateGCCustomSchedule(cron string) error {
 	}
 
 	var err error
-	cron, err = validateCron(cron)
+	cron, err = utils.ValidateCron(cron)
 	if err != nil {
 		return err
 	}
@@ -137,20 +136,3 @@ func updateGCCustomSchedule(cron string) error {
 	return nil
 }
 
-func validateCron(cron string) (string, error) {
-	if cron == "" {
-		return "", errors.New("cron expression cannot be empty")
-	}
-	fields := strings.Fields(cron)
-	if len(fields) < 6 {
-		if len(fields) == 5 {
-			logrus.Infof("Converting 5-field cron to 6-field by adding '0' for seconds")
-			return fmt.Sprintf("0 %s", cron), nil
-		}
-		return "", fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
-	}
-	if len(fields) > 6 {
-		return "", fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
-	}
-	return cron, nil
-}

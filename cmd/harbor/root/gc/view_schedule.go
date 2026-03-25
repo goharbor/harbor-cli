@@ -20,7 +20,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/gc/schedule"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,7 +36,7 @@ func ViewGCScheduleCommand() *cobra.Command {
 			}
 
 			if scheduleWrapper == nil || scheduleWrapper.Schedule == nil {
-				log.Info("No GC schedule set.")
+				fmt.Println("No GC schedule set.")
 				return nil
 			}
 
