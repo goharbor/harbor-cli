@@ -24,6 +24,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/charmbracelet/huh"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -432,4 +433,19 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func ConfirmProjectDeletion(message string) (bool, error) {
+	var confirm bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title(message).
+				Value(&confirm),
+		),
+	)
+
+	err := form.Run()
+	return confirm, err
 }
