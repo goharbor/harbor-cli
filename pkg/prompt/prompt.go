@@ -435,8 +435,18 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func ConfirmProjectDeletion(message string) (bool, error) {
+func ConfirmProjectDeletion(projectID string, args []string) (bool, error) {
 	var confirm bool
+
+	message := ""
+
+	if projectID != "" {
+		message = fmt.Sprintf("Delete project ID: %s?", projectID)
+	} else if len(args) > 0 {
+		message = fmt.Sprintf("Delete project(s): %v?", args)
+	} else {
+		message = "Delete selected project?"
+	}
 
 	form := huh.NewForm(
 		huh.NewGroup(

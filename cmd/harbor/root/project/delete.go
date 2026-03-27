@@ -53,17 +53,7 @@ func DeleteProjectCommand() *cobra.Command {
 			}
 
 			if !forceDelete {
-				msg := ""
-
-				if projectID != "" {
-					msg = fmt.Sprintf("Delete project ID: %s?", projectID)
-				} else if len(args) > 0 {
-					msg = fmt.Sprintf("Delete project(s): %v?", args)
-				} else {
-					msg = "Delete selected project?"
-				}
-
-				confirm, err := prompt.ConfirmProjectDeletion(msg)
+				confirm, err := prompt.ConfirmProjectDeletion(projectID, args)
 				if err != nil {
 					return err
 				}
