@@ -23,6 +23,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
@@ -200,6 +201,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = vulnerability.Vulnerability()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = jobservice.JobService()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
