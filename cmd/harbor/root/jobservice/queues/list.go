@@ -14,9 +14,11 @@
 package queues
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -235,17 +237,25 @@ func selectQueueTypes(action string) ([]string, error) {
 
 	var selected []string
 	theme := huh.ThemeCharm()
+	keymap := huh.NewDefaultKeyMap()
+	keymap.Quit = key.NewBinding(
+		key.WithKeys("ctrl+c", "q"),
+		key.WithHelp("q", "quit"),
+	)
 
 	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
-				Title(fmt.Sprintf("Select queue type(s) to %s", action)).
+				Title(fmt.Sprintf("Select queue type(s) to %s (press q to cancel)", action)).
 				Options(options...).
 				Value(&selected),
 		),
-	).WithTheme(theme).Run()
+	).WithTheme(theme).WithKeyMap(keymap).Run()
 
 	if err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return nil, errors.New("operation cancelled")
+		}
 		return nil, err
 	}
 
