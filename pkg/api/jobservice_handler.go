@@ -52,6 +52,19 @@ func GetWorkers(poolID string) (*jobservice.GetWorkersOK, error) {
 	return response, nil
 }
 
+// StopRunningJob stops a running job by job ID. Use jobID=all to stop all running jobs.
+func StopRunningJob(jobID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Jobservice.StopRunningJob(ctx, &jobservice.StopRunningJobParams{
+		JobID: jobID,
+	})
+	return err
+}
+
 // ListJobQueues retrieves all job queues
 func ListJobQueues() (*jobservice.ListJobQueuesOK, error) {
 	ctx, client, err := utils.ContextWithClient()

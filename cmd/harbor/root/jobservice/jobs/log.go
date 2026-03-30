@@ -24,7 +24,7 @@ import (
 func JobsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "jobs",
-		Short: "Manage job logs",
+		Short: "Manage job logs (view by job ID)",
 		Long:  "View logs for specific jobs.",
 	}
 
@@ -39,7 +39,7 @@ func LogCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "log",
-		Short:   "View job log",
+		Short:   "View a job log (--job-id required)",
 		Long:    "Display the log for a specific job by job ID.",
 		Example: "harbor jobservice jobs log --job-id abc123def456",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -67,7 +67,7 @@ func LogCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&jobID, "job-id", "", "Job ID (required)")
+	flags.StringVar(&jobID, "job-id", "", "Job ID to fetch log for (required)")
 	cmd.MarkFlagRequired("job-id")
 
 	return cmd

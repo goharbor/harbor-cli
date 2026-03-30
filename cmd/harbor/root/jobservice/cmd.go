@@ -30,15 +30,7 @@ func JobService() *cobra.Command {
 		Long: `Manage Harbor job service components including worker pools, job queues, schedules, and job logs.
 This requires system admin privileges.
 
-Examples:
-  harbor jobservice pools list
-  harbor jobservice workers list --pool all
-  harbor jobservice queues list
-  harbor jobservice schedules list`,
-		Example: `  harbor jobservice pools list
-  harbor jobservice workers free --job-id abc123
-  harbor jobservice queues pause --type REPLICATION
-  harbor jobservice schedules status`,
+Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.`,
 	}
 
 	cmd.AddCommand(

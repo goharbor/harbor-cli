@@ -1,0 +1,43 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-pools - Manage worker pools (list available pools)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice pools [flags]\fP
+
+
+.SH DESCRIPTION
+List and manage worker pools for the Harbor job service.
+
+.PP
+Use 'list' to view all worker pools.
+
+.PP
+Examples:
+  harbor jobservice pools list
+  harbor jobservice pool list
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for pools
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-jobservice(1)\fP, \fBharbor-jobservice-pools-list(1)\fP

@@ -24,40 +24,62 @@ import (
 	"github.com/spf13/viper"
 )
 
-var outputFormat string
-
 // ListCommand lists all workers
 func ListCommand() *cobra.Command {
+	var poolID string
+	var allPools bool
+	var poolAll bool
+
 	cmd := &cobra.Command{
 		Use:   "list [POOL_ID]",
-		Short: "List job service workers",
-		Long: `List job service workers for a specific worker pool.
+		Short: "List workers (all pools by default; use --pool for one pool)",
+		Long: `List job service workers.
 
-If no pool ID is specified, it will use 'all' to get workers from all pools.
+Supported listing modes:
+	- All workers (default): no POOL_ID or --pool all
+	- Specific pool workers: provide [POOL_ID] or --pool <pool-id>
+	- Compatibility mode: --pool-all (same as --pool all)
 
 Examples:
-  harbor jobservice workers list                # List workers from all pools
-  harbor jobservice workers list default        # List workers from 'default' pool
-  harbor jobservice workers list my-pool        # List workers from 'my-pool'`,
+  harbor jobservice workers list
+  harbor jobservice workers list --pool all
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list default
+	harbor jobservice worker list 72327cf790564e45b7c89a2d`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listWorkers(cmd, args)
+			return listWorkers(cmd, args, poolID, poolAll)
 		},
 	}
 
-	cmd.Flags().StringVarP(&outputFormat, "output", "o", "table",
-		"output format (table, json, yaml)")
+	flags := cmd.Flags()
+	flags.StringVar(&poolID, "pool", "", "Worker pool ID (use 'all' for all pools)")
+	flags.BoolVar(&allPools, "all", false, "List workers from all pools")
+	flags.BoolVar(&poolAll, "pool-all", false, "List workers from all pools (compatibility alias for --pool all)")
 
 	return cmd
 }
 
-func listWorkers(cmd *cobra.Command, args []string) error {
-	poolID := "all" // default to all pools
-	if len(args) > 0 {
-		poolID = args[0]
+func listWorkers(cmd *cobra.Command, args []string, poolFlag string, poolAll bool) error {
+	resolvedPoolID := "all"
+	allPools, _ := cmd.Flags().GetBool("all")
+
+	if allPools || poolAll {
+		resolvedPoolID = "all"
 	}
 
-	resp, err := api.GetWorkers(poolID)
+	if poolFlag != "" {
+		resolvedPoolID = poolFlag
+	}
+
+	if len(args) > 0 {
+		if poolFlag != "" || allPools || poolAll {
+			return fmt.Errorf("pool ID provided both as argument and flag; use only one form")
+		}
+		resolvedPoolID = args[0]
+	}
+
+	resp, err := api.GetWorkers(resolvedPoolID)
 	if err != nil {
 		return fmt.Errorf("failed to get workers: %w", err)
 	}

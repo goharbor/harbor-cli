@@ -21,13 +21,27 @@ import (
 // WorkersCommand creates the workers subcommand
 func WorkersCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "workers",
-		Short: "Manage job service workers",
-		Long:  "Manage job service workers using the job service API",
+		Use:     "workers",
+		Aliases: []string{"worker"},
+		Short:   "Manage workers (list all/by pool, free, free-all)",
+		Long: `Manage job service workers using the job service API.
+
+Use 'list' to view workers from all pools or a specific pool.
+Use 'free' and 'free-all' to stop running jobs and release busy workers.
+
+Examples:
+  harbor jobservice workers list
+  harbor jobservice workers list --pool all
+  harbor jobservice workers list --pool <pool-id>
+  harbor jobservice worker list <pool-id>
+  harbor jobservice workers free --job-id <job-id>
+  harbor jobservice workers free-all`,
 	}
 
 	cmd.AddCommand(
 		ListCommand(),
+		FreeCommand(),
+		FreeAllCommand(),
 	)
 
 	return cmd

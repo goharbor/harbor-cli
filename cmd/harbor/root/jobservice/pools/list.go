@@ -26,9 +26,16 @@ import (
 // PoolsCommand creates the pools subcommand.
 func PoolsCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pools",
-		Short: "Manage worker pools",
-		Long:  "List and manage worker pools for the Harbor job service.",
+		Use:     "pools",
+		Aliases: []string{"pool"},
+		Short:   "Manage worker pools (list available pools)",
+		Long: `List and manage worker pools for the Harbor job service.
+
+Use 'list' to view all worker pools.
+
+Examples:
+  harbor jobservice pools list
+  harbor jobservice pool list`,
 	}
 
 	cmd.AddCommand(ListCommand())
@@ -41,7 +48,7 @@ func ListCommand() *cobra.Command {
 		Use:     "list",
 		Short:   "List all worker pools",
 		Long:    "Display all worker pools with their details.",
-		Example: "harbor jobservice pools list",
+		Example: "harbor jobservice pools list\nharbor jobservice pool list",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetWorkerPools()
 			if err != nil {

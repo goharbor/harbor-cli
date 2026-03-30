@@ -1,0 +1,61 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-workers-list - List workers (all pools by default; use --pool for one pool)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice workers list [POOL_ID] [flags]\fP
+
+
+.SH DESCRIPTION
+List job service workers.
+
+.PP
+Supported listing modes:
+	- All workers (default): no POOL_ID or --pool all
+	- Specific pool workers: provide [POOL_ID] or --pool 
+	- Compatibility mode: --pool-all (same as --pool all)
+
+.PP
+Examples:
+  harbor jobservice workers list
+  harbor jobservice workers list --pool all
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list default
+	harbor jobservice worker list 72327cf790564e45b7c89a2d
+
+
+.SH OPTIONS
+\fB--all\fP[=false]
+	List workers from all pools
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--pool\fP=""
+	Worker pool ID (use 'all' for all pools)
+
+.PP
+\fB--pool-all\fP[=false]
+	List workers from all pools (compatibility alias for --pool all)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-workers(1)\fP

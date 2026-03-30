@@ -31,7 +31,7 @@ import (
 func QueuesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "queues",
-		Short: "Manage job queues",
+		Short: "Manage job queues (list, stop, pause, resume)",
 		Long:  "List job queues and perform actions on them (stop/pause/resume).",
 	}
 
@@ -78,7 +78,7 @@ func StopCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "stop",
-		Short:   "Stop job queue(s)",
+		Short:   "Stop queue(s) (--type or --interactive)",
 		Long:    "Stop a job queue or all queues.",
 		Example: "harbor jobservice queues stop --type REPLICATION\nharbor jobservice queues stop --type REPLICATION --type RETENTION\nharbor jobservice queues stop --type all",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -104,7 +104,7 @@ func StopCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringSliceVar(&jobTypes, "type", nil, "Job type(s) to stop (repeat flag or comma-separate values; use 'all' for all queues)")
-	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to select queue")
+	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to choose queue type(s) instead of passing --type")
 
 	return cmd
 }
@@ -116,7 +116,7 @@ func PauseCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "pause",
-		Short:   "Pause job queue(s)",
+		Short:   "Pause queue(s) (--type or --interactive)",
 		Long:    "Pause a job queue or all queues.",
 		Example: "harbor jobservice queues pause --type REPLICATION\nharbor jobservice queues pause --type REPLICATION --type RETENTION\nharbor jobservice queues pause --type all",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -142,7 +142,7 @@ func PauseCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringSliceVar(&jobTypes, "type", nil, "Job type(s) to pause (repeat flag or comma-separate values; use 'all' for all queues)")
-	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to select queue")
+	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to choose queue type(s) instead of passing --type")
 
 	return cmd
 }
@@ -154,7 +154,7 @@ func ResumeCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "resume",
-		Short:   "Resume job queue(s)",
+		Short:   "Resume queue(s) (--type or --interactive)",
 		Long:    "Resume a paused job queue or all queues.",
 		Example: "harbor jobservice queues resume --type REPLICATION\nharbor jobservice queues resume --type REPLICATION --type RETENTION\nharbor jobservice queues resume --type all",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -180,7 +180,7 @@ func ResumeCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringSliceVar(&jobTypes, "type", nil, "Job type(s) to resume (repeat flag or comma-separate values; use 'all' for all queues)")
-	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to select queue")
+	flags.BoolVarP(&interactive, "interactive", "i", false, "Interactive mode to choose queue type(s) instead of passing --type")
 
 	return cmd
 }

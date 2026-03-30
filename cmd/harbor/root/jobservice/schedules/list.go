@@ -27,7 +27,7 @@ import (
 func SchedulesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schedules",
-		Short: "Manage job schedules",
+		Short: "Manage schedules (list/status/pause-all/resume-all)",
 		Long:  "List schedules and manage global scheduler status.",
 	}
 
@@ -48,7 +48,7 @@ func ListCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List all schedules",
+		Short:   "List schedules (supports --page and --page-size)",
 		Long:    "Display all job schedules with pagination support.",
 		Example: "harbor jobservice schedules list --page 1 --page-size 20",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +61,7 @@ func ListCommand() *cobra.Command {
 
 			response, err := api.ListSchedules(page, pageSize)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve schedules: %w", err)
+				return formatScheduleError("failed to retrieve schedules", err, "ActionList")
 			}
 
 			if response == nil || response.Payload == nil || len(response.Payload) == 0 {
@@ -97,7 +97,7 @@ func StatusCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetSchedulePaused()
 			if err != nil {
-				return fmt.Errorf("failed to retrieve scheduler status: %w", err)
+				return formatScheduleError("failed to retrieve scheduler status", err, "authenticated")
 			}
 
 			if response == nil || response.Payload == nil {
@@ -129,7 +129,7 @@ func PauseAllCommand() *cobra.Command {
 			fmt.Println("Pausing all schedules...")
 			err := api.ActionJobQueue("SCHEDULER", "pause")
 			if err != nil {
-				return fmt.Errorf("failed to pause all schedules: %w", err)
+				return formatScheduleError("failed to pause all schedules", err, "ActionStop")
 			}
 			fmt.Println("✓ All schedules paused successfully.")
 			return nil
@@ -150,7 +150,7 @@ func ResumeAllCommand() *cobra.Command {
 			fmt.Println("Resuming all schedules...")
 			err := api.ActionJobQueue("SCHEDULER", "resume")
 			if err != nil {
-				return fmt.Errorf("failed to resume all schedules: %w", err)
+				return formatScheduleError("failed to resume all schedules", err, "ActionStop")
 			}
 			fmt.Println("✓ All schedules resumed successfully.")
 			return nil
@@ -158,4 +158,32 @@ func ResumeAllCommand() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func formatScheduleError(operation string, err error, requiredPermission string) error {
+	errorCode := utils.ParseHarborErrorCode(err)
+
+	switch errorCode {
+	case "400":
+		return fmt.Errorf("%s: invalid request. For schedule status use job_type=all; for queue action use stop|pause|resume", operation)
+	case "401":
+		return fmt.Errorf("%s: authentication required. Please run 'harbor login' and try again", operation)
+	case "403":
+		if requiredPermission == "authenticated" {
+			return fmt.Errorf("%s: permission denied. Your account is authenticated but lacks access", operation)
+		}
+		return fmt.Errorf("%s: permission denied. This operation requires %s on jobservice-monitor", operation, requiredPermission)
+	case "404":
+		return fmt.Errorf("%s: resource not found or not accessible in current context", operation)
+	case "422":
+		return fmt.Errorf("%s: request validation failed. Please check request body and action values", operation)
+	case "500":
+		return fmt.Errorf("%s: Harbor internal error. Retry and check Harbor server logs", operation)
+	default:
+		msg := utils.ParseHarborErrorMsg(err)
+		if msg == "" {
+			msg = err.Error()
+		}
+		return fmt.Errorf("%s: %s", operation, msg)
+	}
 }
