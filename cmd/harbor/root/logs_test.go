@@ -14,6 +14,9 @@
 package root
 
 import (
+	"bytes"
+	"io"
+	"os"
 	"regexp"
 	"testing"
 
@@ -106,6 +109,77 @@ func TestBuildAuditLogQuery(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPrintPaginationSummary(t *testing.T) {
+	tests := []struct {
+		name         string
+		page         int64
+		pageSize     int64
+		currentCount int64
+		totalCount   int64
+		expected     string
+	}{
+		{
+			name:         "last page with fewer results",
+			page:         3,
+			pageSize:     5,
+			currentCount: 2,
+			totalCount:   12,
+			expected:     "\nShowing 11-12 of 12\n",
+		},
+		{
+			name:         "current count zero",
+			page:         2,
+			pageSize:     10,
+			currentCount: 0,
+			totalCount:   14,
+			expected:     "\nShowing 0-0 of 14\n",
+		},
+		{
+			name:         "page size zero uses current count",
+			page:         2,
+			pageSize:     0,
+			currentCount: 3,
+			totalCount:   20,
+			expected:     "\nShowing 4-6 of 20\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := captureStdout(t, func() {
+				printPaginationSummary(tt.page, tt.pageSize, tt.currentCount, tt.totalCount)
+			})
+
+			if got != tt.expected {
+				t.Fatalf("expected output %q, got %q", tt.expected, got)
+			}
+		})
+	}
+}
+
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+
+	originalStdout := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create stdout pipe: %v", err)
+	}
+
+	os.Stdout = w
+	fn()
+	_ = w.Close()
+	os.Stdout = originalStdout
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("failed to read captured stdout: %v", err)
+	}
+	_ = r.Close()
+
+	return buf.String()
 }
 
 func TestNormalizeAuditTime(t *testing.T) {

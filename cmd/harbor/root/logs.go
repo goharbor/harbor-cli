@@ -273,17 +273,21 @@ func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, 
 		parts = append(parts, baseQuery)
 	}
 
-	if strings.TrimSpace(operation) != "" {
-		parts = append(parts, fmt.Sprintf("operation=%s", operation))
+	op := strings.TrimSpace(operation)
+	rt := strings.TrimSpace(resourceType)
+	res := strings.TrimSpace(resource)
+	user := strings.TrimSpace(username)
+	if op != "" {
+		parts = append(parts, fmt.Sprintf("operation=%s", op))
 	}
-	if strings.TrimSpace(resourceType) != "" {
-		parts = append(parts, fmt.Sprintf("resource_type=%s", resourceType))
+	if rt != "" {
+		parts = append(parts, fmt.Sprintf("resource_type=%s", rt))
 	}
-	if strings.TrimSpace(resource) != "" {
-		parts = append(parts, fmt.Sprintf("resource=%s", resource))
+	if res != "" {
+		parts = append(parts, fmt.Sprintf("resource=%s", res))
 	}
-	if strings.TrimSpace(username) != "" {
-		parts = append(parts, fmt.Sprintf("username=%s", username))
+	if user != "" {
+		parts = append(parts, fmt.Sprintf("username=%s", user))
 	}
 
 	from := strings.TrimSpace(fromTime)
