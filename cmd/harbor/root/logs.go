@@ -55,7 +55,7 @@ Convenience filter flags are available to build query expressions:
 - --resource-type
 - --resource
 - --username
-- --from-time and --to-time (for op_time range)
+- --from-time and optional --to-time (for op_time range)
 
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
 
@@ -145,8 +145,8 @@ harbor-cli logs --output-format json`,
 	flags.StringVar(&resourceTypeFilter, "resource-type", "", "Filter by resource type")
 	flags.StringVar(&resourceFilter, "resource", "", "Filter by resource name")
 	flags.StringVar(&usernameFilter, "username", "", "Filter by username")
-	flags.StringVar(&fromTimeFilter, "from-time", "", "Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS')")
-	flags.StringVar(&toTimeFilter, "to-time", "", "End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS')")
+	flags.StringVar(&fromTimeFilter, "from-time", "", "Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Required when using --to-time")
+	flags.StringVar(&toTimeFilter, "to-time", "", "End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Optional when --from-time is set; defaults to current time")
 
 	cmd.AddCommand(LogsEventTypesCommand())
 
@@ -202,7 +202,7 @@ Examples:
 				return utils.PrintFormat(pagedPayload, formatFlag)
 			}
 
-			printAuditLogEventTypesTable(pagedPayload, page, pageSize, len(response.Payload), showPaginationSummary)
+			list.ListAuditLogEventTypes(pagedPayload, page, pageSize, len(response.Payload), showPaginationSummary)
 			return nil
 		},
 	}
@@ -233,46 +233,6 @@ func paginateAuditLogEventTypes(eventTypes []*models.AuditLogEventType, page, pa
 	}
 
 	return eventTypes[start:end], nil
-}
-
-func printAuditLogEventTypesTable(eventTypes []*models.AuditLogEventType, page, pageSize int64, total int, showPaginationSummary bool) {
-	if len(eventTypes) == 0 {
-		if showPaginationSummary {
-			fmt.Println("No audit log event types found for the requested page.")
-			return
-		}
-		fmt.Println("No audit log event types found.")
-		return
-	}
-
-	fmt.Printf("%-6s %-40s\n", "INDEX", "EVENT_TYPE")
-	fmt.Printf("%-6s %-40s\n", "-----", "----------------------------------------")
-
-	startIndex := int64(1)
-	if showPaginationSummary {
-		startIndex = (page-1)*pageSize + 1
-	}
-	for i, eventType := range eventTypes {
-		fmt.Printf("%-6d %-40s\n", startIndex+int64(i), auditLogEventTypeName(eventType))
-	}
-
-	if showPaginationSummary {
-		endIndex := startIndex + int64(len(eventTypes)) - 1
-		fmt.Printf("\nShowing %d-%d of %d\n", startIndex, endIndex, total)
-	}
-}
-
-func auditLogEventTypeName(eventType *models.AuditLogEventType) string {
-	if eventType == nil {
-		return "-"
-	}
-
-	name := strings.TrimSpace(eventType.EventType)
-	if name == "" {
-		return "-"
-	}
-
-	return name
 }
 
 func shouldShowPaginationSummary(cmd *cobra.Command, pageFlagName, pageSizeFlagName string) bool {
@@ -360,6 +320,7 @@ func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, 
 
 func normalizeAuditTime(input string) (string, error) {
 	layouts := []string{
+		time.RFC3339Nano,
 		time.RFC3339,
 		"2006-01-02 15:04:05",
 	}

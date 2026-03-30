@@ -14,6 +14,17 @@ Get recent logs of the projects which the user is a member of.
 This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
 
 .PP
+When --page and/or --page-size are explicitly provided, a pagination summary (for example: "Showing 6-10 of 14") is shown in default table output.
+
+.PP
+Convenience filter flags are available to build query expressions:
+- --operation
+- --resource-type
+- --resource
+- --username
+- --from-time and optional --to-time (for op_time range)
+
+.PP
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
 
 .PP
@@ -28,8 +39,16 @@ harbor-cli logs --output-format json
 	Follow log output (tail -f behavior)
 
 .PP
+\fB--from-time\fP=""
+	Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Required when using --to-time
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for logs
+
+.PP
+\fB--operation\fP=""
+	Filter by operation
 
 .PP
 \fB--page\fP=1
@@ -48,8 +67,24 @@ harbor-cli logs --output-format json
 	Interval to refresh logs when following (default: 5s)
 
 .PP
+\fB--resource\fP=""
+	Filter by resource name
+
+.PP
+\fB--resource-type\fP=""
+	Filter by resource type
+
+.PP
 \fB--sort\fP=""
 	Sort the resource list in ascending or descending order
+
+.PP
+\fB--to-time\fP=""
+	End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Optional when --from-time is set; defaults to current time
+
+.PP
+\fB--username\fP=""
+	Filter by username
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -66,4 +101,4 @@ harbor-cli logs --output-format json
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP
+\fBharbor(1)\fP, \fBharbor-logs-events(1)\fP

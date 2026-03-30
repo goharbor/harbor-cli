@@ -121,6 +121,11 @@ func TestNormalizeAuditTime(t *testing.T) {
 			expected: "2025-01-01 01:02:03",
 		},
 		{
+			name:     "accepts RFC3339 with fractional seconds",
+			input:    "2025-01-01T01:02:03.123Z",
+			expected: "2025-01-01 01:02:03",
+		},
+		{
 			name:     "accepts plain datetime",
 			input:    "2025-01-01 01:02:03",
 			expected: "2025-01-01 01:02:03",
@@ -225,44 +230,6 @@ func TestPaginateAuditLogEventTypes(t *testing.T) {
 
 			if tt.firstItem != "" && got[0].EventType != tt.firstItem {
 				t.Fatalf("expected first item %q, got %q", tt.firstItem, got[0].EventType)
-			}
-		})
-	}
-}
-
-func TestAuditLogEventTypeName(t *testing.T) {
-	tests := []struct {
-		name      string
-		eventType *models.AuditLogEventType
-		expected  string
-	}{
-		{
-			name:      "returns event type name",
-			eventType: &models.AuditLogEventType{EventType: "create_artifact"},
-			expected:  "create_artifact",
-		},
-		{
-			name:      "trims whitespace",
-			eventType: &models.AuditLogEventType{EventType: "  login_user  "},
-			expected:  "login_user",
-		},
-		{
-			name:      "nil event type",
-			eventType: nil,
-			expected:  "-",
-		},
-		{
-			name:      "empty event type",
-			eventType: &models.AuditLogEventType{EventType: "   "},
-			expected:  "-",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := auditLogEventTypeName(tt.eventType)
-			if got != tt.expected {
-				t.Fatalf("expected %q, got %q", tt.expected, got)
 			}
 		})
 	}

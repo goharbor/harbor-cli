@@ -1,0 +1,53 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-logs-events - List supported Harbor audit log event types
+
+
+.SH SYNOPSIS
+\fBharbor logs events [flags]\fP
+
+
+.SH DESCRIPTION
+List supported Harbor audit log event types.
+
+.PP
+By default, all event types are shown.
+Use --page and --page-size to paginate the result.
+
+.PP
+Examples:
+  harbor-cli logs events
+  harbor-cli logs events --page 2 --page-size 5
+  harbor-cli logs events --output-format json --page 2 --page-size 5
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for events
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=10
+	Size of per page
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-logs(1)\fP
