@@ -143,6 +143,9 @@ func TestValidateURL(t *testing.T) {
 		{"valid IPv4", "http://192.168.1.1", false},
 		{"valid IPv4 with port", "http://192.168.1.1:8080", false},
 		{"valid IPv6", "http://[::1]", false},
+		{"valid localhost", "http://localhost", false},
+		{"valid localhost with port", "http://localhost:8080", false},
+		{"valid localhost https", "https://localhost:443", false},
 
 		// invalid URLs
 		{"empty string", "", true},
