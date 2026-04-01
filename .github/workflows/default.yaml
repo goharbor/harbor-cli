@@ -29,7 +29,7 @@ jobs:
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
+        uses: sagikazarmark/dagger-version-action@v0.0.3
 
       - name: Generate Document
         uses: dagger/dagger-for-github@v7
@@ -82,7 +82,7 @@ jobs:
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
+        uses: sagikazarmark/dagger-version-action@v0.0.3
 
       - name: Run Vulnerability Check
         uses: dagger/dagger-for-github@v7
@@ -190,7 +190,7 @@ jobs:
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.1
+        uses: sagikazarmark/dagger-version-action@v0.0.3
 
       - name: Run Tests
         uses: dagger/dagger-for-github@v7
