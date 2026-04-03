@@ -19,6 +19,51 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
+// GetWorkerPools retrieves all worker pools
+func GetWorkerPools() (*jobservice.GetWorkerPoolsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Jobservice.GetWorkerPools(ctx, &jobservice.GetWorkerPoolsParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// GetWorkers retrieves workers for a pool
+func GetWorkers(poolID string) (*jobservice.GetWorkersOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Jobservice.GetWorkers(ctx, &jobservice.GetWorkersParams{
+		PoolID: poolID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// StopRunningJob stops a running job by job ID. Use jobID=all to stop all running jobs.
+func StopRunningJob(jobID string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Jobservice.StopRunningJob(ctx, &jobservice.StopRunningJobParams{
+		JobID: jobID,
+	})
+	return err
+}
+
 // ListJobQueues retrieves all job queues
 func ListJobQueues() (*jobservice.ListJobQueuesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
@@ -49,4 +94,21 @@ func ActionJobQueue(jobType, action string) error {
 	})
 
 	return err
+}
+
+// GetJobLog retrieves the log for a job by ID
+func GetJobLog(jobID string) (string, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return "", err
+	}
+
+	response, err := client.Jobservice.ActionGetJobLog(ctx, &jobservice.ActionGetJobLogParams{
+		JobID: jobID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return response.Payload, nil
 }

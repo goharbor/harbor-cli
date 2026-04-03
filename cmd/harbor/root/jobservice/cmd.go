@@ -14,7 +14,10 @@
 package jobservice
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/jobs"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/pools"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/queues"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/workers"
 	"github.com/spf13/cobra"
 )
 
@@ -31,6 +34,9 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 
 	cmd.AddCommand(
 		queues.QueuesCommand(),
+		pools.PoolsCommand(),
+		workers.WorkersCommand(),
+		jobs.JobsCommand(),
 	)
 
 	return cmd
