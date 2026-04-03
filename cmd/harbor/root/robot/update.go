@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
@@ -259,7 +259,7 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 				).
 				Value(&updatePerms),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 	if err != nil {
 		return fmt.Errorf("error asking about permission updates: %v", err)
@@ -291,7 +291,7 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 				).
 				Value(&updateSystem),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 	if err != nil {
 		return fmt.Errorf("error asking about system permission updates: %v", err)
@@ -362,7 +362,7 @@ func handleMultipleProjectsPermissionsForUpdate(projectPermissionsMap map[string
 					).
 					Value(&replaceExisting),
 			),
-		).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
+		).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 		if err != nil {
 			return fmt.Errorf("error asking about existing permissions: %v", err)
@@ -417,7 +417,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 					).
 					Value(&modifyMode),
 			),
-		).WithTheme(huh.ThemeCharm()).WithWidth(60).Run()
+		).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).Run()
 
 		if err != nil {
 			return fmt.Errorf("error asking about permission modification: %v", err)
@@ -449,7 +449,7 @@ func handlePerProjectPermissionsForUpdate(projectPermissionsMap map[string][]mod
 						Options(projectOptions...).
 						Value(&selectedProjects),
 				),
-			).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
+			).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(80).Run()
 
 			if err != nil {
 				return fmt.Errorf("error selecting projects to modify: %v", err)
@@ -634,7 +634,7 @@ func promptPermissionModeForUpdate(hasExistingProjectPerms bool) (string, error)
 				Options(options...).
 				Value(&permissionMode),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return permissionMode, err
 }

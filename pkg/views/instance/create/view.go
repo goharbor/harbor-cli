@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,7 +44,7 @@ func CreateInstanceView(createView *CreateView) {
 	username := cv.AuthInfo["username"]
 	password := cv.AuthInfo["password"]
 	token := cv.AuthInfo["token"]
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

@@ -18,8 +18,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
@@ -81,9 +81,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.List.SetWidth(msg.Width)
 		return m, nil
 
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "enter":
+	case tea.KeyPressMsg:
+		switch msg.Code {
+		case tea.KeyEnter:
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
 				m.Choice = string(i)
@@ -97,9 +97,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	if m.Choice != "" {
-		return ""
+		return tea.NewView("")
 	}
-	return "\n" + m.List.View()
+	v := tea.NewView("\n" + m.List.View())
+	v.AltScreen = true
+	return v
 }

@@ -16,7 +16,7 @@ package create
 import (
 	"errors"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +31,7 @@ type ImmutableSelector struct {
 }
 
 func CreateImmutableView(createView *CreateView) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

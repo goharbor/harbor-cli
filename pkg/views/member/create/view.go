@@ -18,7 +18,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
@@ -131,7 +131,7 @@ func CreateMemberView(createView *CreateView) {
 		))
 	}
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(groups...).WithTheme(theme).Run()
 	if err != nil {
 		log.Fatal(err)
