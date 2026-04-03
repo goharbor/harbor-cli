@@ -1,0 +1,51 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-queues-pause - Pause queue(s) (--type or --interactive)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice queues pause [flags]\fP
+
+
+.SH DESCRIPTION
+Pause a job queue or all queues.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for pause
+
+.PP
+\fB-i\fP, \fB--interactive\fP[=false]
+	Interactive mode to choose queue type(s) instead of passing --type
+
+.PP
+\fB--type\fP=[]
+	Job type(s) to pause (repeat flag or comma-separate values; use 'all' for all queues)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor jobservice queues pause --type REPLICATION
+harbor jobservice queues pause --type REPLICATION --type RETENTION
+harbor jobservice queues pause --type all
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-queues(1)\fP
