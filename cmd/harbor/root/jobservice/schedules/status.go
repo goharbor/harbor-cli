@@ -23,31 +23,21 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ListCommand lists all schedules
-func ListCommand() *cobra.Command {
-	var page int64 = 1
-	var pageSize int64 = 20
-
+// StatusCommand shows the global scheduler status
+func StatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "List schedules (supports --page and --page-size)",
-		Long:    "Display all job schedules with pagination support.",
-		Example: "harbor jobservice schedules list --page 1 --page-size 20",
+		Use:     "status",
+		Short:   "Show scheduler status",
+		Long:    "Display whether the global scheduler is paused or running.",
+		Example: "harbor jobservice schedules status",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if page < 1 {
-				return fmt.Errorf("page must be >= 1")
-			}
-			if pageSize < 1 || pageSize > 100 {
-				return fmt.Errorf("page-size must be between 1 and 100")
-			}
-
-			response, err := api.ListSchedules(page, pageSize)
+			response, err := api.GetSchedulePaused()
 			if err != nil {
-				return formatScheduleError("failed to retrieve schedules", err, "ActionList")
+				return formatScheduleError("failed to retrieve scheduler status", err, "authenticated")
 			}
 
-			if response == nil || response.Payload == nil || len(response.Payload) == 0 {
-				fmt.Println("No schedules found.")
+			if response == nil || response.Payload == nil {
+				fmt.Println("Unable to determine scheduler status.")
 				return nil
 			}
 
@@ -56,15 +46,10 @@ func ListCommand() *cobra.Command {
 				return utils.PrintFormat(response.Payload, formatFlag)
 			}
 
-			totalCount := response.XTotalCount
-			schedules.ListSchedules(response.Payload, page, pageSize, totalCount)
+			schedules.PrintScheduleStatus(response.Payload)
 			return nil
 		},
 	}
-
-	flags := cmd.Flags()
-	flags.Int64Var(&page, "page", 1, "Page number")
-	flags.Int64Var(&pageSize, "page-size", 20, "Number of items per page")
 
 	return cmd
 }
