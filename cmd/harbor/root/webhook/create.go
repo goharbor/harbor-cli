@@ -69,10 +69,12 @@ or leave them out and be guided through an interactive prompt to input each fiel
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
-				err = utils.ValidateURL(opts.EndpointURL)
+				formattedURL := utils.FormatUrl(opts.EndpointURL)
+				err = utils.ValidateURL(formattedURL)
 				if err != nil {
 					return err
 				}
+				opts.EndpointURL = formattedURL
 				err = api.CreateWebhook(&opts)
 			} else {
 				err = createWebhookView(createView)
