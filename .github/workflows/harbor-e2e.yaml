@@ -24,21 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HARBOR_HOSTNAME: ${{ inputs.harbor_hostname }}
-      HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
       TERM: xterm  # Avoid tput errors from install.sh color output
-    outputs:
-      harbor_url: ${{ steps.set-outputs.outputs.harbor_url }}
-      harbor_username: ${{ steps.set-outputs.outputs.harbor_username }}
-      harbor_password: ${{ steps.set-outputs.outputs.harbor_password }}
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             podman podman-docker podman-compose \
-            git tar gzip wget openssl curl golang-go
-          # Install yq for reliable YAML manipulation
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            git tar gzip wget openssl curl
+          # Install yq for reliable YAML manipulation (pinned version with checksum verification)
+          YQ_VERSION=v4.52.5
+          YQ_CHECKSUM=75d893a0d5940d1019cb7cdc60001d9e876623852c31cfc6267047bc31149fa9
+          sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_CHECKSUM}  /usr/local/bin/yq" | sha256sum -c -
           sudo chmod +x /usr/local/bin/yq
 
       - name: Configure hostname in /etc/hosts
@@ -70,6 +68,8 @@ jobs:
 
       - name: Prepare harbor config and TLS
         working-directory: /tmp/harbor-podman
+        env:
+          HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
         run: |
           # bash safety
           set -euo pipefail
@@ -140,6 +140,8 @@ jobs:
 
       - name: Set outputs
         id: set-outputs
+        env:
+          HARBOR_ADMIN_PASSWORD: ${{ secrets.harbor_admin_password }}
         run: |
           HOST="${HARBOR_HOSTNAME:-harbor.local}"
           ADMIN_PW="${HARBOR_ADMIN_PASSWORD:-}"
@@ -174,3 +176,10 @@ jobs:
         run: |
           echo "Running e2e tests against Harbor at ${HARBOR_URL}"
           go test -v ./test/e2e/... ./cmd/harbor/root/...
+
+      - name: Collect Harbor logs on failure
+        if: failure()
+        run: |
+          sudo podman ps -a
+          sudo podman logs harbor-core 2>&1 | tail -200
+          sudo podman logs harbor-jobservice 2>&1 | tail -100
