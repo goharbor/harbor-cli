@@ -15,8 +15,10 @@ package queues
 
 import (
 	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	queuesview "github.com/goharbor/harbor-cli/pkg/views/jobservice/queues"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,7 +34,7 @@ func ListCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.ListJobQueues()
 			if err != nil {
-				return fmt.Errorf("failed to retrieve job queues: %w", err)
+				return jobserviceutils.FormatScheduleError("failed to retrieve job queues", err, "read")
 			}
 
 			if response == nil || response.Payload == nil || len(response.Payload) == 0 {

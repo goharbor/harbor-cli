@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 )
 
 func shouldIncludeQueueForAction(action string, paused bool) bool {
@@ -44,7 +45,11 @@ func executeQueueAction(action string, jobTypes []string) error {
 		fmt.Printf("%s queue type '%s'...\n", actionLabel(action), jobType)
 		err := api.ActionJobQueue(strings.ToUpper(jobType), action)
 		if err != nil {
-			return fmt.Errorf("failed to %s queue '%s': %w", action, jobType, err)
+			return jobserviceutils.FormatScheduleError(
+				fmt.Sprintf("failed to %s queue '%s'", action, jobType),
+				err,
+				"update",
+			)
 		}
 		fmt.Printf("✓ Queue '%s' %sd successfully.\n", jobType, action)
 	}
@@ -93,7 +98,7 @@ func actionLabel(action string) string {
 func selectQueueTypes(action string) ([]string, error) {
 	response, err := api.ListJobQueues()
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve job queues: %w", err)
+		return nil, jobserviceutils.FormatScheduleError("failed to retrieve job queues", err, "read")
 	}
 
 	if response == nil || response.Payload == nil || len(response.Payload) == 0 {
