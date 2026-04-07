@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package schedules
+package jobservice
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
-func formatScheduleError(operation string, err error, requiredPermission string) error {
+func FormatScheduleError(operation string, err error, requiredPermission string) error {
 	errorCode := utils.ParseHarborErrorCode(err)
 
 	switch errorCode {

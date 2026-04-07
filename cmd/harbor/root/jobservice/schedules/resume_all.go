@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,7 @@ func ResumeAllCommand() *cobra.Command {
 			fmt.Println("Resuming all schedules...")
 			err := api.ActionJobQueue("SCHEDULER", "resume")
 			if err != nil {
-				return formatScheduleError("failed to resume all schedules", err, "ActionStop")
+				return jobserviceutils.FormatScheduleError("failed to resume all schedules", err, "ActionStop")
 			}
 			fmt.Println("✓ All schedules resumed successfully.")
 			return nil
