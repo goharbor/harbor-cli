@@ -305,7 +305,7 @@ func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, 
 			return "", fmt.Errorf("invalid --from-time: %w", err)
 		}
 
-		normalizedTo := to
+		var normalizedTo string
 		if to == "" {
 			normalizedTo = time.Now().Format("2006-01-02 15:04:05")
 		} else {
