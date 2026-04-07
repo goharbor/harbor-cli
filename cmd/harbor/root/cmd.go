@@ -71,6 +71,10 @@ harbor help
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
+			if logFormat != "json" && logFormat != "text" {
+				return fmt.Errorf("invalid log-format: %s, log-format can be one of: json|text", logFormat)
+			}
+
 			// Sets up logging
 			logger.Setup(verbose, logFormat)
 
