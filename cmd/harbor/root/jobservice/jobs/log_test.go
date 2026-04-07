@@ -14,7 +14,10 @@
 
 package jobs
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestJobsCommandIncludesLogSubcommand(t *testing.T) {
 	cmd := JobsCommand()
@@ -35,7 +38,7 @@ func TestJobsCommandIncludesLogSubcommand(t *testing.T) {
 func TestLogCommandRequiresJobID(t *testing.T) {
 	cmd := LogCommand()
 	cmd.SetArgs([]string{})
-	if err := cmd.Execute(); err == nil || err.Error() != "--job-id must be specified" {
+	if err := cmd.Execute(); err == nil || !strings.Contains(err.Error(), "required flag(s) \"job-id\" not set") {
 		t.Fatalf("expected job-id validation error, got %v", err)
 	}
 }

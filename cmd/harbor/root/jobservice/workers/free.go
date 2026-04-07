@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func FreeCommand() *cobra.Command {
 
 			err := api.StopRunningJob(jobID)
 			if err != nil {
-				return formatWorkerActionError("failed to free worker", err)
+				return jobserviceutils.FormatScheduleError("failed to free worker", err, "ActionStop")
 			}
 
 			fmt.Printf("Worker job %q stopped successfully.\n", jobID)
@@ -61,7 +61,7 @@ func FreeAllCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := api.StopRunningJob("all")
 			if err != nil {
-				return formatWorkerActionError("failed to free all workers", err)
+				return jobserviceutils.FormatScheduleError("failed to free all workers", err, "ActionStop")
 			}
 
 			fmt.Println("All busy workers were freed successfully.")
@@ -70,25 +70,4 @@ func FreeAllCommand() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func formatWorkerActionError(operation string, err error) error {
-	errorCode := utils.ParseHarborErrorCode(err)
-
-	switch errorCode {
-	case "401":
-		return fmt.Errorf("%s: authentication required. Please run 'harbor login' and try again", operation)
-	case "403":
-		return fmt.Errorf("%s: permission denied. This operation requires ActionStop on jobservice-monitor", operation)
-	case "404":
-		return fmt.Errorf("%s: job not found or already completed", operation)
-	case "500":
-		return fmt.Errorf("%s: Harbor internal error. Retry and check Harbor server logs", operation)
-	default:
-		msg := utils.ParseHarborErrorMsg(err)
-		if msg == "" {
-			msg = err.Error()
-		}
-		return fmt.Errorf("%s: %s", operation, msg)
-	}
 }

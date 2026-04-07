@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 )
 
 func TestListCommandAddsPaginationFlags(t *testing.T) {
@@ -63,8 +64,8 @@ func TestListWorkersPageWindow(t *testing.T) {
 }
 
 func TestFormatWorkerActionError(t *testing.T) {
-	got := formatWorkerActionError("failed to free worker", errors.New("[POST /jobservice/jobs][404] (status 404)"))
-	if got == nil || !strings.Contains(got.Error(), "job not found or already completed") {
+	got := jobserviceutils.FormatScheduleError("failed to free worker", errors.New("[POST /jobservice/jobs][404] (status 404)"), "ActionStop")
+	if got == nil || !strings.Contains(got.Error(), "resource not found or not accessible in current context") {
 		t.Fatalf("expected 404 mapping, got %v", got)
 	}
 }
