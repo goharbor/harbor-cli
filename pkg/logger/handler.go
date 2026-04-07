@@ -109,22 +109,28 @@ func (h *PrettyHandler) qualifiedKey(key string) string {
 }
 
 func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	clone := *h
-	clone.preAttrs = make([]slog.Attr, len(h.preAttrs)+len(attrs))
-	copy(clone.preAttrs, h.preAttrs)
-	copy(clone.preAttrs[len(h.preAttrs):], attrs)
-	return &clone
+	newPreAttrs := make([]slog.Attr, len(h.preAttrs)+len(attrs))
+	copy(newPreAttrs, h.preAttrs)
+	copy(newPreAttrs[len(h.preAttrs):], attrs)
+
+	return &PrettyHandler{
+		preAttrs: newPreAttrs,
+		groups:   h.groups,
+	}
 }
 
 func (h *PrettyHandler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return h
 	}
-	clone := *h
-	clone.groups = make([]string, len(h.groups)+1)
-	copy(clone.groups, h.groups)
-	clone.groups[len(h.groups)] = name
-	return &clone
+	newGroups := make([]string, len(h.groups)+1)
+	copy(newGroups, h.groups)
+	newGroups[len(h.groups)] = name
+
+	return &PrettyHandler{
+		preAttrs: h.preAttrs,
+		groups:   newGroups,
+	}
 }
 
 func formatLevel(level slog.Level) string {
