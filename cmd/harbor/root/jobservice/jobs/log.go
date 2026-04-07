@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	"github.com/spf13/cobra"
 )
 
@@ -51,7 +52,7 @@ func LogCommand() *cobra.Command {
 
 			log, err := api.GetJobLog(jobID)
 			if err != nil {
-				return fmt.Errorf("failed to retrieve job log: %w", err)
+				return jobserviceutils.FormatScheduleError("failed to retrieve job log", err, "authenticated")
 			}
 
 			if log == "" {
@@ -68,7 +69,9 @@ func LogCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVar(&jobID, "job-id", "", "Job ID to fetch log for (required)")
-	cmd.MarkFlagRequired("job-id")
+	if err := cmd.MarkFlagRequired("job-id"); err != nil {
+		panic(err)
+	}
 
 	return cmd
 }

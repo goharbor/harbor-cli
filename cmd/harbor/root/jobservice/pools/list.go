@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	poolviews "github.com/goharbor/harbor-cli/pkg/views/jobservice/pools"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,7 +53,7 @@ func ListCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetWorkerPools()
 			if err != nil {
-				return fmt.Errorf("failed to retrieve worker pools: %w", err)
+				return jobserviceutils.FormatScheduleError("failed to retrieve worker pools", err, "ActionList")
 			}
 
 			if response == nil || response.Payload == nil || len(response.Payload) == 0 {
