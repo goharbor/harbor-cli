@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	"github.com/goharbor/harbor-cli/pkg/views/jobservice/schedules"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,7 +34,7 @@ func StatusCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			response, err := api.GetSchedulePaused()
 			if err != nil {
-				return formatScheduleError("failed to retrieve scheduler status", err, "authenticated")
+				return jobserviceutils.FormatScheduleError("failed to retrieve scheduler status", err, "authenticated")
 			}
 
 			if response == nil || response.Payload == nil {

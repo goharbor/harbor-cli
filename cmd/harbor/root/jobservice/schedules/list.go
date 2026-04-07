@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 	"github.com/goharbor/harbor-cli/pkg/views/jobservice/schedules"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,7 +44,7 @@ func ListCommand() *cobra.Command {
 
 			response, err := api.ListSchedules(page, pageSize)
 			if err != nil {
-				return formatScheduleError("failed to retrieve schedules", err, "ActionList")
+				return jobserviceutils.FormatScheduleError("failed to retrieve schedules", err, "ActionList")
 			}
 
 			if response == nil || response.Payload == nil || len(response.Payload) == 0 {
