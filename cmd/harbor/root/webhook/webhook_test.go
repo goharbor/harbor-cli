@@ -61,3 +61,22 @@ func TestEditWebhookCmd_NormalizesEndpointURLBeforeValidation(t *testing.T) {
 	assert.NotContains(t, err.Error(), "invalid URL format")
 	assert.NotContains(t, err.Error(), "invalid host")
 }
+
+func TestEditWebhookCmd_InvalidEndpointURLReturnsValidationError(t *testing.T) {
+	cmd := EditWebhookCmd()
+
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{
+		"--project", "my-project",
+		"--webhook-id", "1",
+		"--notify-type", "http",
+		"--event-type", "PUSH_ARTIFACT",
+		"--endpoint-url", "http://",
+	})
+
+	err := cmd.Execute()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "URL must contain a valid host")
+}
