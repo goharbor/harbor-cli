@@ -91,7 +91,6 @@ or leave them out and use the interactive prompt to select and update a webhook.
 				}
 				opts.EndpointURL = formattedURL
 				err = api.UpdateWebhook(&opts)
-
 			} else {
 				err = editWebhookView(editView)
 			}
