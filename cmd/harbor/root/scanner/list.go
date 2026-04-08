@@ -44,7 +44,7 @@ func ListScannerCommand() *cobra.Command {
 						"skip_certVerify"},
 				)
 				if qErr != nil {
-					log.Errorf("error while building query parameter: %v", qErr)
+					return qErr
 				}
 
 				opts.Q = q

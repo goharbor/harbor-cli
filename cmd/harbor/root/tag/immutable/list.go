@@ -59,6 +59,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
 				)
 				if qErr != nil {
 					log.Errorf("error while building query parameter: %v", qErr)
+					return
 				}
 
 				opts.Q = q

@@ -114,7 +114,7 @@ Examples:
 					[]string{"id", "secret", "description", "name", "disable", "level", "duration", "editable"},
 				)
 				if qErr != nil {
-					log.Errorf("error while building query parameter: %v", qErr)
+					return qErr
 				}
 				if opts.Q != "" {
 					opts.Q += ","

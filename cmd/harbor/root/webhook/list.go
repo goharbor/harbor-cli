@@ -21,7 +21,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	webhookViews "github.com/goharbor/harbor-cli/pkg/views/webhook/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -61,7 +60,7 @@ Use the '--output-format' flag for raw JSON output.`,
 					[]string{"id", "project_id", "description", "name", "creator", "enabled"},
 				)
 				if qErr != nil {
-					log.Errorf("error while building query parameter: %v", qErr)
+					return qErr
 				}
 
 				opts.Q = q
