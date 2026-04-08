@@ -69,7 +69,7 @@ func ListCommand() *cobra.Command {
 
 			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 {
 				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"id", "policy_id", "trigger", "status", "status_text", "start_time", "end_time "},
+					[]string{"id", "policy_id", "trigger", "status", "status_text", "start_time", "end_time"},
 				)
 				if qErr != nil {
 					return qErr
