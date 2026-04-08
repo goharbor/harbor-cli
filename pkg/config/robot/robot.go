@@ -286,26 +286,18 @@ func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
 			projectName = opts.Permissions[0].Namespace
 		}
 
+		if containsWildcard([]string{opts.Permissions[0].Namespace}) {
+			return nil, fmt.Errorf("project robots cannot have wildcard namespace in permissions")
+		}
+
 		if projectName == "" {
 			return nil, fmt.Errorf("project name is required for project robots")
 		}
 
 		// Verify project exists
-		projectExists := false
-		projectsResp, err := api.ListAllProjects()
+		_, err := api.GetProject(projectName, false)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list projects: %v", err)
-		}
-
-		for _, proj := range projectsResp.Payload {
-			if proj.Name == projectName {
-				projectExists = true
-				break
-			}
-		}
-
-		if !projectExists {
-			return nil, fmt.Errorf("project '%s' does not exist in Harbor", projectName)
+			return nil, fmt.Errorf("failed to get project: %v, does it exist?", err)
 		}
 
 		// Set the project name consistently

@@ -196,6 +196,10 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
+	if host == "localhost" {
+		return nil
+	}
+
 	if !domainNameRegex.MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}

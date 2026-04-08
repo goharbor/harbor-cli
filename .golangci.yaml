@@ -8,6 +8,7 @@ linters:
     - misspell
     - nilnil
     - staticcheck
+    - unused
     - whitespace
   settings:
     goheader:
