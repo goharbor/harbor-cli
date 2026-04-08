@@ -16,12 +16,10 @@ package view
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
@@ -194,17 +192,11 @@ func displayDetailTable(artifact *models.Artifact) {
 	// Display the tables
 	fmt.Println("\nBASIC INFORMATION")
 	basicTable := tablelist.NewModel(detailsColumns, basicRows, len(basicRows))
-	if _, err := tea.NewProgram(basicTable).Run(); err != nil {
-		fmt.Println("Error displaying basic artifact details:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(basicTable))
 
 	fmt.Println("\nOTHER INFORMATION")
 	otherTable := tablelist.NewModel(detailsColumns, otherRows, len(otherRows))
-	if _, err := tea.NewProgram(otherTable).Run(); err != nil {
-		fmt.Println("Error displaying other artifact details:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(otherTable))
 }
 
 func addRow(rows *[]table.Row, key string, value string) {

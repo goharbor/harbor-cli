@@ -15,10 +15,8 @@ package health
 
 import (
 	"fmt"
-	"os"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/health"
 	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
@@ -41,10 +39,7 @@ func PrintHealthStatus(status *health.GetHealthOK) {
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(m))
 }
 
 func styleStatus(status string) string {

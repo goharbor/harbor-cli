@@ -28,18 +28,18 @@ func DisplayScannerMetadata(md *models.ScannerAdapterMetadata) {
 	propTable := buildPropertyTable(md)
 
 	fmt.Println("[Scanner Info]")
-	fmt.Println(infoTable.View())
+	fmt.Print(tablelist.Render(infoTable))
 
 	fmt.Println("[Capabilities]")
 	for _, capTable := range capabilityTables {
-		fmt.Println(capTable.View())
+		fmt.Print(tablelist.Render(capTable))
 	}
 
 	fmt.Println("[Properties]")
-	fmt.Println(propTable.View())
+	fmt.Print(tablelist.Render(propTable))
 }
 
-func buildInfoTable(md *models.ScannerAdapterMetadata) tablelist.Model {
+func buildInfoTable(md *models.ScannerAdapterMetadata) table.Model {
 	cols := []table.Column{
 		{Title: "Key", Width: tablelist.WidthL},
 		{Title: "Value", Width: tablelist.WidthXL},
@@ -52,8 +52,8 @@ func buildInfoTable(md *models.ScannerAdapterMetadata) tablelist.Model {
 	return tablelist.NewModel(cols, rows, len(rows))
 }
 
-func buildCapabilityTables(md *models.ScannerAdapterMetadata) []tablelist.Model {
-	var tables []tablelist.Model
+func buildCapabilityTables(md *models.ScannerAdapterMetadata) []table.Model {
+	var tables []table.Model
 
 	for i, cap := range md.Capabilities {
 		cols := []table.Column{
@@ -79,7 +79,7 @@ func buildCapabilityTables(md *models.ScannerAdapterMetadata) []tablelist.Model 
 	return tables
 }
 
-func buildPropertyTable(md *models.ScannerAdapterMetadata) tablelist.Model {
+func buildPropertyTable(md *models.ScannerAdapterMetadata) table.Model {
 	cols := []table.Column{
 		{Title: "Property", Width: tablelist.WidthXXL * 2},
 		{Title: "Value", Width: tablelist.WidthXXL * 2},

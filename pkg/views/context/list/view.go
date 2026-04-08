@@ -16,12 +16,9 @@ package list
 
 import (
 	"fmt"
-	"os"
 
-	"golang.org/x/term"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
@@ -35,17 +32,9 @@ var columns = []table.Column{
 func ListContexts(contexts []api.ContextListView, currentCredential string) {
 	rows := selectActiveContext(contexts, currentCredential)
 
-	var opts []tea.ProgramOption
-	if !term.IsTerminal(int(os.Stdout.Fd())) { // #nosec G115 - fd fits in int on all supported platforms
-		opts = append(opts, tea.WithoutRenderer(), tea.WithInput(nil))
-	}
-
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m, opts...).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(m))
 }
 
 func selectActiveContext(contexts []api.ContextListView, currentCredential string) []table.Row {

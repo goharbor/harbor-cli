@@ -15,7 +15,6 @@ package tablelist
 
 import (
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
@@ -30,11 +29,7 @@ const (
 	Width3XL = 30
 )
 
-type Model struct {
-	Table table.Model
-}
-
-func NewModel(columns []table.Column, rows []table.Row, height int) Model {
+func NewModel(columns []table.Column, rows []table.Row, height int) table.Model {
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
@@ -42,7 +37,6 @@ func NewModel(columns []table.Column, rows []table.Row, height int) Model {
 		table.WithHeight(height+1),
 	)
 
-	// Set the styles for the table
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
@@ -55,21 +49,10 @@ func NewModel(columns []table.Column, rows []table.Row, height int) Model {
 		Bold(false)
 	t.SetStyles(s)
 
-	return Model{Table: t}
+	return t
 }
 
-func (m Model) Init() tea.Cmd {
-	return tea.Quit
-}
-
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	m.Table, cmd = m.Table.Update(msg)
-	return m, cmd
-}
-
-func (m Model) View() tea.View {
-	v := tea.NewView(views.BaseStyle.Render(m.Table.View()) + "\n")
-	v.AltScreen = true
-	return v
+// Render returns the table rendered as a string with the base style applied.
+func Render(t table.Model) string {
+	return views.BaseStyle.Render(t.View()) + "\n"
 }

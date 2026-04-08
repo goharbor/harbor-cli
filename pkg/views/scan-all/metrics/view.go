@@ -15,11 +15,9 @@ package view
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
@@ -49,8 +47,5 @@ func ViewScanMetrics(metrics *models.Stats) {
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(m))
 }

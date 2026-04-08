@@ -16,11 +16,9 @@ package list
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -170,8 +168,5 @@ func createRows(data interface{}, rows *[]table.Row) {
 
 func runTable(columns []table.Column, rows []table.Row) {
 	model := tablelist.NewModel(columns, rows, len(rows))
-	if _, err := tea.NewProgram(model).Run(); err != nil {
-		fmt.Println("Error running table:", err)
-		os.Exit(1)
-	}
+	fmt.Print(tablelist.Render(model))
 }
