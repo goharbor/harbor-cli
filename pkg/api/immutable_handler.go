@@ -14,6 +14,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/immutable"
@@ -76,5 +77,27 @@ func DeleteImmutable(projectName string, ImmutableID int64) error {
 
 	fmt.Println("Immutable rule deleted successfully")
 
+	return nil
+}
+
+func UpdateImmutable(rule *models.ImmutableRule, projectName string, immutableID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+	if rule == nil {
+		return errors.New("immutable rule payload cannot be nil")
+	}
+
+	_, err = client.Immutable.UpdateImmuRule(ctx, &immutable.UpdateImmuRuleParams{
+		ProjectNameOrID: projectName,
+		ImmutableRuleID: immutableID,
+		ImmutableRule:   rule,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Immutable rule updated successfully")
 	return nil
 }
