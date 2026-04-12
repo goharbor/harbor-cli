@@ -27,7 +27,7 @@ import (
 
 func UpdateImmutableCommand() *cobra.Command {
 	var opts create.CreateView
-	var immutableID int64
+	var tagName string
 
 	cmd := &cobra.Command{
 		Use:   "update [PROJECT_NAME]",
@@ -47,11 +47,7 @@ func UpdateImmutableCommand() *cobra.Command {
 				}
 			}
 
-			if immutableID == 0 {
-				immutableID = prompt.GetImmutableTagRule(projectName)
-			}
-
-			existingRule, err := getImmutableRuleByID(projectName, immutableID)
+			existingRule, err := getImmutableRuleForUpdate(projectName, tagName)
 			if err != nil {
 				return fmt.Errorf("failed to load existing immutable tag rule: %v", err)
 			}
@@ -66,10 +62,10 @@ func UpdateImmutableCommand() *cobra.Command {
 			applyViewToRule(existingRule, updateView)
 
 			if existingRule.ID == 0 {
-				existingRule.ID = immutableID
+				return errors.New("immutable rule ID is missing")
 			}
 
-			err = api.UpdateImmutable(existingRule, projectName, immutableID)
+			err = api.UpdateImmutable(existingRule, projectName, existingRule.ID)
 			if err != nil {
 				return fmt.Errorf("failed to update immutable tag rule: %v", err)
 			}
@@ -79,13 +75,22 @@ func UpdateImmutableCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Int64VarP(&immutableID, "immutable-id", "", 0, "immutable rule ID to update")
+	flags.StringVarP(&tagName, "tag_name", "", "", "tag pattern of the immutable rule to update")
 	flags.StringVarP(&opts.ScopeSelectors.Decoration, "repo-decoration", "", "", "repository which either apply or exclude from the rule")
 	flags.StringVarP(&opts.ScopeSelectors.Pattern, "repo-list", "", "", "list of repository to which to either apply or exclude from the rule")
 	flags.StringVarP(&opts.TagSelectors.Decoration, "tag-decoration", "", "", "tags which either apply or exclude from the rule")
 	flags.StringVarP(&opts.TagSelectors.Pattern, "tag-list", "", "", "list of tags to which to either apply or exclude from the rule")
 
 	return cmd
+}
+
+func getImmutableRuleForUpdate(projectName, tagName string) (*models.ImmutableRule, error) {
+	if tagName == "" {
+		immutableID := prompt.GetImmutableTagRule(projectName)
+		return getImmutableRuleByID(projectName, immutableID)
+	}
+
+	return getImmutableRuleByTagName(projectName, tagName)
 }
 
 func getImmutableRuleByID(projectName string, immutableID int64) (*models.ImmutableRule, error) {
@@ -101,6 +106,27 @@ func getImmutableRuleByID(projectName string, immutableID int64) (*models.Immuta
 	}
 
 	return nil, errors.New("immutable rule not found")
+}
+
+func getImmutableRuleByTagName(projectName, tagName string) (*models.ImmutableRule, error) {
+	resp, err := api.ListImmutable(projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, rule := range resp.Payload {
+		if rule == nil {
+			continue
+		}
+
+		for _, tagSelector := range rule.TagSelectors {
+			if tagSelector != nil && tagSelector.Pattern == tagName {
+				return rule, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("immutable rule with tag pattern %q not found", tagName)
 }
 
 func buildUpdateViewFromRule(rule *models.ImmutableRule) *create.CreateView {

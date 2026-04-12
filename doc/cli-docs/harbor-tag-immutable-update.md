@@ -20,11 +20,11 @@ harbor tag immutable update [PROJECT_NAME] [flags]
 
 ```sh
   -h, --help                     help for update
-      --immutable-id int         immutable rule ID to update
       --repo-decoration string   repository which either apply or exclude from the rule
       --repo-list string         list of repository to which to either apply or exclude from the rule
       --tag-decoration string    tags which either apply or exclude from the rule
       --tag-list string          list of tags to which to either apply or exclude from the rule
+      --tag_name string          tag pattern of the immutable rule to update
 ```
 
 ### Options inherited from parent commands
