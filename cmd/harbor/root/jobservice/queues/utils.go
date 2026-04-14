@@ -21,14 +21,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
-=======
->>>>>>> 803208e (moved: subcommand to seperate files)
-=======
-	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
->>>>>>> 80eb00c (fix: lints error and improve error messages)
 )
 
 func shouldIncludeQueueForAction(action string, paused bool) bool {
