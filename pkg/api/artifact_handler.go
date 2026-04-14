@@ -17,6 +17,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -84,7 +85,7 @@ func ListArtifact(projectName, repoName string, opts ...ListFlags) (artifact.Lis
 		Sort:           &listFlags.Sort,
 	})
 	if err != nil {
-		return artifact.ListArtifactsOK{}, err
+		return artifact.ListArtifactsOK{}, errors.NewWithCause(err, "Failed to list artifacts")
 	}
 
 	return *response, nil
