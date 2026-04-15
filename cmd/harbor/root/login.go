@@ -136,9 +136,17 @@ func RunLogin(opts login.LoginView) error {
 	ctx := context.Background()
 	_, err = client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
-		if !strings.Contains(err.Error(), "status 412") {
-			return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
-		}
+    errMsg := err.Error()
+
+    if strings.Contains(errMsg, "502") {
+        return fmt.Errorf("server error (502): Harbor API is unavailable, please try again later")
+    }
+    if strings.Contains(errMsg, "401") || strings.Contains(errMsg, "403") {
+        return fmt.Errorf("authentication failed: invalid username or password")
+    }
+    if !strings.Contains(errMsg, "status 412") {
+        return fmt.Errorf("login failed: %v", utils.ParseHarborErrorMsg(err))
+    }
 	}
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
