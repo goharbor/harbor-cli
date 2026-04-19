@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 var (
@@ -35,16 +36,22 @@ func ElevateUser(args []string) error {
 	var err error
 	var userId int64
 	if len(args) > 0 {
-		userId, err = getUsersIDByName(args[0])
-		if err != nil {
-			err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-			log.Error(err.Error())
-			return err
-		}
-		if userId == 0 {
-			err = fmt.Errorf("User with name '%s' not found", args[0])
-			log.Error(err.Error())
-			return err
+
+		if parsedID, parseErr := strconv.ParseInt(args[0], 10, 64); parseErr == nil {
+			userId = parsedID
+		} else {
+
+			userId, err = getUsersIDByName(args[0])
+			if err != nil {
+				err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
+				log.Error(err.Error())
+				return err
+			}
+			if userId == 0 {
+				err = fmt.Errorf("user '%s' not found", args[0])
+				log.Error(err.Error())
+				return err
+			}
 		}
 	} else {
 		userId, err = getUserIDFromUser()

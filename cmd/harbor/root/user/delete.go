@@ -15,6 +15,7 @@ package user
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -35,12 +36,21 @@ func UserDeleteCmd() *cobra.Command {
 				errChan := make(chan error, len(args)) // Channel to collect errors
 
 				for _, arg := range args {
-					// Retrieve user ID by name.
-					userID, err := api.GetUsersIdByName(arg)
-					if err != nil {
-						log.Errorf("failed to get user id for '%s': %v", arg, err)
-						continue
+					var userID int64
+					var err error
+
+					// Try parsing the arg as an Integer ID first
+					if parsedID, parseErr := strconv.ParseInt(arg, 10, 64); parseErr == nil {
+						userID = parsedID
+					} else {
+						// Fallback to name search
+						userID, err = api.GetUsersIdByName(arg)
+						if err != nil {
+							log.Errorf("failed to get user id for '%s': %v", arg, err)
+							continue
+						}
 					}
+
 					wg.Add(1)
 					go func(userID int64) {
 						defer wg.Done()

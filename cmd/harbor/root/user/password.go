@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 func UserPasswordChangeCmd() *cobra.Command {
@@ -42,12 +43,16 @@ func UserPasswordChangeCmd() *cobra.Command {
 			}
 
 			if len(args) > 0 {
-				userId, err = api.GetUsersIdByName(args[0])
-				if err != nil {
-					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-				}
-				if userId == 0 {
-					return fmt.Errorf("User with name '%s' not found", args[0])
+				// Try parsing ID first
+				if parsedID, parseErr := strconv.ParseInt(args[0], 10, 64); parseErr == nil {
+					userId = parsedID
+				} else {
+					userId, err = api.GetUsersIdByName(args[0])
+					if err != nil {
+						err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
+						log.Error(err.Error())
+						return err
+					}
 				}
 			} else {
 				userId, err = prompt.GetUserIdFromUser()

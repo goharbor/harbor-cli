@@ -14,6 +14,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -106,18 +107,30 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 func GetUsersIdByName(userName string) (int64, error) {
 	var opts ListFlags
 
-	u, err := ListUsers(opts)
-	if err != nil {
-		return 0, err
-	}
-
-	for _, user := range u.Payload {
-		if user.Username == userName {
-			return user.UserID, nil
+	page := int64(1)
+	pageSize := int64(100)
+	for {
+		opts.Page = page
+		opts.PageSize = pageSize
+		u, err := ListUsers(opts)
+		if err != nil {
+			return 0, err
 		}
+		if len(u.Payload) == 0 {
+			break
+		}
+		for _, user := range u.Payload {
+			if user.Username == userName {
+				return user.UserID, nil
+			}
+		}
+		// Stop requesting if we received less items than we asked for
+		if int64(len(u.Payload)) < pageSize {
+			break
+		}
+		page++
 	}
-
-	return 0, err
+	return 0, fmt.Errorf("user '%s' not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
