@@ -16,13 +16,13 @@ package user
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 func UserPasswordChangeCmd() *cobra.Command {

@@ -16,13 +16,13 @@ package user
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 var (
@@ -36,11 +36,9 @@ func ElevateUser(args []string) error {
 	var err error
 	var userId int64
 	if len(args) > 0 {
-
 		if parsedID, parseErr := strconv.ParseInt(args[0], 10, 64); parseErr == nil {
 			userId = parsedID
 		} else {
-
 			userId, err = getUsersIDByName(args[0])
 			if err != nil {
 				err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
