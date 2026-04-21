@@ -14,7 +14,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -23,6 +22,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/goharbor/harbor-cli/pkg/errors"
 )
 
 func pluralise(value int, unit string) string {
@@ -216,7 +217,7 @@ func PrintFormat[T any](resp T, format string) error {
 		PrintPayloadInYAMLFormat(resp)
 		return nil
 	}
-	return fmt.Errorf("unable to output in the specified '%s' format", format)
+	return errors.Newf("unable to output in the specified '%s' format", format)
 }
 
 func EmptyStringValidator(variable string) func(string) error {

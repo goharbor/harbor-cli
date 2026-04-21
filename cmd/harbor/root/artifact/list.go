@@ -14,10 +14,9 @@
 package artifact
 
 import (
-	"fmt"
-
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
@@ -47,11 +46,11 @@ Supports pagination, search queries, and sorting using flags.`,
 				return fmt.Errorf("page number must be greater than or equal to 1")
 			}
 			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
+				return errors.New("Invalid page size", "page size must be greater than or equal to 0")
 			}
 
 			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+				return errors.New("Invalid page size", "page size must be less than or equal to 100")
 			}
 			var err error
 			var artifacts artifact.ListArtifactsOK
@@ -60,12 +59,12 @@ Supports pagination, search queries, and sorting using flags.`,
 			if len(args) > 0 {
 				projectName, repoName, err = utils.ParseProjectRepo(args[0])
 				if err != nil {
-					return fmt.Errorf("failed to parse project/repo: %v", err)
+					return err
 				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+					return err
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
@@ -73,13 +72,12 @@ Supports pagination, search queries, and sorting using flags.`,
 			artifacts, err = api.ListArtifact(projectName, repoName, opts)
 
 			if err != nil {
-				return fmt.Errorf("failed to list artifacts: %v", err)
+				return err
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				err = utils.PrintFormat(artifacts, FormatFlag)
-				if err != nil {
+				if err = utils.PrintFormat(artifacts, FormatFlag); err != nil {
 					return err
 				}
 			} else {

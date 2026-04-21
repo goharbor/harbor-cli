@@ -16,7 +16,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -26,6 +25,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -66,7 +66,7 @@ func PrintPayloadInYAMLFormat(payload any) {
 func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 	split := strings.SplitN(projectRepo, "/", 2) // splits only at first slash
 	if len(split) != 2 {
-		return "", "", fmt.Errorf("invalid project/repository format: %s", projectRepo)
+		return "", "", errors.New(fmt.Sprintf("Invalid project/repository format: %s", projectRepo), "expected format: <project>/<repository>")
 	}
 	return split[0], split[1], nil
 }

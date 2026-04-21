@@ -14,13 +14,13 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
@@ -75,7 +75,7 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 
 		// Ensure data directory exists
 		if err := os.MkdirAll(harborDataDir, os.ModePerm); err != nil {
-			configInitError = fmt.Errorf("failed to create data directory: %w", err)
+			configInitError = errors.NewWithCause(err, "failed to create data directory")
 			log.Fatalf("%v", configInitError)
 		}
 
@@ -100,7 +100,7 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 
 		var harborConfig HarborConfig
 		if err := viper.Unmarshal(&harborConfig); err != nil {
-			configInitError = fmt.Errorf("failed to unmarshal config file: %w", err)
+			configInitError = errors.NewWithCause(err, "failed to unmarshal config file")
 			log.Fatalf("%v", configInitError)
 		}
 
@@ -135,7 +135,7 @@ func DetermineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, erro
 	if userSpecifiedConfig && cfgFile != "" {
 		harborConfigPath, err = filepath.Abs(cfgFile)
 		if err != nil {
-			return "", fmt.Errorf("failed to resolve absolute path for config file: %w", err)
+			return "", errors.NewWithCause(err, "failed to resolve absolute path for config file")
 		}
 		return harborConfigPath, nil
 	}
@@ -144,7 +144,7 @@ func DetermineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, erro
 	if harborEnvVar != "" {
 		harborConfigPath, err = filepath.Abs(harborEnvVar)
 		if err != nil {
-			return "", fmt.Errorf("failed to resolve absolute path for config file from HARBOR_CLI_CONFIG: %w", err)
+			return "", errors.NewWithCause(err, "failed to resolve absolute path for config file from HARBOR_CLI_CONFIG")
 		}
 		return harborConfigPath, nil
 	}
@@ -154,13 +154,13 @@ func DetermineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, erro
 	if xdgConfigHome == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return "", fmt.Errorf("unable to determine user home directory: %w", err)
+			return "", errors.NewWithCause(err, "unable to determine user home directory")
 		}
 		xdgConfigHome = filepath.Join(home, ".config")
 	}
 	harborConfigPath, err = filepath.Abs(filepath.Join(xdgConfigHome, "harbor-cli", "config.yaml"))
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve absolute path for default config file: %w", err)
+		return "", errors.NewWithCause(err, "failed to resolve absolute path for default config file")
 	}
 	return harborConfigPath, nil
 }
@@ -170,22 +170,22 @@ func EnsureConfigFileExists(harborConfigPath string) error {
 	// Ensure parent directory exists
 	configDir := filepath.Dir(harborConfigPath)
 	if err := os.MkdirAll(configDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create config directory: %w", err)
+		return errors.NewWithCause(err, "failed to create config directory")
 	}
 
 	if fileInfo, err := os.Stat(harborConfigPath); err != nil {
 		// No need to throw error if config file does not exist
 		if !os.IsNotExist(err) {
-			return fmt.Errorf("error while checking config file: %w", err)
+			return errors.NewWithCause(err, "error while checking config file")
 		}
 	} else if fileInfo.IsDir() {
-		return fmt.Errorf("expected a file but found a directory at path: %s", harborConfigPath)
+		return errors.Newf("expected a file but found a directory at path: %s", harborConfigPath)
 	}
 
 	// Create config file if it doesn't exist
 	if _, err := os.Stat(harborConfigPath); os.IsNotExist(err) {
 		if err := CreateConfigFile(harborConfigPath); err != nil {
-			return fmt.Errorf("failed to create config file: %w", err)
+			return errors.NewWithCause(err, "failed to create config file")
 		}
 	}
 	return nil
@@ -196,7 +196,7 @@ func ReadConfig(harborConfigPath string) error {
 	viper.SetConfigFile(harborConfigPath)
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("error reading config file: %w. Please ensure the config file exists", err)
+		return errors.NewWithCause(err, "error reading config file", "Please ensure the config file exists")
 	}
 	return nil
 }
@@ -207,7 +207,7 @@ func GetCurrentHarborConfig() (*HarborConfig, error) {
 	})
 
 	if configInitError != nil {
-		return nil, fmt.Errorf("initialization error: %w", configInitError)
+		return nil, errors.NewWithCause(configInitError, "initialization error")
 	}
 
 	configMutex.RLock()
@@ -267,7 +267,7 @@ func GetCurrentHarborData() (*HarborData, error) {
 	})
 
 	if configInitError != nil {
-		return nil, fmt.Errorf("initialization error: %w", configInitError)
+		return nil, errors.NewWithCause(configInitError, "initialization error")
 	}
 
 	configMutex.RLock()
@@ -320,7 +320,7 @@ func ReadDataFile(dataFilePath string) (HarborData, error) {
 	v.SetConfigFile(dataFilePath)
 
 	if err := v.ReadInConfig(); err != nil {
-		return dataFile, fmt.Errorf("failed to read data file: %v", err)
+		return dataFile, errors.NewWithCause(err, "failed to read data file")
 	}
 
 	dataFile.ConfigPath = v.GetString("configPath")
@@ -334,11 +334,11 @@ func ApplyDataFile(harborDataPath, harborConfigPath string) error {
 	if err == nil {
 		if dataFileContent.ConfigPath != harborConfigPath {
 			if err := UpdateDataFile(harborDataPath, harborConfigPath); err != nil {
-				return fmt.Errorf("failed to update data file: %w", err)
+				return errors.NewWithCause(err, "failed to update data file")
 			}
 		} else if dataFileContent.ConfigPath == "" {
 			if err := CreateDataFile(harborDataPath, harborConfigPath); err != nil {
-				return fmt.Errorf("failed to create data file: %w", err)
+				return errors.NewWithCause(err, "failed to create data file")
 			}
 		} else {
 			log.Debugf("Data file already exists with the same config path: %s", harborConfigPath)
@@ -346,7 +346,7 @@ func ApplyDataFile(harborDataPath, harborConfigPath string) error {
 	} else {
 		// Data file does not exist, create it
 		if err := CreateDataFile(harborDataPath, harborConfigPath); err != nil {
-			return fmt.Errorf("failed to create data file: %w", err)
+			return errors.NewWithCause(err, "failed to create data file")
 		}
 	}
 	return nil
@@ -459,7 +459,7 @@ func UpdateConfigFile(config *HarborConfig) error {
 func GetCredentials(credentialName string) (Credential, error) {
 	currentConfig, err := GetCurrentHarborConfig()
 	if err != nil {
-		return Credential{}, fmt.Errorf("failed to get current Harbor configuration: %w", err)
+		return Credential{}, errors.AsError(err).WithMessage("failed to get current Harbor configuration")
 	}
 
 	if currentConfig == nil || currentConfig.Credentials == nil {
@@ -472,7 +472,7 @@ func GetCredentials(credentialName string) (Credential, error) {
 		}
 	}
 
-	return Credential{}, fmt.Errorf("credential with name '%s' not found", credentialName)
+	return Credential{}, errors.Newf("credential with name '%s' not found", credentialName)
 }
 
 func AddCredentialsToConfigFile(credential Credential, configPath string) error {

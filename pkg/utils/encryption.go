@@ -18,13 +18,13 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zalando/go-keyring"
 )
@@ -65,7 +65,7 @@ type FileKeyring struct {
 
 func (f *FileKeyring) Set(service, user, password string) error {
 	if err := os.MkdirAll(f.BaseDir, 0700); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
+		return errors.NewWithCause(err, "failed to create directory")
 	}
 
 	filename := filepath.Join(f.BaseDir, sanitizeFilename(service+"_"+user))
@@ -104,7 +104,7 @@ type EnvironmentKeyring struct {
 func (e *EnvironmentKeyring) Set(service, user, password string) error {
 	// Set environment variable for the current process
 	if err := os.Setenv(e.EnvVarName, password); err != nil {
-		return fmt.Errorf("failed to set environment variable: %w", err)
+		return errors.NewWithCause(err, "failed to set environment variable")
 	}
 	return nil
 }
@@ -112,14 +112,14 @@ func (e *EnvironmentKeyring) Set(service, user, password string) error {
 func (e *EnvironmentKeyring) Get(service, user string) (string, error) {
 	value := os.Getenv(e.EnvVarName)
 	if value == "" {
-		return "", fmt.Errorf("environment variable %s not found or empty", e.EnvVarName)
+		return "", errors.Newf("environment variable %s not found or empty", e.EnvVarName)
 	}
 	return value, nil
 }
 
 func (e *EnvironmentKeyring) Delete(service, user string) error {
 	// Can't delete environment variables at runtime
-	return fmt.Errorf("deleting environment variables at runtime is not supported")
+	return errors.New("deleting environment variables at runtime is not supported")
 }
 
 // GetKeyringProvider selects the appropriate keyring provider
@@ -173,7 +173,7 @@ func GenerateEncryptionKey() error {
 
 	key := make([]byte, 32) // AES-256 key
 	if _, err := rand.Read(key); err != nil {
-		return fmt.Errorf("failed to generate encryption key: %w", err)
+		return errors.NewWithCause(err, "failed to generate encryption key")
 	}
 	return keyringProvider.Set(KeyringService, KeyringUser, base64.StdEncoding.EncodeToString(key))
 }
@@ -184,23 +184,23 @@ func GetEncryptionKey() ([]byte, error) {
 	if err != nil || keyBase64 == "" {
 		// Attempt to generate a new key if not found
 		if genErr := GenerateEncryptionKey(); genErr != nil {
-			return nil, fmt.Errorf("failed to retrieve or generate encryption key: %w", err)
+			return nil, errors.NewWithCause(genErr, "failed to retrieve or generate encryption key")
 		}
 		keyBase64, err = keyringProvider.Get(KeyringService, KeyringUser)
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve encryption key after generation: %w", err)
+			return nil, errors.NewWithCause(err, "failed to retrieve encryption key after generation")
 		}
 	}
 
 	key, err := base64.StdEncoding.DecodeString(keyBase64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode encryption key: %w", err)
+		return nil, errors.NewWithCause(err, "failed to decode encryption key")
 	}
 
 	// Validate the key size for AES
 	keySize := len(key)
 	if keySize != 16 && keySize != 24 && keySize != 32 {
-		return nil, fmt.Errorf("invalid encryption key size: %d bytes. Must be 16, 24, or 32 bytes (after base64 decoding)", keySize)
+		return nil, errors.Newf("invalid encryption key size: %d bytes. Must be 16, 24, or 32 bytes (after base64 decoding)", keySize)
 	}
 
 	return key, nil
@@ -209,17 +209,17 @@ func GetEncryptionKey() ([]byte, error) {
 func Encrypt(key, plaintext []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", fmt.Errorf("failed to create cipher: %w", err)
+		return "", errors.NewWithCause(err, "failed to create cipher")
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", fmt.Errorf("failed to create GCM: %w", err)
+		return "", errors.NewWithCause(err, "failed to create GCM")
 	}
 
 	nonce := make([]byte, aesGCM.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", fmt.Errorf("failed to generate nonce: %w", err)
+		return "", errors.NewWithCause(err, "failed to generate nonce")
 	}
 
 	ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
@@ -229,29 +229,29 @@ func Encrypt(key, plaintext []byte) (string, error) {
 func Decrypt(key []byte, ciphertext string) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", fmt.Errorf("failed to create cipher: %w", err)
+		return "", errors.NewWithCause(err, "failed to create cipher")
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", fmt.Errorf("failed to create GCM: %w", err)
+		return "", errors.NewWithCause(err, "failed to create GCM")
 	}
 
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
-		return "", fmt.Errorf("failed to decode ciphertext: %w", err)
+		return "", errors.NewWithCause(err, "failed to decode ciphertext")
 	}
 
 	nonceSize := aesGCM.NonceSize()
 	if len(data) < nonceSize {
-		return "", fmt.Errorf("ciphertext too short")
+		return "", errors.New("ciphertext too short")
 	}
 
 	nonce := data[:nonceSize]
 	ciphertextBytes := data[nonceSize:]
 	plaintext, err := aesGCM.Open(nil, nonce, ciphertextBytes, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to decrypt ciphertext: %w", err)
+		return "", errors.NewWithCause(err, "failed to decrypt ciphertext")
 	}
 
 	return string(plaintext), nil

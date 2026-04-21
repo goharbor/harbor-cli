@@ -14,7 +14,6 @@
 package prompt
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -102,7 +102,7 @@ func GetProjectNameFromUser() (string, error) {
 	go func() {
 		response, err := api.ListAllProjects()
 		if err != nil {
-			resultChan <- result{"", err}
+			resultChan <- result{"", errors.NewWithCause(err, "failed to list projects")}
 			return
 		}
 
@@ -116,7 +116,7 @@ func GetProjectNameFromUser() (string, error) {
 			if err == pview.ErrUserAborted {
 				resultChan <- result{"", errors.New("user aborted project selection")}
 			} else {
-				resultChan <- result{"", fmt.Errorf("error during project selection: %w", err)}
+				resultChan <- result{"", errors.NewWithCause(err, "error during project selection")}
 			}
 			return
 		}

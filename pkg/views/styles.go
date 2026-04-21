@@ -14,8 +14,6 @@
 package views
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -37,10 +35,24 @@ var (
 var BaseStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).Padding(0, 1)
 
-func RedText(strs ...string) string {
-	var msg strings.Builder
-	for _, str := range strs {
-		msg.WriteString(str)
-	}
-	return RedStyle.Render(msg.String())
-}
+var (
+	ErrCauseStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("203")).
+			Bold(true)
+
+	ErrTitleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("214"))
+
+	ErrHintStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("44"))
+
+	ErrEnumeratorStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("242")).MarginRight(1)
+)
+
+const (
+	GreenANSI = "\033[32m"
+	RedANSI   = "\033[31m"
+	BoldANSI  = "\033[1m"
+	ResetANSI = "\033[0m"
+)

@@ -15,11 +15,11 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	"github.com/goharbor/harbor-cli/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,12 +33,12 @@ func GetClient() (*v2client.HarborAPI, error) {
 	ClientOnce.Do(func() {
 		config, err := GetCurrentHarborConfig()
 		if err != nil {
-			ClientErr = fmt.Errorf("failed to get current credential name: %v", err)
+			ClientErr = errors.AsError(err).WithMessage("failed to get current credential name")
 			return
 		}
 		credentialName := config.CurrentCredentialName
 		if credentialName == "" {
-			ClientErr = fmt.Errorf("no Harbor credentials found. Please run `harbor login` to configure access")
+			ClientErr = errors.New("no Harbor credentials found.", "Please run `harbor login` to configure access")
 			return
 		}
 
@@ -73,19 +73,19 @@ func GetClientByConfig(clientConfig *harbor.ClientSetConfig) *v2client.HarborAPI
 func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, error) {
 	credential, err := GetCredentials(credentialName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get credential %s: %w", credentialName, err)
+		return nil, errors.AsError(err).WithMessage("failed to get credential", "credential: "+credentialName)
 	}
 
 	// Get encryption key
 	key, err := GetEncryptionKey()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get encryption key: %w", err)
+		return nil, errors.NewWithCause(err, "failed to get encryption key")
 	}
 
 	// Decrypt password
 	decryptedPassword, err := Decrypt(key, string(credential.Password))
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt password: %w", err)
+		return nil, errors.NewWithCause(err, "failed to decrypt password")
 	}
 
 	clientConfig := &harbor.ClientSetConfig{
