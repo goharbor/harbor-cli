@@ -26,19 +26,19 @@ runs:
   using: "composite"
   steps:
     - name: Dagger Version
-      uses: sagikazarmark/dagger-version-action@v0.0.1
+      uses: sagikazarmark/dagger-version-action@b45495ba1f5621efbbf899a218c8b5eec69901d2 # v0.0.1
 
     - name: Install Cosign
-      uses: sigstore/cosign-installer@v3.7.0
+      uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
 
     - name: Install Syft
-      uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 #v0.24.0
+      uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
       with:
         syft-version: v1.32.0
 
     - name: Get Build Artifact
       if: ${{ inputs.BUILD_DIR != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: build-dir
         path: ${{ inputs.BUILD_DIR }}
@@ -50,7 +50,7 @@ runs:
       run: cosign env
  
     - name: Publish and Sign Snapshot Image (Build Dir not present)
-      uses: dagger/dagger-for-github@v7
+      uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7.0.6
       if: ${{ inputs.BUILD_DIR == '' }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
@@ -73,7 +73,7 @@ runs:
           --actions-id-token-request-token=env://ACTIONS_ID_TOKEN_REQUEST_TOKEN \
 
     - name: Publish and Sign Snapshot Image (Build Dir present)
-      uses: dagger/dagger-for-github@v7
+      uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7.0.6
       if: ${{ inputs.BUILD_DIR != '' }}
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
