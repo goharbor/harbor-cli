@@ -15,8 +15,7 @@ package root
 
 import (
 	"fmt"
-	"io"
-	"time"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
@@ -38,16 +37,18 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/vulnerability"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/webhook"
+	"github.com/goharbor/harbor-cli/pkg/logger"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 var (
-	output  string
-	cfgFile string
-	verbose bool
+	logFormat string
+	output    string
+	cfgFile   string
+	verbose   bool
 )
 
 func RootCmd() *cobra.Command {
@@ -69,27 +70,35 @@ harbor help
 			// Initialize configuration
 			utils.InitConfig(cfgFile, userSpecifiedConfig)
 
-			// Conditionally set the timestamp format only in verbose mode
-			formatter := &logrus.TextFormatter{}
-
-			if verbose {
-				formatter.FullTimestamp = true
-				formatter.TimestampFormat = time.RFC3339
-				logrus.SetLevel(logrus.DebugLevel)
-			} else {
-				logrus.SetOutput(io.Discard)
+			if logFormat != "json" && logFormat != "text" {
+				return fmt.Errorf("invalid log-format: %s, log-format can be one of: json|text", logFormat)
 			}
-			logrus.SetFormatter(formatter)
+
+			// Sets up logging
+			logger.Setup(verbose, logFormat)
+
+			// Logging Flags
+			arr := make([]any, 0) // slog requires any since the slog.Debug takes in (string, ...any)
+			cmd.Flags().VisitAll(func(f *pflag.Flag) {
+				arr = append(arr, f.Name, f.Value.String())
+			})
+			slog.Debug("Flags: ", arr...)
 
 			return nil
 		},
 	}
 
 	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVarP(&logFormat, "log-format", "l", "text", "Output format for logging. One of: json|text")
 	root.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	err := viper.BindPFlag("output-format", root.PersistentFlags().Lookup("output-format"))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	err = viper.BindPFlag("log-format", root.PersistentFlags().Lookup("log-format"))
 	if err != nil {
 		fmt.Println(err.Error())
 	}
