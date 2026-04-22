@@ -183,7 +183,6 @@ func TestElevateUser(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestElevateUserCmd(t *testing.T) {
