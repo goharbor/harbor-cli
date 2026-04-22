@@ -1,6 +1,6 @@
 ---
 title: harbor project robot create
-weight: 15
+weight: 95
 ---
 ## harbor project robot create
 

@@ -1,6 +1,6 @@
 ---
 title: harbor ldap
-weight: 20
+weight: 45
 ---
 ## harbor ldap
 

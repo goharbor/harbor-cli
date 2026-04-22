@@ -1,6 +1,6 @@
 ---
 title: harbor context update
-weight: 10
+weight: 5
 ---
 ## harbor context update
 

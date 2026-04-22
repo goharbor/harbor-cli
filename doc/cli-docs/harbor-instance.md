@@ -1,6 +1,6 @@
 ---
 title: harbor instance
-weight: 5
+weight: 45
 ---
 ## harbor instance
 

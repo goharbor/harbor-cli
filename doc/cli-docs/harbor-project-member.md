@@ -1,6 +1,6 @@
 ---
 title: harbor project member
-weight: 70
+weight: 20
 ---
 ## harbor project member
 

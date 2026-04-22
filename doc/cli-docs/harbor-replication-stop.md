@@ -1,6 +1,6 @@
 ---
 title: harbor replication stop
-weight: 70
+weight: 35
 ---
 ## harbor replication stop
 

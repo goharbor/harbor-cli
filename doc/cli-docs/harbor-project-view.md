@@ -1,6 +1,6 @@
 ---
 title: harbor project view
-weight: 95
+weight: 90
 ---
 ## harbor project view
 
