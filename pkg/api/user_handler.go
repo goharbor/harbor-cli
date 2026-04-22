@@ -15,6 +15,7 @@ package api
 
 import (
 	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -105,31 +106,27 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 }
 
 func GetUsersIdByName(userName string) (int64, error) {
-	var opts ListFlags
-
-	page := int64(1)
-	pageSize := int64(100)
-	for {
-		opts.Page = page
-		opts.PageSize = pageSize
-		u, err := ListUsers(opts)
-		if err != nil {
-			return 0, err
-		}
-		if len(u.Payload) == 0 {
-			break
-		}
-		for _, user := range u.Payload {
-			if user.Username == userName {
-				return user.UserID, nil
-			}
-		}
-		// Stop requesting if we received less items than we asked for
-		if int64(len(u.Payload)) < pageSize {
-			break
-		}
-		page++
+	q, err := utils.BuildQueryParam(nil, []string{fmt.Sprintf("username=%s", userName)}, nil, []string{"username"})
+	if err != nil {
+		return 0, err
 	}
+
+	opts := ListFlags{Q: q}
+	u, err := ListUsers(opts)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(u.Payload) == 0 {
+		return 0, fmt.Errorf("user '%s' not found", userName)
+	}
+
+	for _, user := range u.Payload {
+		if user.Username == userName {
+			return user.UserID, nil
+		}
+	}
+
 	return 0, fmt.Errorf("user '%s' not found", userName)
 }
 

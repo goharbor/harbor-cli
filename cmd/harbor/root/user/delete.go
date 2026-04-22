@@ -20,9 +20,10 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var deleteUseID bool
 
 // UserDeleteCmd defines the "delete" command for user deletion.
 func UserDeleteCmd() *cobra.Command {
@@ -39,14 +40,19 @@ func UserDeleteCmd() *cobra.Command {
 					var userID int64
 					var err error
 
-					// Try parsing the arg as an Integer ID first
-					if parsedID, parseErr := strconv.ParseInt(arg, 10, 64); parseErr == nil {
+					// Check if --id flag is passed
+					if deleteUseID {
+						parsedID, parseErr := strconv.ParseInt(arg, 10, 64)
+						if parseErr != nil {
+							errChan <- fmt.Errorf("invalid ID '%s': %v", arg, parseErr)
+							continue
+						}
 						userID = parsedID
 					} else {
 						// Fallback to name search
 						userID, err = api.GetUsersIdByName(arg)
 						if err != nil {
-							log.Errorf("failed to get user id for '%s': %v", arg, err)
+							errChan <- fmt.Errorf("failed to get user id for '%s': %v", arg, err)
 							continue
 						}
 					}
@@ -88,9 +94,10 @@ func UserDeleteCmd() *cobra.Command {
 					}
 				}
 			}
+
 			return nil
 		},
 	}
-
+	cmd.Flags().BoolVar(&deleteUseID, "id", false, "Use ID instead of username")
 	return cmd
 }
