@@ -14,10 +14,8 @@
 package retention
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -28,10 +26,7 @@ import (
 )
 
 func CreateCommand() *cobra.Command {
-	var policyFile string
 	var projectName string
-	var dryRun bool
-	var opts rcreate.CreateView
 
 	cmd := &cobra.Command{
 		Use:   "create [PROJECT_NAME]",
@@ -51,20 +46,9 @@ func CreateCommand() *cobra.Command {
 				}
 			}
 
-			var policy *models.RetentionPolicy
-			var err error
-			if policyFile != "" {
-				policy, err = loadRetentionPolicyFromFile(policyFile)
-				if err != nil {
-					return err
-				}
-			} else {
-				view := opts
-				if !hasAnyCreateFlag(opts) {
-					rcreate.CreateRetentionView(&view)
-				}
-				policy = buildRetentionPolicyFromView(view)
-			}
+			view := rcreate.CreateView{}
+			rcreate.CreateRetentionView(&view)
+			policy := buildRetentionPolicyFromView(view)
 
 			projectID, err := api.GetProjectIDFromName(projectName)
 			if err != nil {
@@ -76,15 +60,6 @@ func CreateCommand() *cobra.Command {
 			}
 			policy.Scope.Level = "project"
 			policy.Scope.Ref = projectID
-
-			if dryRun {
-				if policyFile != "" {
-					fmt.Printf("Retention policy file %q validated for project %q (dry-run).\n", policyFile, projectName)
-				} else {
-					fmt.Printf("Retention policy validated for project %q (dry-run).\n", projectName)
-				}
-				return nil
-			}
 
 			existingRetentionID, err := api.GetRetentionIDByProjectName(projectName)
 			if err == nil {
@@ -123,45 +98,7 @@ func CreateCommand() *cobra.Command {
 		},
 	}
 
-	flags := cmd.Flags()
-	flags.StringVarP(&policyFile, "file", "f", "", "retention policy file in JSON format (optional in interactive mode)")
-	flags.StringVarP(&projectName, "project", "", "", "project name")
-	flags.BoolVarP(&dryRun, "dry-run", "", false, "validate policy file and project scope without creating")
-	flags.StringVarP(&opts.ScopeSelectors.Decoration, "repo-decoration", "", "", "repository selector decoration: repoMatches or repoExcludes")
-	flags.StringVarP(&opts.ScopeSelectors.Pattern, "repo-list", "", "", "repository selector pattern, for example **")
-	flags.StringVarP(&opts.TagSelectors.Decoration, "tag-decoration", "", "", "tag selector decoration: matches or excludes")
-	flags.StringVarP(&opts.TagSelectors.Pattern, "tag-list", "", "", "tag selector pattern, for example **")
-	flags.Int64VarP(&opts.KeepLatestPushed, "keep-latest", "", 0, "number of most recently pushed artifacts to retain")
-	flags.StringVarP(&opts.Cron, "cron", "", "", "schedule cron expression for retention policy")
-
 	return cmd
-}
-
-func loadRetentionPolicyFromFile(filePath string) (*models.RetentionPolicy, error) {
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read policy file: %v", err)
-	}
-
-	policy := &models.RetentionPolicy{}
-	if err := json.Unmarshal(data, policy); err != nil {
-		return nil, fmt.Errorf("failed to parse policy JSON: %v", err)
-	}
-
-	if len(policy.Rules) == 0 {
-		return nil, fmt.Errorf("policy must contain at least one rule")
-	}
-
-	return policy, nil
-}
-
-func hasAnyCreateFlag(opts rcreate.CreateView) bool {
-	return opts.ScopeSelectors.Decoration != "" ||
-		opts.ScopeSelectors.Pattern != "" ||
-		opts.TagSelectors.Decoration != "" ||
-		opts.TagSelectors.Pattern != "" ||
-		opts.KeepLatestPushed > 0 ||
-		opts.Cron != ""
 }
 
 func buildRetentionPolicyFromView(view rcreate.CreateView) *models.RetentionPolicy {
