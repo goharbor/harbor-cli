@@ -2,20 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-tag - Manage tags in Harbor registry
+harbor-tag-retention - Manage retention policies
 
 
 .SH SYNOPSIS
-\fBharbor tag [flags]\fP
+\fBharbor tag retention [flags]\fP
 
 
 .SH DESCRIPTION
-Manage tags in the Harbor registry, including creating, listing, and deleting rules.
+Manage project tag retention policies in Harbor
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for tag
+	help for retention
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -24,7 +24,7 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml|csv
+	Output format. One of: json|yaml
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
@@ -32,4 +32,4 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-tag-immutable(1)\fP, \fBharbor-tag-retention(1)\fP
+\fBharbor-tag(1)\fP, \fBharbor-tag-retention-create(1)\fP, \fBharbor-tag-retention-list(1)\fP, \fBharbor-tag-retention-run(1)\fP

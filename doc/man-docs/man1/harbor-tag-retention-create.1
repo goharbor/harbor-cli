@@ -1,0 +1,71 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-tag-retention-create - create retention policy
+
+
+.SH SYNOPSIS
+\fBharbor tag retention create [PROJECT_NAME] [flags]\fP
+
+
+.SH DESCRIPTION
+create a retention policy for a project
+
+
+.SH OPTIONS
+\fB--cron\fP=""
+	schedule cron expression for retention policy
+
+.PP
+\fB--dry-run\fP[=false]
+	validate policy file and project scope without creating
+
+.PP
+\fB-f\fP, \fB--file\fP=""
+	retention policy file in JSON format (optional in interactive mode)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for create
+
+.PP
+\fB--keep-latest\fP=0
+	number of most recently pushed artifacts to retain
+
+.PP
+\fB--project\fP=""
+	project name
+
+.PP
+\fB--repo-decoration\fP=""
+	repository selector decoration: repoMatches or repoExcludes
+
+.PP
+\fB--repo-list\fP=""
+	repository selector pattern, for example **
+
+.PP
+\fB--tag-decoration\fP=""
+	tag selector decoration: matches or excludes
+
+.PP
+\fB--tag-list\fP=""
+	tag selector pattern, for example **
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-tag-retention(1)\fP
