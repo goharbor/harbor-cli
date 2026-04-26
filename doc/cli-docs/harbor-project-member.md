@@ -39,4 +39,5 @@ Manage members and assign roles to them
 * [harbor project member delete](harbor-project-member-delete.md)	 - delete member by username
 * [harbor project member list](harbor-project-member-list.md)	 - list members in a project
 * [harbor project member update](harbor-project-member-update.md)	 - update member by name
+* [harbor project member view](harbor-project-member-view.md)	 - get project member information
 

@@ -2,15 +2,15 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-member-view - get project member by ID or name
+harbor-project-member-view - get project member information
 
 
 .SH SYNOPSIS
-\fBharbor project member view [ProjectName Or ID] [member ID] [flags]\fP
+\fBharbor project member view [projectName] [memberID] [flags]\fP
 
 
 .SH DESCRIPTION
-get member details by MemberID
+get project member information
 
 
 .SH OPTIONS
@@ -18,12 +18,8 @@ get member details by MemberID
 	help for view
 
 .PP
-\fB--id\fP=0
-	Member ID
-
-.PP
-\fB-p\fP, \fB--projectname\fP=""
-	Project Name
+\fB--id\fP[=false]
+	parses projectName as an ID
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -32,7 +28,7 @@ get member details by MemberID
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
+	Output format. One of: json|yaml|csv
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
@@ -41,7 +37,8 @@ get member details by MemberID
 
 .SH EXAMPLE
 .EX
-  harbor project member view my-project [memberID]
+  harbor project member view my-project 5
+  harbor project member view my-project 5 --wide
 .EE
 
 

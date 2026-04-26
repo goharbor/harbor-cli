@@ -109,9 +109,11 @@ func WebhookEditView(editView *EditView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("endpoint URL cannot be empty")
 					}
-					if err := utils.ValidateURL(str); err != nil {
+					formattedUrl := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedUrl); err != nil {
 						return err
 					}
+					editView.EndpointURL = formattedUrl
 					return nil
 				}),
 
