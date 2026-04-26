@@ -69,6 +69,7 @@ or leave them out and be guided through an interactive prompt to input each fiel
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
+				opts.EndpointURL = utils.FormatUrl(opts.EndpointURL)
 				err = utils.ValidateURL(opts.EndpointURL)
 				if err != nil {
 					return err

@@ -31,6 +31,7 @@ func Member() *cobra.Command {
 		member.CreateMemberCommand(),
 		member.DeleteMemberCommand(),
 		member.UpdateMemberCommand(),
+		member.ViewMemberCommand(),
 	)
 
 	return cmd
