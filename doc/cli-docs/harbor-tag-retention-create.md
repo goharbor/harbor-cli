@@ -1,21 +1,25 @@
 ---
-title: harbor tag
-weight: 80
+title: harbor tag retention create
+weight: 30
 ---
-## harbor tag
+## harbor tag retention create
 
 ### Description
 
-##### Manage tags in Harbor registry
+##### create retention policy
 
 ### Synopsis
 
-Manage tags in the Harbor registry, including creating, listing, and deleting rules.
+create a retention policy for a project
+
+```sh
+harbor tag retention create [PROJECT_NAME] [flags]
+```
 
 ### Options
 
 ```sh
-  -h, --help   help for tag
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -28,7 +32,5 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 ### SEE ALSO
 
-* [harbor](harbor.md)	 - Official Harbor CLI
-* [harbor tag immutable](harbor-tag-immutable.md)	 - Manage Immutability rules in the project
 * [harbor tag retention](harbor-tag-retention.md)	 - Manage retention policies
 

@@ -11,23 +11,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package tag
+package retention
 
-import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag/immutable"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag/retention"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func TagCommand() *cobra.Command {
+func Retention() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tag",
-		Short: "Manage tags in Harbor registry",
-		Long:  "Manage tags in the Harbor registry, including creating, listing, and deleting rules.",
+		Use:     "retention",
+		Aliases: []string{"retain"},
+		Short:   "Manage retention policies",
+		Long:    "Manage project tag retention policies in Harbor",
 	}
+
 	cmd.AddCommand(
-		immutable.Immutable(),
-		retention.Retention(),
+		CreateCommand(),
 	)
+
 	return cmd
 }
