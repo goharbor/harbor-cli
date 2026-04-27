@@ -46,7 +46,8 @@ var (
 	ErrHintStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("44"))
 	ErrEnumeratorStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("242")).MarginRight(1)
+				Foreground(lipgloss.Color("242")).
+				MarginRight(1)
 )
 
 func RedText(strs ...string) string {

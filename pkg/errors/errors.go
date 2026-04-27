@@ -162,7 +162,19 @@ func (e *Error) Hints() []string {
 }
 
 func (e *Error) Frames() []Frame {
-	return e.frames
+	if len(e.frames) == 0 {
+		return nil
+	}
+
+	frames := make([]Frame, len(e.frames))
+	for i, f := range e.frames {
+		frames[i].Message = f.Message
+		if len(f.Hints) > 0 {
+			frames[i].Hints = append([]string(nil), f.Hints...)
+		}
+	}
+
+	return frames
 }
 
 func (e *Error) Cause() error { return e.cause }

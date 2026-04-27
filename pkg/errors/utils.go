@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -42,7 +43,13 @@ func parseHarborErrorMsg(err error) string {
 
 	val := reflect.ValueOf(err)
 	if val.Kind() == reflect.Pointer {
+		if val.IsNil() {
+			return err.Error()
+		}
 		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return err.Error()
 	}
 	field := val.FieldByName("Payload")
 	if field.IsValid() {
@@ -61,7 +68,9 @@ func parseHarborErrorMsg(err error) string {
 }
 
 func parseHarborErrorCode(err error) string {
-	parts := strings.Split(err.Error(), "]")
+	errStr := err.Error()
+
+	parts := strings.Split(errStr, "]")
 	if len(parts) >= 2 {
 		codePart := strings.TrimSpace(parts[1])
 		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
@@ -69,5 +78,11 @@ func parseHarborErrorCode(err error) string {
 			return code
 		}
 	}
+
+	re := regexp.MustCompile(`\(status\s+(\d{3})\)`)
+	if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
+		return matches[1]
+	}
+
 	return ""
 }
