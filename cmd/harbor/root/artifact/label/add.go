@@ -22,6 +22,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// buildProjectListFlags constructs ListFlags scoped to the given
+// project so callers can search project-scoped labels in addition to
+// the global scope. Resolving the project name to an ID is centralized
+// here so the same shape can be reused by sibling commands. See #814.
+func buildProjectListFlags(projectName string) (api.ListFlags, error) {
+	if projectName == "" {
+		return api.ListFlags{Scope: "p"}, nil
+	}
+	projectID, err := api.GetProjectIDFromName(projectName)
+	if err != nil {
+		return api.ListFlags{}, err
+	}
+	return api.ListFlags{Scope: "p", ProjectID: projectID}, nil
+}
+
 // AddLabelArtifactCommmand adds a label to an artifact
 func AddLabelArtifactCommmand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -63,16 +78,34 @@ Examples:
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
+			// Harbor's ListLabels API requires `scope` to be either
+			// 'g' (global) or 'p' (project) — an empty string is
+			// rejected with `invalid scope:`. Look up the label
+			// against both scopes so the caller doesn't have to know
+			// in advance whether the label was registered globally
+			// or against the artifact's project. See
+			// https://github.com/goharbor/harbor-cli/issues/814.
+			projectListFlags, err := buildProjectListFlags(projectName)
+			if err != nil {
+				return fmt.Errorf("failed to resolve project for label lookup: %v", utils.ParseHarborErrorMsg(err))
+			}
+
 			if len(args) == 2 {
 				labelName = args[1]
-				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{})
+				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{Scope: "g"})
 				if err != nil {
-					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					labelID, err = api.GetLabelIdByName(labelName, projectListFlags)
+					if err != nil {
+						return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 			} else {
-				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{})
+				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{Scope: "g"})
 				if err != nil {
-					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					labelID, err = prompt.GetLabelIdFromUser(projectListFlags)
+					if err != nil {
+						return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 			}
 

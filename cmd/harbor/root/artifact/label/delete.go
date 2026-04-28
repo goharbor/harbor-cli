@@ -64,16 +64,30 @@ Examples:
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
 
+			// Same dual-scope lookup pattern as `artifact label add`
+			// — Harbor's ListLabels API rejects an empty `scope`
+			// argument (issue #814).
+			projectListFlags, err := buildProjectListFlags(projectName)
+			if err != nil {
+				return fmt.Errorf("failed to resolve project for label lookup: %v", utils.ParseHarborErrorMsg(err))
+			}
+
 			if len(args) == 2 {
 				labelName := args[1]
-				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{})
+				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{Scope: "g"})
 				if err != nil {
-					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					labelID, err = api.GetLabelIdByName(labelName, projectListFlags)
+					if err != nil {
+						return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 			} else {
-				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{})
+				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{Scope: "g"})
 				if err != nil {
-					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					labelID, err = prompt.GetLabelIdFromUser(projectListFlags)
+					if err != nil {
+						return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
+					}
 				}
 			}
 
