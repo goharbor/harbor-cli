@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -29,6 +30,7 @@ import (
 func DeleteProjectCommand() *cobra.Command {
 	var forceDelete bool
 	var projectID string
+	var yes bool
 
 	cmd := &cobra.Command{
 		Use:     "delete",
@@ -53,6 +55,16 @@ func DeleteProjectCommand() *cobra.Command {
 			}
 
 			if projectID != "" {
+				if !yes {
+					confirm, err := views.ConfirmDeletion(fmt.Sprintf("Are you sure you want to delete project with ID %s?", projectID))
+					if err != nil {
+						return err
+					}
+					if !confirm {
+						fmt.Println("Deletion cancelled")
+						return nil
+					}
+				}
 				log.Debugf("Deleting project with ID: %s", projectID)
 				wg.Add(1)
 				go func(id string) {
@@ -68,6 +80,16 @@ func DeleteProjectCommand() *cobra.Command {
 					}
 				}(projectID)
 			} else if len(args) > 0 {
+				if !yes {
+					confirm, err := views.ConfirmDeletion(fmt.Sprintf("Are you sure you want to delete %d project(s)?", len(args)))
+					if err != nil {
+						return err
+					}
+					if !confirm {
+						fmt.Println("Deletion cancelled")
+						return nil
+					}
+				}
 				// Delete by project name from args
 				log.Debugf("Deleting %d projects from args...", len(args))
 				for _, projectName := range args {
@@ -94,6 +116,16 @@ func DeleteProjectCommand() *cobra.Command {
 				projectName, err := prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+				}
+				if !yes {
+					confirm, err := views.ConfirmDeletion(fmt.Sprintf("Are you sure you want to delete project '%s'?", projectName))
+					if err != nil {
+						return err
+					}
+					if !confirm {
+						fmt.Println("Deletion cancelled")
+						return nil
+					}
 				}
 				log.Debugf("User input project: %s", projectName)
 				log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
@@ -129,6 +161,7 @@ func DeleteProjectCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVar(&forceDelete, "force", false, "Forcefully delete all repositories, artifacts, and policies in the project. Use with extreme caution—this action is irreversible.")
 	flags.StringVar(&projectID, "project-id", "", "Specify project ID instead of project name")
+	flags.BoolVarP(&yes, "yes", "y", false, "Answer yes to all questions and do not prompt")
 
 	return cmd
 }
