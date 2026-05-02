@@ -15,6 +15,7 @@ package registry
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -33,7 +34,17 @@ func DeleteRegistryCommand() *cobra.Command {
 			errChan := make(chan error, len(args))
 			if len(args) > 0 {
 				for _, arg := range args {
-					registryID, _ := api.GetRegistryIdByName(arg)
+					var registryID int64
+					if id, err := strconv.ParseInt(arg, 10, 64); err == nil {
+						registryID = id
+					} else {
+						id, err := api.GetRegistryIdByName(arg)
+						if err != nil {
+							errChan <- fmt.Errorf("failed to resolve registry '%s': %v", arg, err)
+							continue
+						}
+						registryID = id
+					}
 					wg.Add(1)
 					go func(registryID int64) {
 						defer wg.Done()
