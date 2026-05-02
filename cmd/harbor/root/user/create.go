@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 	"github.com/spf13/cobra"
@@ -41,6 +42,9 @@ func UserCreateCmd() *cobra.Command {
 			}
 
 			if opts.Email != "" && opts.Realname != "" && opts.Password != "" && opts.Username != "" {
+				if !utils.ValidateEmail(opts.Email) {
+					return fmt.Errorf("invalid email format")
+				}
 				err = api.CreateUser(opts)
 			} else {
 				err = createUserView(createView)
