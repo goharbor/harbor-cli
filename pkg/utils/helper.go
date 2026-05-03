@@ -232,7 +232,7 @@ func EmptyStringValidator(variable string) func(string) error {
 	}
 }
 
-// This function convert camelCase to Human Readable form
+// CamelCaseToHR converts camelCase to Human Readable form.
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
