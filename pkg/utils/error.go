@@ -45,7 +45,11 @@ func ParseHarborErrorMsg(err error) string {
 			var harborErr HarborErrorPayload
 			if unmarshalErr := json.Unmarshal(jsonBytes, &harborErr); unmarshalErr == nil {
 				if len(harborErr.Errors) > 0 {
-					return harborErr.Errors[0].Message
+					var messages []string
+					for _, e := range harborErr.Errors {
+						messages = append(messages, e.Message)
+					}
+					return strings.Join(messages, "; ")
 				}
 			}
 		}
