@@ -61,6 +61,8 @@ The project's first goal is to reach WebUI parity.
 
 ### Container 
 
+Running Harbor CLI as a container is simple. Use the following command to get started:
+
 ```shell
 docker run -ti --rm -v $HOME/.config/harbor-cli:/root/.config/harbor-cli \
   -e HARBOR_ENCRYPTION_KEY=$(echo "ThisIsAVeryLongPassword" | base64) \
@@ -107,7 +109,6 @@ sudo apk add --allow-untrusted harbor-cli_<version>_linux_amd64.apk
 ### APT
 
 ```bash
-sudo apt install ca-certificates
 echo "deb [trusted=yes] https://harborcli.goharbor.io stable main" | sudo tee /etc/apt/sources.list.d/harbor-cli.list
 sudo apt update
 sudo apt install harbor-cli
