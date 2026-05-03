@@ -69,6 +69,11 @@ docker run -ti --rm -v $HOME/.config/harbor-cli:/root/.config/harbor-cli \
   registry.goharbor.io/harbor-cli/harbor-cli \
   --help
 ```
+Use the `HARBOR_ENCRYPTION_KEY` container environment variable as a base64-encoded 32-byte key for AES-256 encryption. This securely stores your harbor login password.
+
+If you intend to run the CLI as a container, it is advised
+to set the following environment variables and to create an alias
+and append the alias to your .zshrc or .bashrc file
 
 ```shell
 echo "export HARBOR_CLI_CONFIG=\$HOME/.config/harbor-cli" >> ~/.zshrc
