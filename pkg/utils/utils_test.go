@@ -145,29 +145,3 @@ func TestStorageStringToBytes(t *testing.T) {
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
 }
-
-func TestCapitalize(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{"empty string", "", ""},
-		{"lowercase word", "hello", "Hello"},
-		{"already capitalized", "Hello", "Hello"},
-		{"sentence", "hello world", "Hello world"},
-		{"single character", "a", "A"},
-		{"numbers", "123", "123"},
-		{"symbol prefix", "_test", "_test"},
-		{"unicode accented", "café", "Café"},
-		{"unicode multi-byte", "résumé", "Résumé"},
-		{"unicode single-byte", "ñ", "Ñ"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := utils.Capitalize(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}

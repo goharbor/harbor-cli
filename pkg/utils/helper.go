@@ -236,21 +236,29 @@ func EmptyStringValidator(variable string) func(string) error {
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
+	runes := []rune(s)
 
-	for i, r := range s {
-		if unicode.IsUpper(r) && i > 0 && s[i-1] != ' ' {
-			result = append(result, strings.TrimSpace(string(word)))
-			word = []rune{r}
-		} else {
-			word = append(word, r)
+	for i, r := range runes {
+		if unicode.IsUpper(r) && i > 0 {
+			prev := runes[i-1]
+			nextIsLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+			if prev != ' ' && (!unicode.IsUpper(prev) || nextIsLower) {
+				result = append(result, string(word))
+				word = []rune{r}
+				continue
+			}
 		}
+		word = append(word, r)
 	}
-
-	result = append(result, strings.TrimSpace(string(word)))
+	result = append(result, string(word))
 
 	// Capitalize the first letter of each word
-	for i, word := range result {
-		result[i] = Capitalize(word)
+	for i, wordStr := range result {
+		if len(wordStr) > 0 {
+			wRunes := []rune(wordStr)
+			wRunes[0] = unicode.ToUpper(wRunes[0])
+			result[i] = string(wRunes)
+		}
 	}
 
 	return strings.Join(result, " ")
