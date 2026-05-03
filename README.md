@@ -59,6 +59,8 @@ The project's first goal is to reach WebUI parity.
 
 # Install
 
+For additional artifacts like archives, checksums and SBOMs, refer to the [releases page](https://github.com/goharbor/harbor-cli/releases).
+
 ### Container 
 
 Running Harbor CLI as a container is simple. Use the following command to get started:
