@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"unicode"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/gocarina/gocsv"
@@ -208,12 +209,14 @@ func FromKebabCase(s string) string {
 	return strings.Join(words, " ")
 }
 
+// Capitalize returns a copy of the string s with its first Unicode letter mapped to its upper case.
 func Capitalize(s string) string {
 	if s == "" {
 		return ""
 	}
-	return s
-	// trings.ToUpper(s[:1]) + s[1:]
+	runes := []rune(s)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }
 
 // GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.

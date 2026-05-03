@@ -232,29 +232,25 @@ func EmptyStringValidator(variable string) func(string) error {
 	}
 }
 
-// This function covert camelCase to Human Readable form
+// This function convert camelCase to Human Readable form
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
 
 	for i, r := range s {
-		if unicode.IsUpper(r) && i > 0 {
-			result = append(result, string(word))
+		if unicode.IsUpper(r) && i > 0 && s[i-1] != ' ' {
+			result = append(result, strings.TrimSpace(string(word)))
 			word = []rune{r}
 		} else {
 			word = append(word, r)
 		}
 	}
 
-	result = append(result, string(word))
+	result = append(result, strings.TrimSpace(string(word)))
 
 	// Capitalize the first letter of each word
 	for i, word := range result {
-		if len(word) > 0 {
-			runes := []rune(word)
-			runes[0] = unicode.ToUpper(runes[0])
-			result[i] = string(runes)
-		}
+		result[i] = Capitalize(word)
 	}
 
 	return strings.Join(result, " ")
