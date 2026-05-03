@@ -19,6 +19,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -36,10 +37,6 @@ func UserPasswordChangeCmd() *cobra.Command {
 			var userId int64
 			var err error
 			log.SetOutput(cmd.OutOrStderr())
-			resetView := &reset.PasswordChangeView{
-				NewPassword:     opts.NewPassword,
-				ConfirmPassword: opts.ConfirmPassword,
-			}
 
 			if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
@@ -56,18 +53,33 @@ func UserPasswordChangeCmd() *cobra.Command {
 				}
 			}
 
-			reset.ChangePasswordView(resetView)
+			if opts.NewPassword != "" && opts.ConfirmPassword != "" {
+				if opts.NewPassword != opts.ConfirmPassword {
+					return fmt.Errorf("passwords do not match")
+				}
+				if err := utils.ValidatePassword(opts.NewPassword); err != nil {
+					return err
+				}
+				err = api.ResetPassword(userId, opts)
+			} else {
+				resetView := &reset.PasswordChangeView{}
+				reset.ChangePasswordView(resetView)
+				err = api.ResetPassword(userId, *resetView)
+			}
 
-			err = api.ResetPassword(userId, *resetView)
 			if err != nil {
 				if isUnauthorizedError(err) {
 					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to reset user password: %v", err)
 				}
+				return fmt.Errorf("failed to reset user password: %v", err)
 			}
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&opts.NewPassword, "new-password", "", "New password for the user")
+	flags.StringVar(&opts.ConfirmPassword, "confirm-password", "", "Confirm new password")
+
 	return cmd
 }
