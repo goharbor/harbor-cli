@@ -231,8 +231,8 @@ func TestCamelCaseToHR(t *testing.T) {
 		{"basic PascalCase", "PascalCase", "Pascal Case"},
 		{"single word", "simple", "Simple"},
 		{"existing spaces", "already Human Readable", "Already Human Readable"},
-		{"uppercase acronym", "ID", "I D"},
-		{"prefixed acronym", "myID", "My I D"},
+		{"uppercase acronym", "ID", "ID"},
+		{"prefixed acronym", "myID", "My ID"},
 		{"empty string", "", ""},
 	}
 
