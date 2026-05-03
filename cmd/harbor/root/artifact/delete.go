@@ -19,11 +19,14 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func DeleteArtifactCommand() *cobra.Command {
+	var yes bool
+
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "delete an artifact",
@@ -44,13 +47,29 @@ func DeleteArtifactCommand() *cobra.Command {
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+
+			if !yes {
+				confirm, err := views.ConfirmDeletion(fmt.Sprintf("Are you sure you want to delete artifact '%s/%s@%s'?", projectName, repoName, reference))
+				if err != nil {
+					return err
+				}
+				if !confirm {
+					fmt.Println("Deletion cancelled")
+					return nil
+				}
+			}
+
 			err = api.DeleteArtifact(projectName, repoName, reference)
 			if err != nil {
 				return fmt.Errorf("failed to delete an artifact: %v", utils.ParseHarborErrorMsg(err))
 			}
+			fmt.Printf("Artifact '%s/%s@%s' deleted successfully\n", projectName, repoName, reference)
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&yes, "yes", "y", false, "Answer yes to all questions and do not prompt")
 
 	return cmd
 }

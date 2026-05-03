@@ -19,12 +19,15 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views"
 
 	"github.com/spf13/cobra"
 )
 
 // to-do improve DeleteRobotCommand and multi select & delete
 func DeleteRobotCommand() *cobra.Command {
+	var yes bool
+
 	cmd := &cobra.Command{
 		Use:   "delete [robotName]",
 		Short: "delete robot by name",
@@ -55,6 +58,7 @@ Examples:
 			var (
 				robotID int64
 				err     error
+				name    string
 			)
 			if len(args) == 1 {
 				robotName := args[0]
@@ -68,12 +72,26 @@ Examples:
 					}
 				}
 				robotID = robot.ID
+				name = robot.Name
 			} else {
 				robotID, err = prompt.GetRobotIDFromUser(-1)
 				if err != nil {
 					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
 				}
+				name = fmt.Sprintf("ID %d", robotID)
 			}
+
+			if !yes {
+				confirm, err := views.ConfirmDeletion(fmt.Sprintf("Are you sure you want to delete robot account '%s'?", name))
+				if err != nil {
+					return err
+				}
+				if !confirm {
+					fmt.Println("Deletion cancelled")
+					return nil
+				}
+			}
+
 			err = api.DeleteRobot(robotID)
 			if err != nil {
 				errorCode := utils.ParseHarborErrorCode(err)
@@ -87,6 +105,9 @@ Examples:
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&yes, "yes", "y", false, "Answer yes to all questions and do not prompt")
 
 	return cmd
 }
