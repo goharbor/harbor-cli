@@ -16,6 +16,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -23,10 +24,12 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 func UserPasswordChangeCmd() *cobra.Command {
-	var opts reset.PasswordChangeView
+	var passwordStdin bool
+	var userID int64
 
 	cmd := &cobra.Command{
 		Use:   "password",
@@ -38,7 +41,10 @@ func UserPasswordChangeCmd() *cobra.Command {
 			var err error
 			log.SetOutput(cmd.OutOrStderr())
 
-			if len(args) > 0 {
+			// Resolve user ID: flag > positional arg > interactive prompt
+			if userID != 0 {
+				userId = userID
+			} else if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
@@ -53,20 +59,26 @@ func UserPasswordChangeCmd() *cobra.Command {
 				}
 			}
 
-			if opts.NewPassword != "" && opts.ConfirmPassword != "" {
-				if opts.NewPassword != opts.ConfirmPassword {
-					return fmt.Errorf("passwords do not match")
+			var opts reset.PasswordChangeView
+
+			if passwordStdin {
+				fmt.Print("Password: ")
+				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
+				if err != nil {
+					return fmt.Errorf("failed to read password from stdin: %v", err)
 				}
+				fmt.Println()
+				opts.NewPassword = string(passwordBytes)
 				if err := utils.ValidatePassword(opts.NewPassword); err != nil {
 					return err
 				}
-				err = api.ResetPassword(userId, opts)
 			} else {
 				resetView := &reset.PasswordChangeView{}
 				reset.ChangePasswordView(resetView)
-				err = api.ResetPassword(userId, *resetView)
+				opts = *resetView
 			}
 
+			err = api.ResetPassword(userId, opts)
 			if err != nil {
 				if isUnauthorizedError(err) {
 					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
@@ -78,8 +90,8 @@ func UserPasswordChangeCmd() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.NewPassword, "new-password", "", "New password for the user")
-	flags.StringVar(&opts.ConfirmPassword, "confirm-password", "", "Confirm new password")
+	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.Int64Var(&userID, "user-id", 0, "User ID for non-interactive mode")
 
 	return cmd
 }
