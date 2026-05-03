@@ -208,6 +208,14 @@ func FromKebabCase(s string) string {
 	return strings.Join(words, " ")
 }
 
+func Capitalize(s string) string {
+	if s == "" {
+		return ""
+	}
+	return s
+	// trings.ToUpper(s[:1]) + s[1:]
+}
+
 // GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
 func GetUserIdFromUser() int64 {
 	credentialName := viper.GetString("current-credential-name")

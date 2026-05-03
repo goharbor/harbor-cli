@@ -232,7 +232,13 @@ func TestCamelCaseToHR(t *testing.T) {
 		{"single word", "simple", "Simple"},
 		{"existing spaces", "already Human Readable", "Already Human Readable"},
 		{"uppercase acronym", "ID", "ID"},
-		{"prefixed acronym", "myID", "My ID"},
+		{"prefixed acronym", "UserID", "User ID"},
+		{"complex acronym", "JSONData", "JSON Data"},
+		{"all caps", "ALLCAPS", "ALLCAPS"},
+		{"all lower", "alllower", "Alllower"},
+		{"mixed case", "MixedUPPERAndLower", "Mixed UPPER And Lower"},
+		{"lowercase prefix", "httpError", "Http Error"},
+		{"uppercase acronym", "HTTPError", "HTTP Error"},
 		{"empty string", "", ""},
 	}
 
