@@ -44,5 +44,6 @@ Manage projects in Harbor
 * [harbor project preheat](harbor-project-preheat.md)	 - Manage project preheat resources
 * [harbor project robot](harbor-project-robot.md)	 - Manage robot accounts
 * [harbor project search](harbor-project-search.md)	 - search project based on their names
+* [harbor project summary](harbor-project-summary.md)	 - Get summary of a project
 * [harbor project view](harbor-project-view.md)	 - get project by name or id
 
