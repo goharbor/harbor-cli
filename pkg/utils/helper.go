@@ -65,6 +65,9 @@ func FormatUrl(url string) string {
 }
 
 func FormatSize(size int64) string {
+	if size < 0 {
+		return "Unlimited"
+	}
 	const (
 		_         = iota
 		KiB int64 = 1 << (10 * iota)
@@ -85,6 +88,13 @@ func FormatSize(size int64) string {
 	default:
 		return fmt.Sprintf("%dB", size)
 	}
+}
+
+func FormatCount(count int64) string {
+	if count < 0 {
+		return "Unlimited"
+	}
+	return strconv.FormatInt(count, 10)
 }
 
 // ValidateUserName checks if the username is valid by length and allowed characters.
