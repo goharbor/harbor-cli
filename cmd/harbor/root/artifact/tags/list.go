@@ -51,7 +51,10 @@ func ListTagsCmd() *cobra.Command {
 				if repoName == "" {
 					return fmt.Errorf("invalid repository name provided")
 				}
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
+				reference, err = prompt.GetReferenceFromUser(repoName, projectName)
+				if err != nil {
+					return fmt.Errorf("failed to list artifacts: %v", err)
+				}
 			}
 
 			tags, err = api.ListTags(projectName, repoName, reference)

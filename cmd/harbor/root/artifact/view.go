@@ -47,7 +47,11 @@ func ViewArtifactCommmand() *cobra.Command {
 					return
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
+				reference, err = prompt.GetReferenceFromUser(repoName, projectName)
+				if err != nil {
+					log.Errorf("failed to list artifacts: %v", err)
+					return
+				}
 			}
 
 			if reference == "" {

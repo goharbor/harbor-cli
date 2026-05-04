@@ -60,7 +60,10 @@ Examples:
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
+				reference, err = prompt.GetReferenceFromUser(repoName, projectName)
+				if err != nil {
+					return fmt.Errorf("failed to list artifacts: %v", err)
+				}
 			}
 
 			if len(args) == 2 {

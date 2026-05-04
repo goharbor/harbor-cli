@@ -45,7 +45,10 @@ func parseArgs(args []string) (string, string, string, error) {
 			return "", "", "", err
 		}
 		repoName := prompt.GetRepoNameFromUser(projectName)
-		reference := prompt.GetReferenceFromUser(repoName, projectName)
+		reference, err := prompt.GetReferenceFromUser(repoName, projectName)
+		if err != nil {
+			return "", "", "", err
+		}
 
 		return projectName, repoName, reference, nil
 	}

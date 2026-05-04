@@ -57,7 +57,10 @@ func CreateCommand() *cobra.Command {
 			} else {
 				opts = &create.CreateView{}
 				create.CreateRPolicyView(opts, false)
-				registryID = prompt.GetRegistryNameFromUser()
+				registryID, err = prompt.GetRegistryNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get registry: %v", err)
+				}
 			}
 
 			registry, err := api.GetRegistryResponse(registryID)

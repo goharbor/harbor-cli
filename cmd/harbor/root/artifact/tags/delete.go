@@ -45,8 +45,14 @@ func DeleteTagsCmd() *cobra.Command {
 				}
 
 				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
-				tagName = prompt.GetTagFromUser(repoName, projectName, reference)
+				reference, err = prompt.GetReferenceFromUser(repoName, projectName)
+				if err != nil {
+					return fmt.Errorf("failed to list artifacts: %v", err)
+				}
+				tagName, err = prompt.GetTagFromUser(repoName, projectName, reference)
+				if err != nil {
+					return fmt.Errorf("failed to list tags: %v", err)
+				}
 			}
 
 			err = api.DeleteTag(projectName, repoName, reference, tagName)

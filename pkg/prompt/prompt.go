@@ -45,14 +45,35 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetRegistryNameFromUser() int64 {
-	registryId := make(chan int64)
-	go func() {
-		response, _ := api.ListRegistries()
-		rview.RegistryList(response.Payload, registryId)
-	}()
+var (
+	listRegistriesFunc       = api.ListRegistries
+	listArtifactFunc         = api.ListArtifact
+	listImmutableFunc        = api.ListImmutable
+	listTagsFunc             = api.ListTags
+	listScannersFunc         = api.ListScanners
+	listInstanceFunc         = api.ListInstance
+	listMembersForPromptFunc = api.ListMembers
+	listQuotaFunc            = api.ListQuota
+)
 
-	return <-registryId
+func GetRegistryNameFromUser() (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
+	go func() {
+		response, err := listRegistriesFunc()
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+		idChan := make(chan int64)
+		rview.RegistryList(response.Payload, idChan)
+		resultChan <- result{<-idChan, nil}
+	}()
+	res := <-resultChan
+	return res.id, res.err
 }
 
 func GetProjectIDFromUser() (int64, error) {
@@ -154,13 +175,24 @@ func GetRepoNameFromUser(projectName string) string {
 }
 
 // complete the function
-func GetReferenceFromUser(repositoryName string, projectName string) string {
-	reference := make(chan string)
+func GetReferenceFromUser(repositoryName string, projectName string) (string, error) {
+	type result struct {
+		ref string
+		err error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, _ := api.ListArtifact(projectName, repositoryName)
-		aview.ListArtifacts(response.Payload, reference)
+		response, err := listArtifactFunc(projectName, repositoryName)
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+		refChan := make(chan string)
+		aview.ListArtifacts(response.Payload, refChan)
+		resultChan <- result{<-refChan, nil}
 	}()
-	return <-reference
+	res := <-resultChan
+	return res.ref, res.err
 }
 
 func GetUserIdFromUser() (int64, error) {
@@ -177,33 +209,64 @@ func GetUserIdFromUser() (int64, error) {
 	return id, nil
 }
 
-func GetImmutableTagRule(projectName string) int64 {
-	immutableid := make(chan int64)
+func GetImmutableTagRule(projectName string) (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, _ := api.ListImmutable(projectName)
-		immview.ImmutableList(response.Payload, immutableid)
+		response, err := listImmutableFunc(projectName)
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+		idChan := make(chan int64)
+		immview.ImmutableList(response.Payload, idChan)
+		resultChan <- result{<-idChan, nil}
 	}()
-	return <-immutableid
+	res := <-resultChan
+	return res.id, res.err
 }
 
-func GetTagFromUser(repoName, projectName, reference string) string {
-	tag := make(chan string)
+func GetTagFromUser(repoName, projectName, reference string) (string, error) {
+	type result struct {
+		tag string
+		err error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, _ := api.ListTags(projectName, repoName, reference)
-		tview.ListTags(response.Payload, tag)
+		response, err := listTagsFunc(projectName, repoName, reference)
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+		tagChan := make(chan string)
+		tview.ListTags(response.Payload, tagChan)
+		resultChan <- result{<-tagChan, nil}
 	}()
-	return <-tag
+	res := <-resultChan
+	return res.tag, res.err
 }
 
-func GetScannerIdFromUser() string {
-	scannerId := make(chan string)
-
+func GetScannerIdFromUser() (string, error) {
+	type result struct {
+		id  string
+		err error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, _ := api.ListScanners()
-		sview.ScannerList(response.Payload, scannerId)
+		response, err := listScannersFunc()
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+		idChan := make(chan string)
+		sview.ScannerList(response.Payload, idChan)
+		resultChan <- result{<-idChan, nil}
 	}()
-
-	return <-scannerId
+	res := <-resultChan
+	return res.id, res.err
 }
 
 func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
@@ -266,29 +329,44 @@ func GetLabelIdFromUser(opts api.ListFlags) (int64, error) {
 	return res.id, res.err
 }
 
-func GetInstanceFromUser() string {
-	instanceName := make(chan string)
-
+func GetInstanceFromUser() (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, _ := api.ListInstance()
-		instview.InstanceList(response.Payload, instanceName)
+		response, err := listInstanceFunc()
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+		nameChan := make(chan string)
+		instview.InstanceList(response.Payload, nameChan)
+		resultChan <- result{<-nameChan, nil}
 	}()
-
-	return <-instanceName
+	res := <-resultChan
+	return res.name, res.err
 }
 
-func GetQuotaIDFromUser() int64 {
-	QuotaID := make(chan int64)
-
+func GetQuotaIDFromUser() (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	resultChan := make(chan result)
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := listQuotaFunc(*&api.ListQuotaFlags{})
 		if err != nil {
-			log.Errorf("failed to list quota: %v", err)
+			resultChan <- result{0, err}
+			return
 		}
-		qview.QuotaList(response.Payload, QuotaID)
+		idChan := make(chan int64)
+		qview.QuotaList(response.Payload, idChan)
+		resultChan <- result{<-idChan, nil}
 	}()
-
-	return <-QuotaID
+	res := <-resultChan
+	return res.id, res.err
 }
 
 func GetActiveContextFromUser() (string, error) {
@@ -405,22 +483,28 @@ func GetReplicationTaskIDFromUser(execID int64) int64 {
 }
 
 // Get GetMemberIDFromUser choosing from list of members
-func GetMemberIDFromUser(projectName, memberName string) int64 {
-	memberId := make(chan int64)
-	length := make(chan int)
-	go func() {
-		response, _ := api.ListMembers(projectName, memberName, true)
-		length <- len(response.Payload)
-		mview.MemberList(response.Payload, memberId)
-	}()
-
-	// if no members found, return 0
-	l := <-length
-	if l == 0 {
-		return 0
+func GetMemberIDFromUser(projectName, memberName string) (int64, error) {
+	type result struct {
+		id  int64
+		err error
 	}
-
-	return <-memberId
+	resultChan := make(chan result)
+	go func() {
+		response, err := listMembersForPromptFunc(projectName, memberName, true)
+		if err != nil {
+			resultChan <- result{0, err}
+			return
+		}
+		if len(response.Payload) == 0 {
+			resultChan <- result{0, nil}
+			return
+		}
+		idChan := make(chan int64)
+		mview.MemberList(response.Payload, idChan)
+		resultChan <- result{<-idChan, nil}
+	}()
+	res := <-resultChan
+	return res.id, res.err
 }
 
 // Get Member Role ID selection from user

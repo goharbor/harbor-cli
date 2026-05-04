@@ -33,13 +33,19 @@ func DeleteImmutableCommand() *cobra.Command {
 			var immutableId int64
 			if len(args) > 0 {
 				projectName = args[0]
-				immutableId = prompt.GetImmutableTagRule(args[0])
+				immutableId, err = prompt.GetImmutableTagRule(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to list immutable tag rules: %v", err)
+				}
 			} else {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
-				immutableId = prompt.GetImmutableTagRule(projectName)
+				immutableId, err = prompt.GetImmutableTagRule(projectName)
+				if err != nil {
+					return fmt.Errorf("failed to list immutable tag rules: %v", err)
+				}
 			}
 			err = api.DeleteImmutable(projectName, immutableId)
 			if err != nil {

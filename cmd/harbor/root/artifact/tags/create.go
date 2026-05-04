@@ -47,7 +47,10 @@ func CreateTagsCmd() *cobra.Command {
 				}
 
 				repoName = prompt.GetRepoNameFromUser(projectName)
-				reference = prompt.GetReferenceFromUser(repoName, projectName)
+				reference, err = prompt.GetReferenceFromUser(repoName, projectName)
+				if err != nil {
+					return fmt.Errorf("failed to list artifacts: %v", err)
+				}
 				create.CreateTagView(&tagName)
 			}
 			err = api.CreateTag(projectName, repoName, reference, tagName)

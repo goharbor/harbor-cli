@@ -42,7 +42,10 @@ func ViewRegistryCommand() *cobra.Command {
 					return fmt.Errorf("failed to get registry name by id: %v", err)
 				}
 			} else {
-				registryId = prompt.GetRegistryNameFromUser()
+				registryId, err = prompt.GetRegistryNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get registry: %v", err)
+				}
 			}
 
 			registry, err = api.ViewRegistry(registryId)

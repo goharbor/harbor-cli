@@ -41,7 +41,10 @@ func SetDefaultCommand() *cobra.Command {
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				registrationID, err = prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to list scanners: %v", err)
+				}
 			}
 			err = api.SetDefaultScanner(registrationID)
 			if err != nil {

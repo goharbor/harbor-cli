@@ -43,7 +43,10 @@ func UpdateRegistryCommand() *cobra.Command {
 					return fmt.Errorf("failed to get registry id: %v", err)
 				}
 			} else {
-				registryId = prompt.GetRegistryNameFromUser()
+				registryId, err = prompt.GetRegistryNameFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get registry: %v", err)
+				}
 			}
 
 			existingRegistry, err := api.GetRegistryResponse(registryId)

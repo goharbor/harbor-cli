@@ -53,6 +53,7 @@ Only the fields passed through flags will be updated; other fields will retain t
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var registrationID string
+			var err error
 			if len(args) > 0 {
 				scanner, err := api.GetScannerByName(args[0])
 				if err != nil {
@@ -60,7 +61,10 @@ Only the fields passed through flags will be updated; other fields will retain t
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				registrationID, err = prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to list scanners: %v", err)
+				}
 			}
 
 			resp, err := api.GetScanner(registrationID)

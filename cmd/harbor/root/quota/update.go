@@ -95,7 +95,6 @@ func UpdateQuotaCommand() *cobra.Command {
 }
 
 func GetQuotaFromUser(args []string, opts api.ListQuotaFlags) (*models.Quota, error) {
-	var err error
 	var quota *models.Quota
 
 	if len(args) > 0 {
@@ -133,7 +132,10 @@ func GetQuotaFromUser(args []string, opts api.ListQuotaFlags) (*models.Quota, er
 			return nil, err
 		}
 	} else {
-		quotaID := prompt.GetQuotaIDFromUser()
+		quotaID, err := prompt.GetQuotaIDFromUser()
+		if err != nil {
+			return nil, fmt.Errorf("failed to list quotas: %v", err)
+		}
 		if quotaID == 0 {
 			err := fmt.Errorf("failed to get quotaID from user")
 			return nil, err
