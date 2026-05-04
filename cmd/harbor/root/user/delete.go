@@ -75,7 +75,7 @@ func UserDeleteCmd() *cobra.Command {
 				// Process errors from the goroutines.
 				for err := range errChan {
 					if isUnauthorizedError(err) {
-						return fmt.Errorf("permission denied: admin privileges are required to execute this command")
+						return fmt.Errorf("permission denied: admin privileges are required to execute this command: %w", err)
 					} else {
 						return fmt.Errorf("failed to delete user: %w", err)
 					}
@@ -88,7 +88,7 @@ func UserDeleteCmd() *cobra.Command {
 				}
 				if err := api.DeleteUser(userID); err != nil {
 					if isUnauthorizedError(err) {
-						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+						return fmt.Errorf("permission denied: admin privileges are required: %w", err)
 					} else {
 						return fmt.Errorf("failed to delete user: %v", err)
 					}

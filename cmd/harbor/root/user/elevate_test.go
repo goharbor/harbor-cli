@@ -137,7 +137,7 @@ func TestElevateUser(t *testing.T) {
 			},
 			args:            []string{"test1"},
 			expectedAdminID: []int64{},
-			expectedErr:     "Permission denied",
+			expectedErr:     "permission denied",
 		},
 		{
 			name: "user declines elevation confirmation",
@@ -146,7 +146,7 @@ func TestElevateUser(t *testing.T) {
 			},
 			args:            []string{"test1"},
 			expectedAdminID: []int64{},
-			expectedErr:     "did not confirm",
+			expectedErr:     "user declined",
 		},
 		{
 			name: "confirmation prompt returns error",

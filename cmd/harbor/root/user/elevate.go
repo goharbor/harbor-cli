@@ -63,13 +63,13 @@ func ElevateUser(args []string) error {
 		return fmt.Errorf("failed to confirm elevation: %v", err)
 	}
 	if !confirm {
-		return errors.New("User did not confirm elevation. Aborting command.")
+		return errors.New("user declined elevation")
 	}
 
 	err = elevateUserAPI(userId)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			return errors.New("Permission denied: Admin privileges are required to execute this command.")
+			return fmt.Errorf("permission denied: admin privileges are required: %w", err)
 		}
 		return fmt.Errorf("failed to elevate user: %v", err)
 	}
