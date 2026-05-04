@@ -50,16 +50,13 @@ func SummaryCommand() *cobra.Command {
 			log.Debugf("Fetching project metadata: %s", projectName)
 			projectData, err := api.GetProject(projectName, isID)
 			if err != nil {
-				return fmt.Errorf("failed to get project details: %v", utils.ParseHarborErrorMsg(err))
+				return handleProjectError(err, projectName, "get details of")
 			}
 
 			log.Debugf("Fetching project summary: %s", projectName)
 			projectSummary, err := getProjectSummaryFunc(projectName, isID)
 			if err != nil {
-				if utils.ParseHarborErrorCode(err) == "404" {
-					return fmt.Errorf("project %s does not exist", projectName)
-				}
-				return fmt.Errorf("failed to get project summary: %v", utils.ParseHarborErrorMsg(err))
+				return handleProjectError(err, projectName, "get summary of")
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -99,4 +96,20 @@ func SummaryCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&isID, "id", "i", false, "Identify project by ID instead of name")
 
 	return cmd
+}
+
+func handleProjectError(err error, name string, action string) error {
+	errorCode := utils.ParseHarborErrorCode(err)
+	switch errorCode {
+	case "401":
+		return fmt.Errorf("unauthorized: please login to Harbor")
+	case "403":
+		return fmt.Errorf("forbidden: you do not have permission to %s project %s", action, name)
+	case "404":
+		return fmt.Errorf("project %s does not exist", name)
+	case "500":
+		return fmt.Errorf("internal server error: please contact your administrator")
+	default:
+		return fmt.Errorf("failed to %s project %s: %v", action, name, utils.ParseHarborErrorMsg(err))
+	}
 }
