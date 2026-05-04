@@ -50,7 +50,22 @@ func ParseHarborErrorMsg(err error) string {
 			}
 		}
 	}
-	return fmt.Sprintf("%v", err.Error())
+
+	statusCode := ParseHarborErrorCode(err)
+	if statusCode != "" {
+		switch statusCode[0] {
+		case '1', '2', '3':
+			return fmt.Sprintf("unexpected HTTP %s response", statusCode)
+		case '4':
+			if statusCode == "401" || statusCode == "403" {
+				return fmt.Sprintf("credentials invalid (HTTP %s)", statusCode)
+			}
+			return fmt.Sprintf("request failed (HTTP %s)", statusCode)
+		case '5':
+			return fmt.Sprintf("server error (HTTP %s)", statusCode)
+		}
+	}
+	return err.Error()
 }
 
 func ParseHarborErrorCode(err error) string {

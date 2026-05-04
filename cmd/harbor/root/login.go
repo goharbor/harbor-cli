@@ -137,7 +137,7 @@ func RunLogin(opts login.LoginView) error {
 	_, err = client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
 	if err != nil {
 		if !strings.Contains(err.Error(), "status 412") {
-			return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
+			return fmt.Errorf("login validation failed (GET /users/current): %v", utils.ParseHarborErrorMsg(err))
 		}
 	}
 	if err := utils.GenerateEncryptionKey(); err != nil {
