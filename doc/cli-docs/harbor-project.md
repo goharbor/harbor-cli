@@ -43,5 +43,6 @@ Manage projects in Harbor
 * [harbor project member](harbor-project-member.md)	 - Manage members in a Project
 * [harbor project robot](harbor-project-robot.md)	 - Manage robot accounts
 * [harbor project search](harbor-project-search.md)	 - search project based on their names
+* [harbor project summary](harbor-project-summary.md)	 - Get summary of a project
 * [harbor project view](harbor-project-view.md)	 - get project by name or id
 
