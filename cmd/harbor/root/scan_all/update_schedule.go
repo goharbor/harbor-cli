@@ -168,4 +168,3 @@ func updateCustomSchedule(cron string) error {
 	fmt.Printf("Successfully set scan all schedule with custom cron expression\n")
 	return nil
 }
-

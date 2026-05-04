@@ -36,4 +36,3 @@ func UpdateSchedule(cron *string) {
 		log.Fatal(err)
 	}
 }
-
