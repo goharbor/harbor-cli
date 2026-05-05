@@ -1,0 +1,75 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "assets/**"
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - "assets/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Show Docker info
+        run: docker compose version
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Build CLI binary
+        run: go build -o harbor-dev ./cmd/harbor
+
+      - name: Generate Harbor E2E config
+        run: bash test/e2e/setup.sh
+
+      - name: Start Harbor
+        run: |
+          docker compose -f test/e2e/docker-compose.yml up -d
+          echo "Waiting for Harbor core to become healthy..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/api/v2.0/health > /dev/null 2>&1; then
+              echo "Harbor is healthy after $((i * 5))s"
+              exit 0
+            fi
+            printf "  Attempt %d/60 ...\n" "$i"
+            sleep 5
+          done
+          echo "Harbor failed to become healthy after 5 minutes"
+          docker compose -f test/e2e/docker-compose.yml logs core
+          exit 1
+
+      - name: Run smoke tests
+        env:
+          HARBOR_BIN: ./harbor-dev
+          HARBOR_URL: http://localhost:8080
+        run: bash test/e2e/smoke_test.sh
+
+      - name: Collect Harbor logs on failure
+        if: failure()
+        run: |
+          echo "=== Harbor core logs ==="
+          docker compose -f test/e2e/docker-compose.yml logs core
+          echo "=== PostgreSQL logs ==="
+          docker compose -f test/e2e/docker-compose.yml logs postgresql
+
+      - name: Tear down Harbor
+        if: always()
+        run: docker compose -f test/e2e/docker-compose.yml down -v

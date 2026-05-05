@@ -22,6 +22,8 @@ go.work
 /bin
 
 /harbor
+/harbor-dev
 dist/
 /dagger.gen.go
 /internal/*
+test/e2e/config/

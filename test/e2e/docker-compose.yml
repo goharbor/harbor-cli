@@ -1,0 +1,74 @@
+name: harbor-cli-e2e
+
+services:
+  postgresql:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: &db_pass root123
+      POSTGRES_DB: registry
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d registry"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  registry:
+    image: registry:2
+    environment:
+      REGISTRY_HTTP_SECRET: registry-test-secret
+    volumes:
+      - registry_data:/var/lib/registry
+
+  core:
+    image: goharbor/harbor-core:v2.12.2
+    environment:
+      HARBOR_ADMIN_PASSWORD: Harbor12345
+      POSTGRESQL_HOST: postgresql
+      POSTGRESQL_PORT: "5432"
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: *db_pass
+      POSTGRESQL_DATABASE: registry
+      POSTGRESQL_SSLMODE: disable
+      _REDIS_URL_CORE: redis:6379
+      _REDIS_URL_REG: redis:6379
+      CORE_URL: http://core:8080
+      CORE_LOCAL_URL: http://core:8080
+      JOBSERVICE_URL: http://core:8080
+      REGISTRY_URL: http://registry:5000
+      TOKEN_SERVICE_URL: http://core:8080/service/token
+      CORE_SECRET: core-secret-for-e2e-testing-32chars!!
+      JOBSERVICE_SECRET: jobservice-secret-for-e2e-test!!
+      SYNC_REGISTRY: "false"
+      SYNC_QUOTA: "false"
+      NOTARY_URL: ""
+      LOG_LEVEL: info
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/core/app.conf:/etc/core/app.conf:ro
+      - ./config/core/key:/etc/core/key:ro
+      - ./config/core/private_key.pem:/etc/core/private_key.pem:ro
+      - core_data:/data
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "http://localhost:8080/api/v2.0/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  registry_data:
+  core_data:
