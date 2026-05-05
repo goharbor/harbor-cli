@@ -20,9 +20,9 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateProject(opts create.CreateView) error {

@@ -19,8 +19,8 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -67,9 +67,9 @@ If you specify --name, that credential (rather than the "current" one) will be u
 				return fmt.Errorf("failed to save updated config: %w", err)
 			}
 
-			// 5. Confirm to the user (logrus.Info is fine here; no error)
+			// 5. Confirm to the user (log.Info is fine here; no error)
 			canonicalPath := strings.Join(actualSegments, ".")
-			logrus.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
+			log.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
 
 			return nil
 		},
@@ -251,7 +251,7 @@ func encryptPassword(plaintext string) (string, error) {
 	// Make sure a key exists
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		// It's okay if the key already exists; that might not be a fatal error for you
-		logrus.Debugf("Encryption key might already exist: %v", err)
+		log.Debugf("Encryption key might already exist: %v", err)
 	}
 
 	key, err := utils.GetEncryptionKey()

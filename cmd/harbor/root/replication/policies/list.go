@@ -17,9 +17,9 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

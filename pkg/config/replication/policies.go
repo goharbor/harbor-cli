@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 

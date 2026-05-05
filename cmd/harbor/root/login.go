@@ -21,9 +21,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )

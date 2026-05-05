@@ -37,12 +37,12 @@ import (
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
 	wview "github.com/goharbor/harbor-cli/pkg/views/webhook/select"
-	log "github.com/sirupsen/logrus"
 )
 
 func GetRegistryNameFromUser() int64 {

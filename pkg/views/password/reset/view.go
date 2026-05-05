@@ -18,8 +18,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type PasswordChangeView struct {

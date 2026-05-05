@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"strings"
 
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -81,9 +81,9 @@ If you specify --name, that credential (rather than the "current" one) will be u
 				}
 
 				if found {
-					logrus.Infof("Removed credential '%s' and cleared CurrentCredentialName", currentName)
+					log.Infof("Removed credential '%s' and cleared CurrentCredentialName", currentName)
 				} else {
-					logrus.Infof("No credential named '%s' found; cleared CurrentCredentialName anyway", currentName)
+					log.Infof("No credential named '%s' found; cleared CurrentCredentialName anyway", currentName)
 				}
 
 				return nil
@@ -111,7 +111,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 
 			// 5. Confirm to the user (no error here)
 			canonicalPath := strings.Join(actualSegments, ".")
-			logrus.Infof("Successfully cleared %s", canonicalPath)
+			log.Infof("Successfully cleared %s", canonicalPath)
 
 			return nil
 		},

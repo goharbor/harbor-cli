@@ -17,8 +17,8 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // DeleteArtifact handles the deletion of an artifact.

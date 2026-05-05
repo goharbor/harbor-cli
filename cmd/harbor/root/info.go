@@ -18,9 +18,9 @@ import (
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/internal/version"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/info/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

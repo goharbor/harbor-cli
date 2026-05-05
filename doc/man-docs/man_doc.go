@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	cmd "github.com/goharbor/harbor-cli/cmd/harbor/root"
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/spf13/cobra/doc"
 )
 

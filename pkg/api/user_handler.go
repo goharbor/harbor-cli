@@ -20,7 +20,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 )
 
 func CreateUser(opts create.CreateView) error {

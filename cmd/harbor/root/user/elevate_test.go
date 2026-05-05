@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/stretchr/testify/assert"
 )
 

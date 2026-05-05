@@ -19,9 +19,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/system_cve_allowlist"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/update"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListSystemCve() (system_cve_allowlist.GetSystemCVEAllowlistOK, error) {

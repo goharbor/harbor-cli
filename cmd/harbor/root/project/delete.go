@@ -19,9 +19,9 @@ import (
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 

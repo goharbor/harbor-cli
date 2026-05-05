@@ -23,7 +23,7 @@ import (
 
 	"regexp"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
 )

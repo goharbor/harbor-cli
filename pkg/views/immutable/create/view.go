@@ -17,7 +17,7 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 )
 
 type CreateView struct {

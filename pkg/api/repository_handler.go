@@ -16,8 +16,8 @@ package api
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {

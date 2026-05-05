@@ -11,13 +11,12 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.6
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/sahilm/fuzzy v0.1.1
-	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zalando/go-keyring v0.2.8
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
-	golang.org/x/term v0.42.0
+	golang.org/x/term v0.40.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 

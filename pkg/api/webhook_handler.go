@@ -19,10 +19,10 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/create"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {

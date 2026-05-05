@@ -21,9 +21,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
-	log "github.com/sirupsen/logrus"
 )
 
 // Function variables for testing - these can be swapped in tests

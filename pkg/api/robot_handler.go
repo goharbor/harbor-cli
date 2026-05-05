@@ -22,10 +22,10 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/constants"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListRobot(opts ListFlags) (*robot.ListRobotOK, error) {

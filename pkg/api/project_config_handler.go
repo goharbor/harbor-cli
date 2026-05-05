@@ -18,8 +18,8 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project_metadata"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListConfig(isID bool, projectNameOrID string) (*project_metadata.ListProjectMetadatasOK, error) {

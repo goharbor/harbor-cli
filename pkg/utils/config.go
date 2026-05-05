@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 
 	"github.com/spf13/viper"
 )

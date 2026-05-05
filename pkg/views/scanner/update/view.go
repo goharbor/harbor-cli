@@ -20,8 +20,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func UpdateScannerView(scanner *models.ScannerRegistration) {

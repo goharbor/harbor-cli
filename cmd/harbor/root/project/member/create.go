@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -89,7 +89,7 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				logrus.Errorf("failed to create user: %v", err)
+				log.Errorf("failed to create user: %v", err)
 			}
 
 			fmt.Printf("successfully added user %s to project %s\n", createView.MemberUser.Username, opts.ProjectName)

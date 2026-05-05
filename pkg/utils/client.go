@@ -20,7 +20,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
-	log "github.com/sirupsen/logrus"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 )
 
 var (

@@ -19,10 +19,10 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	log "github.com/goharbor/harbor-cli/pkg/log"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
