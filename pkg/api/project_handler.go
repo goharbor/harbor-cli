@@ -25,7 +25,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	getProjectFunc      = getProjectImpl
+	createProjectFunc   = createProjectImpl
+	listProjectFunc     = listProjectImpl
+	listAllProjectsFunc = listAllProjectsImpl
+	deleteProjectFunc   = deleteProjectImpl
+	searchProjectFunc   = searchProjectImpl
+	logsProjectFunc     = logsProjectImpl
+)
+
 func CreateProject(opts create.CreateView) error {
+	return createProjectFunc(opts)
+}
+
+func createProjectImpl(opts create.CreateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -53,6 +67,10 @@ func CreateProject(opts create.CreateView) error {
 }
 
 func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectOK, error) {
+	return getProjectFunc(projectNameOrID, useProjectID)
+}
+
+func getProjectImpl(projectNameOrID string, useProjectID bool) (*project.GetProjectOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	response := &project.GetProjectOK{}
 
@@ -73,7 +91,7 @@ func GetProject(projectNameOrID string, useProjectID bool) (*project.GetProjectO
 }
 
 func GetProjectIDFromName(projectName string) (int64, error) {
-	proj, err := GetProject(projectName, false)
+	proj, err := getProjectFunc(projectName, false)
 	if err != nil {
 		return 0, err
 	}
@@ -82,6 +100,10 @@ func GetProjectIDFromName(projectName string) (int64, error) {
 }
 
 func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) error {
+	return deleteProjectFunc(projectNameOrID, forceDelete, useProjectID)
+}
+
+func deleteProjectImpl(projectNameOrID string, forceDelete bool, useProjectID bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -143,6 +165,10 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 }
 
 func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
+	return listProjectFunc(opts...)
+}
+
+func listProjectImpl(opts ...ListFlags) (project.ListProjectsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return project.ListProjectsOK{}, err
@@ -159,6 +185,10 @@ func ListProject(opts ...ListFlags) (project.ListProjectsOK, error) {
 }
 
 func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
+	return listAllProjectsFunc(opts...)
+}
+
+func listAllProjectsImpl(opts ...ListFlags) (project.ListProjectsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return project.ListProjectsOK{}, err
@@ -175,6 +205,10 @@ func ListAllProjects(opts ...ListFlags) (project.ListProjectsOK, error) {
 }
 
 func SearchProject(query string) (search.SearchOK, error) {
+	return searchProjectFunc(query)
+}
+
+func searchProjectImpl(query string) (search.SearchOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return search.SearchOK{}, err
@@ -188,6 +222,10 @@ func SearchProject(query string) (search.SearchOK, error) {
 }
 
 func LogsProject(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, error) {
+	return logsProjectFunc(projectName, opts...)
+}
+
+func logsProjectImpl(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
