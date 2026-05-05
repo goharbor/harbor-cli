@@ -25,6 +25,12 @@ import (
 	"unicode"
 )
 
+var (
+	// domainNameRegex matches valid domain names according to RFC 1123.
+	// It allows single-label hostnames (e.g., "harbor") and multi-label domains (e.g., "demo.goharbor.io").
+	domainNameRegex = regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`)
+)
+
 func pluralise(value int, unit string) string {
 	if value == 1 {
 		return fmt.Sprintf("%d %s ago", value, unit)
@@ -180,8 +186,6 @@ func ValidateRegistryName(rn string) bool {
 // ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
 // Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
-	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
-
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %v", err)
