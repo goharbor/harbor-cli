@@ -27,10 +27,20 @@ import (
 )
 
 type Credential struct {
-	Name          string `yaml:"name"`
-	Username      string `yaml:"username"`
-	Password      string `yaml:"password"`
-	ServerAddress string `yaml:"serveraddress"`
+	Name          string      `yaml:"name"`
+	Username      string      `yaml:"username"`
+	Password      string      `yaml:"password"`
+	ServerAddress string      `yaml:"serveraddress"`
+	AuthType      string      `yaml:"auth-type,omitempty"` // "basic" (default) or "oidc"
+	OIDC          *OIDCConfig `yaml:"oidc,omitempty"`
+}
+
+type OIDCConfig struct {
+	IssuerURL    string `yaml:"issuer-url"`
+	ClientID     string `yaml:"client-id"`
+	AccessToken  string `yaml:"access-token,omitempty"`
+	RefreshToken string `yaml:"refresh-token,omitempty"`
+	ExpiresAt    int64  `yaml:"expires-at,omitempty"`
 }
 
 type HarborConfig struct {

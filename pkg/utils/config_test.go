@@ -107,3 +107,34 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
 }
+
+func TestCredential_OIDCFields(t *testing.T) {
+	cred := utils.Credential{
+		Name:          "test-oidc",
+		Username:      "my-client",
+		ServerAddress: "https://harbor.example.com",
+		AuthType:      "oidc",
+		OIDC: &utils.OIDCConfig{
+			IssuerURL:    "https://idp.example.com",
+			ClientID:     "my-client",
+			AccessToken:  "encrypted-at",
+			RefreshToken: "encrypted-rt",
+			ExpiresAt:    1712345678,
+		},
+	}
+	assert.Equal(t, "oidc", cred.AuthType)
+	assert.NotNil(t, cred.OIDC)
+	assert.Equal(t, "https://idp.example.com", cred.OIDC.IssuerURL)
+}
+
+func TestCredential_BasicAuthDefault(t *testing.T) {
+	cred := utils.Credential{
+		Name:          "test-basic",
+		Username:      "admin",
+		Password:      "enc-pass",
+		ServerAddress: "https://harbor.example.com",
+	}
+	// AuthType defaults to "" which means basic
+	assert.Equal(t, "", cred.AuthType)
+	assert.Nil(t, cred.OIDC)
+}
