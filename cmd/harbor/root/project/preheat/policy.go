@@ -11,31 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package preheat
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/preheat/policy"
 	"github.com/spf13/cobra"
 )
 
-func Project() *cobra.Command {
+func PolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "project",
-		Short:   "Manage projects and assign resources to them",
-		Long:    `Manage projects in Harbor`,
-		Example: `  harbor project list`,
+		Use:     "policy",
+		Aliases: []string{"pol"},
+		Short:   "Manage preheat policies",
+		Long:    "Manage P2P preheat policies under a project",
 	}
+
 	cmd.AddCommand(
-		CreateProjectCommand(),
-		DeleteProjectCommand(),
-		ListProjectCommand(),
-		ViewCommand(),
-		LogsProjectCommmand(),
-		config.ProjectConfigCommand(),
-		SearchProjectCommand(),
-		Robot(),
-		Member(),
-		Preheat(),
+		policy.ListPolicyCommand(),
 	)
 
 	return cmd

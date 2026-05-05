@@ -14,28 +14,20 @@
 package project
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/config"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/preheat"
 	"github.com/spf13/cobra"
 )
 
-func Project() *cobra.Command {
+func Preheat() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "project",
-		Short:   "Manage projects and assign resources to them",
-		Long:    `Manage projects in Harbor`,
-		Example: `  harbor project list`,
+		Use:     "preheat",
+		Aliases: []string{"p2p"},
+		Short:   "Manage project preheat resources",
+		Long:    "Manage project-scoped P2P preheat policies, executions, and tasks in Harbor",
+		Example: `  harbor project preheat policy list`,
 	}
 	cmd.AddCommand(
-		CreateProjectCommand(),
-		DeleteProjectCommand(),
-		ListProjectCommand(),
-		ViewCommand(),
-		LogsProjectCommmand(),
-		config.ProjectConfigCommand(),
-		SearchProjectCommand(),
-		Robot(),
-		Member(),
-		Preheat(),
+		preheat.PolicyCommand(),
 	)
 
 	return cmd
