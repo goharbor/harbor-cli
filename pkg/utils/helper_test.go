@@ -121,11 +121,12 @@ func TestValidateStorageLimit(t *testing.T) {
 	assert.NoError(t, utils.ValidateStorageLimit("0"))
 	assert.NoError(t, utils.ValidateStorageLimit("-1"))
 	assert.NoError(t, utils.ValidateStorageLimit("1024"))
-	assert.NoError(t, utils.ValidateStorageLimit("1KiB"))
 	assert.NoError(t, utils.ValidateStorageLimit("1MiB"))
 	assert.NoError(t, utils.ValidateStorageLimit("1GiB"))
 	assert.NoError(t, utils.ValidateStorageLimit("1TiB"))
 	assert.Error(t, utils.ValidateStorageLimit("foo"))
+	assert.Error(t, utils.ValidateStorageLimit("1B"))
+	assert.Error(t, utils.ValidateStorageLimit("1KiB"))
 	assert.Error(t, utils.ValidateStorageLimit("1025TiB"))
 }
 

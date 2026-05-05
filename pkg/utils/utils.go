@@ -141,25 +141,18 @@ func StorageStringToBytes(storage string) (int64, error) {
 		return -1, nil
 	}
 
-	// Define the conversion multipliers
-	// Decimal (1000-based) and Binary (1024-based) units
+	// Define the conversion multipliers (Binary only as requested)
 	multipliers := map[string]int64{
-		"B":   1,
-		"KB":  1000,
-		"MB":  1000 * 1000,
-		"GB":  1000 * 1000 * 1000,
-		"TB":  1000 * 1000 * 1000 * 1000,
-		"KIB": 1024,
 		"MIB": 1024 * 1024,
 		"GIB": 1024 * 1024 * 1024,
 		"TIB": 1024 * 1024 * 1024 * 1024,
 	}
 
-	// Define the regex to parse the input string
-	re := regexp.MustCompile(`^(\d+)([a-zA-Z]*)$`)
+	// Define a stricter regex to parse the input string (Binary units only)
+	re := regexp.MustCompile(`^(?i:(\d+)(MIB|GIB|TIB)?)$`)
 	matches := re.FindStringSubmatch(storage)
 	if matches == nil {
-		return 0, errors.New("invalid storage format")
+		return 0, errors.New("invalid storage format: only binary units (MiB, GiB, TiB) or plain numbers are supported")
 	}
 
 	// Extract the value and unit from the matches
@@ -180,7 +173,6 @@ func StorageStringToBytes(storage string) (int64, error) {
 	}
 
 	// Define the maximum allowed storage (1024 TiB)
-	// We use TiB as the base for the max limit check to match Harbor's internal expectations
 	const maxTiB int64 = 1024
 	maxBytes := maxTiB * 1024 * 1024 * 1024 * 1024
 
