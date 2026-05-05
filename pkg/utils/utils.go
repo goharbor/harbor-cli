@@ -142,15 +142,16 @@ func StorageStringToBytes(storage string) (int64, error) {
 	}
 
 	// Define the conversion multipliers
+	// Decimal (1000-based) and Binary (1024-based) units
 	multipliers := map[string]int64{
 		"B":   1,
-		"KB":  1024,
+		"KB":  1000,
+		"MB":  1000 * 1000,
+		"GB":  1000 * 1000 * 1000,
+		"TB":  1000 * 1000 * 1000 * 1000,
 		"KIB": 1024,
-		"MB":  1024 * 1024,
 		"MIB": 1024 * 1024,
-		"GB":  1024 * 1024 * 1024,
 		"GIB": 1024 * 1024 * 1024,
-		"TB":  1024 * 1024 * 1024 * 1024,
 		"TIB": 1024 * 1024 * 1024 * 1024,
 	}
 
@@ -168,23 +169,28 @@ func StorageStringToBytes(storage string) (int64, error) {
 		return 0, err
 	}
 
-	if unit == "" {
-		return value, nil
+	// Default multiplier is 1 (bytes)
+	var multiplier int64 = 1
+	if unit != "" {
+		var ok bool
+		multiplier, ok = multipliers[unit]
+		if !ok {
+			return 0, fmt.Errorf("invalid unit: %s", unit)
+		}
 	}
 
-	multiplier, ok := multipliers[unit]
-	if !ok {
-		return 0, fmt.Errorf("invalid unit: %s", unit)
+	// Define the maximum allowed storage (1024 TiB)
+	// We use TiB as the base for the max limit check to match Harbor's internal expectations
+	const maxTiB int64 = 1024
+	maxBytes := maxTiB * 1024 * 1024 * 1024 * 1024
+
+	// Safeguard: Check for overflow before multiplication
+	if value > maxBytes/multiplier {
+		return 0, fmt.Errorf("value exceeds the maximum allowed limit of %d TiB", maxTiB)
 	}
 
 	// Calculate the value in bytes
 	bytes := value * multiplier
-
-	// Check if the value exceeds 1024 TB
-	maxBytes := int64(1024) * 1024 * 1024 * 1024 * 1024
-	if bytes > maxBytes {
-		return 0, errors.New("value exceeds 1024 TB")
-	}
 
 	return bytes, nil
 }

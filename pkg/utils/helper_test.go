@@ -126,7 +126,7 @@ func TestValidateStorageLimit(t *testing.T) {
 	assert.NoError(t, utils.ValidateStorageLimit("1GiB"))
 	assert.NoError(t, utils.ValidateStorageLimit("1TiB"))
 	assert.Error(t, utils.ValidateStorageLimit("foo"))
-	assert.Error(t, utils.ValidateStorageLimit("1025TB"))
+	assert.Error(t, utils.ValidateStorageLimit("1025TiB"))
 }
 
 func TestValidateRegistryName(t *testing.T) {
