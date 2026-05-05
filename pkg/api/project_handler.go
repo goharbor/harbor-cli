@@ -37,7 +37,10 @@ func CreateProject(opts create.CreateView) error {
 		registryID = nil
 	}
 
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	storageLimit, err := utils.StorageStringToBytes(opts.StorageLimit)
+	if err != nil {
+		return err
+	}
 
 	public := strconv.FormatBool(opts.Public)
 

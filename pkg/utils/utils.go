@@ -137,33 +137,52 @@ func DefaultCredentialName(username, server string) string {
 }
 
 func StorageStringToBytes(storage string) (int64, error) {
+	if storage == "-1" {
+		return -1, nil
+	}
+
 	// Define the conversion multipliers
 	multipliers := map[string]int64{
-		"MiB": 1024 * 1024,
-		"GiB": 1024 * 1024 * 1024,
-		"TiB": 1024 * 1024 * 1024 * 1024,
+		"B":   1,
+		"KB":  1024,
+		"KIB": 1024,
+		"MB":  1024 * 1024,
+		"MIB": 1024 * 1024,
+		"GB":  1024 * 1024 * 1024,
+		"GIB": 1024 * 1024 * 1024,
+		"TB":  1024 * 1024 * 1024 * 1024,
+		"TIB": 1024 * 1024 * 1024 * 1024,
 	}
 
 	// Define the regex to parse the input string
-	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
+	re := regexp.MustCompile(`^(\d+)([a-zA-Z]*)$`)
 	matches := re.FindStringSubmatch(storage)
 	if matches == nil {
 		return 0, errors.New("invalid storage format")
 	}
 
 	// Extract the value and unit from the matches
-	valueStr, unit := matches[1], matches[2]
+	valueStr, unit := matches[1], strings.ToUpper(matches[2])
 	value, err := strconv.ParseInt(valueStr, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 
+	if unit == "" {
+		return value, nil
+	}
+
+	multiplier, ok := multipliers[unit]
+	if !ok {
+		return 0, fmt.Errorf("invalid unit: %s", unit)
+	}
+
 	// Calculate the value in bytes
-	bytes := value * multipliers[unit]
+	bytes := value * multiplier
 
 	// Check if the value exceeds 1024 TB
-	maxBytes := 1024 * 1024 * 1024 * 1024 * 1024
-	if bytes > int64(maxBytes) {
+	maxBytes := int64(1024) * 1024 * 1024 * 1024 * 1024
+	if bytes > maxBytes {
 		return 0, errors.New("value exceeds 1024 TB")
 	}
 

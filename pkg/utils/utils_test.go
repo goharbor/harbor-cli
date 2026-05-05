@@ -110,6 +110,12 @@ func TestStorageStringToBytes(t *testing.T) {
 		{"1MiB", 1024 * 1024},
 		{"1GiB", 1024 * 1024 * 1024},
 		{"1TiB", 1024 * 1024 * 1024 * 1024},
+		{"1MB", 1024 * 1024},
+		{"1GB", 1024 * 1024 * 1024},
+		{"1TB", 1024 * 1024 * 1024 * 1024},
+		{"1024", 1024},
+		{"-1", -1},
+		{"1024TB", 1024 * 1024 * 1024 * 1024 * 1024},
 	}
 
 	for _, test := range tests {
@@ -128,12 +134,11 @@ func TestStorageStringToBytes(t *testing.T) {
 
 	// Invalid inputs
 	invalidInputs := []string{
-		"1KB",
-		"1000",
-		"10PB",
 		"1GiBGiB",
 		"1.03GiB",
 		"1.08TiB",
+		"abc",
+		"10PB",
 	}
 
 	for _, input := range invalidInputs {

@@ -19,7 +19,6 @@ import (
 	"net"
 	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -158,13 +157,9 @@ func ValidateProjectName(projectName string) bool {
 }
 
 func ValidateStorageLimit(sl string) error {
-	storageLimit, err := strconv.Atoi(sl)
+	_, err := StorageStringToBytes(sl)
 	if err != nil {
-		return errors.New("the storage limit only takes integer values")
-	}
-
-	if storageLimit < -1 || (storageLimit > -1 && storageLimit < 0) || storageLimit > 1024 {
-		return errors.New("the maximum value for the storage cannot exceed 1024 terabytes and -1 for no limit")
+		return fmt.Errorf("invalid storage limit: %v", err)
 	}
 	return nil
 }

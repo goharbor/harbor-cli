@@ -120,8 +120,13 @@ func TestValidateProjectName(t *testing.T) {
 func TestValidateStorageLimit(t *testing.T) {
 	assert.NoError(t, utils.ValidateStorageLimit("0"))
 	assert.NoError(t, utils.ValidateStorageLimit("-1"))
+	assert.NoError(t, utils.ValidateStorageLimit("1024"))
+	assert.NoError(t, utils.ValidateStorageLimit("1KiB"))
+	assert.NoError(t, utils.ValidateStorageLimit("1MiB"))
+	assert.NoError(t, utils.ValidateStorageLimit("1GiB"))
+	assert.NoError(t, utils.ValidateStorageLimit("1TiB"))
 	assert.Error(t, utils.ValidateStorageLimit("foo"))
-	assert.Error(t, utils.ValidateStorageLimit("2048"))
+	assert.Error(t, utils.ValidateStorageLimit("1025TB"))
 }
 
 func TestValidateRegistryName(t *testing.T) {
