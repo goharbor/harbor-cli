@@ -26,20 +26,21 @@ import (
 )
 
 func CreateProject(opts create.CreateView) error {
+	storageLimit, err := utils.StorageStringToBytes(opts.StorageLimit)
+	if err != nil {
+		return err
+	}
+
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
+
 	registryID := new(int64)
 	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
 
 	if !opts.ProxyCache {
 		registryID = nil
-	}
-
-	storageLimit, err := utils.StorageStringToBytes(opts.StorageLimit)
-	if err != nil {
-		return err
 	}
 
 	public := strconv.FormatBool(opts.Public)

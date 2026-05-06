@@ -143,20 +143,20 @@ func StorageStringToBytes(storage string) (int64, error) {
 
 	// Define the conversion multipliers (Binary only as requested)
 	multipliers := map[string]int64{
-		"MIB": 1024 * 1024,
-		"GIB": 1024 * 1024 * 1024,
-		"TIB": 1024 * 1024 * 1024 * 1024,
+		"MiB": 1024 * 1024,
+		"GiB": 1024 * 1024 * 1024,
+		"TiB": 1024 * 1024 * 1024 * 1024,
 	}
 
 	// Define a stricter regex to parse the input string (Binary units only)
-	re := regexp.MustCompile(`^(?i:(\d+)(MIB|GIB|TIB)?)$`)
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)?$`)
 	matches := re.FindStringSubmatch(storage)
 	if matches == nil {
 		return 0, errors.New("invalid storage format: only binary units (MiB, GiB, TiB) or plain numbers are supported")
 	}
 
 	// Extract the value and unit from the matches
-	valueStr, unit := matches[1], strings.ToUpper(matches[2])
+	valueStr, unit := matches[1], matches[2]
 	value, err := strconv.ParseInt(valueStr, 10, 64)
 	if err != nil {
 		return 0, err

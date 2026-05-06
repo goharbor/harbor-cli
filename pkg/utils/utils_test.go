@@ -110,9 +110,6 @@ func TestStorageStringToBytes(t *testing.T) {
 		{"1MiB", 1024 * 1024},
 		{"1GiB", 1024 * 1024 * 1024},
 		{"1TiB", 1024 * 1024 * 1024 * 1024},
-		{"1MIB", 1024 * 1024},
-		{"1GIB", 1024 * 1024 * 1024},
-		{"1TIB", 1024 * 1024 * 1024 * 1024},
 		{"1024", 1024},
 		{"-1", -1},
 		{"1024TiB", 1024 * 1024 * 1024 * 1024 * 1024},
@@ -134,12 +131,15 @@ func TestStorageStringToBytes(t *testing.T) {
 
 	// Invalid inputs
 	invalidInputs := []string{
+		"1MIB",
+		"1GIB",
+		"1TIB",
 		"1GiBGiB",
 		"1.03GiB",
 		"1.08TiB",
 		"abc",
-		"1MB", // No longer supported (must be MIB)
-		"1GB", // No longer supported (must be GIB)
+		"1MB", // No longer supported (must be MiB)
+		"1GB", // No longer supported (must be GiB)
 	}
 
 	for _, input := range invalidInputs {
@@ -152,6 +152,6 @@ func TestStorageStringToBytes(t *testing.T) {
 	assert.Error(t, err, "Expected error for input exceeding 1024 TiB but got none")
 
 	// Testing overflow protection
-	_, err = utils.StorageStringToBytes("9999999999999999TIB")
+	_, err = utils.StorageStringToBytes("9999999999999999TiB")
 	assert.Error(t, err, "Expected error for overflow but got none")
 }
