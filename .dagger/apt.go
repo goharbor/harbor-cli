@@ -64,6 +64,12 @@ Description: Harbor CLI — a command-line interface for interacting with your H
 EOF`,
 	})
 
+	// CNAME File
+	container = container.WithExec([]string{
+		"bash", "-c",
+		`echo 'harborcli.goharbor.io' > /repo/CNAME`,
+	})
+
 	container = container.
 		WithWorkdir("/repo").
 		WithExec([]string{
@@ -79,7 +85,7 @@ EOF`,
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        git add dists pool 
+        git add dists pool CNAME 
 
         git commit -m "Update APT repo for %s" || echo "No changes to commit"
         git push origin gh-pages -f

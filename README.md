@@ -57,9 +57,11 @@ The project's first goal is to reach WebUI parity.
 
 ```
 
-# Installation
+# Install
 
-## Container 
+For additional artifacts like archives, checksums and SBOMs, refer to the [releases page](https://github.com/goharbor/harbor-cli/releases).
+
+### Container 
 
 Running Harbor CLI as a container is simple. Use the following command to get started:
 
@@ -82,15 +84,42 @@ echo "alias harbor='docker run -ti --rm -v \$HARBOR_CLI_CONFIG:/root/.config/har
 source ~/.zshrc # or restart your terminal
 ```
 
-## Linux, macOS and Windows
-
-On Linux and macOS, you can use Homebrew:
+### Homebrew(Linux/macOS) 
 
 ```bash
 brew install harbor-cli
 ```
 
-Otherwise, you can download the binary from the [releases page](https://github.com/goharbor/harbor-cli/releases).
+### Debian/Ubuntu(.deb)
+
+> Replace `<version>` with the desired release version (e.g., v0.x.x).
+
+```bash
+wget https://github.com/goharbor/harbor-cli/releases/download/<version>/harbor-cli_<version>_linux_amd64.deb
+sudo dpkg -i harbor-cli_<version>_linux_amd64.deb
+```
+
+### Fedora/CentOS(.rpm)
+
+```bash
+wget https://github.com/goharbor/harbor-cli/releases/download/<version>/harbor-cli_<version>_linux_amd64.rpm
+sudo rpm -i harbor-cli_<version>_linux_amd64.rpm
+```
+
+### Alpine(.apk)
+
+```bash
+wget https://github.com/goharbor/harbor-cli/releases/download/<version>/harbor-cli_<version>_linux_amd64.apk
+sudo apk add --allow-untrusted harbor-cli_<version>_linux_amd64.apk
+```
+
+### APT
+
+```bash
+echo "deb [trusted=yes] https://harborcli.goharbor.io stable main" | sudo tee /etc/apt/sources.list.d/harbor-cli.list
+sudo apt update
+sudo apt install harbor-cli
+```
 
 ## Add the Harbor CLI to your Container Image
 

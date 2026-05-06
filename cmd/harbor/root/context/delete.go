@@ -187,7 +187,7 @@ func deleteValueInConfig(
 func deleteNestedValue(obj interface{}, path []string, actualSegments *[]string) error {
 	// We require obj to be a pointer to a struct so we can modify it.
 	val := reflect.ValueOf(obj)
-	if val.Kind() != reflect.Ptr {
+	if val.Kind() != reflect.Pointer {
 		return fmt.Errorf("object must be a pointer to a struct, got %s", val.Kind())
 	}
 	val = val.Elem() // dereference pointer
@@ -219,12 +219,12 @@ func deleteNestedValue(obj interface{}, path []string, actualSegments *[]string)
 		// If this is NOT the last path segment, move deeper
 		if i < len(path)-1 {
 			// If the field is a pointer and nil, we can't go deeper
-			if fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+			if fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil() {
 				return fmt.Errorf("field '%s' is nil and cannot be traversed", field.Name)
 			}
 			// Descend
 			val = fieldValue
-			if val.Kind() == reflect.Ptr {
+			if val.Kind() == reflect.Pointer {
 				val = val.Elem()
 			}
 			continue
