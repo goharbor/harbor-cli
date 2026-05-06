@@ -26,6 +26,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// CreateProject creates a new Harbor project based on the provided view options.
 func CreateProject(opts create.CreateView) error {
 	var registryID *int64
 	if opts.ProxyCache {
