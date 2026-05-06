@@ -20,7 +20,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/retention/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +44,7 @@ A user can create up to 15 tag retention rules per project.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if projectID != -1 && projectName != "" {
-				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
+				return fmt.Errorf("cannot specify both --project-id and --project-name flags")
 			}
 
 			if projectID == -1 && projectName == "" {
@@ -86,7 +85,7 @@ A user can create up to 15 tag retention rules per project.`,
 
 			err = createRetentionView(createView, projectIDorName, isName)
 			if err != nil {
-				log.Errorf("Failed to create tag retention rule: %v", err)
+				return fmt.Errorf("failed to create tag retention rule: %v", err)
 			}
 
 			return nil
@@ -112,6 +111,10 @@ func createRetentionView(createView *create.CreateView, projectIDorName string, 
 		createView = &create.CreateView{}
 	}
 
-	create.CreateRetentionView(createView)
+	err := create.CreateRetentionView(createView)
+	if err != nil {
+		return err
+	}
+
 	return api.CreateRetention(*createView, projectIDorName, isName)
 }

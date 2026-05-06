@@ -19,7 +19,6 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -70,10 +69,10 @@ Examples:
 			retentionID, err := api.GetRetentionId(projectIDStr, isName)
 			if err != nil {
 				if err.Error() == "No retention policy exists for this project" {
-					log.Info("No retention policy exists for this project")
+					fmt.Println("No retention policy exists for this project")
 					return nil
 				} else {
-					return fmt.Errorf("Error retrieving retention policy ID: %w", err)
+					return fmt.Errorf("error retrieving retention policy ID: %w", err)
 				}
 			}
 			retentionIndex := prompt.GetRetentionTagRule(retentionID)
@@ -81,7 +80,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
-			log.Info("Retention Rule deleted successfully")
+			fmt.Println("Retention Rule deleted successfully")
 			return nil
 		},
 	}

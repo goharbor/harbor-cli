@@ -17,7 +17,6 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -47,7 +46,7 @@ type RetentionPolicyScope struct {
 	Ref   int64
 }
 
-func CreateRetentionView(createView *CreateView) {
+func CreateRetentionView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -155,6 +154,8 @@ func CreateRetentionView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

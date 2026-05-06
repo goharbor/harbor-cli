@@ -23,7 +23,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/retention/create"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateRetention(opts create.CreateView, projectIDorName string, isName bool) error {
@@ -80,7 +79,7 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 		return err
 	}
 
-	log.Info("Created new Tag Retention Policy")
+	fmt.Println("Created new Tag Retention Policy")
 	return nil
 }
 
@@ -153,7 +152,7 @@ func DeleteRetention(projectName string, ruleIndex int) error {
 		return err
 	}
 
-	log.Infof("Deleted rule at index %d from retention policy", ruleIndex)
+	fmt.Printf("Deleted rule at index %d from retention policy\n", ruleIndex)
 	return nil
 }
 
@@ -182,7 +181,7 @@ func UpdateRetention(retentionIDStr string, newRule *models.RetentionRule) error
 		return err
 	}
 
-	log.Info("Updated existing retention policy")
+	fmt.Println("Updated existing retention policy")
 	return nil
 }
 
