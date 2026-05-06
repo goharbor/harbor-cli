@@ -27,22 +27,21 @@ import (
 )
 
 func CreateProject(opts create.CreateView) error {
-	ctx, client, err := utils.ContextWithClient()
-	if err != nil {
-		return err
-	}
-	registryID := new(int64)
-	id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
-	}
-	*registryID = id
-
-	if !opts.ProxyCache {
-		registryID = nil
+	var registryID *int64
+	if opts.ProxyCache {
+		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
+		}
+		registryID = &id
 	}
 
 	storageLimit, err := utils.StorageStringToBytes(opts.StorageLimit)
+	if err != nil {
+		return err
+	}
+
+	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
