@@ -14,6 +14,7 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -31,13 +32,20 @@ func CreateProject(opts create.CreateView) error {
 		return err
 	}
 	registryID := new(int64)
-	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
+	id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
+	}
+	*registryID = id
 
 	if !opts.ProxyCache {
 		registryID = nil
 	}
 
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	storageLimit, err := utils.StorageStringToBytes(opts.StorageLimit)
+	if err != nil {
+		return err
+	}
 
 	public := strconv.FormatBool(opts.Public)
 
