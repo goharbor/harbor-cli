@@ -3,8 +3,9 @@ package api
 import (
 	"testing"
 
-	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/goharbor/harbor-cli/pkg/views/project/create"
 )
 
 // TestCreateProject_Validation tests the input validation logic for project creation.
