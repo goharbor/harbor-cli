@@ -28,4 +28,17 @@ func TestCreateProject_Validation(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid storage format")
 	})
+
+	t.Run("Valid Inputs (Validation Pass)", func(t *testing.T) {
+		opts := create.CreateView{
+			ProxyCache:   true,
+			RegistryID:   "123",
+			StorageLimit: "10GiB",
+		}
+		err := CreateProject(opts)
+		// We expect an error because we are not logged in, but it should NOT be a validation error
+		assert.Error(t, err)
+		assert.NotContains(t, err.Error(), "invalid registry ID")
+		assert.NotContains(t, err.Error(), "invalid storage format")
+	})
 }
