@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestCreateProject_Validation tests the input validation logic for project creation.
 func TestCreateProject_Validation(t *testing.T) {
 	t.Run("Invalid Registry ID", func(t *testing.T) {
 		opts := create.CreateView{
