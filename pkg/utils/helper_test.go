@@ -129,6 +129,35 @@ func TestValidateRegistryName(t *testing.T) {
 	assert.False(t, utils.ValidateRegistryName("-bad"))
 }
 
+func TestValidatePagination(t *testing.T) {
+	tests := []struct {
+		name      string
+		page      int64
+		pageSize  int64
+		expectErr bool
+		errMsg    string
+	}{
+		{"valid page and size", 1, 10, false, ""},
+		{"page less than 1", 0, 10, true, "page number must be greater than or equal to 1"},
+		{"page size negative", 1, -1, true, "page size must be greater than or equal to 0"},
+		{"page size greater than 100", 1, 101, true, "page size should be less than or equal to 100"},
+		{"page size zero", 1, 0, false, ""},
+		{"page size 100", 1, 100, false, ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := utils.ValidatePagination(tc.page, tc.pageSize)
+			if tc.expectErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestValidateURL(t *testing.T) {
 	tests := []struct {
 		name    string
