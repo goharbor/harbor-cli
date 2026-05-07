@@ -2,20 +2,24 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-preheat-policy - Manage preheat policies
+harbor-project-preheat-policy-view - View details of a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy [flags]\fP
+\fBharbor project preheat policy view [NAME|ID] [POLICY_NAME] [flags]\fP
 
 
 .SH DESCRIPTION
-Manage P2P preheat policies under a project
+Get details of a specific P2P preheat policy under a project
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for policy
+	help for view
+
+.PP
+\fB--id\fP[=false]
+	Get preheat policy by project id
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -32,4 +36,4 @@ Manage P2P preheat policies under a project
 
 
 .SH SEE ALSO
-\fBharbor-project-preheat(1)\fP, \fBharbor-project-preheat-policy-list(1)\fP, \fBharbor-project-preheat-policy-view(1)\fP
+\fBharbor-project-preheat-policy(1)\fP
