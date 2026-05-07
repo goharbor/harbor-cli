@@ -33,15 +33,8 @@ func ListRegistryCommand() *cobra.Command {
 		Short: "list registry",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
+				return err
 			}
 			registry, err := api.ListRegistries(opts)
 
