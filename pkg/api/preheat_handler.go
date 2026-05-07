@@ -49,3 +49,27 @@ func ListPreheatPolicies(projectName string, isID bool, opts ...ListFlags) (*pre
 	}
 	return response, nil
 }
+
+func GetPreheatPolicy(projectName, policyName string, isID bool) (*preheat.GetPolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	if isID {
+		project, err := GetProject(projectName, true)
+		if err != nil {
+			return nil, err
+		}
+		projectName = project.Payload.Name
+	}
+
+	response, err := client.Preheat.GetPolicy(ctx, &preheat.GetPolicyParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
