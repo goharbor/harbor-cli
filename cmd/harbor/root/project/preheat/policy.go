@@ -28,6 +28,7 @@ func PolicyCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		policy.ListPolicyCommand(),
+		policy.ViewPolicyCommand(),
 	)
 
 	return cmd

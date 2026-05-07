@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package list
+package view
 
 import (
 	"encoding/json"
@@ -33,47 +33,49 @@ var columns = []table.Column{
 	{Title: "Filters", Width: tablelist.Width3XL},
 	{Title: "Trigger", Width: tablelist.WidthM},
 	{Title: "Creation Time", Width: tablelist.WidthL},
+	{Title: "Updated", Width: tablelist.WidthL},
 	{Title: "Description", Width: tablelist.WidthM},
 }
 
-func ListPolicies(policies []*models.PreheatPolicy) {
+func ViewPolicy(policy *models.PreheatPolicy) {
 	var rows []table.Row
-	for _, policy := range policies {
-		enabled := "No"
-		if policy.Enabled {
-			enabled = "Yes"
-		}
 
-		createdTime, _ := utils.FormatCreatedTime(policy.CreationTime.String())
-
-		var filters []struct {
-			Type  string `json:"type"`
-			Value string `json:"value"`
-		}
-		var filterParts []string
-		if err := json.Unmarshal([]byte(policy.Filters), &filters); err == nil {
-			for _, f := range filters {
-				filterParts = append(filterParts, fmt.Sprintf("%s: %s", f.Type, f.Value))
-			}
-		}
-
-		var trigger struct {
-			Type string `json:"type"`
-		}
-		if err := json.Unmarshal([]byte(policy.Trigger), &trigger); err != nil {
-			trigger.Type = policy.Trigger
-		}
-
-		rows = append(rows, table.Row{
-			policy.Name,
-			enabled,
-			policy.ProviderName,
-			strings.Join(filterParts, "  "),
-			trigger.Type,
-			createdTime,
-			policy.Description,
-		})
+	enabled := "No"
+	if policy.Enabled {
+		enabled = "Yes"
 	}
+
+	createdTime, _ := utils.FormatCreatedTime(policy.CreationTime.String())
+	updatedTime, _ := utils.FormatCreatedTime(policy.UpdateTime.String())
+
+	var filters []struct {
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	}
+	var filterParts []string
+	if err := json.Unmarshal([]byte(policy.Filters), &filters); err == nil {
+		for _, f := range filters {
+			filterParts = append(filterParts, fmt.Sprintf("%s: %s", f.Type, f.Value))
+		}
+	}
+
+	var trigger struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(policy.Trigger), &trigger); err != nil {
+		trigger.Type = policy.Trigger
+	}
+
+	rows = append(rows, table.Row{
+		policy.Name,
+		enabled,
+		policy.ProviderName,
+		strings.Join(filterParts, "  "),
+		trigger.Type,
+		createdTime,
+		updatedTime,
+		policy.Description,
+	})
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 	if _, err := tea.NewProgram(m).Run(); err != nil {
