@@ -28,7 +28,7 @@ import (
 
 func CreateProject(opts create.CreateView) error {
 	var registryID *int64
-	if opts.RegistryID != "" {
+	if opts.ProxyCache {
 		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
