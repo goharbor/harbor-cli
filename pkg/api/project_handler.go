@@ -26,16 +26,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// CreateProject creates a new Harbor project based on the provided view options.
 func CreateProject(opts create.CreateView) error {
+	var registryID *int64
+	if opts.RegistryID != "" {
+		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
+		}
+		registryID = &id
+	}
+
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
-	}
-	registryID := new(int64)
-	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
-
-	if !opts.ProxyCache {
-		registryID = nil
 	}
 
 	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
