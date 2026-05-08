@@ -1,6 +1,6 @@
 ---
 title: harbor registry create
-weight: 110
+weight: 30
 ---
 ## harbor registry create
 

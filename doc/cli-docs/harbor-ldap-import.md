@@ -1,6 +1,6 @@
 ---
 title: harbor ldap import
-weight: 15
+weight: 80
 ---
 ## harbor ldap import
 

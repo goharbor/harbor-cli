@@ -11,11 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package user
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -23,6 +23,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var passwordUseID bool
 
 func UserPasswordChangeCmd() *cobra.Command {
 	var opts reset.PasswordChangeView
@@ -42,12 +44,17 @@ func UserPasswordChangeCmd() *cobra.Command {
 			}
 
 			if len(args) > 0 {
-				userId, err = api.GetUsersIdByName(args[0])
-				if err != nil {
-					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-				}
-				if userId == 0 {
-					return fmt.Errorf("User with name '%s' not found", args[0])
+				if passwordUseID {
+					parsedID, parseErr := strconv.ParseInt(args[0], 10, 64)
+					if parseErr != nil {
+						return fmt.Errorf("invalid ID '%s': %v", args[0], parseErr)
+					}
+					userId = parsedID
+				} else {
+					userId, err = api.GetUsersIdByName(args[0])
+					if err != nil {
+						return err // Just return the error natively
+					}
 				}
 			} else {
 				userId, err = prompt.GetUserIdFromUser()
@@ -69,5 +76,6 @@ func UserPasswordChangeCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&passwordUseID, "id", false, "Use ID instead of username")
 	return cmd
 }

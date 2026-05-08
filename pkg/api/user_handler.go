@@ -14,6 +14,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -104,11 +106,19 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 }
 
 func GetUsersIdByName(userName string) (int64, error) {
-	var opts ListFlags
+	q, err := utils.BuildQueryParam(nil, []string{fmt.Sprintf("username=%s", userName)}, nil, []string{"username"})
+	if err != nil {
+		return 0, err
+	}
 
+	opts := ListFlags{Q: q}
 	u, err := ListUsers(opts)
 	if err != nil {
 		return 0, err
+	}
+
+	if len(u.Payload) == 0 {
+		return 0, fmt.Errorf("user '%s' not found", userName)
 	}
 
 	for _, user := range u.Payload {
@@ -117,7 +127,7 @@ func GetUsersIdByName(userName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("user '%s' not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {

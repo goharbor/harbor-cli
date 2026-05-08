@@ -1,6 +1,6 @@
 ---
 title: harbor label update
-weight: 70
+weight: 40
 ---
 ## harbor label update
 

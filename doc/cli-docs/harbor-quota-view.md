@@ -1,6 +1,6 @@
 ---
 title: harbor quota view
-weight: 30
+weight: 35
 ---
 ## harbor quota view
 

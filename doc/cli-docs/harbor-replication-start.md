@@ -1,6 +1,6 @@
 ---
 title: harbor replication start
-weight: 35
+weight: 5
 ---
 ## harbor replication start
 

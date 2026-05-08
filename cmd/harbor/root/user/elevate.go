@@ -16,11 +16,11 @@ package user
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -31,49 +31,47 @@ var (
 	elevateUserAPI    = api.ElevateUser
 )
 
+var elevateUseID bool
+
 func ElevateUser(args []string) error {
 	var err error
 	var userId int64
 	if len(args) > 0 {
-		userId, err = getUsersIDByName(args[0])
-		if err != nil {
-			err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-			log.Error(err.Error())
-			return err
-		}
-		if userId == 0 {
-			err = fmt.Errorf("User with name '%s' not found", args[0])
-			log.Error(err.Error())
-			return err
+		if elevateUseID {
+			parsedID, parseErr := strconv.ParseInt(args[0], 10, 64)
+			if parseErr != nil {
+				return fmt.Errorf("invalid ID '%s': %v", args[0], parseErr)
+			}
+			userId = parsedID
+		} else {
+			userId, err = getUsersIDByName(args[0])
+			if err != nil {
+				return err
+			}
+			if userId == 0 {
+				return fmt.Errorf("user '%s' not found", args[0])
+			}
 		}
 	} else {
 		userId, err = getUserIDFromUser()
 		if err != nil {
-			log.Errorf("failed to get user id: %v", err)
-			return err
+			return fmt.Errorf("failed to get user id: %v", err)
 		}
 	}
 	confirm, err := confirmElevation()
 	if err != nil {
-		err = fmt.Errorf("failed to confirm elevation: %v", err)
-		log.Error(err.Error())
-		return err
+		return fmt.Errorf("failed to confirm elevation: %v", err)
 	}
 	if !confirm {
-		err = errors.New("User did not confirm elevation. Aborting command.")
-		log.Error(err.Error())
-		return err
+		return errors.New("user declined elevation")
 	}
 
 	err = elevateUserAPI(userId)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			err = errors.New("Permission denied: Admin privileges are required to execute this command.")
-		} else {
-			err = fmt.Errorf("failed to elevate user: %v", err)
+			return fmt.Errorf("permission denied: admin privileges are required: %w", err)
 		}
-		log.Error(err.Error())
-		return err
+		return fmt.Errorf("failed to elevate user: %v", err)
 	}
 	return nil
 }
@@ -89,5 +87,6 @@ func ElevateUserCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&elevateUseID, "id", false, "Use ID instead of username")
 	return cmd
 }

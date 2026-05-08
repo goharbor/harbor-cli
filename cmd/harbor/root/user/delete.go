@@ -15,13 +15,15 @@ package user
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var deleteUseID bool
 
 // UserDeleteCmd defines the "delete" command for user deletion.
 func UserDeleteCmd() *cobra.Command {
@@ -35,12 +37,26 @@ func UserDeleteCmd() *cobra.Command {
 				errChan := make(chan error, len(args)) // Channel to collect errors
 
 				for _, arg := range args {
-					// Retrieve user ID by name.
-					userID, err := api.GetUsersIdByName(arg)
-					if err != nil {
-						log.Errorf("failed to get user id for '%s': %v", arg, err)
-						continue
+					var userID int64
+					var err error
+
+					// Check if --id flag is passed
+					if deleteUseID {
+						parsedID, parseErr := strconv.ParseInt(arg, 10, 64)
+						if parseErr != nil {
+							errChan <- fmt.Errorf("invalid ID '%s': %v", arg, parseErr)
+							continue
+						}
+						userID = parsedID
+					} else {
+						// Fallback to name search
+						userID, err = api.GetUsersIdByName(arg)
+						if err != nil {
+							errChan <- fmt.Errorf("failed to get user id for '%s': %v", arg, err)
+							continue
+						}
 					}
+
 					wg.Add(1)
 					go func(userID int64) {
 						defer wg.Done()
@@ -59,7 +75,7 @@ func UserDeleteCmd() *cobra.Command {
 				// Process errors from the goroutines.
 				for err := range errChan {
 					if isUnauthorizedError(err) {
-						return fmt.Errorf("permission denied: admin privileges are required to execute this command")
+						return fmt.Errorf("permission denied: admin privileges are required to execute this command: %w", err)
 					} else {
 						return fmt.Errorf("failed to delete user: %w", err)
 					}
@@ -72,15 +88,16 @@ func UserDeleteCmd() *cobra.Command {
 				}
 				if err := api.DeleteUser(userID); err != nil {
 					if isUnauthorizedError(err) {
-						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+						return fmt.Errorf("permission denied: admin privileges are required: %w", err)
 					} else {
 						return fmt.Errorf("failed to delete user: %v", err)
 					}
 				}
 			}
+
 			return nil
 		},
 	}
-
+	cmd.Flags().BoolVar(&deleteUseID, "id", false, "Use ID instead of username")
 	return cmd
 }
