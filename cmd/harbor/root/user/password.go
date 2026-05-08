@@ -62,17 +62,16 @@ func UserPasswordChangeCmd() *cobra.Command {
 			var opts reset.PasswordChangeView
 
 			if passwordStdin {
-				fmt.Print("New Password: ")
+				fmt.Println("New Password: ")
 				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
 				if err != nil {
 					return fmt.Errorf("failed to read password from stdin: %v", err)
 				}
-				fmt.Print("\nConfirm Password: ")
+				fmt.Println("Confirm Password: ")
 				confirmBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
 				if err != nil {
 					return fmt.Errorf("failed to read confirmation password from stdin: %v", err)
 				}
-				fmt.Println()
 				if string(passwordBytes) != string(confirmBytes) {
 					return fmt.Errorf("passwords do not match")
 				}
