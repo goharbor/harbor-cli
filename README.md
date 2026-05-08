@@ -280,7 +280,12 @@ If golang is installed in your system, you can also build the project using the 
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-go build -o harbor-cli cmd/harbor/main.go
+
+# Build the binary
+make harbor-cli
+
+# Test the cmd
+./harbor-cli --help
 ```
 
 # Version Compatibility With Harbor

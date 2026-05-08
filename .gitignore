@@ -21,6 +21,7 @@
 go.work
 /bin
 
+/harbor-cli
 /harbor
 dist/
 /dagger.gen.go

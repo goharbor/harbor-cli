@@ -38,7 +38,7 @@ Make sure [Go](https://go.dev/) is installed (≥ v1.24).
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
-go build -o harbor-cli cmd/harbor/main.go
+make harbor-cli
 ./harbor-cli --help
 ```
 
@@ -95,8 +95,8 @@ If dagger is not installed in your system, you can also build the project using 
 
 ```bash
 gofmt -s -w .
-go build -o ./bin/harbor-cli cmd/harbor/main.go
-./bin/harbor-cli --help
+make harbor-cli
+./harbor-cli --help
 ```
 
 ### 5. Update Documentation 
@@ -141,12 +141,12 @@ A good PR includes:
 > ✅ Note: Add your CLI or unit tests to the `test/` directory.
 
 ```bash
-go test ./...
+make test
 ```
 
 ## 🧹 Code Guidelines
 
-- Use `go fmt ./...` to format your code.
+- Use `make fmt` to format your code.
 - Use descriptive commit messages:
   - `feat`: New feature
   - `fix`: Bug fix
