@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/create"
-	"github.com/sirupsen/logrus"
 )
 
 func CreateInstance(opts create.CreateView) error {
@@ -36,7 +35,7 @@ func CreateInstance(opts create.CreateView) error {
 		return err
 	}
 
-	logrus.Infof("Instance %s created", opts.Name)
+	fmt.Printf("Instance %s created\n", opts.Name)
 	return nil
 }
 
@@ -51,7 +50,7 @@ func DeleteInstance(instanceName string) error {
 		return err
 	}
 
-	logrus.Info("instance deleted successfully")
+	fmt.Println("Instance deleted successfully")
 
 	return nil
 }
@@ -72,7 +71,7 @@ func UpdateInstance(instanceName string, instance models.Instance) error {
 		return err
 	}
 
-	logrus.Infof("Instance %s updated", instance.Name)
+	fmt.Printf("Instance %s updated\n", instance.Name)
 	return nil
 }
 
