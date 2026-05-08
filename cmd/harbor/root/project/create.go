@@ -26,6 +26,7 @@ import (
 // CreateProjectCommand creates a new `harbor create project` command
 func CreateProjectCommand() *cobra.Command {
 	var opts create.CreateView
+	var registryName string
 
 	cmd := &cobra.Command{
 		Use:   "create [project name]",
@@ -37,9 +38,19 @@ func CreateProjectCommand() *cobra.Command {
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
 			}
+			if registryName != "" {
+				registryID, err := api.GetRegistryIdByName(registryName)
+				if err != nil {
+					return fmt.Errorf("failed to get registry ID for name %s: %v", registryName, err)
+				}
+				if registryID == 0 {
+					return fmt.Errorf("registry with name %s not found", registryName)
+				}
+				opts.RegistryID = fmt.Sprintf("%d", registryID)
+			}
 
 			if opts.ProxyCache && opts.RegistryID == "" {
-				return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
+				return fmt.Errorf("proxy cache selected but no registry ID or registry name provided. Use --registry-id or --registry-name")
 			}
 
 			if !opts.ProxyCache && opts.RegistryID != "" {
@@ -75,6 +86,7 @@ func CreateProjectCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.RegistryID, "registry-id", "", "", "ID of referenced registry when creating the proxy cache project")
+	flags.StringVarP(&registryName, "registry-name", "", "", "Name of referenced registry when creating the proxy cache project (alternative to --registry-id)")
 	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "", "Storage quota of the project")
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
