@@ -97,3 +97,33 @@ func DeletePreheatPolicy(projectName, policyName string, isID bool) error {
 	}
 	return nil
 }
+
+func StartPreheatPolicy(projectName, policyName string, isID bool) (string, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return "", err
+	}
+
+	if isID {
+		project, err := GetProject(projectName, true)
+		if err != nil {
+			return "", err
+		}
+		projectName = project.Payload.Name
+	}
+
+	policy, err := GetPreheatPolicy(projectName, policyName, false)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Preheat.ManualPreheat(ctx, &preheat.ManualPreheatParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		Policy:            policy.Payload,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.Location, nil
+}
