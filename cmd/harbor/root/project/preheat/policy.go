@@ -30,6 +30,7 @@ func PolicyCommand() *cobra.Command {
 		policy.ListPolicyCommand(),
 		policy.ViewPolicyCommand(),
 		policy.DeletePolicyCommand(),
+		policy.StartPolicyCommand(),
 	)
 
 	return cmd
