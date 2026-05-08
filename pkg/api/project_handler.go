@@ -30,7 +30,7 @@ import (
 // CreateProject creates a new Harbor project based on the provided view options.
 func CreateProject(opts create.CreateView) error {
 	var registryID *int64
-	if opts.ProxyCache {
+	if opts.RegistryID != "" {
 		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
