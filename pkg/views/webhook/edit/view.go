@@ -15,7 +15,6 @@ package edit
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -106,7 +105,7 @@ func WebhookEditView(editView *EditView) {
 			huh.NewInput().Title("Endpoint URL").
 				Value(&editView.EndpointURL).
 				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
+					if str == "" {
 						return errors.New("endpoint URL cannot be empty")
 					}
 					if err := utils.ValidateURL(str); err != nil {
