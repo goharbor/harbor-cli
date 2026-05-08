@@ -22,7 +22,7 @@ import (
 func Setup(verbose bool, format string) {
 	outp := io.Discard
 	if verbose {
-		outp = os.Stderr
+		outp = os.Stdout
 	}
 
 	var handler slog.Handler
