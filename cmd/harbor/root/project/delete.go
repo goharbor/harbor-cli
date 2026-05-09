@@ -52,6 +52,18 @@ func DeleteProjectCommand() *cobra.Command {
 				}
 			}
 
+			if !forceDelete {
+				confirm, err := prompt.ConfirmProjectDeletion(projectID, args)
+				if err != nil {
+					return err
+				}
+
+				if !confirm {
+					fmt.Println("Aborted.")
+					return nil
+				}
+			}
+
 			if projectID != "" {
 				log.Debugf("Deleting project with ID: %s", projectID)
 				wg.Add(1)
