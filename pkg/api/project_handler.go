@@ -14,7 +14,6 @@
 package api
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -27,18 +26,15 @@ import (
 )
 
 func CreateProject(opts create.CreateView) error {
-	var registryID *int64
-	if opts.ProxyCache {
-		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
-		if err != nil {
-			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
-		}
-		registryID = &id
-	}
-
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
+	}
+	registryID := new(int64)
+	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
+
+	if !opts.ProxyCache {
+		registryID = nil
 	}
 
 	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
@@ -51,7 +47,7 @@ func CreateProject(opts create.CreateView) error {
 	}
 
 	if response != nil {
-		fmt.Println("Project created successfully")
+		log.Info("Project created successfully")
 	}
 	return nil
 }
@@ -142,7 +138,7 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		return err
 	}
 
-	fmt.Printf("Project %s deleted successfully\n", projectNameOrID)
+	log.Infof("Project %s deleted successfully", projectNameOrID)
 	return nil
 }
 
