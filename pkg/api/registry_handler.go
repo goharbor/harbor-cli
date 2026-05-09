@@ -122,10 +122,10 @@ func GetRegistryResponse(registryId int64) (*models.Registry, error) {
 		return nil, err
 	}
 	if response.Payload.ID == 0 {
-		return nil, err
+		return nil, fmt.Errorf("registry %d not found", registryId)
 	}
 
-	return response.GetPayload(), err
+	return response.GetPayload(), nil
 }
 
 func UpdateRegistry(updateView *models.Registry, projectID int64) error {
@@ -187,5 +187,5 @@ func GetRegistryIdByName(registryName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("registry %q not found", registryName)
 }
