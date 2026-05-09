@@ -68,7 +68,7 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			flags := cmd.Flags()
-			interactive := !hasUpdateFlags(cmd)
+			interactive := !hasUpdateValues(opts)
 			if flags.Changed("name") {
 				updateView.Name = opts.Name
 			}
@@ -122,14 +122,13 @@ func UpdateRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func hasUpdateFlags(cmd *cobra.Command) bool {
-	flags := cmd.Flags()
-	return flags.Changed("name") ||
-		flags.Changed("type") ||
-		flags.Changed("description") ||
-		flags.Changed("url") ||
-		flags.Changed("insecure") ||
-		flags.Changed("credential-access-key") ||
-		flags.Changed("credential-access-secret") ||
-		flags.Changed("credential-type")
+func hasUpdateValues(opts *models.Registry) bool {
+	return opts.Name != "" ||
+		opts.Type != "" ||
+		opts.Description != "" ||
+		opts.URL != "" ||
+		opts.Insecure ||
+		opts.Credential.AccessKey != "" ||
+		opts.Credential.AccessSecret != "" ||
+		opts.Credential.Type != ""
 }
