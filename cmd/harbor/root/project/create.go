@@ -38,6 +38,10 @@ func CreateProjectCommand() *cobra.Command {
 			if len(args) > 0 {
 				opts.ProjectName = args[0]
 			}
+			if opts.RegistryID != "" && registryName != "" {
+				return fmt.Errorf("cannot provide both --registry-id and --registry-name. Please use only one")
+			}
+
 			if registryName != "" {
 				registryID, err := api.GetRegistryIdByName(registryName)
 				if err != nil {
@@ -86,7 +90,7 @@ func CreateProjectCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.RegistryID, "registry-id", "", "", "ID of referenced registry when creating the proxy cache project")
-	flags.StringVarP(&registryName, "registry-name", "", "", "Name of referenced registry when creating the proxy cache project (alternative to --registry-id)")
+	flags.StringVarP(&registryName, "registry-name", "", "", "Name of referenced registry when creating the proxy cache project")
 	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "", "Storage quota of the project")
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
