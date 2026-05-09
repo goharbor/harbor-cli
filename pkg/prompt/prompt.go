@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -30,6 +32,7 @@ import (
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
 	lview "github.com/goharbor/harbor-cli/pkg/views/label/select"
 	mview "github.com/goharbor/harbor-cli/pkg/views/member/select"
+	plistselect "github.com/goharbor/harbor-cli/pkg/views/project/listselect"
 	pview "github.com/goharbor/harbor-cli/pkg/views/project/select"
 	qview "github.com/goharbor/harbor-cli/pkg/views/quota/select"
 	rview "github.com/goharbor/harbor-cli/pkg/views/registry/select"
@@ -92,6 +95,43 @@ func GetProjectIDFromUser() (int64, error) {
 	return res.id, res.err
 }
 
+func GetProjectIDsFromUser() ([]int64, error) {
+	type result struct {
+		ids []int64
+		err error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListAllProjects()
+		if err != nil {
+			resultChan <- result{nil, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{nil, errors.New("no projects found")}
+			return
+		}
+
+		ids, err := plistselect.ProjectsListWithId(response.Payload)
+		if err != nil {
+			if err == plistselect.ErrUserAborted {
+				resultChan <- result{nil, errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{nil, fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{ids, nil}
+	}()
+
+	res := <-resultChan
+
+	return res.ids, res.err
+}
+
 func GetProjectNameFromUser() (string, error) {
 	type result struct {
 		name string
@@ -126,6 +166,62 @@ func GetProjectNameFromUser() (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+func GetProjectNamesFromUser() ([]string, error) {
+	type result struct {
+		names []string
+		err   error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListAllProjects()
+		if err != nil {
+			resultChan <- result{nil, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{nil, errors.New("no projects found")}
+			return
+		}
+
+		names, err := plistselect.ProjectsList(response.Payload)
+		if err != nil {
+			if err == plistselect.ErrUserAborted {
+				resultChan <- result{nil, errors.New("user aborted project selection")}
+			} else {
+				resultChan <- result{nil, fmt.Errorf("error during project selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{names, nil}
+	}()
+
+	res := <-resultChan
+	return res.names, res.err
+}
+
+func PromptForMoreProjects() (bool, error) {
+	var addMore bool
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewNote().
+				Title("Project Selection").
+				Description("You can add permissions for multiple projects to this robot account."),
+			huh.NewSelect[bool]().
+				Title("Would you like to add another project?").
+				Description("Select 'Yes' to add a project, 'No' to continue with your current selection.").
+				Options(
+					huh.NewOption("No", false),
+					huh.NewOption("Yes", true),
+				).
+				Value(&addMore),
+		),
+	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
+	return addMore, err
 }
 
 // GetRoleNameFromUser prompts the user to select a role and returns it.
@@ -456,4 +552,19 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func PromptPermissionMode() (string, error) {
+	options := []string{
+		"none",
+		"per_project",
+		"list",
+	}
+	permissionMode, err := selection.SelectFromOptionsListString(
+		options,
+		"Permission Mode", "Choose 'list' to select multiple projects with common \npermissions, or 'per_project' for individual project \npermissions or 'none' for no project permissions (system-level only).")
+	if err != nil {
+		return "", err
+	}
+	return permissionMode, err
 }

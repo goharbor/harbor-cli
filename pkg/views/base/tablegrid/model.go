@@ -16,10 +16,65 @@ package tablegrid
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+// KeyMap defines all key bindings for TableGrid and implements help.KeyMap.
+type KeyMap struct {
+	Up       key.Binding
+	Down     key.Binding
+	Left     key.Binding
+	Right    key.Binding
+	Toggle   key.Binding
+	RowOn    key.Binding
+	RowOff   key.Binding
+	ColOn    key.Binding
+	ColOff   key.Binding
+	TableOn  key.Binding
+	TableOff key.Binding
+	Submit   key.Binding
+	Quit     key.Binding
+	Help     key.Binding
+}
+
+func (k KeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Up, k.Down, k.Left, k.Right,
+		k.Toggle, k.TableOn,
+		k.Submit, k.Quit, k.Help}
+}
+
+func (k KeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.Left, k.Right},
+		{k.Toggle, k.RowOn, k.RowOff},
+		{k.ColOn, k.ColOff, k.TableOn, k.TableOff},
+		{k.Submit, k.Quit},
+	}
+}
+
+// DefaultKeyMap returns the default key bindings.
+func DefaultKeyMap() KeyMap {
+	return KeyMap{
+		Up:       key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "move up")),
+		Down:     key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "move down")),
+		Left:     key.NewBinding(key.WithKeys("left", "h"), key.WithHelp("←/h", "move left")),
+		Right:    key.NewBinding(key.WithKeys("right", "l"), key.WithHelp("→/l", "move right")),
+		Toggle:   key.NewBinding(key.WithKeys(" ", "enter"), key.WithHelp("space/enter", "toggle cell")),
+		RowOn:    key.NewBinding(key.WithKeys("ctrl+j"), key.WithHelp("^J", "row on")),
+		RowOff:   key.NewBinding(key.WithKeys("ctrl+k"), key.WithHelp("^K", "row off")),
+		ColOn:    key.NewBinding(key.WithKeys("ctrl+h"), key.WithHelp("^H", "col on")),
+		ColOff:   key.NewBinding(key.WithKeys("ctrl+l"), key.WithHelp("^L", "col off")),
+		TableOn:  key.NewBinding(key.WithKeys("ctrl+a"), key.WithHelp("^A", "all on")),
+		TableOff: key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("^D", "all off")),
+		Submit:   key.NewBinding(key.WithKeys("ctrl+s"), key.WithHelp("^S", "submit")),
+		Quit:     key.NewBinding(key.WithKeys("q", "ctrl+c"), key.WithHelp("q", "quit")),
+		Help:     key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "See For How to Toggle")),
+	}
+}
 
 // CellStatus represents a cell's toggle state
 type CellStatus bool
@@ -35,6 +90,8 @@ type TableGrid struct {
 	Styles      Styles               // Custom styles
 	Icons       Icons                // Custom icons
 	Footer      string               // Custom footer text
+	Help        help.Model
+	Keys        KeyMap
 }
 
 // Styles contains customizable styles for the table grid
@@ -154,6 +211,8 @@ func New(config Config) *TableGrid {
 		Styles:      styles,
 		Icons:       icons,
 		Footer:      config.Footer,
+		Help:        help.New(),
+		Keys:        DefaultKeyMap(),
 	}
 }
 
@@ -375,6 +434,9 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.refreshTable(rowIdx, colIdx)
 			return m, nil
 
+		case "?":
+			m.Help.ShowAll = !m.Help.ShowAll
+			return m, nil
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		}
@@ -396,10 +458,7 @@ func (m *TableGrid) View() string {
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
 
-	footer := "\n ↑/↓ move row • ⌃J toggle row on  • ⌃H toggle col on  • ^A toggle table on  • space/enter to toggle\n" +
-		" ←/→ move col • ⌃K toggle row off • ⌃L toggle col off • ^D toggle table off • ^S submit • q to cancel \n"
-
-	return out + footer
+	return out + "\n" + m.Help.View(m.Keys)
 }
 
 // GetData returns the current selection state

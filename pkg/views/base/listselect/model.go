@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package selection
+package listselect
 
 import (
 	"fmt"
 	"io"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
@@ -30,7 +30,9 @@ type Item string
 
 func (i Item) FilterValue() string { return string(i) }
 
-type ItemDelegate struct{}
+type ItemDelegate struct {
+	Selected *map[int]struct{}
+}
 
 func (d ItemDelegate) Height() int                             { return 1 }
 func (d ItemDelegate) Spacing() int                            { return 0 }
@@ -41,7 +43,14 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i)
+	checked := " "
+	if d.Selected != nil {
+		if _, ok := (*d.Selected)[index]; ok {
+			checked = "✓"
+		}
+	}
+
+	str := fmt.Sprintf("[%s] %d. %s", checked, index+1, i)
 
 	fn := views.ItemStyle.Render
 	if index == m.Index() {
@@ -54,25 +63,40 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type Model struct {
-	List    list.Model
-	Choice  string
-	Aborted bool
+	List     list.Model
+	Choices  []string
+	Selected map[int]struct{}
+	Aborted  bool
 }
 
-func NewModel(items []list.Item, construct string, description ...string) Model {
+func NewModel(items []list.Item, construct string) Model {
 	const defaultWidth = 20
-	l := list.New(items, ItemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select a " + construct
-	l.SetShowStatusBar(false)
+	selected := make(map[int]struct{})
+	l := list.New(items, ItemDelegate{Selected: &selected}, defaultWidth, listHeight)
+	l.Title = "Select one or more " + construct + " (space to toggle, enter to confirm)"
+	l.SetShowStatusBar(true)
 	l.SetFilteringEnabled(true)
+	l.SetShowHelp(true)
 	l.Styles.Title = views.TitleStyle
 	l.Styles.PaginationStyle = views.PaginationStyle
 	l.Styles.HelpStyle = views.HelpStyle
-	if len(description) > 0 {
-		subtitle := lipgloss.NewStyle().Faint(true).Render(strings.Join(description, " "))
-		l.Title = l.Title + "\n" + subtitle
+
+	toggleKey := key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("space", "toggle"),
+	)
+	confirmKey := key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "confirm"),
+	)
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{toggleKey, confirmKey}
 	}
-	return Model{List: l}
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{toggleKey, confirmKey}
+	}
+
+	return Model{List: l, Selected: selected}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -87,14 +111,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
+		case " ":
+			idx := m.List.Index()
+			if _, ok := m.Selected[idx]; ok {
+				delete(m.Selected, idx)
+			} else {
+				m.Selected[idx] = struct{}{}
+			}
+			return m, nil
 		case "enter":
-			if m.List.FilterState() != list.Filtering {
-				i, ok := m.List.SelectedItem().(Item)
-				if ok {
-					m.Choice = string(i)
-					return m, tea.Quit
+			if len(m.Selected) == 0 {
+				cmd := m.List.NewStatusMessage("!! Please select at least one item !!")
+				return m, cmd
+			}
+			for idx := range m.Selected {
+				if i, ok := m.List.Items()[idx].(Item); ok {
+					m.Choices = append(m.Choices, string(i))
 				}
 			}
+			return m, tea.Quit
+		case "ctrl+c", "esc":
+			m.Aborted = true
+			return m, tea.Quit
+		case "up", "k":
+			m.List.CursorUp()
+			return m, nil
+		case "down", "j":
+			m.List.CursorDown()
+			return m, nil
 		}
 	}
 
@@ -104,8 +148,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.Choice != "" {
+	if m.Aborted {
 		return ""
+	}
+	if len(m.Choices) > 0 {
+		return fmt.Sprintf("Selected: %s\n", strings.Join(m.Choices, ", "))
 	}
 	return "\n" + m.List.View()
 }
