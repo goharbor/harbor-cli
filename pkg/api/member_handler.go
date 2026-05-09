@@ -195,6 +195,36 @@ func DeleteMemberByUsername(projectName string, username string, xIsResourceName
 	return nil
 }
 
+// UpdateMemberByUsername resolves a project-member entry by username and
+// updates its role. The Harbor UpdateProjectMember API takes the project
+// member ID (project_members.id), not the user ID — these are distinct and
+// must not be confused, so callers should prefer this helper over manually
+// looking up the user ID and passing it as Mid.
+func UpdateMemberByUsername(projectNameOrID, username string, xIsResourceName bool, role *models.RoleRequest) error {
+	members, err := ListMembers(projectNameOrID, username, true)
+	if err != nil {
+		return err
+	}
+
+	var memberID int64
+	for _, m := range members.Payload {
+		if m.EntityName == username {
+			memberID = m.ID
+			break
+		}
+	}
+	if memberID == 0 {
+		return fmt.Errorf("member with username %q not found in project %q", username, projectNameOrID)
+	}
+
+	return UpdateMember(UpdateMemberOptions{
+		ProjectNameOrID: projectNameOrID,
+		ID:              memberID,
+		XIsResourceName: xIsResourceName,
+		RoleID:          role,
+	})
+}
+
 func UpdateMember(opts UpdateMemberOptions) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
