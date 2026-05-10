@@ -145,6 +145,23 @@ func CreatePreheatPolicy(projectName string, policy *models.PreheatPolicy) (*pre
 	return response, nil
 }
 
+func UpdatePreheatPolicy(projectName, policyName string, policy *models.PreheatPolicy) (*preheat.UpdatePolicyOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.UpdatePolicy(ctx, &preheat.UpdatePolicyParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		Policy:            policy,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 func ListProvidersUnderProject(projectName string) ([]*models.ProviderUnderProject, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
