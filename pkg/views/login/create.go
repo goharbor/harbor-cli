@@ -68,9 +68,6 @@ func CreateView(loginView *LoginView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("password cannot be empty or only spaces")
 					}
-					if err := utils.ValidatePassword(str); err != nil {
-						return err
-					}
 					return nil
 				}),
 			huh.NewInput().
