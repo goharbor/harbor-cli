@@ -24,25 +24,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// PoolsCommand creates the pools subcommand.
-func PoolsCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "pools",
-		Aliases: []string{"pool"},
-		Short:   "Manage worker pools (list available pools)",
-		Long: `List and manage worker pools for the Harbor job service.
-
-Use 'list' to view all worker pools.
-
-Examples:
-  harbor jobservice pools list
-  harbor jobservice pool list`,
-	}
-
-	cmd.AddCommand(ListCommand())
-	return cmd
-}
-
 // ListCommand lists all worker pools.
 func ListCommand() *cobra.Command {
 	cmd := &cobra.Command{
