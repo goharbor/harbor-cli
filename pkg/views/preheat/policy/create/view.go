@@ -138,7 +138,7 @@ func CreatePreheatPolicyView(createView *CreateView, providers []*models.Provide
 	}
 
 	if createView.TriggerType == "scheduled" {
-		schedulePreset := "none"
+		schedulePreset := schedulePresetForCron(createView.CronString)
 		presetForm := huh.NewForm(
 			huh.NewGroup(
 				huh.NewSelect[string]().
@@ -189,6 +189,21 @@ func CreatePreheatPolicyView(createView *CreateView, providers []*models.Provide
 		} else {
 			createView.CronString = resolveSchedulePreset(schedulePreset, "")
 		}
+	}
+}
+
+func schedulePresetForCron(cron string) string {
+	switch strings.TrimSpace(cron) {
+	case "":
+		return "none"
+	case "0 0 * * * *":
+		return "hourly"
+	case "0 0 0 * * *":
+		return "daily"
+	case "0 0 0 * * 0":
+		return "weekly"
+	default:
+		return "custom"
 	}
 }
 
