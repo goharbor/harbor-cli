@@ -29,6 +29,7 @@ Manage P2P preheat policies under a project
 ### SEE ALSO
 
 * [harbor project preheat](harbor-project-preheat.md)	 - Manage project preheat resources
+* [harbor project preheat policy create](harbor-project-preheat-policy-create.md)	 - Create a preheat policy
 * [harbor project preheat policy delete](harbor-project-preheat-policy-delete.md)	 - Delete a preheat policy
 * [harbor project preheat policy list](harbor-project-preheat-policy-list.md)	 - List preheat policies under a project by name or id
 * [harbor project preheat policy start](harbor-project-preheat-policy-start.md)	 - Manually trigger a preheat policy
