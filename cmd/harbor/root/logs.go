@@ -51,16 +51,24 @@ This command retrieves the audit logs for the projects the user is a member of. 
 When --page and/or --page-size are explicitly provided, a pagination summary (for example: "Showing 6-10 of 14") is shown in default table output.
 
 Convenience filter flags are available to build query expressions:
-- --operation
-- --resource-type
-- --resource
-- --username
+- --operation (operation type, e.g., create, delete, pull, login, logout, update)
+- --resource-type (resource type, e.g., user, artifact, project, repository)
+- --resource (resource name)
+- --username (username)
 - --from-time and optional --to-time (for op_time range)
 
+IMPORTANT: Event types from 'harbor logs events' are compound strings (e.g., 'create_user', 'delete_artifact').
+These must be split into separate flags:
+  create_user       → --operation create --resource-type user
+  delete_artifact   → --operation delete --resource-type artifact
+  pull_repository   → --operation pull --resource-type repository
+  login_user        → --operation login --resource-type user
+
+Examples:
+harbor-cli logs --operation create --resource-type user
+harbor-cli logs --operation delete --resource-type artifact --resource library/nginx
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
-
 harbor-cli logs --follow --refresh-interval 2s
-
 harbor-cli logs --output-format json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Page < 1 {
@@ -141,8 +149,8 @@ harbor-cli logs --output-format json`,
 	flags.BoolVarP(&follow, "follow", "f", false, "Follow log output (tail -f behavior)")
 	flags.StringVarP(&refreshInterval, "refresh-interval", "n", "",
 		"Interval to refresh logs when following (default: 5s)")
-	flags.StringVar(&operationFilter, "operation", "", "Filter by operation")
-	flags.StringVar(&resourceTypeFilter, "resource-type", "", "Filter by resource type")
+	flags.StringVar(&operationFilter, "operation", "", "Filter by operation (e.g. create, delete, pull, login, logout, update). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.")
+	flags.StringVar(&resourceTypeFilter, "resource-type", "", "Filter by resource type (e.g. user, artifact, project, repository). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.")
 	flags.StringVar(&resourceFilter, "resource", "", "Filter by resource name")
 	flags.StringVar(&usernameFilter, "username", "", "Filter by username")
 	flags.StringVar(&fromTimeFilter, "from-time", "", "Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Required when using --to-time")
@@ -165,10 +173,25 @@ func LogsEventTypesCommand() *cobra.Command {
 By default, all event types are shown.
 Use --page and --page-size to paginate the result.
 
+NOTE: Each event type shown maps to two separate filter flags:
+  create_user        → --operation create --resource-type user
+  create_artifact    → --operation create --resource-type artifact
+  delete_artifact    → --operation delete --resource-type artifact
+  delete_project     → --operation delete --resource-type project
+  login_user         → --operation login --resource-type user
+  logout_user        → --operation logout --resource-type user
+  pull_repository    → --operation pull --resource-type repository
+  push_artifact      → --operation push --resource-type artifact
+  update_artifact    → --operation update --resource-type artifact
+
+When filtering logs with 'harbor logs', use both --operation and --resource-type flags separately.
+
 Examples:
   harbor-cli logs events
   harbor-cli logs events --page 2 --page-size 5
-  harbor-cli logs events --output-format json --page 2 --page-size 5`,
+  harbor-cli logs events --output-format json --page 2 --page-size 5
+  harbor-cli logs --operation create --resource-type user
+  harbor-cli logs --operation delete --resource-type artifact`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			showPaginationSummary := shouldShowPaginationSummary(cmd, "page", "page-size")
