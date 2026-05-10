@@ -32,10 +32,11 @@ func CreatePolicyCommand() *cobra.Command {
 	var configFile string
 
 	cmd := &cobra.Command{
-		Use:   "create [NAME|ID]",
-		Short: "Create a preheat policy",
-		Long:  "Create a new P2P preheat policy under a project",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "create [NAME|ID]",
+		Short:   "Create a preheat policy",
+		Long:    "Create a new P2P preheat policy under a project",
+		Example: `  harbor-cli project preheat policy create [NAME|ID]`,
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName string
