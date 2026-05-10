@@ -16,6 +16,12 @@ Create a new P2P preheat policy under a project
 harbor project preheat policy create [NAME|ID] [flags]
 ```
 
+### Examples
+
+```sh
+  harbor-cli project preheat policy create [NAME|ID]
+```
+
 ### Options
 
 ```sh

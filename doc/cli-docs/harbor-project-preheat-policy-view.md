@@ -16,6 +16,12 @@ Get details of a specific P2P preheat policy under a project
 harbor project preheat policy view [NAME|ID] [POLICY_NAME] [flags]
 ```
 
+### Examples
+
+```sh
+  harbor-cli project preheat policy view [NAME|ID] [POLICY_NAME]
+```
+
 ### Options
 
 ```sh

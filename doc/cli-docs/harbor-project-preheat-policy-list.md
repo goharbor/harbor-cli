@@ -6,7 +6,7 @@ weight: 20
 
 ### Description
 
-##### List preheat policies under a project by name or id
+##### List preheat policies under a project
 
 ### Synopsis
 
@@ -14,6 +14,12 @@ List project-scoped P2P preheat policies in Harbor
 
 ```sh
 harbor project preheat policy list [NAME|ID] [flags]
+```
+
+### Examples
+
+```sh
+  harbor-cli project preheat policy list [NAME|ID]
 ```
 
 ### Options

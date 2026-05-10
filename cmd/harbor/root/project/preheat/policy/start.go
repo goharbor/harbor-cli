@@ -27,10 +27,11 @@ func StartPolicyCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:   "start [NAME|ID] [POLICY_NAME]",
-		Short: "Manually trigger a preheat policy",
-		Long:  "Manually trigger a specific P2P preheat policy under a project",
-		Args:  cobra.MaximumNArgs(2),
+		Use:     "start [NAME|ID] [POLICY_NAME]",
+		Short:   "Manually trigger a preheat policy",
+		Long:    "Manually trigger a specific P2P preheat policy under a project",
+		Example: `  harbor-cli project preheat policy start [NAME|ID] [POLICY_NAME]`,
+		Args:    cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string

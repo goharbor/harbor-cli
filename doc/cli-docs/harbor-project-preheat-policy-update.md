@@ -16,6 +16,12 @@ Update an existing P2P preheat policy under a project
 harbor project preheat policy update [NAME|ID] [POLICY_NAME] [flags]
 ```
 
+### Examples
+
+```sh
+  harbor-cli project preheat policy update [NAME|ID] [POLICY_NAME]
+```
+
 ### Options
 
 ```sh

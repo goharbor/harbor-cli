@@ -2,7 +2,7 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-preheat-policy-list - List preheat policies under a project by name or id
+harbor-project-preheat-policy-list - List preheat policies under a project
 
 
 .SH SYNOPSIS
@@ -49,6 +49,12 @@ List project-scoped P2P preheat policies in Harbor
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli project preheat policy list [NAME|ID]
+.EE
 
 
 .SH SEE ALSO
