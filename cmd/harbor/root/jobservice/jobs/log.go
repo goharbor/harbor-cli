@@ -21,28 +21,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// JobsCommand creates the jobs subcommand
-func JobsCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "jobs",
-		Short: "Manage job logs (view by job ID)",
-		Long:  "View logs for specific jobs.",
-	}
-
-	cmd.AddCommand(LogCommand())
-
-	return cmd
-}
-
 // LogCommand retrieves and displays job logs
 func LogCommand() *cobra.Command {
 	var jobID string
 
 	cmd := &cobra.Command{
-		Use:     "log",
-		Short:   "View a job log (--job-id required)",
-		Long:    "Display the log for a specific job by job ID.",
-		Example: "harbor jobservice jobs log --job-id abc123def456",
+		Use:   "log",
+		Short: "View a job log (--job-id required)",
+		Long: `Display the log for a specific job by job ID.
+
+Job logs contain detailed execution information including status updates, error messages, and processing details.
+The --job-id flag is required to specify which job's log to retrieve.
+
+Job IDs can be obtained from the 'harbor jobservice jobs list' command.`,
+		Example: `View a specific job log:
+  harbor jobservice jobs log --job-id abc123def456
+
+View log with verbose output:
+  harbor jobservice jobs log --job-id abc123def456 -v`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if jobID == "" {
 				return fmt.Errorf("--job-id must be specified")

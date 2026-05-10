@@ -22,31 +22,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// FreeCommand frees a worker by stopping the running job on it.
-func FreeCommand() *cobra.Command {
-	var jobID string
-
+// FreeAllCommand frees all busy workers by stopping all running jobs.
+func FreeAllCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "free",
-		Short:   "Free one worker (--job-id required)",
-		Long:    "Stop a running job by job ID to free its worker.",
-		Example: "harbor jobservice workers free --job-id abc123",
+		Use:     "free-all",
+		Short:   "Free all busy workers (job-id=all)",
+		Long:    "Stop all running jobs to free all busy workers.",
+		Example: "harbor jobservice workers free-all",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if jobID == "" {
-				return fmt.Errorf("--job-id is required")
-			}
-
-			err := api.StopRunningJob(jobID)
+			err := api.StopRunningJob("all")
 			if err != nil {
-				return jobserviceutils.FormatScheduleError("failed to free worker", err, "ActionStop")
+				return jobserviceutils.FormatScheduleError("failed to free all workers", err, "ActionStop")
 			}
 
-			fmt.Printf("Worker job %q stopped successfully.\n", jobID)
+			fmt.Println("All busy workers were freed successfully.")
 			return nil
 		},
 	}
-
-	cmd.Flags().StringVar(&jobID, "job-id", "", "Running job ID to stop")
 
 	return cmd
 }

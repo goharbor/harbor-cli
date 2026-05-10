@@ -36,11 +36,11 @@ func TestListCommandAddsPaginationFlags(t *testing.T) {
 }
 
 func TestListWorkersPaginationValidation(t *testing.T) {
-	if err := listWorkers(ListCommand(), nil, "", false, 0, 20); err == nil || !strings.Contains(err.Error(), "page must be >= 1") {
+	if err := listWorkers("all", 0, 20); err == nil || !strings.Contains(err.Error(), "page must be >= 1") {
 		t.Fatalf("expected page validation error, got %v", err)
 	}
 
-	if err := listWorkers(ListCommand(), nil, "", false, 1, 0); err == nil || !strings.Contains(err.Error(), "page-size must be >= 1") {
+	if err := listWorkers("all", 1, 0); err == nil || !strings.Contains(err.Error(), "page-size must be >= 1") {
 		t.Fatalf("expected page-size validation error, got %v", err)
 	}
 }
