@@ -15,6 +15,7 @@ package api
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/preheat"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -126,4 +127,35 @@ func StartPreheatPolicy(projectName, policyName string, isID bool) (string, erro
 		return "", err
 	}
 	return resp.Location, nil
+}
+
+func CreatePreheatPolicy(projectName string, policy *models.PreheatPolicy) (*preheat.CreatePolicyCreated, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.CreatePolicy(ctx, &preheat.CreatePolicyParams{
+		ProjectName: projectName,
+		Policy:      policy,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func ListProvidersUnderProject(projectName string) ([]*models.ProviderUnderProject, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.ListProvidersUnderProject(ctx, &preheat.ListProvidersUnderProjectParams{
+		ProjectName: projectName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response.Payload, nil
 }
