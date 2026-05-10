@@ -18,19 +18,26 @@ When --page and/or --page-size are explicitly provided, a pagination summary (fo
 
 .PP
 Convenience filter flags are available to build query expressions:
-- --operation
-- --resource-type
-- --resource
-- --username
+- --operation (operation type, e.g., create, delete, pull, login, logout, update)
+- --resource-type (resource type, e.g., user, artifact, project, repository)
+- --resource (resource name)
+- --username (username)
 - --from-time and optional --to-time (for op_time range)
 
 .PP
+IMPORTANT: Event types from 'harbor logs events' are compound strings (e.g., 'create_user', 'delete_artifact').
+These must be split into separate flags:
+  create_user       → --operation create --resource-type user
+  delete_artifact   → --operation delete --resource-type artifact
+  pull_repository   → --operation pull --resource-type repository
+  login_user        → --operation login --resource-type user
+
+.PP
+Examples:
+harbor-cli logs --operation create --resource-type user
+harbor-cli logs --operation delete --resource-type artifact --resource library/nginx
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
-
-.PP
 harbor-cli logs --follow --refresh-interval 2s
-
-.PP
 harbor-cli logs --output-format json
 
 
@@ -48,7 +55,7 @@ harbor-cli logs --output-format json
 
 .PP
 \fB--operation\fP=""
-	Filter by operation
+	Filter by operation (e.g. create, delete, pull, login, logout, update). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.
 
 .PP
 \fB--page\fP=1
@@ -72,7 +79,7 @@ harbor-cli logs --output-format json
 
 .PP
 \fB--resource-type\fP=""
-	Filter by resource type
+	Filter by resource type (e.g. user, artifact, project, repository). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.
 
 .PP
 \fB--sort\fP=""

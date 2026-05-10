@@ -17,10 +17,27 @@ By default, all event types are shown.
 Use --page and --page-size to paginate the result.
 
 .PP
+NOTE: Each event type shown maps to two separate filter flags:
+  create_user        → --operation create --resource-type user
+  create_artifact    → --operation create --resource-type artifact
+  delete_artifact    → --operation delete --resource-type artifact
+  delete_project     → --operation delete --resource-type project
+  login_user         → --operation login --resource-type user
+  logout_user        → --operation logout --resource-type user
+  pull_repository    → --operation pull --resource-type repository
+  push_artifact      → --operation push --resource-type artifact
+  update_artifact    → --operation update --resource-type artifact
+
+.PP
+When filtering logs with 'harbor logs', use both --operation and --resource-type flags separately.
+
+.PP
 Examples:
   harbor-cli logs events
   harbor-cli logs events --page 2 --page-size 5
   harbor-cli logs events --output-format json --page 2 --page-size 5
+  harbor-cli logs --operation create --resource-type user
+  harbor-cli logs --operation delete --resource-type artifact
 
 
 .SH OPTIONS
@@ -42,7 +59,7 @@ Examples:
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
+	Output format. One of: json|yaml|csv
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
