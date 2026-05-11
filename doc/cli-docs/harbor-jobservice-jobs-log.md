@@ -12,6 +12,11 @@ weight: 35
 
 Display the log for a specific job by job ID.
 
+Job logs contain detailed execution information including status updates, error messages, and processing details.
+The --job-id flag is required to specify which job's log to retrieve.
+
+Job IDs can be obtained from the 'harbor jobservice jobs list' command.
+
 ```sh
 harbor jobservice jobs log [flags]
 ```
@@ -19,7 +24,11 @@ harbor jobservice jobs log [flags]
 ### Examples
 
 ```sh
-harbor jobservice jobs log --job-id abc123def456
+View a specific job log:
+  harbor jobservice jobs log --job-id abc123def456
+
+View log with verbose output:
+  harbor jobservice jobs log --job-id abc123def456 -v
 ```
 
 ### Options
@@ -33,7 +42,7 @@ harbor jobservice jobs log --job-id abc123def456
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 

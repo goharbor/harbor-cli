@@ -15,6 +15,12 @@ This requires system admin privileges.
 
 Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.
 
+Examples:
+  harbor jobservice pools list
+  harbor jobservice workers list
+  harbor jobservice jobs list
+  harbor jobservice jobs list --page 1 --page-size 10
+
 ### Options
 
 ```sh
@@ -25,7 +31,7 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
