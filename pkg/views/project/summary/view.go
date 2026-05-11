@@ -25,23 +25,40 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "Metric", Width: tablelist.WidthXXL},
-	{Title: "Value", Width: tablelist.WidthXXL},
+	{Title: "Property", Width: tablelist.WidthL},
+	{Title: "Value", Width: tablelist.Width3XL},
+}
+
+
+var order = []string{
+	"Project Name",
+	"Project ID",
+	"Visibility",
+	"Repositories",
+	"Project Admin Count",
+	"Maintainer Count",
+	"Developer Count",
+	"Guest Count",
+	"Limited Guest Count",
 }
 
 func ViewProjectSummary(project *models.Project, summary *models.ProjectSummary) error {
+	summaryMap := map[string]string{
+		"Project Name":        project.Name,
+		"Project ID":          strconv.FormatInt(int64(project.ProjectID), 10),
+		"Visibility":          project.Metadata.Public,
+		"Repositories":        strconv.FormatInt(summary.RepoCount, 10),
+		"Project Admin Count": strconv.FormatInt(summary.ProjectAdminCount, 10),
+		"Maintainer Count":    strconv.FormatInt(summary.MaintainerCount, 10),
+		"Developer Count":     strconv.FormatInt(summary.DeveloperCount, 10),
+		"Guest Count":         strconv.FormatInt(summary.GuestCount, 10),
+		"Limited Guest Count": strconv.FormatInt(summary.LimitedGuestCount, 10),
+	}
+
 	var rows []table.Row
-
-	rows = append(rows, table.Row{"Project Name", project.Name})
-	rows = append(rows, table.Row{"Project ID", strconv.FormatInt(int64(project.ProjectID), 10)})
-	rows = append(rows, table.Row{"Visibility", project.Metadata.Public})
-
-	rows = append(rows, table.Row{"Repositories", strconv.FormatInt(summary.RepoCount, 10)})
-	rows = append(rows, table.Row{"Project Admin Count", strconv.FormatInt(summary.ProjectAdminCount, 10)})
-	rows = append(rows, table.Row{"Maintainer Count", strconv.FormatInt(summary.MaintainerCount, 10)})
-	rows = append(rows, table.Row{"Developer Count", strconv.FormatInt(summary.DeveloperCount, 10)})
-	rows = append(rows, table.Row{"Guest Count", strconv.FormatInt(summary.GuestCount, 10)})
-	rows = append(rows, table.Row{"Limited Guest Count", strconv.FormatInt(summary.LimitedGuestCount, 10)})
+	for _, key := range order {
+		rows = append(rows, table.Row{key, summaryMap[key]})
+	}
 
 	if summary.Quota != nil {
 		for resource, hardValue := range summary.Quota.Hard {

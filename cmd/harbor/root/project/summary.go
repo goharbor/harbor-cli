@@ -16,24 +16,24 @@ package project
 import (
 	"fmt"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/summary"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var getProjectSummaryFunc = api.GetProjectSummary
-
+// SummaryCommand creates a new harbor project summary command
 func SummaryCommand() *cobra.Command {
 	var isID bool
 	cmd := &cobra.Command{
-		Use:   "summary [PROJECT_NAME|PROJECT_ID]",
-		Short: "Get summary of a project",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "summary [NAME|ID]",
+		Short:   "Get summary of a project",
+		Long:    "Get summary of a project by name or ID. If no arguments are provided, it will prompt for the project name. Use --id to specify the project ID instead of the name.",
+		Example: "harbor project summary my-project or harbor project summary 1 --id",
+		Args:    cobra.MaximumNArgs(1),
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var projectName string
 			var err error
@@ -47,69 +47,46 @@ func SummaryCommand() *cobra.Command {
 				}
 			}
 
-			log.Debugf("Fetching project metadata: %s", projectName)
 			projectData, err := api.GetProject(projectName, isID)
 			if err != nil {
-				return handleProjectError(err, projectName, "get details of")
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("project %s does not exist", projectName)
+				}
+				return fmt.Errorf("failed to get project details: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.Debugf("Fetching project summary: %s", projectName)
-			projectSummary, err := getProjectSummaryFunc(projectName, isID)
+			projectSummary, err := api.GetProjectSummary(projectName, isID)
 			if err != nil {
-				return handleProjectError(err, projectName, "get summary of")
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("project %s does not exist", projectName)
+				}
+				return fmt.Errorf("failed to get project summary: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				log.WithField("output_format", FormatFlag).Debug("Output format selected")
-				if FormatFlag == "csv" {
-					type combinedCSV struct {
-						Project *models.Project        `json:"project" csv:"project"`
-						Summary *models.ProjectSummary `json:"summary" csv:"summary"`
-					}
-					combined := []combinedCSV{{
-						Project: projectData.Payload,
-						Summary: projectSummary.Payload,
-					}}
-					err = utils.PrintFormat(combined, FormatFlag)
-				} else {
-					combined := map[string]interface{}{
-						"project": projectData.Payload,
-						"summary": projectSummary.Payload,
-					}
-					err = utils.PrintFormat(combined, FormatFlag)
+				combined := map[string]interface{}{
+					"project": projectData.Payload,
+					"summary": projectSummary.Payload,
 				}
+				err = utils.PrintFormat(combined, FormatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				log.Debug("Showing project summary using default view")
 				err = summary.ViewProjectSummary(projectData.Payload, projectSummary.Payload)
 				if err != nil {
 					return err
 				}
 			}
+
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVarP(&isID, "id", "i", false, "Identify project by ID instead of name")
+	flags := cmd.Flags()
+	flags.BoolVar(&isID, "id", false, "Get project by id")
 
 	return cmd
 }
 
-func handleProjectError(err error, name string, action string) error {
-	errorCode := utils.ParseHarborErrorCode(err)
-	switch errorCode {
-	case "401":
-		return fmt.Errorf("unauthorized: please login to Harbor")
-	case "403":
-		return fmt.Errorf("forbidden: you do not have permission to %s project %s", action, name)
-	case "404":
-		return fmt.Errorf("project %s does not exist", name)
-	case "500":
-		return fmt.Errorf("internal server error: please contact your administrator")
-	default:
-		return fmt.Errorf("failed to %s project %s: %v", action, name, utils.ParseHarborErrorMsg(err))
-	}
-}
