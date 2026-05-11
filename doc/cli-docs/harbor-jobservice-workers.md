@@ -18,8 +18,10 @@ Use 'free' and 'free-all' to stop running jobs and release busy workers.
 Examples:
   harbor jobservice workers list
   harbor jobservice workers list --pool all
-  harbor jobservice workers list --pool <pool-id>
-  harbor jobservice worker list <pool-id>
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list --page 2 --page-size 20
+	harbor jobservice workers list default
+	harbor jobservice worker list 72327cf790564e45b7c89a2d
   harbor jobservice workers free --job-id <job-id>
   harbor jobservice workers free-all
 
@@ -33,7 +35,7 @@ Examples:
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 

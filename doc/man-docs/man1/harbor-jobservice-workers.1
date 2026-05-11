@@ -20,8 +20,10 @@ Use 'free' and 'free-all' to stop running jobs and release busy workers.
 Examples:
   harbor jobservice workers list
   harbor jobservice workers list --pool all
-  harbor jobservice workers list --pool 
-  harbor jobservice worker list 
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list --page 2 --page-size 20
+	harbor jobservice workers list default
+	harbor jobservice worker list 72327cf790564e45b7c89a2d
   harbor jobservice workers free --job-id 
   harbor jobservice workers free-all
 
@@ -37,7 +39,7 @@ Examples:
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
+	Output format. One of: json|yaml|csv
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]

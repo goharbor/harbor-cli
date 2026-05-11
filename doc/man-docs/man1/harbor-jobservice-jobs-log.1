@@ -12,6 +12,13 @@ harbor-jobservice-jobs-log - View a job log (--job-id required)
 .SH DESCRIPTION
 Display the log for a specific job by job ID.
 
+.PP
+Job logs contain detailed execution information including status updates, error messages, and processing details.
+The --job-id flag is required to specify which job's log to retrieve.
+
+.PP
+Job IDs can be obtained from the 'harbor jobservice jobs list' command.
+
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
@@ -28,7 +35,7 @@ Display the log for a specific job by job ID.
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
+	Output format. One of: json|yaml|csv
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
@@ -37,7 +44,11 @@ Display the log for a specific job by job ID.
 
 .SH EXAMPLE
 .EX
-harbor jobservice jobs log --job-id abc123def456
+View a specific job log:
+  harbor jobservice jobs log --job-id abc123def456
+
+View log with verbose output:
+  harbor jobservice jobs log --job-id abc123def456 -v
 .EE
 
 
