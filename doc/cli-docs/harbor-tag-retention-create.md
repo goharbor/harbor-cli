@@ -16,6 +16,17 @@ create a retention policy for a project
 harbor tag retention create [PROJECT_NAME] [flags]
 ```
 
+### Examples
+
+```sh
+
+# Create a retention policy for a specific project
+harbor tag retention create my-project
+
+# Create a retention policy interactively
+harbor tag retention create
+```
+
 ### Options
 
 ```sh

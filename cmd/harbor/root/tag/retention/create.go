@@ -32,7 +32,13 @@ func CreateCommand() *cobra.Command {
 		Use:   "create [PROJECT_NAME]",
 		Short: "create retention policy",
 		Long:  "create a retention policy for a project",
-		Args:  cobra.MaximumNArgs(1),
+		Example: `
+# Create a retention policy for a specific project
+harbor tag retention create my-project
+
+# Create a retention policy interactively
+harbor tag retention create`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				projectName = args[0]
@@ -102,6 +108,17 @@ func CreateCommand() *cobra.Command {
 }
 
 func buildRetentionPolicyFromView(view rcreate.CreateView) *models.RetentionPolicy {
+	// NOTE: The retention policy structure is defined by the Harbor API (POST /api/v2.0/retentions).
+
+	// Key constraints (as enforced by Harbor backend):
+	// - algorithm: "or" (current UI does not support "and")
+	// - action: "retain" (artifacts matching selectors will be kept)
+	// - template: "latestPushedK" (keeps K most recently pushed artifacts)
+	// - kind: "doublestar" (supports glob patterns: *, **, etc.)
+	// - scope_selectors decorations: "repoMatches" | "repoExcludes"
+	// - tag_selectors decorations: "matches" | "excludes"
+	// - trigger.kind: "Schedule" (with cron expression in settings)
+
 	if view.ScopeSelectors.Decoration == "" {
 		view.ScopeSelectors.Decoration = "repoMatches"
 	}
@@ -122,14 +139,23 @@ func buildRetentionPolicyFromView(view rcreate.CreateView) *models.RetentionPoli
 	}
 
 	return &models.RetentionPolicy{
+		// NOTE: Algorithm is hardcoded to "or" because the current UI does not support selecting "and".
+		// "or" is currently the only practical/useful decision for retention policies.
+		// If "and" algorithm support is needed in the future, both the UI and this hardcoded value
+		// would need to be updated to allow users to choose the algorithm.
 		Algorithm: "or",
 		Rules: []*models.RetentionRule{
 			{
-				Action:   "retain",
+				// Action "retain" means artifacts matching these selectors will be kept
+				Action: "retain",
+				// Template "latestPushedK" retains the K most recently pushed artifacts
 				Template: "latestPushedK",
 				Params: map[string]interface{}{
 					"latestPushedK": view.KeepLatestPushed,
 				},
+				// Repository selector using doublestar pattern matching
+				// kind: "doublestar" supports glob patterns (*, **, domain/**, etc.)
+				// decoration: "repoMatches" includes repos matching pattern, "repoExcludes" excludes them
 				ScopeSelectors: map[string][]models.RetentionSelector{
 					"repository": {
 						{
@@ -139,6 +165,8 @@ func buildRetentionPolicyFromView(view rcreate.CreateView) *models.RetentionPoli
 						},
 					},
 				},
+				// Tag selector with same doublestar matching
+				// decoration: "matches" applies rule to tags matching pattern, "excludes" excludes them
 				TagSelectors: []*models.RetentionSelector{
 					{
 						Kind:       "doublestar",
@@ -148,6 +176,8 @@ func buildRetentionPolicyFromView(view rcreate.CreateView) *models.RetentionPoli
 				},
 			},
 		},
+		// Trigger with Schedule kind executes retention policy on a cron schedule
+		// cron format: second minute hour day-of-month month day-of-week (6 fields)
 		Trigger: &models.RetentionRuleTrigger{
 			Kind:       "Schedule",
 			Settings:   map[string]interface{}{"cron": view.Cron},

@@ -15,7 +15,10 @@ package create
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	log "github.com/sirupsen/logrus"
@@ -31,6 +34,73 @@ type CreateView struct {
 type RetentionSelector struct {
 	Decoration string
 	Pattern    string
+}
+
+// validatePattern checks if a pattern string is valid for retention policies.
+// Valid patterns can contain:
+// - Alphanumeric characters, hyphens, and underscores
+// - Wildcards (*)
+// - Commas to separate multiple patterns (no consecutive, leading, or trailing commas)
+func validatePattern(pattern string) error {
+	if strings.TrimSpace(pattern) == "" {
+		return errors.New("pattern cannot be empty")
+	}
+
+	// Check for leading or trailing commas
+	if strings.HasPrefix(pattern, ",") || strings.HasSuffix(pattern, ",") {
+		return errors.New("pattern cannot start or end with a comma")
+	}
+
+	// Check for consecutive commas
+	if strings.Contains(pattern, ",,") {
+		return errors.New("pattern cannot contain consecutive commas")
+	}
+
+	// Split by comma and validate each segment
+	segments := strings.Split(pattern, ",")
+	validPattern := regexp.MustCompile(`^[a-zA-Z0-9\*\-_]+$`)
+
+	for _, segment := range segments {
+		segment = strings.TrimSpace(segment)
+		if segment == "" {
+			return errors.New("pattern segments cannot be empty")
+		}
+		if !validPattern.MatchString(segment) {
+			return errors.New("pattern contains invalid characters; only alphanumeric, *, -, and _ are allowed")
+		}
+	}
+
+	return nil
+}
+
+// validateCron checks if a cron expression string is valid.
+// Requires a standard 6-field cron format: second minute hour day-of-month month day-of-week
+func validateCron(cronExpr string) error {
+	if strings.TrimSpace(cronExpr) == "" {
+		return errors.New("cron expression cannot be empty")
+	}
+
+	fields := strings.Fields(cronExpr)
+	if len(fields) != 6 {
+		if len(fields) == 5 {
+			return fmt.Errorf("you entered a 5-field cron expression, but Harbor requires 6 fields (with seconds)\n"+
+				"Please add a seconds field at the beginning. For example: '0 %s'", cronExpr)
+		}
+		return fmt.Errorf("harbor requires exactly 6 fields in cron expressions (seconds minute hour day month weekday), got %d", len(fields))
+	}
+
+	// Regex pattern for validating each field's range
+	// Seconds: 0-59, Minutes: 0-59, Hours: 0-23, Day: 1-31, Month: 1-12, Weekday: 0-6
+	cronRegex := regexp.MustCompile(`^(\*|[0-9]|[1-5][0-9]|\*/[0-9]+) (\*|[0-9]|[1-5][0-9]|\*/[0-9]+) (\*|[0-9]|1[0-9]|2[0-3]|\*/[0-9]+) (\*|[1-9]|[12][0-9]|3[01]|\*/[0-9]+) (\*|[1-9]|1[0-2]|\*/[0-9]+) (\*|[0-6]|\*/[0-9]+)$`)
+	if !cronRegex.MatchString(cronExpr) {
+		return errors.New("invalid cron expression format\n" +
+			"Required format: second minute hour day-of-month month day-of-week\n" +
+			"Examples:\n" +
+			"  0 0 0 * * *    - Daily at midnight\n" +
+			"  0 0 */6 * * *  - Every 6 hours\n" +
+			"  0 0 0 * * 0    - Weekly on Sunday at midnight")
+	}
+	return nil
 }
 
 func CreateRetentionView(createView *CreateView) {
@@ -64,10 +134,7 @@ func CreateRetentionView(createView *CreateView) {
 				Description("Enter **, repo*, or comma-separated patterns").
 				Value(&createView.ScopeSelectors.Pattern).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("repository pattern cannot be empty")
-					}
-					return nil
+					return validatePattern(str)
 				}),
 			huh.NewSelect[string]().
 				Title("For the tags").
@@ -87,10 +154,7 @@ func CreateRetentionView(createView *CreateView) {
 				Description("Enter **, v*, or comma-separated patterns").
 				Value(&createView.TagSelectors.Pattern).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("tag pattern cannot be empty")
-					}
-					return nil
+					return validatePattern(str)
 				}),
 			huh.NewInput().
 				Title("Keep latest pushed artifacts").
@@ -108,10 +172,7 @@ func CreateRetentionView(createView *CreateView) {
 				Description("Default 0 0 0 * * *").
 				Value(&createView.Cron).
 				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("cron cannot be empty")
-					}
-					return nil
+					return validateCron(str)
 				}),
 		),
 	).WithTheme(huh.ThemeCharm()).Run()
