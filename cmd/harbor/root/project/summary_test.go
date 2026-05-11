@@ -42,8 +42,6 @@ func TestSummaryCommand_ValidArgs(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.Error(t, err)
-	// It should fail with a connection error or unauthorized, as no real Harbor instance is running.
-	// We are just testing that the inputs were accepted by Cobra.
 }
 
 func TestSummaryCommand_Flags(t *testing.T) {
@@ -55,7 +53,5 @@ func TestSummaryCommand_Flags(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.Error(t, err)
-	// It should fail with a connection error or unauthorized, as no real Harbor instance is running.
-	// We are just testing that the flags were parsed without error by Cobra.
 }
 

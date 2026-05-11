@@ -6,11 +6,11 @@ harbor-project-summary - Get summary of a project
 
 
 .SH SYNOPSIS
-\fBharbor project summary [PROJECT_NAME|PROJECT_ID] [flags]\fP
+\fBharbor project summary [NAME|ID] [flags]\fP
 
 
 .SH DESCRIPTION
-Get summary of a project
+Get summary of a project by name or ID. If no arguments are provided, it will prompt for the project name. Use --id to specify the project ID instead of the name.
 
 
 .SH OPTIONS
@@ -18,8 +18,8 @@ Get summary of a project
 	help for summary
 
 .PP
-\fB-i\fP, \fB--id\fP[=false]
-	Identify project by ID instead of name
+\fB--id\fP[=false]
+	Get project by id
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,6 +33,12 @@ Get summary of a project
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]
 	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor project summary my-project or harbor project summary 1 --id
+.EE
 
 
 .SH SEE ALSO
