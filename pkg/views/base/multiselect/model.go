@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"strings"
 
+	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -54,9 +55,31 @@ type Model struct {
 	cursor   int
 	selected map[int]struct{}
 	selects  *[]models.Permission
+
+	loading  bool
+	err      error
+	spinner  spinner.Model
+	fetchCmd tea.Cmd
+}
+
+type DataLoadedMsg struct {
+	Choices []models.Permission
+	Err     error
+}
+
+type FetchFn func() ([]models.Permission, error)
+
+func FetchCmd(fn FetchFn) tea.Cmd {
+	return func() tea.Msg {
+		choices, err := fn()
+		return DataLoadedMsg{Choices: choices, Err: err}
+	}
 }
 
 func (m Model) Init() tea.Cmd {
+	if m.loading {
+		return tea.Batch(m.fetchCmd, m.spinner.Tick)
+	}
 	return nil
 }
 
@@ -67,6 +90,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
+	case DataLoadedMsg:
+		m.loading = false
+		m.err = msg.Err
+		if msg.Err == nil {
+			m.choices = msg.Choices
+		}
+		return m, nil
+	case spinner.TickMsg:
+		if m.loading {
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
@@ -116,6 +151,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
+	if m.loading {
+		return tea.NewView(m.spinner.View() + " Loading permissions...\n")
+	}
+	if m.err != nil {
+		return tea.NewView("Error: " + m.err.Error() + "\n")
+	}
 	if !m.ready {
 		return tea.NewView("\n  Initializing...")
 	}
@@ -198,5 +239,19 @@ func NewModel(choices []models.Permission, selects *[]models.Permission) Model {
 		choices:  choices,
 		selected: make(map[int]struct{}),
 		selects:  selects,
+		loading:  false,
 	}
+}
+
+func NewModelWithFetch(fetchFn FetchFn, selects *[]models.Permission) Model {
+	m := NewModel(nil, selects)
+	m.loading = true
+	m.fetchCmd = FetchCmd(fetchFn)
+
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	m.spinner = s
+
+	return m
 }

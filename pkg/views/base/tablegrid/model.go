@@ -16,6 +16,7 @@ package tablegrid
 import (
 	"fmt"
 
+	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/table"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -35,6 +36,25 @@ type TableGrid struct {
 	Styles      Styles               // Custom styles
 	Icons       Icons                // Custom icons
 	Footer      string               // Custom footer text
+
+	loading  bool
+	err      error
+	spinner  spinner.Model
+	fetchCmd tea.Cmd
+}
+
+type DataLoadedMsg struct {
+	Data [][]CellStatus
+	Err  error
+}
+
+type FetchFn func() ([][]CellStatus, error)
+
+func FetchCmd(fn FetchFn) tea.Cmd {
+	return func() tea.Msg {
+		data, err := fn()
+		return DataLoadedMsg{Data: data, Err: err}
+	}
 }
 
 // Styles contains customizable styles for the table grid
@@ -154,7 +174,22 @@ func New(config Config) *TableGrid {
 		Styles:      styles,
 		Icons:       icons,
 		Footer:      config.Footer,
+		loading:     false,
 	}
+}
+
+// NewWithFetch creates a new TableGrid with async fetching
+func NewWithFetch(config Config, fetchFn FetchFn) *TableGrid {
+	tg := New(config)
+	tg.loading = true
+	tg.fetchCmd = FetchCmd(fetchFn)
+	
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	tg.spinner = s
+	
+	return tg
 }
 
 // buildRows constructs the table rows with proper styling
@@ -205,6 +240,9 @@ func buildRows(
 
 // Init initializes the model
 func (m *TableGrid) Init() tea.Cmd {
+	if m.loading {
+		return tea.Batch(m.fetchCmd, m.spinner.Tick)
+	}
 	return nil
 }
 
@@ -213,6 +251,19 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case DataLoadedMsg:
+		m.loading = false
+		m.err = msg.Err
+		if msg.Err == nil {
+			m.Data = msg.Data
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+		}
+		return m, nil
+	case spinner.TickMsg:
+		if m.loading {
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+a":
@@ -392,6 +443,13 @@ func (m *TableGrid) refreshTable(highlightRow, highlightCol int) {
 
 // View renders the component
 func (m *TableGrid) View() tea.View {
+	if m.loading {
+		return tea.NewView(m.spinner.View() + " Loading grid data...\n")
+	}
+	if m.err != nil {
+		return tea.NewView("Error: " + m.err.Error() + "\n")
+	}
+
 	cursor := m.Table.Cursor()
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()

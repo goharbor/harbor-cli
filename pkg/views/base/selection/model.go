@@ -19,7 +19,9 @@ import (
 	"strings"
 
 	"charm.land/bubbles/v2/list"
+	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
@@ -56,6 +58,25 @@ type Model struct {
 	List    list.Model
 	Choice  string
 	Aborted bool
+
+	loading  bool
+	err      error
+	spinner  spinner.Model
+	fetchCmd tea.Cmd
+}
+
+type DataLoadedMsg struct {
+	Items []list.Item
+	Err   error
+}
+
+type FetchFn func() ([]list.Item, error)
+
+func FetchCmd(fn FetchFn) tea.Cmd {
+	return func() tea.Msg {
+		items, err := fn()
+		return DataLoadedMsg{Items: items, Err: err}
+	}
 }
 
 func NewModel(items []list.Item, construct string) Model {
@@ -68,15 +89,47 @@ func NewModel(items []list.Item, construct string) Model {
 	l.Styles.PaginationStyle = views.PaginationStyle
 	l.Styles.HelpStyle = views.HelpStyle
 
-	return Model{List: l}
+	return Model{
+		List:    l,
+		loading: false,
+	}
+}
+
+func NewModelWithFetch(fetchFn FetchFn, construct string) Model {
+	m := NewModel(nil, construct)
+	m.loading = true
+	m.fetchCmd = FetchCmd(fetchFn)
+
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	m.spinner = s
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
+	if m.loading {
+		return tea.Batch(m.fetchCmd, m.spinner.Tick)
+	}
 	return nil
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case DataLoadedMsg:
+		m.loading = false
+		m.err = msg.Err
+		if msg.Err == nil {
+			m.List.SetItems(msg.Items)
+		}
+		return m, nil
+	case spinner.TickMsg:
+		if m.loading {
+			var spinnerCmd tea.Cmd
+			m.spinner, spinnerCmd = m.spinner.Update(msg)
+			return m, spinnerCmd
+		}
 	case tea.WindowSizeMsg:
 		m.List.SetWidth(msg.Width)
 		return m, nil
@@ -100,6 +153,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
+	if m.loading {
+		return tea.NewView(m.spinner.View() + " Loading selections...\n")
+	}
+	if m.err != nil {
+		return tea.NewView("Error: " + m.err.Error() + "\n")
+	}
 	if m.Choice != "" {
 		return tea.NewView("")
 	}

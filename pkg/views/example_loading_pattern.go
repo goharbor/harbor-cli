@@ -1,193 +1,108 @@
-// Copyright Project Harbor Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Package views contains the reference loading state pattern for Issue #821.
-// This file (example_loading_pattern.go) is a TEMPORARY template used during
-// the Bubbletea v2 refactor. It will be DELETED once all model migrations
-// (Steps 5–8) are complete.
-//
-// The pattern demonstrated here:
-//  1. Init() fires both the API fetch and the spinner tick simultaneously.
-//  2. Update() handles the dataLoadedMsg to clear the loading flag.
-//  3. View() branches on m.loading / m.err / data-ready.
-//
-// Copy this pattern into each target model, replacing ExampleRow with the
-// model-specific data type and someAPICall() with the real API function.
 package views
 
 import (
 	"fmt"
+	"time"
 
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
-// ---------------------------------------------------------------------------
-// Data types
-// ---------------------------------------------------------------------------
-
-// ExampleRow represents one row of data loaded from the API.
-// Replace with the actual row type in each target model.
-type ExampleRow struct {
-	ID   string
+// SomeRow is a placeholder for actual data (like models.Instance, models.Project, etc.)
+type SomeRow struct {
+	ID   int
 	Name string
 }
 
-// exampleDataLoadedMsg is sent by fetchExampleCmd when the API call finishes.
-// The err field carries any error so the TUI can show it instead of panicking.
-type exampleDataLoadedMsg struct {
-	data []ExampleRow
-	err  error
-}
-
-// ---------------------------------------------------------------------------
-// Commands
-// ---------------------------------------------------------------------------
-
-// fetchExampleCmd performs the async API call and returns an exampleDataLoadedMsg.
-// Replace someAPICall() with the actual Harbor API call in each target model.
-func fetchExampleCmd() tea.Cmd {
-	return func() tea.Msg {
-		// Simulate an API call — replace with real Harbor client call, e.g.:
-		//   resp, err := api.ListProjects(...)
-		//   return exampleDataLoadedMsg{data: toExampleRows(resp), err: err}
-		data := []ExampleRow{
-			{ID: "1", Name: "library"},
-			{ID: "2", Name: "proxy-cache"},
-		}
-		return exampleDataLoadedMsg{data: data, err: nil}
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Model
-// ---------------------------------------------------------------------------
-
-// ExampleModel is the reference Bubbletea v2 model with a loading state.
-// It satisfies the tea.Model interface.
+// ExampleModel demonstrates the standard loading pattern
 type ExampleModel struct {
-	// loading is true while the API call is in flight.
 	loading bool
-
-	// err holds any error returned by the API call.
-	err error
-
-	// data holds the rows fetched from the API.
-	data []ExampleRow
-
-	// spinner animates while loading is true.
+	err     error
+	data    []SomeRow
 	spinner spinner.Model
 }
 
-// NewExampleModel constructs an ExampleModel ready to be passed to tea.NewProgram.
+// dataLoadedMsg is a generic message type for when data fetching completes
+type dataLoadedMsg struct {
+	data []SomeRow
+	err  error
+}
+
+// simulate API call
+func someAPICall() ([]SomeRow, error) {
+	time.Sleep(1 * time.Second)
+	return []SomeRow{{ID: 1, Name: "Row 1"}, {ID: 2, Name: "Row 2"}}, nil
+}
+
+// fetchDataCmd executes the API call asynchronously
+func fetchDataCmd() tea.Cmd {
+	return func() tea.Msg {
+		data, err := someAPICall()
+		return dataLoadedMsg{data: data, err: err}
+	}
+}
+
+// NewExampleModel initializes the model with a spinner and sets loading to true
 func NewExampleModel() ExampleModel {
-	s := spinner.New(
-		spinner.WithSpinner(spinner.Dot),
-		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
-	)
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	return ExampleModel{
 		loading: true,
 		spinner: s,
 	}
 }
 
-// ---------------------------------------------------------------------------
-// tea.Model interface
-// ---------------------------------------------------------------------------
-
-// Init fires two commands concurrently:
-//   - fetchExampleCmd: starts the async API call.
-//   - a wrapper around m.spinner.Tick(): starts the spinner animation.
-//
-// In bubbles v2, spinner.Tick() returns tea.Msg directly. To use it with
-// tea.Batch, wrap it in a func() tea.Msg — that is the definition of tea.Cmd.
 func (m ExampleModel) Init() tea.Cmd {
-	return tea.Batch(
-		fetchExampleCmd(),
-		func() tea.Msg { return m.spinner.Tick() },
-	)
+	// Start both the API call and the spinner ticking
+	return tea.Batch(fetchDataCmd(), m.spinner.Tick)
 }
 
-// Update handles all incoming messages.
 func (m ExampleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
+	var cmd tea.Cmd
 
-	// -----------------------------------------------------------------------
-	// Data loaded from the API — clear the loading flag and store results.
-	// -----------------------------------------------------------------------
-	case exampleDataLoadedMsg:
+	switch msg := msg.(type) {
+	case dataLoadedMsg:
+		// Data has arrived, update state
 		m.loading = false
 		m.data = msg.data
 		m.err = msg.err
 		return m, nil
 
-	// -----------------------------------------------------------------------
-	// Spinner tick — forward to the spinner sub-model so it can advance its
-	// frame. Only relevant while loading == true; ignored afterwards.
-	// -----------------------------------------------------------------------
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-
-	// -----------------------------------------------------------------------
-	// Keyboard input — only active once data has loaded.
-	// -----------------------------------------------------------------------
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "q", "ctrl+c", "esc":
+		case "q", "ctrl+c":
 			return m, tea.Quit
 		}
 	}
 
+	// Only update the spinner if we are still loading
+	if m.loading {
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	}
+
+	// Update list/table/grid here when not loading
 	return m, nil
 }
 
-// View renders the current state of the model.
-//
-// Three branches:
-//  1. Loading  → show spinner + "Loading…" text.
-//  2. Error    → show a formatted error message.
-//  3. Ready    → render the actual table/list content.
 func (m ExampleModel) View() tea.View {
 	if m.loading {
-		return tea.NewView(fmt.Sprintf("\n  %s Loading…\n", m.spinner.View()))
+		// Show loading spinner
+		return tea.NewView(fmt.Sprintf("%s Loading data...\n", m.spinner.View()))
 	}
-
 	if m.err != nil {
-		errStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
-		return tea.NewView(fmt.Sprintf("\n  %s\n\n  Press q to quit.\n",
-			errStyle.Render("Error: "+m.err.Error())))
+		// Show error state
+		return tea.NewView(fmt.Sprintf("Error: %v\n", m.err))
 	}
 
-	// Data is ready — render the table.
-	return tea.NewView(renderExampleTable(m.data))
-}
-
-// ---------------------------------------------------------------------------
-// Rendering helpers
-// ---------------------------------------------------------------------------
-
-// renderExampleTable formats the loaded rows as a simple text table.
-// In real models this is replaced by the tablelist.NewModel / tablegrid view.
-func renderExampleTable(rows []ExampleRow) string {
-	headerStyle := lipgloss.NewStyle().Bold(true).Underline(true)
-	out := fmt.Sprintf("\n  %s\n\n", headerStyle.Render("Example Data"))
-	for _, r := range rows {
-		out += fmt.Sprintf("  %-4s  %s\n", r.ID, r.Name)
+	// Render the actual UI with data
+	output := "Data Loaded Successfully:\n\n"
+	for _, row := range m.data {
+		output += fmt.Sprintf("- %d: %s\n", row.ID, row.Name)
 	}
-	out += "\n  Press q to quit.\n"
-	return out
+	output += "\nPress q to quit."
+
+	return tea.NewView(output)
 }
