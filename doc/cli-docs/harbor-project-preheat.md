@@ -35,5 +35,6 @@ Manage project-scoped P2P preheat policies, executions, and tasks in Harbor
 ### SEE ALSO
 
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
+* [harbor project preheat execution](harbor-project-preheat-execution.md)	 - Manage preheat executions
 * [harbor project preheat policy](harbor-project-preheat-policy.md)	 - Manage preheat policies
 

@@ -2,20 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-preheat - Manage project preheat resources
+harbor-project-preheat-execution - Manage preheat executions
 
 
 .SH SYNOPSIS
-\fBharbor project preheat [flags]\fP
+\fBharbor project preheat execution [flags]\fP
 
 
 .SH DESCRIPTION
-Manage project-scoped P2P preheat policies, executions, and tasks in Harbor
+Manage P2P preheat executions under a project
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for preheat
+	help for execution
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +33,9 @@ Manage project-scoped P2P preheat policies, executions, and tasks in Harbor
 
 .SH EXAMPLE
 .EX
-  harbor project preheat policy list
+  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]
 .EE
 
 
 .SH SEE ALSO
-\fBharbor-project(1)\fP, \fBharbor-project-preheat-execution(1)\fP, \fBharbor-project-preheat-policy(1)\fP
+\fBharbor-project-preheat(1)\fP, \fBharbor-project-preheat-execution-list(1)\fP

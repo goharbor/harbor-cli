@@ -57,6 +57,14 @@ func ListExecutionCommand() *cobra.Command {
 				}
 			}
 
+			if isID {
+				project, err := api.GetProject(projectName, true)
+				if err != nil {
+					return fmt.Errorf("failed to resolve project ID: %v", utils.ParseHarborErrorMsg(err))
+				}
+				projectName = project.Payload.Name
+			}
+
 			if len(args) >= 2 {
 				log.Debugf("Policy name provided: %s", args[1])
 				policyName = args[1]
@@ -69,7 +77,7 @@ func ListExecutionCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching preheat policy executions...")
-			resp, err := api.ListPreheatExecutions(projectName, policyName, isID, opts)
+			resp, err := api.ListPreheatExecutions(projectName, policyName, opts)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {
 					return fmt.Errorf("no executions found for policy %s in project %s", policyName, projectName)
