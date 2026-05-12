@@ -21,6 +21,21 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
+type CreateRegView struct {
+	Name        string
+	Type        string
+	Description string
+	URL         string
+	Credential  RegistryCredential
+	Insecure    bool
+}
+
+type RegistryCredential struct {
+	AccessKey    string `json:"access_key,omitempty"`
+	Type         string `json:"type,omitempty"`
+	AccessSecret string `json:"access_secret,omitempty"`
+}
+
 func ListRegistries(opts ...ListFlags) (*registry.ListRegistriesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {

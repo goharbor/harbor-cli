@@ -305,7 +305,7 @@ func GetQuotaIDFromUser() int64 {
 	QuotaID := make(chan int64)
 
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := api.ListQuota(api.ListQuotaFlags{})
 		if err != nil {
 			log.Errorf("failed to list quota: %v", err)
 		}
@@ -320,9 +320,9 @@ func GetActiveContextFromUser() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var cxlist []api.ContextListView
+	var cxlist []list.ListView
 	for _, cred := range config.Credentials {
-		cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+		cx := list.ListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 		cxlist = append(cxlist, cx)
 	}
 
