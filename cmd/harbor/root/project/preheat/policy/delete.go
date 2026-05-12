@@ -51,6 +51,14 @@ func DeletePolicyCommand() *cobra.Command {
 				}
 			}
 
+			if isID {
+				project, err := api.GetProject(projectName, true)
+				if err != nil {
+					return fmt.Errorf("failed to resolve project ID: %v", utils.ParseHarborErrorMsg(err))
+				}
+				projectName = project.Payload.Name
+			}
+
 			if len(args) >= 2 {
 				log.Debugf("Policy name provided: %s", args[1])
 				policyName = args[1]
@@ -63,7 +71,7 @@ func DeletePolicyCommand() *cobra.Command {
 			}
 
 			log.Debug("Deleting preheat policy...")
-			err = api.DeletePreheatPolicy(projectName, policyName, isID)
+			err = api.DeletePreheatPolicy(projectName, policyName)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {
 					return fmt.Errorf("preheat policy %s not found in project %s", policyName, projectName)
