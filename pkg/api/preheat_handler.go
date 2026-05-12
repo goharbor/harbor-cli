@@ -152,3 +152,36 @@ func ListProvidersUnderProject(projectName string) ([]*models.ProviderUnderProje
 	}
 	return response.Payload, nil
 }
+
+func ListPreheatExecutions(projectName string, policyName string, isID bool, opts ...ListFlags) (*preheat.ListExecutionsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	if isID {
+		project, err := GetProject(projectName, true)
+		if err != nil {
+			return nil, err
+		}
+		projectName = project.Payload.Name
+	}
+
+	response, err := client.Preheat.ListExecutions(ctx, &preheat.ListExecutionsParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		Page:              &listFlags.Page,
+		PageSize:          &listFlags.PageSize,
+		Q:                 &listFlags.Q,
+		Sort:              &listFlags.Sort,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
