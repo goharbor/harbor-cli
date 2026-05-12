@@ -46,6 +46,10 @@ func ListPolicyCommand() *cobra.Command {
 				return fmt.Errorf("page size must be greater than 0 and less than or equal to 100")
 			}
 
+			if isID && len(args) == 0 {
+				return fmt.Errorf("project ID must be provided when using --id")
+			}
+
 			if len(args) > 0 {
 				log.Debugf("Project name provided: %s", args[0])
 				projectName = args[0]
