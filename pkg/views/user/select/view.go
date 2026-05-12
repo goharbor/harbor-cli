@@ -17,8 +17,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
@@ -38,7 +38,7 @@ func UserList(users []*models.UserResp) (int64, error) {
 
 	m := selection.NewModel(itemList, "User")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		return 0, err

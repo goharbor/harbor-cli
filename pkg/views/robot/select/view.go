@@ -20,8 +20,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -130,7 +130,7 @@ func ListPermissions(perms *models.Permissions, kind string, ch chan<- Permissio
 		}
 		return
 	}
-	_, err = tea.NewProgram(grid, tea.WithAltScreen()).Run()
+	_, err = tea.NewProgram(grid).Run()
 	if err != nil {
 		fmt.Println("error creating permissions grid:", err)
 		ch <- PermissionSelectResult{
@@ -169,7 +169,7 @@ func ListRobot(robots []*models.Robot, choice chan<- int64) {
 		itemsList[i] = selection.Item(r.Name)
 	}
 	m := selection.NewModel(itemsList, "Robot")
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

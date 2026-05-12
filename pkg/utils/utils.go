@@ -24,7 +24,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/charmbracelet/bubbles/table"
+	"charm.land/bubbles/v2/table"
 	"github.com/gocarina/gocsv"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"

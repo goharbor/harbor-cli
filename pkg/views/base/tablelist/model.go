@@ -14,9 +14,9 @@
 package tablelist
 
 import (
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
@@ -68,6 +68,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
-	return views.BaseStyle.Render(m.Table.View()) + "\n"
+func (m Model) View() tea.View {
+	return tea.NewView(views.BaseStyle.Render(m.Table.View()) + "\n")
 }

@@ -16,9 +16,9 @@ package tablegrid
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 // CellStatus represents a cell's toggle state
@@ -213,7 +213,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+a":
 			// Turn all cells on
@@ -364,7 +364,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
 			return m, cmd
 
-		case "enter", " ":
+		case "enter", "space":
 			// Toggle cell
 			rowIdx := m.Table.Cursor()
 			colIdx := m.SelectedCol
@@ -391,7 +391,7 @@ func (m *TableGrid) refreshTable(highlightRow, highlightCol int) {
 }
 
 // View renders the component
-func (m *TableGrid) View() string {
+func (m *TableGrid) View() tea.View {
 	cursor := m.Table.Cursor()
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
@@ -399,7 +399,7 @@ func (m *TableGrid) View() string {
 	footer := "\n ↑/↓ move row • ⌃J toggle row on  • ⌃H toggle col on  • ^A toggle table on  • space/enter to toggle\n" +
 		" ←/→ move col • ⌃K toggle row off • ⌃L toggle col off • ^D toggle table off • ^S submit • q to cancel \n"
 
-	return out + footer
+	return tea.NewView(out + footer)
 }
 
 // GetData returns the current selection state
