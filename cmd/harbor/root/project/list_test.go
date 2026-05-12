@@ -11,24 +11,51 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package project
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/goharbor/harbor-cli/pkg/testutil"
 )
 
-func TestListProjectCommand_InvalidPage(t *testing.T) {
-	cmd := ListProjectCommand()
+// TestListProjectCommand_Errors tests the custom validations we perform in the command,
+// testing of query builder and API response will be delegated to their respective places
+func TestListProjectCommand_Errors(t *testing.T) {
+	tests := []struct {
+		name        string
+		flags       []string
+		expectError bool
+	}{
+		{
+			name:        "negative page size",
+			flags:       []string{"--page-size", "-1"},
+			expectError: true,
+		},
+		{
+			name:        "page size too large",
+			flags:       []string{"--page-size", "101"},
+			expectError: true,
+		},
+		{
+			name:        "conflicting private and public flags",
+			flags:       []string{"--private", "--public"},
+			expectError: true,
+		},
+	}
 
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-	cmd.SetErr(&buf)
-	cmd.SetArgs([]string{"--page", "0"})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := testutil.TestCmd(t, ListProjectCommand, tt.flags...)
 
-	err := cmd.Execute()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "page number must be greater than or equal to 1")
+			if tt.expectError && err == nil {
+				t.Fatalf("expected error but got nil")
+			}
+
+			if !tt.expectError && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
 }

@@ -45,7 +45,7 @@ This command provides an easy way to view all instances along with their details
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			instance, err := api.ListInstance(opts)
+			instance, err := api.ListAllInstance(opts)
 
 			if err != nil {
 				return fmt.Errorf("failed to get instance list: %v", err)

@@ -1,0 +1,37 @@
+{
+  "version": "0.0.18",
+  "description": "A command-line interface for Harbor container registry.",
+  "homepage": "https://github.com/goharbor/harbor-cli",
+  "license": "Apache-2.0",
+  "checkver": {
+    "github": "https://github.com/goharbor/harbor-cli"
+  },
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/goharbor/harbor-cli/releases/download/v0.0.19/harbor-cli_0.0.19_windows_amd64.zip",
+      "hash": "fe7550f714d5739a411b92697f6f10bd7c75507183107721eb13477a289d9891",
+      "bin": "harbor-cli.exe"
+    },
+    "arm64": {
+      "url": "https://github.com/goharbor/harbor-cli/releases/download/v0.0.19/harbor-cli_0.0.19_windows_arm64.zip",
+      "hash": "6d4c05fe6be236d82499a134c03f93234682d9dd47b20b5788f70a1c8bda4364",
+      "bin": "harbor-cli.exe"
+    }
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/goharbor/harbor-cli/releases/download/v$version/harbor-cli_$version_windows_amd64.zip",
+        "hash": {
+          "url": "https://github.com/goharbor/harbor-cli/releases/download/v$version/checksums.txt"
+        }
+      },
+      "arm64": {
+        "url": "https://github.com/goharbor/harbor-cli/releases/download/v$version/harbor-cli_$version_windows_arm64.zip",
+        "hash": {
+          "url": "https://github.com/goharbor/harbor-cli/releases/download/v$version/checksums.txt"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+name: Update Scoop Manifest
+description: Updates a Scoop bucket manifest using checkver
+
+inputs:
+  app_name:
+    description: "Manifest name (without .json), e.g. harbor-cli"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout bucket repository
+      uses: actions/checkout@v4
+
+    - name: Clone Scoop
+      shell: bash
+      run: |
+        git clone https://github.com/ScoopInstaller/Scoop.git "$RUNNER_TEMP/Scoop"
+
+    - name: Run checkver update
+      shell: pwsh
+      run: |
+        & "$env:RUNNER_TEMP/Scoop/bin/checkver.ps1" "${{ inputs.app_name }}" -Dir "bucket" -u
+
+    - name: Commit and push changes
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        if git diff --cached --quiet; then
+          echo "No changes detected."
+          exit 0
+        fi
+        git commit -m "Update ${{ inputs.app_name }} manifest"
+        git push origin HEAD:main

@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,18 @@ func LdapPingCmd() *cobra.Command {
 		Short: "ping ldap server",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.LdapURL != "" {
+				formattedURL := utils.FormatUrl(opts.LdapURL)
+				err := utils.ValidateURL(formattedURL)
+				if err != nil {
+					return err
+				}
+				opts.LdapURL = formattedURL
+			}
+
+			if opts.LdapScope < 0 || opts.LdapScope > 2 {
+				return fmt.Errorf("ldap-scope must be 0, 1, or 2")
+			}
 			response, err := api.LdapPingServer(opts)
 			if err != nil {
 				return err

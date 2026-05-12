@@ -61,7 +61,7 @@ func CreateProject(opts create.CreateView) error {
 	}
 
 	if response != nil {
-		log.Info("Project created successfully")
+		fmt.Println("Project created successfully")
 	}
 	return nil
 }
@@ -152,7 +152,7 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 		return err
 	}
 
-	log.Infof("Project %s deleted successfully", projectNameOrID)
+	fmt.Printf("Project %s deleted successfully\n", projectNameOrID)
 	return nil
 }
 

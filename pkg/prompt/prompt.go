@@ -38,6 +38,7 @@ import (
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -266,15 +267,39 @@ func GetLabelIdFromUser(opts api.ListFlags) (int64, error) {
 	return res.id, res.err
 }
 
-func GetInstanceFromUser() string {
-	instanceName := make(chan string)
+func GetInstanceNameFromUser() (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
 
 	go func() {
-		response, _ := api.ListInstance()
-		instview.InstanceList(response.Payload, instanceName)
+		response, err := api.ListAllInstance()
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{"", errors.New("no instances found")}
+			return
+		}
+
+		name, err := instview.InstanceList(response.Payload)
+		if err != nil {
+			if err == instview.ErrUserAborted {
+				resultChan <- result{"", errors.New("user aborted instance selection")}
+			} else {
+				resultChan <- result{"", fmt.Errorf("error during instance selection: %w", err)}
+			}
+			return
+		}
+		resultChan <- result{name, nil}
 	}()
 
-	return <-instanceName
+	res := <-resultChan
+	return res.name, res.err
 }
 
 func GetQuotaIDFromUser() int64 {
@@ -432,4 +457,13 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func GetRetentionTagRule(retentionID string) int64 {
+	retentionIndex := make(chan int64)
+	go func() {
+		response, _ := api.ListRetention(retentionID)
+		retview.RetentionList(response.Payload.Rules, retentionIndex)
+	}()
+	return <-retentionIndex
 }

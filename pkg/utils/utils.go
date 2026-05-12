@@ -84,7 +84,7 @@ func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 }
 
 func ParseProjectRepoReference(projectRepoReference string) (project, repo, reference string, err error) {
-	log.Infof("Parsing input: %s", projectRepoReference)
+	log.Debugf("Parsing input: %s", projectRepoReference)
 
 	var ref string
 	var repoPath string

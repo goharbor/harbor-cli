@@ -31,7 +31,8 @@ harbor artifact label add [flags]
 ### Options
 
 ```sh
-  -h, --help   help for add
+  -h, --help      help for add
+  -p, --project   Add project-scoped labels. eg --project, -p(specific project)
 ```
 
 ### Options inherited from parent commands
