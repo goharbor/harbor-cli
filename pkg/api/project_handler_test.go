@@ -47,7 +47,7 @@ func TestCreateProject_Validation(t *testing.T) {
 		opts := create.CreateView{
 			ProxyCache:   true,
 			RegistryID:   "123",
-			StorageLimit: "10GiB",
+			StorageLimit: "10",
 		}
 		err := CreateProject(opts)
 		// We expect an error because we are not logged in, but it should NOT be a validation error
