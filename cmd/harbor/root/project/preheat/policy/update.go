@@ -39,6 +39,10 @@ func UpdatePolicyCommand() *cobra.Command {
 			var err error
 			var projectName, policyName string
 
+			if isID && len(args) == 0 {
+				return fmt.Errorf("project ID must be provided when using --id")
+			}
+
 			if len(args) >= 1 {
 				log.Debugf("Project name provided: %s", args[0])
 				projectName = args[0]

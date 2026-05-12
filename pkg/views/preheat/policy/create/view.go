@@ -185,9 +185,9 @@ func CreatePreheatPolicyView(createView *CreateView, providers []*models.Provide
 			if err := cronForm.Run(); err != nil {
 				log.Fatal(err)
 			}
-			createView.CronString = resolveSchedulePreset(schedulePreset, createView.CronString)
+			createView.CronString = ResolveSchedulePreset(schedulePreset, createView.CronString)
 		} else {
-			createView.CronString = resolveSchedulePreset(schedulePreset, "")
+			createView.CronString = ResolveSchedulePreset(schedulePreset, "")
 		}
 	}
 }
@@ -207,7 +207,7 @@ func schedulePresetForCron(cron string) string {
 	}
 }
 
-func resolveSchedulePreset(preset, cron string) string {
+func ResolveSchedulePreset(preset, cron string) string {
 	switch preset {
 	case "hourly":
 		return "0 0 * * * *"

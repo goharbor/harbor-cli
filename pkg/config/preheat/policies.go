@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goharbor/harbor-cli/pkg/views/preheat/policy/create"
+	policycreate "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/create"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -49,8 +49,8 @@ type PolicyTrigger struct {
 	TriggerSetting *PolicyTriggerSetting `yaml:"trigger_setting,omitempty" json:"trigger_setting,omitempty"`
 }
 
-func LoadConfigFromFile(filename string) (*create.CreateView, error) {
-	var opts *create.CreateView
+func LoadConfigFromFile(filename string) (*policycreate.CreateView, error) {
+	var opts *policycreate.CreateView
 	var err error
 
 	ext := filepath.Ext(filename)
@@ -70,7 +70,7 @@ func LoadConfigFromFile(filename string) (*create.CreateView, error) {
 	return opts, nil
 }
 
-func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateView, error) {
+func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.CreateView, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
@@ -112,7 +112,7 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 		}
 	}
 
-	opts := &create.CreateView{
+	opts := &policycreate.CreateView{
 		Name:         config.Name,
 		Description:  config.Description,
 		ProviderName: config.ProviderName,
@@ -188,28 +188,13 @@ func resolveTriggerCron(trigger *PolicyTrigger) (string, error) {
 	case "none":
 		return "", nil
 	case "hourly", "daily", "weekly", "custom":
-		cron := resolveSchedulePreset(preset, setting.Cron)
+		cron := policycreate.ResolveSchedulePreset(preset, setting.Cron)
 		if preset == "custom" && cron == "" {
 			return "", fmt.Errorf("trigger.trigger_setting.cron is required for custom schedule")
 		}
 		return cron, nil
 	default:
 		return "", fmt.Errorf("trigger.trigger_setting.schedule_preset must be one of [none, hourly, daily, weekly, custom], got: %s", setting.SchedulePreset)
-	}
-}
-
-func resolveSchedulePreset(preset, cron string) string {
-	switch preset {
-	case "hourly":
-		return "0 0 * * * *"
-	case "daily":
-		return "0 0 0 * * *"
-	case "weekly":
-		return "0 0 0 * * 0"
-	case "custom":
-		return strings.TrimSpace(cron)
-	default:
-		return ""
 	}
 }
 
