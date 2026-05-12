@@ -38,14 +38,6 @@ func CreateProjectCommand() *cobra.Command {
 				opts.ProjectName = args[0]
 			}
 
-			if opts.ProxyCache && opts.RegistryID == "" {
-				return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
-			}
-
-			if !opts.ProxyCache && opts.RegistryID != "" {
-				return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
-			}
-
 			if opts.ProjectName != "" && opts.StorageLimit != "" {
 				log.Debug("Attempting to create project using flags...")
 				err = api.CreateProject(opts)

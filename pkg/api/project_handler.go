@@ -30,20 +30,28 @@ import (
 // CreateProject creates a new Harbor project based on the provided view options.
 func CreateProject(opts create.CreateView) error {
 	var registryID *int64
-	if opts.RegistryID != "" {
+	if opts.ProxyCache {
+		if opts.RegistryID == "" {
+			return fmt.Errorf("proxy cache selected but no registry ID provided")
+		}
 		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
 		}
 		registryID = &id
+	} else if opts.RegistryID != "" {
+		return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+	}
+
+	storageLimit, err := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid storage format: %v", err)
 	}
 
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
-
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
 
 	public := strconv.FormatBool(opts.Public)
 
