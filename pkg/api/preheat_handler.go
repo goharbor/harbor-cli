@@ -51,18 +51,10 @@ func ListPreheatPolicies(projectName string, isID bool, opts ...ListFlags) (*pre
 	return response, nil
 }
 
-func GetPreheatPolicy(projectName, policyName string, isID bool) (*preheat.GetPolicyOK, error) {
+func GetPreheatPolicy(projectName, policyName string) (*preheat.GetPolicyOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
-	}
-
-	if isID {
-		project, err := GetProject(projectName, true)
-		if err != nil {
-			return nil, err
-		}
-		projectName = project.Payload.Name
 	}
 
 	response, err := client.Preheat.GetPolicy(ctx, &preheat.GetPolicyParams{
@@ -75,18 +67,10 @@ func GetPreheatPolicy(projectName, policyName string, isID bool) (*preheat.GetPo
 	return response, nil
 }
 
-func DeletePreheatPolicy(projectName, policyName string, isID bool) error {
+func DeletePreheatPolicy(projectName, policyName string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
-	}
-
-	if isID {
-		project, err := GetProject(projectName, true)
-		if err != nil {
-			return err
-		}
-		projectName = project.Payload.Name
 	}
 
 	_, err = client.Preheat.DeletePolicy(ctx, &preheat.DeletePolicyParams{
@@ -99,21 +83,13 @@ func DeletePreheatPolicy(projectName, policyName string, isID bool) error {
 	return nil
 }
 
-func StartPreheatPolicy(projectName, policyName string, isID bool) (string, error) {
+func StartPreheatPolicy(projectName, policyName string) (string, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return "", err
 	}
 
-	if isID {
-		project, err := GetProject(projectName, true)
-		if err != nil {
-			return "", err
-		}
-		projectName = project.Payload.Name
-	}
-
-	policy, err := GetPreheatPolicy(projectName, policyName, false)
+	policy, err := GetPreheatPolicy(projectName, policyName)
 	if err != nil {
 		return "", err
 	}
