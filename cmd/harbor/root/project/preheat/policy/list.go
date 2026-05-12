@@ -72,7 +72,7 @@ func ListPolicyCommand() *cobra.Command {
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				err = utils.PrintFormat(resp, FormatFlag)
+				err = utils.PrintFormat(resp.Payload, FormatFlag)
 				if err != nil {
 					return err
 				}

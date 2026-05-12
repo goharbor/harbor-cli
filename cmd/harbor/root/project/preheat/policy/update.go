@@ -74,7 +74,7 @@ func UpdatePolicyCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching preheat policy...")
-			existingPolicy, err := api.GetPreheatPolicy(projectName, policyName, false)
+			existingPolicy, err := api.GetPreheatPolicy(projectName, policyName)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {
 					return fmt.Errorf("preheat policy %s not found in project %s", policyName, projectName)
