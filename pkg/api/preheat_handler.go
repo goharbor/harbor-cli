@@ -153,7 +153,7 @@ func ListProvidersUnderProject(projectName string) ([]*models.ProviderUnderProje
 	return response.Payload, nil
 }
 
-func ListPreheatExecutions(projectName string, policyName string, isID bool, opts ...ListFlags) (*preheat.ListExecutionsOK, error) {
+func ListPreheatExecutions(projectName string, policyName string, opts ...ListFlags) (*preheat.ListExecutionsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
@@ -162,14 +162,6 @@ func ListPreheatExecutions(projectName string, policyName string, isID bool, opt
 	var listFlags ListFlags
 	if len(opts) > 0 {
 		listFlags = opts[0]
-	}
-
-	if isID {
-		project, err := GetProject(projectName, true)
-		if err != nil {
-			return nil, err
-		}
-		projectName = project.Payload.Name
 	}
 
 	response, err := client.Preheat.ListExecutions(ctx, &preheat.ListExecutionsParams{
