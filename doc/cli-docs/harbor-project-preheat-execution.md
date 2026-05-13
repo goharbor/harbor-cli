@@ -36,4 +36,5 @@ Manage P2P preheat executions under a project
 
 * [harbor project preheat](harbor-project-preheat.md)	 - Manage project preheat resources
 * [harbor project preheat execution list](harbor-project-preheat-execution-list.md)	 - List preheat executions
+* [harbor project preheat execution view](harbor-project-preheat-execution-view.md)	 - View preheat execution details
 
