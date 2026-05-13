@@ -2,20 +2,24 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-preheat-execution - Manage preheat executions
+harbor-project-preheat-execution-stop - Stop preheat execution
 
 
 .SH SYNOPSIS
-\fBharbor project preheat execution [flags]\fP
+\fBharbor project preheat execution stop [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] [flags]\fP
 
 
 .SH DESCRIPTION
-Manage P2P preheat executions under a project
+Stop a specific P2P preheat execution of a policy under a project
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for execution
+	help for stop
+
+.PP
+\fB--id\fP[=false]
+	Get preheat policy execution by project id
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +37,9 @@ Manage P2P preheat executions under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]
+  harbor-cli project preheat execution stop [NAME|ID] [POLICY_NAME] [EXECUTION_ID]
 .EE
 
 
 .SH SEE ALSO
-\fBharbor-project-preheat(1)\fP, \fBharbor-project-preheat-execution-list(1)\fP, \fBharbor-project-preheat-execution-stop(1)\fP, \fBharbor-project-preheat-execution-view(1)\fP
+\fBharbor-project-preheat-execution(1)\fP
