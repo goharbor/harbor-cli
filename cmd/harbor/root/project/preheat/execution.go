@@ -29,6 +29,7 @@ func ExecutionCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		execution.ListExecutionCommand(),
+		execution.ViewExecutionCommand(),
 	)
 
 	return cmd
