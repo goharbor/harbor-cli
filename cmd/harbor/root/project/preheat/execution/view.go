@@ -15,36 +15,30 @@ package execution
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/preheat/execution/list"
+	"github.com/goharbor/harbor-cli/pkg/views/preheat/execution/view"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func ListExecutionCommand() *cobra.Command {
-	var opts api.ListFlags
+func ViewExecutionCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "List preheat executions",
-		Long:    "List preheat executions under a project",
-		Example: `  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]`,
-		Args:    cobra.MaximumNArgs(2),
+		Use:     "view [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]",
+		Short:   "View preheat execution details",
+		Long:    "Get details of a specific P2P preheat execution under a project",
+		Example: `  harbor-cli project preheat execution view [NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
+		Args:    cobra.MaximumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string
-
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-			if opts.PageSize <= 0 || opts.PageSize > 100 {
-				return fmt.Errorf("page size must be greater than 0 and less than or equal to 100")
-			}
+			var executionID int64
 
 			if isID && len(args) == 0 {
 				return fmt.Errorf("project ID must be provided when using --id")
@@ -60,7 +54,6 @@ func ListExecutionCommand() *cobra.Command {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
-
 			if isID {
 				project, err := api.GetProject(projectName, true)
 				if err != nil {
@@ -80,18 +73,27 @@ func ListExecutionCommand() *cobra.Command {
 				}
 			}
 
-			log.Debug("Fetching preheat policy executions...")
-			resp, err := api.ListPreheatExecutions(projectName, policyName, opts)
-			if err != nil {
-				if utils.ParseHarborErrorCode(err) == "404" {
-					return fmt.Errorf("no executions found for policy %s in project %s", policyName, projectName)
+			if len(args) >= 3 {
+				log.Debugf("Execution ID provided: %s", args[2])
+				executionID, err = strconv.ParseInt(args[2], 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid execution ID %q: %v", args[2], err)
 				}
-				return fmt.Errorf("failed to list preheat executions: %v", utils.ParseHarborErrorMsg(err))
+			} else {
+				log.Debug("No execution ID provided, prompting user")
+				executionID, err = prompt.GetPreheatPolicyExecIDFromUser(projectName, policyName)
+				if err != nil {
+					return fmt.Errorf("failed to get execution id: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
-			if len(resp.Payload) == 0 {
-				fmt.Println("No executions found")
-				return nil
+			log.Debug("Fetching preheat execution details...")
+			resp, err := api.GetPreheatExecution(projectName, policyName, executionID)
+			if err != nil {
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("no execution found for execution ID %d in policy %s in project %s", executionID, policyName, projectName)
+				}
+				return fmt.Errorf("failed to view preheat execution: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			FormatFlag := viper.GetString("output-format")
@@ -101,18 +103,14 @@ func ListExecutionCommand() *cobra.Command {
 					return err
 				}
 			} else {
-				list.ListExecutions(resp.Payload)
+				view.ViewExecution(resp.Payload)
 			}
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get preheat executions by project id")
-	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.BoolVar(&isID, "id", false, "Get preheat policy execution by project id")
 
 	return cmd
 }

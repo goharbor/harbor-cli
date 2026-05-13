@@ -177,3 +177,20 @@ func ListPreheatExecutions(projectName string, policyName string, opts ...ListFl
 	}
 	return response, nil
 }
+
+func GetPreheatExecution(projectName string, policyName string, executionID int64) (*preheat.GetExecutionOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.GetExecution(ctx, &preheat.GetExecutionParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
