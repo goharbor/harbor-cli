@@ -194,3 +194,23 @@ func GetPreheatExecution(projectName string, policyName string, executionID int6
 	}
 	return response, nil
 }
+
+func StopPreheatExecution(projectName string, policyName string, executionID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Preheat.StopExecution(ctx, &preheat.StopExecutionParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+		Execution: &models.Execution{
+			Status: "Stopped",
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

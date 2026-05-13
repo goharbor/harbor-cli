@@ -30,6 +30,7 @@ func ExecutionCommand() *cobra.Command {
 	cmd.AddCommand(
 		execution.ListExecutionCommand(),
 		execution.ViewExecutionCommand(),
+		execution.StopExecutionCommand(),
 	)
 
 	return cmd
