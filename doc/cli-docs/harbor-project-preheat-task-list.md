@@ -19,7 +19,7 @@ harbor project preheat task list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] 
 ### Examples
 
 ```sh
-  harbor-cli project preheat task list [NAME|ID] [POLICY_NAME] [EXECUTION_ID]
+  harbor-cli project preheat task list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]
 ```
 
 ### Options

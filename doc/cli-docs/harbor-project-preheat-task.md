@@ -36,4 +36,5 @@ Manage related tasks for the given preheat execution
 
 * [harbor project preheat](harbor-project-preheat.md)	 - Manage project preheat resources
 * [harbor project preheat task list](harbor-project-preheat-task-list.md)	 - List preheat tasks
+* [harbor project preheat task log](harbor-project-preheat-task-log.md)	 - Get preheat task log
 
