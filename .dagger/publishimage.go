@@ -43,10 +43,10 @@ func (m *HarborCli) PublishImageAndSign(
 		// Generate SBOM (SPDX JSON) for the published image
 		sbom := m.GenerateSBOM(
 			ctx,
-			addr,
-			registryUsername,
+			addr, 
+			registryUsername, 
 			registryPassword,
-		)
+		);
 
 		// Attest SBOM to the image using Cosign in-toto attestation
 		if _, err := m.AttestSBOM(

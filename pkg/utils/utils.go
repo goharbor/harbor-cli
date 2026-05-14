@@ -253,8 +253,6 @@ func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column
 }
 
 // ValidateCronExpression ensures the provided cron string matches Harbor's 6-field requirements.
-var cronRegex = regexp.MustCompile(`^(\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|1[0-9]|2[0-3]|\*/([1-9]|1[0-9]|2[0-3])) (\*|[1-9]|[12][0-9]|3[01]|\*/([1-9]|[12][0-9]|3[01])) (\*|[1-9]|1[0-2]|\*/([1-9]|1[0-2])) (\*|[0-6]|\*/[1-6])$`)
-
 func ValidateCronExpression(cron string) error {
 	if cron == "" {
 		return errors.New("cron expression cannot be empty")
@@ -267,6 +265,8 @@ func ValidateCronExpression(cron string) error {
 		}
 		return fmt.Errorf("harbor requires exactly 6 fields in cron expressions (seconds minute hour day month weekday), got %d", len(fields))
 	}
+
+	cronRegex := regexp.MustCompile(`^(\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|1[0-9]|2[0-3]|\*/([1-9]|1[0-9]|2[0-3])) (\*|[1-9]|[12][0-9]|3[01]|\*/([1-9]|[12][0-9]|3[01])) (\*|[1-9]|1[0-2]|\*/([1-9]|1[0-2])) (\*|[0-6]|\*/[1-6])$`)
 
 	if !cronRegex.MatchString(cron) {
 		return errors.New("invalid cron expression format\n" +
