@@ -20,33 +20,23 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/preheat/task/list"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-func ListTaskCommand() *cobra.Command {
-	var opts api.ListFlags
+func LogTaskCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]",
-		Short:   "List preheat tasks",
-		Long:    "List all tasks for a specific P2P preheat execution under a project",
-		Example: `  harbor-cli project preheat task list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
-		Args:    cobra.MaximumNArgs(3),
+		Use:     "log [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] [TASK_ID]",
+		Short:   "Get preheat task log",
+		Long:    "Get the log for a specific P2P preheat task under a project",
+		Example: `  harbor-cli project preheat task log [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] [TASK_ID]`,
+		Args:    cobra.MaximumNArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string
-			var executionID int64
-
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-			if opts.PageSize <= 0 || opts.PageSize > 100 {
-				return fmt.Errorf("page size must be greater than 0 and less than or equal to 100")
-			}
+			var executionID, taskID int64
 
 			if isID && len(args) == 0 {
 				return fmt.Errorf("project ID must be provided when using --id")
@@ -95,39 +85,38 @@ func ListTaskCommand() *cobra.Command {
 				}
 			}
 
-			log.Debug("Fetching preheat execution tasks...")
-			resp, err := api.ListPreheatTasks(projectName, policyName, executionID, opts)
-			if err != nil {
-				if utils.ParseHarborErrorCode(err) == "404" {
-					return fmt.Errorf("no tasks found for execution %d of policy %s in project %s", executionID, policyName, projectName)
-				}
-				return fmt.Errorf("failed to list preheat execution tasks: %v", utils.ParseHarborErrorMsg(err))
-			}
-
-			if len(resp.Payload) == 0 {
-				fmt.Println("No tasks found")
-				return nil
-			}
-
-			FormatFlag := viper.GetString("output-format")
-			if FormatFlag != "" {
-				err = utils.PrintFormat(resp.Payload, FormatFlag)
+			if len(args) >= 4 {
+				log.Debugf("Task ID provided: %s", args[3])
+				taskID, err = strconv.ParseInt(args[3], 10, 64)
 				if err != nil {
-					return err
+					return fmt.Errorf("invalid task ID %q: %v", args[3], err)
 				}
 			} else {
-				list.ListTasks(resp.Payload)
+				log.Debug("No task ID provided, prompting user")
+				taskID, err = prompt.GetPreheatTaskIDFromUser(projectName, policyName, executionID)
+				if err != nil {
+					return fmt.Errorf("failed to get task id: %v", utils.ParseHarborErrorMsg(err))
+				}
+			}
+
+			log.Debug("Fetching preheat task log...")
+			resp, err := api.GetPreheatLog(projectName, policyName, executionID, taskID)
+			if err != nil {
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("preheat task %d for execution %d of policy %s in project %s not found", taskID, executionID, policyName, projectName)
+				}
+				return fmt.Errorf("failed to get preheat task log: %v", utils.ParseHarborErrorMsg(err))
+			}
+
+			if resp.Payload != "" {
+				fmt.Println(resp.Payload)
 			}
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get preheat tasks by project id")
-	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
-	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
-	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
-	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the resource list in ascending or descending order")
+	flags.BoolVar(&isID, "id", false, "Use project ID instead of name")
 
 	return cmd
 }
