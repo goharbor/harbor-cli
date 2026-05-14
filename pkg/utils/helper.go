@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -157,10 +158,38 @@ func ValidateProjectName(projectName string) bool {
 }
 
 func ValidateStorageLimit(sl string) error {
-	_, err := StorageStringToBytes(sl)
-	if err != nil {
-		return fmt.Errorf("invalid storage limit: %v", err)
+	if sl == "-1" {
+		return nil
 	}
+
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)?$`)
+	matches := re.FindStringSubmatch(sl)
+	if matches == nil {
+		return errors.New("invalid storage format: only binary units (MiB, GiB, TiB) or plain numbers are supported")
+	}
+
+	valueStr, unit := matches[1], matches[2]
+	value, err := strconv.ParseInt(valueStr, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	var multiplier int64 = 1
+	if unit != "" {
+		var ok bool
+		multiplier, ok = storageMultipliers[unit]
+		if !ok {
+			return fmt.Errorf("invalid unit: %s", unit)
+		}
+	}
+
+	const maxTiB int64 = 1024
+	maxBytes := maxTiB * 1024 * 1024 * 1024 * 1024
+
+	if value > maxBytes/multiplier {
+		return fmt.Errorf("value exceeds the maximum allowed limit of %d TiB", maxTiB)
+	}
+
 	return nil
 }
 

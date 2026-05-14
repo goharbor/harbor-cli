@@ -16,7 +16,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -136,55 +135,32 @@ func DefaultCredentialName(username, server string) string {
 	return fmt.Sprintf("%s@%s", username, sanitized)
 }
 
+var storageMultipliers = map[string]int64{
+	"MiB": 1024 * 1024,
+	"GiB": 1024 * 1024 * 1024,
+	"TiB": 1024 * 1024 * 1024 * 1024,
+}
+
 func StorageStringToBytes(storage string) (int64, error) {
+	if err := ValidateStorageLimit(storage); err != nil {
+		return 0, err
+	}
+
 	if storage == "-1" {
 		return -1, nil
 	}
 
-	// Define the conversion multipliers (Binary only as requested)
-	multipliers := map[string]int64{
-		"MiB": 1024 * 1024,
-		"GiB": 1024 * 1024 * 1024,
-		"TiB": 1024 * 1024 * 1024 * 1024,
-	}
-
-	// Define a stricter regex to parse the input string (Binary units only)
 	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)?$`)
 	matches := re.FindStringSubmatch(storage)
-	if matches == nil {
-		return 0, errors.New("invalid storage format: only binary units (MiB, GiB, TiB) or plain numbers are supported")
-	}
 
-	// Extract the value and unit from the matches
-	valueStr, unit := matches[1], matches[2]
-	value, err := strconv.ParseInt(valueStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
+	value, _ := strconv.ParseInt(matches[1], 10, 64)
 
-	// Default multiplier is 1 (bytes)
 	var multiplier int64 = 1
-	if unit != "" {
-		var ok bool
-		multiplier, ok = multipliers[unit]
-		if !ok {
-			return 0, fmt.Errorf("invalid unit: %s", unit)
-		}
+	if unit := matches[2]; unit != "" {
+		multiplier = storageMultipliers[unit]
 	}
 
-	// Define the maximum allowed storage (1024 TiB)
-	const maxTiB int64 = 1024
-	maxBytes := maxTiB * 1024 * 1024 * 1024 * 1024
-
-	// Safeguard: Check for overflow before multiplication
-	if value > maxBytes/multiplier {
-		return 0, fmt.Errorf("value exceeds the maximum allowed limit of %d TiB", maxTiB)
-	}
-
-	// Calculate the value in bytes
-	bytes := value * multiplier
-
-	return bytes, nil
+	return value * multiplier, nil
 }
 
 func SavePayloadJSON(filename string, payload any) {
