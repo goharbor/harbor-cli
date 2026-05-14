@@ -28,6 +28,7 @@ func TaskCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		task.ListTaskCommand(),
+		task.LogTaskCommand(),
 	)
 
 	return cmd

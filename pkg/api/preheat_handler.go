@@ -240,3 +240,21 @@ func ListPreheatTasks(projectName, policyName string, executionID int64, opts ..
 	}
 	return response, nil
 }
+
+func GetPreheatLog(projectName, policyName string, executionID, taskID int64) (*preheat.GetPreheatLogOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.GetPreheatLog(ctx, &preheat.GetPreheatLogParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+		TaskID:            taskID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
