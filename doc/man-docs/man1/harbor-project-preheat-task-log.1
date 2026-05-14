@@ -2,20 +2,24 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-project-preheat-task - Manage preheat tasks
+harbor-project-preheat-task-log - Get preheat task log
 
 
 .SH SYNOPSIS
-\fBharbor project preheat task [flags]\fP
+\fBharbor project preheat task log [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] [TASK_ID] [flags]\fP
 
 
 .SH DESCRIPTION
-Manage related tasks for the given preheat execution
+Get the log for a specific P2P preheat task under a project
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for task
+	help for log
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +37,9 @@ Manage related tasks for the given preheat execution
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat task list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]
+  harbor-cli project preheat task log [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] [TASK_ID]
 .EE
 
 
 .SH SEE ALSO
-\fBharbor-project-preheat(1)\fP, \fBharbor-project-preheat-task-list(1)\fP, \fBharbor-project-preheat-task-log(1)\fP
+\fBharbor-project-preheat-task(1)\fP
