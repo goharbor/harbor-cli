@@ -104,19 +104,22 @@ func ValidateUserName(username string) bool {
 	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
 }
 
+// ValidateEmail checks if the email is in a valid format.
 func ValidateEmail(email string) bool {
 	return emailRegex.MatchString(email)
 }
 
+// ValidateConfigPath checks if the config path is a valid yaml or yml file path.
 func ValidateConfigPath(configPath string) bool {
 	return configPathRegex.MatchString(configPath)
 }
 
+// ValidateFL checks if the first and last name string is in the correct format.
 func ValidateFL(name string) bool {
 	return flRegex.MatchString(name)
 }
 
-// check if the password format is valid
+// ValidatePassword checks if the password format is valid.
 func ValidatePassword(password string) error {
 	password = strings.TrimSpace(password)
 	if password == "" {
@@ -154,6 +157,7 @@ func ValidateProjectName(projectName string) bool {
 	return projectNameRegex.MatchString(projectName)
 }
 
+// ValidateStorageLimit checks if the storage limit string is a valid integer between -1 and 1024.
 func ValidateStorageLimit(sl string) error {
 	storageLimit, err := strconv.Atoi(sl)
 	if err != nil {
@@ -166,6 +170,7 @@ func ValidateStorageLimit(sl string) error {
 	return nil
 }
 
+// ValidateRegistryName checks if the registry name is valid.
 func ValidateRegistryName(rn string) bool {
 	return registryNameRegex.MatchString(rn)
 }
@@ -198,6 +203,7 @@ func ValidateURL(rawURL string) error {
 	return nil
 }
 
+// PrintFormat prints the response in the specified format (json, yaml, or csv).
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)
@@ -214,6 +220,7 @@ func PrintFormat[T any](resp T, format string) error {
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
 
+// EmptyStringValidator returns a validator function that checks if a string is empty.
 func EmptyStringValidator(variable string) func(string) error {
 	return func(str string) error {
 		if str == "" {
@@ -223,7 +230,7 @@ func EmptyStringValidator(variable string) func(string) error {
 	}
 }
 
-// This function covert camelCase to Human Readable form
+// CamelCaseToHR converts a camelCase string to a human-readable format with spaces and capitalization.
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
