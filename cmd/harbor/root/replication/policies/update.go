@@ -40,7 +40,11 @@ func UpdateCommand() *cobra.Command {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
 			} else {
-				policyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				policyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
 			}
 
 			existingPolicy, err := api.GetReplicationPolicy(policyID)

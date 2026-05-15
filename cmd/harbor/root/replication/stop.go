@@ -41,10 +41,20 @@ func StopCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
-				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				executionID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %w", err)
+				}
 			} else {
-				rpolicyID = prompt.GetReplicationPolicyFromUser()
-				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				var err error
+				rpolicyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
+				executionID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %w", err)
+				}
 			}
 
 			execution, err := api.GetReplicationExecution(executionID)
