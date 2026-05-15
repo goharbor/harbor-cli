@@ -65,8 +65,14 @@ func ViewCommand() *cobra.Command {
 					return fmt.Errorf("invalid replication execution ID: %s, %v", args[0], err)
 				}
 			} else {
-				rpolicyID := prompt.GetReplicationPolicyFromUser()
-				execID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				rpolicyID, err := prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
+				execID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %w", err)
+				}
 			}
 
 			execution, err := api.GetReplicationExecution(execID)
