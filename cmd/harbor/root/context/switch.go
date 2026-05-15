@@ -50,7 +50,7 @@ func SwitchContextCommand() *cobra.Command {
 						return fmt.Errorf("failed to update config: %w", err)
 					}
 				} else {
-					fmt.Println("context doesn't exist")
+					return fmt.Errorf("context '%s' doesn't exist", newActiveCredential)
 				}
 			} else {
 				res, err := prompt.GetActiveContextFromUser()
