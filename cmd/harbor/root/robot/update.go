@@ -144,7 +144,7 @@ Examples:
 				}
 			}
 
-			logrus.Infof("Loaded robot with %d system permissions and %d project-specific permissions",
+			logrus.Debugf("Loaded robot with %d system permissions and %d project-specific permissions",
 				len(permissions), len(projectPermissionsMap))
 
 			// Handle configuration from file or interactive input
@@ -187,7 +187,7 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		return fmt.Errorf("failed to load robot config from file: %v", err)
 	}
 
-	logrus.Info("Successfully loaded robot configuration")
+	logrus.Debug("Successfully loaded robot configuration")
 
 	// Only update fields that should be updated from the config file
 	// IMPORTANT: Do not update name or level as the Harbor API doesn't allow this
@@ -230,7 +230,7 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		}
 	}
 
-	logrus.Infof("Loaded robot update with %d system permissions and %d project-specific permissions",
+	logrus.Debugf("Loaded robot update with %d system permissions and %d project-specific permissions",
 		len(*permissions), len(projectPermissionsMap))
 
 	return nil
@@ -264,7 +264,7 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 	}
 
 	if !updatePerms {
-		logrus.Info("Keeping existing permissions")
+		logrus.Debug("Keeping existing permissions")
 		return nil
 	}
 
@@ -296,7 +296,7 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 	}
 
 	if !updateSystem {
-		logrus.Info("Keeping existing system permissions")
+		logrus.Debug("Keeping existing system permissions")
 		return nil
 	}
 
@@ -328,10 +328,10 @@ func getProjectPermissionsForUpdate(opts *update.UpdateView, projectPermissionsM
 
 	switch permissionMode {
 	case "keep":
-		logrus.Info("Keeping existing project permissions")
+		logrus.Debug("Keeping existing project permissions")
 		return nil
 	case "clear":
-		logrus.Info("Clearing all project permissions")
+		logrus.Debug("Clearing all project permissions")
 		// Clear the map to remove all project permissions
 		for k := range projectPermissionsMap {
 			delete(projectPermissionsMap, k)
@@ -583,7 +583,7 @@ func updateRobotAndHandleResponse(opts *update.UpdateView) error {
 		return fmt.Errorf("failed to update robot: %v", utils.ParseHarborErrorMsg(err))
 	}
 
-	logrus.Infof("Successfully updated robot account '%s' (ID: %d)", opts.Name, opts.ID)
+	fmt.Printf("Successfully updated robot account '%s' (ID: %d)\n", opts.Name, opts.ID)
 
 	// Handle output format
 	if formatFlag := viper.GetString("output-format"); formatFlag != "" {

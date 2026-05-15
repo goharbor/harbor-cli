@@ -15,6 +15,7 @@ package instance
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -24,6 +25,7 @@ import (
 
 func CreateInstanceCommand() *cobra.Command {
 	var opts create.CreateView
+	var authUsername, authPassword, authToken string
 
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -31,20 +33,11 @@ func CreateInstanceCommand() *cobra.Command {
 		Long: `Create a new preheat provider instance within Harbor for distributing container images.
 The instance can be an external service such as Dragonfly, Kraken, or any custom provider.
 You will need to provide the instance's name, vendor, endpoint, and optionally other details such as authentication and security options.`,
-		Example: `  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true`,
+		Example: `  harbor-cli instance create --name my-instance --provider dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			createView := &create.CreateView{
-				Name:        opts.Name,
-				Vendor:      opts.Vendor,
-				Description: opts.Description,
-				Endpoint:    opts.Endpoint,
-				Insecure:    opts.Insecure,
-				Enabled:     opts.Enabled,
-				AuthMode:    opts.AuthMode,
-				AuthInfo:    opts.AuthInfo,
-			}
+			var instanceName string
 
 			if opts.Name != "" && opts.Vendor != "" && opts.Endpoint != "" {
 				formattedEndpoint := utils.FormatUrl(opts.Endpoint)
@@ -52,26 +45,67 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 					return err
 				}
 				opts.Endpoint = formattedEndpoint
+
+				opts.AuthMode = strings.ToUpper(strings.TrimSpace(opts.AuthMode))
+
+				switch opts.AuthMode {
+				case "BASIC":
+					if authUsername == "" || authPassword == "" {
+						return fmt.Errorf("username and password are required when authmode is BASIC. Use --auth-username and --auth-password flags")
+					}
+					opts.AuthInfo = map[string]string{
+						"username": authUsername,
+						"password": authPassword,
+					}
+				case "OAUTH":
+					if authToken == "" {
+						return fmt.Errorf("token is required when authmode is OAUTH. Use --auth-token flag")
+					}
+					opts.AuthInfo = map[string]string{
+						"token": authToken,
+					}
+				case "NONE":
+					// Auth credentials are ignored when authmode is NONE
+				default:
+					return fmt.Errorf("invalid authmode '%s'. Valid options: NONE, BASIC, OAUTH", opts.AuthMode)
+				}
+
 				err = api.CreateInstance(opts)
+				instanceName = opts.Name
 			} else {
+				createView := &create.CreateView{
+					Name:        opts.Name,
+					Vendor:      opts.Vendor,
+					Description: opts.Description,
+					Endpoint:    opts.Endpoint,
+					Insecure:    opts.Insecure,
+					Enabled:     opts.Enabled,
+					AuthMode:    opts.AuthMode,
+				}
 				err = createInstanceView(createView)
+				instanceName = createView.Name
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to create instance: %v", err)
+				return fmt.Errorf("failed to create instance: %v", utils.ParseHarborErrorMsg(err))
 			}
+
+			fmt.Printf("Instance '%s' created successfully\n", instanceName)
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.Name, "name", "n", "", "Name of the instance")
-	flags.StringVarP(&opts.Vendor, "provider", "p", "", "Provider for the instance")
-	flags.StringVarP(&opts.Endpoint, "url", "u", "", "URL for the instance")
-	flags.StringVarP(&opts.Description, "description", "", "", "Description of the instance")
-	flags.BoolVarP(&opts.Insecure, "insecure", "i", true, "Whether or not the certificate will be verified when Harbor tries to access the server")
-	flags.BoolVarP(&opts.Enabled, "enable", "", true, "Whether it is enabled or not")
-	flags.StringVarP(&opts.AuthMode, "authmode", "a", "NONE", "Choosing different types of authentication method")
+	flags.StringVarP(&opts.Vendor, "provider", "p", "", "Provider for the instance (e.g. dragonfly, kraken)")
+	flags.StringVarP(&opts.Endpoint, "url", "u", "", "Endpoint URL for the instance")
+	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the instance")
+	flags.BoolVarP(&opts.Insecure, "insecure", "i", false, "Whether or not the certificate will be verified when Harbor tries to access the server")
+	flags.BoolVarP(&opts.Enabled, "enable", "", true, "Whether the instance is enabled or not")
+	flags.StringVarP(&opts.AuthMode, "authmode", "a", "NONE", "Authentication mode (NONE, BASIC, OAUTH)")
+	flags.StringVar(&authUsername, "auth-username", "", "Username for BASIC authentication")
+	flags.StringVar(&authPassword, "auth-password", "", "Password for BASIC authentication")
+	flags.StringVar(&authToken, "auth-token", "", "Token for OAUTH authentication")
 
 	return cmd
 }
@@ -81,6 +115,8 @@ func createInstanceView(createView *create.CreateView) error {
 		createView = &create.CreateView{}
 	}
 
-	create.CreateInstanceView(createView)
+	if err := create.CreateInstanceView(createView); err != nil {
+		return err
+	}
 	return api.CreateInstance(*createView)
 }

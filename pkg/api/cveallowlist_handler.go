@@ -14,6 +14,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/cveallowlist/update"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListSystemCve() (system_cve_allowlist.GetSystemCVEAllowlistOK, error) {
@@ -66,7 +66,7 @@ func UpdateSystemCve(opts update.UpdateView) error {
 	}
 
 	if response != nil {
-		log.Info("cveallowlist added successfully")
+		fmt.Println("Cveallowlist added successfully")
 	}
 	return nil
 }

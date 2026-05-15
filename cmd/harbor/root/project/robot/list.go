@@ -83,7 +83,10 @@ Examples:
 			if len(args) > 0 {
 				project, err := api.GetProject(args[0], false)
 				if err != nil {
-					log.Errorf("Invalid Project Name: %v", err)
+					return fmt.Errorf("failed to get project by name %s: %v", args[0], utils.ParseHarborErrorMsg(err))
+				}
+				if project == nil || project.Payload == nil {
+					return fmt.Errorf("failed to get project by name %s: empty project response", args[0])
 				}
 				opts.ProjectID = int64(project.Payload.ProjectID)
 				opts.Q = projectQString + strconv.FormatInt(opts.ProjectID, 10)
@@ -101,7 +104,7 @@ Examples:
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				log.Errorf("failed to get robots list: %v", err)
+				return fmt.Errorf("failed to get robots list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			formatFlag := viper.GetString("output-format")

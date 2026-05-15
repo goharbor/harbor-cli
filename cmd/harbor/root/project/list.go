@@ -93,7 +93,7 @@ func ListProjectCommand() *cobra.Command {
 
 			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
 			if len(allProjects) == 0 {
-				log.Info("No projects found")
+				fmt.Println("No projects found")
 				return nil
 			}
 			formatFlag := viper.GetString("output-format")

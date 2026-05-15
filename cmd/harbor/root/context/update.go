@@ -69,8 +69,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 
 			// 5. Confirm to the user (logrus.Info is fine here; no error)
 			canonicalPath := strings.Join(actualSegments, ".")
-			logrus.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
-
+			fmt.Printf("Successfully updated %s to '%s'\n", canonicalPath, newValue)
 			return nil
 		},
 	}
@@ -142,7 +141,7 @@ func setValueInConfig(
 func setNestedValue(obj interface{}, path []string, newValue string, actualSegments *[]string) error {
 	// We require obj to be a pointer to a struct so we can modify it.
 	val := reflect.ValueOf(obj)
-	if val.Kind() != reflect.Ptr {
+	if val.Kind() != reflect.Pointer {
 		return fmt.Errorf("object must be a pointer to a struct, got %s", val.Kind())
 	}
 	val = val.Elem() // dereference pointer
@@ -174,13 +173,13 @@ func setNestedValue(obj interface{}, path []string, newValue string, actualSegme
 		// If this is NOT the last path segment, move deeper
 		if i < len(path)-1 {
 			// If the field is a pointer and nil, allocate a new instance
-			if fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+			if fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil() {
 				newElem := reflect.New(fieldValue.Type().Elem())
 				fieldValue.Set(newElem)
 			}
 			// Descend
 			val = fieldValue
-			if val.Kind() == reflect.Ptr {
+			if val.Kind() == reflect.Pointer {
 				val = val.Elem()
 			}
 			continue

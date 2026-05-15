@@ -150,7 +150,7 @@ func DeleteRobot(robotID int64) error {
 		return err
 	}
 
-	log.Info("robot deleted successfully")
+	fmt.Println("Robot deleted successfully")
 	return nil
 }
 
@@ -191,7 +191,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 		return nil, fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 	}
 
-	log.Info("robot created successfully.")
+	fmt.Println("Robot created successfully.")
 	return response, nil
 }
 
@@ -237,7 +237,7 @@ func UpdateRobot(opts *update.UpdateView) error {
 		return err
 	}
 
-	log.Info("robot updated successfully.")
+	fmt.Println("Robot updated successfully.")
 	return nil
 }
 
