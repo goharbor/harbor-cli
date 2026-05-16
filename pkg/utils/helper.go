@@ -95,20 +95,23 @@ func ValidateUserName(username string) bool {
 
 // ValidateEmail checks if the email is in a valid format.
 func ValidateEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return emailRegex.MatchString(email)
+	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(email)
 }
 
 // ValidateConfigPath checks if the config path is a valid yaml or yml file path.
 func ValidateConfigPath(configPath string) bool {
-	configPathRegex := regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
-	return configPathRegex.MatchString(configPath)
+	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(configPath)
 }
 
 // ValidateFL checks if the first and last name string is in the correct format.
 func ValidateFL(name string) bool {
-	flRegex := regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
-	return flRegex.MatchString(name)
+	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(name)
 }
 
 // ValidatePassword checks if the password format is valid.
@@ -141,14 +144,20 @@ func ValidatePassword(password string) error {
 
 // check if the tag name is valid
 func ValidateTagName(tagName string) bool {
-	tagNameRegex := regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
-	return tagNameRegex.MatchString(tagName)
+	pattern := `^[\w][\w.-]{0,127}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(tagName)
 }
 
 // check if the project name is valid
 func ValidateProjectName(projectName string) bool {
-	projectNameRegex := regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
-	return projectNameRegex.MatchString(projectName)
+	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(projectName)
 }
 
 // ValidateStorageLimit checks if the storage limit string is a valid integer between -1 and 1024.
@@ -166,13 +175,19 @@ func ValidateStorageLimit(sl string) error {
 
 // ValidateRegistryName checks if the registry name is valid.
 func ValidateRegistryName(rn string) bool {
-	registryNameRegex := regexp.MustCompile(`^[\w][\w.-]{0,63}$`)
-	return registryNameRegex.MatchString(rn)
+	pattern := `^[\w][\w.-]{0,63}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(rn)
 }
 
 // ValidateURL checks that the URL has a valid format and a non-empty host.
 // The host may be an IP address, "localhost", or an RFC 1123-style hostname validated by domainNameRegex.
 func ValidateURL(rawURL string) error {
+	pattern := `^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`
+	re := regexp.MustCompile(pattern)
+
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %v", err)
@@ -191,7 +206,7 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
-	if !regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`).MatchString(host) {
+	if !re.MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
 
