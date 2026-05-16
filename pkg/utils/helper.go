@@ -155,7 +155,6 @@ func ValidateProjectName(projectName string) bool {
 	return re.MatchString(projectName)
 }
 
-// ValidateStorageLimit checks if the storage limit string is a valid integer between -1 and 1024.
 func ValidateStorageLimit(sl string) error {
 	storageLimit, err := strconv.Atoi(sl)
 	if err != nil {
