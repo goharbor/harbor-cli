@@ -25,16 +25,6 @@ import (
 	"unicode"
 )
 
-var (
-	emailRegex        = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	configPathRegex   = regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
-	flRegex           = regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
-	tagNameRegex      = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
-	projectNameRegex  = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
-	registryNameRegex = regexp.MustCompile(`^[\w][\w.-]{0,63}$`)
-	domainNameRegex   = regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`)
-)
-
 func pluralise(value int, unit string) string {
 	if value == 1 {
 		return fmt.Sprintf("%d %s ago", value, unit)
@@ -105,16 +95,19 @@ func ValidateUserName(username string) bool {
 
 // ValidateEmail checks if the email is in a valid format.
 func ValidateEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
 }
 
 // ValidateConfigPath checks if the config path is a valid yaml or yml file path.
 func ValidateConfigPath(configPath string) bool {
+	configPathRegex := regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
 	return configPathRegex.MatchString(configPath)
 }
 
 // ValidateFL checks if the first and last name string is in the correct format.
 func ValidateFL(name string) bool {
+	flRegex := regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
 	return flRegex.MatchString(name)
 }
 
@@ -148,11 +141,13 @@ func ValidatePassword(password string) error {
 
 // check if the tag name is valid
 func ValidateTagName(tagName string) bool {
+	tagNameRegex := regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
 	return tagNameRegex.MatchString(tagName)
 }
 
 // check if the project name is valid
 func ValidateProjectName(projectName string) bool {
+	projectNameRegex := regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
 	return projectNameRegex.MatchString(projectName)
 }
 
@@ -171,6 +166,7 @@ func ValidateStorageLimit(sl string) error {
 
 // ValidateRegistryName checks if the registry name is valid.
 func ValidateRegistryName(rn string) bool {
+	registryNameRegex := regexp.MustCompile(`^[\w][\w.-]{0,63}$`)
 	return registryNameRegex.MatchString(rn)
 }
 
@@ -195,7 +191,7 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
-	if !domainNameRegex.MatchString(host) {
+	if !regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`).MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
 

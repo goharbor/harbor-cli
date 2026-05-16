@@ -36,10 +36,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-var (
-	storageRegex = regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
-)
-
 // Returns Harbor v2 client for given clientConfig
 
 // PrintPayloadInJSONFormat prints the given payload in a formatted JSON string.
@@ -156,6 +152,7 @@ func StorageStringToBytes(storage string) (int64, error) {
 		"TiB": 1024 * 1024 * 1024 * 1024,
 	}
 
+	storageRegex := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
 	matches := storageRegex.FindStringSubmatch(storage)
 	if matches == nil {
 		return 0, errors.New("invalid storage format")
