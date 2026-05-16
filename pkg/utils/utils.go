@@ -38,7 +38,6 @@ import (
 
 // Returns Harbor v2 client for given clientConfig
 
-// PrintPayloadInJSONFormat prints the given payload in a formatted JSON string.
 func PrintPayloadInJSONFormat(payload any) {
 	if payload == nil {
 		return
@@ -52,7 +51,6 @@ func PrintPayloadInJSONFormat(payload any) {
 	fmt.Println(string(jsonStr))
 }
 
-// PrintPayloadInYAMLFormat prints the given payload in a YAML string.
 func PrintPayloadInYAMLFormat(payload any) {
 	if payload == nil {
 		return
@@ -66,7 +64,6 @@ func PrintPayloadInYAMLFormat(payload any) {
 	fmt.Println(string(yamlStr))
 }
 
-// PrintPayloadInCSVFormat prints the given payload in a CSV format.
 func PrintPayloadInCSVFormat(payload any) {
 	if payload == nil {
 		return
@@ -78,7 +75,6 @@ func PrintPayloadInCSVFormat(payload any) {
 	}
 }
 
-// ParseProjectRepo splits a "project/repo" string into project and repo parts.
 func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 	split := strings.SplitN(projectRepo, "/", 2) // splits only at first slash
 	if len(split) != 2 {
@@ -87,7 +83,6 @@ func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 	return split[0], split[1], nil
 }
 
-// ParseProjectRepoReference parses a reference string like "project/repo:tag" or "project/repo@digest".
 func ParseProjectRepoReference(projectRepoReference string) (project, repo, reference string, err error) {
 	log.Debugf("Parsing input: %s", projectRepoReference)
 
@@ -117,7 +112,6 @@ func ParseProjectRepoReference(projectRepoReference string) (project, repo, refe
 	return project, repo, ref, err
 }
 
-// SanitizeServerAddress removes special characters from a server address to make it safe for file systems.
 func SanitizeServerAddress(server string) string {
 	var sb strings.Builder
 	prevDash := false
@@ -137,13 +131,11 @@ func SanitizeServerAddress(server string) string {
 	return sanitized
 }
 
-// DefaultCredentialName generates a default name for a credential based on username and server.
 func DefaultCredentialName(username, server string) string {
 	sanitized := SanitizeServerAddress(server)
 	return fmt.Sprintf("%s@%s", username, sanitized)
 }
 
-// StorageStringToBytes converts a storage string (e.g., "1GiB") into its byte value.
 func StorageStringToBytes(storage string) (int64, error) {
 	// Define the conversion multipliers
 	multipliers := map[string]int64{
@@ -178,7 +170,6 @@ func StorageStringToBytes(storage string) (int64, error) {
 	return bytes, nil
 }
 
-// SavePayloadJSON writes the given payload to a JSON file.
 func SavePayloadJSON(filename string, payload any) {
 	// Marshal the payload into a JSON string with indentation
 	jsonStr, err := json.MarshalIndent(payload, "", "  ")
@@ -194,7 +185,7 @@ func SavePayloadJSON(filename string, payload any) {
 	fmt.Printf("JSON data has been written to %s\n", filename)
 }
 
-// GetSecretStdin reads a secret from standard input without echoing it.
+// Get Password as Stdin
 func GetSecretStdin(prompt string) (string, error) {
 	fmt.Print(prompt)
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
@@ -205,12 +196,10 @@ func GetSecretStdin(prompt string) (string, error) {
 	return strings.TrimSpace(string(bytePassword)), nil
 }
 
-// ToKebabCase converts a space-separated string to kebab-case.
 func ToKebabCase(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
 }
 
-// FromKebabCase converts a kebab-case string to a human-readable Title Case string.
 func FromKebabCase(s string) string {
 	words := strings.Split(s, "-")
 	for i, word := range words {
@@ -219,7 +208,6 @@ func FromKebabCase(s string) string {
 	return strings.Join(words, " ")
 }
 
-// Capitalize capitalizes the first letter of a string.
 func Capitalize(s string) string {
 	if s == "" {
 		return ""

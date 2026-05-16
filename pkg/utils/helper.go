@@ -93,21 +93,18 @@ func ValidateUserName(username string) bool {
 	return len(username) >= 1 && len(username) <= 255 && !strings.ContainsAny(username, `,"~#%$`)
 }
 
-// ValidateEmail checks if the email is in a valid format.
 func ValidateEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(email)
 }
 
-// ValidateConfigPath checks if the config path is a valid yaml or yml file path.
 func ValidateConfigPath(configPath string) bool {
 	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(configPath)
 }
 
-// ValidateFL checks if the first and last name string is in the correct format.
 func ValidateFL(name string) bool {
 	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
 	re := regexp.MustCompile(pattern)
@@ -142,7 +139,6 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
-// check if the tag name is valid
 func ValidateTagName(tagName string) bool {
 	pattern := `^[\w][\w.-]{0,127}$`
 
@@ -151,7 +147,6 @@ func ValidateTagName(tagName string) bool {
 	return re.MatchString(tagName)
 }
 
-// check if the project name is valid
 func ValidateProjectName(projectName string) bool {
 	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$`
 
@@ -173,7 +168,6 @@ func ValidateStorageLimit(sl string) error {
 	return nil
 }
 
-// ValidateRegistryName checks if the registry name is valid.
 func ValidateRegistryName(rn string) bool {
 	pattern := `^[\w][\w.-]{0,63}$`
 
@@ -230,7 +224,6 @@ func PrintFormat[T any](resp T, format string) error {
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
 
-// EmptyStringValidator returns a validator function that checks if a string is empty.
 func EmptyStringValidator(variable string) func(string) error {
 	return func(str string) error {
 		if str == "" {
@@ -240,7 +233,7 @@ func EmptyStringValidator(variable string) func(string) error {
 	}
 }
 
-// CamelCaseToHR converts a camelCase string to a human-readable format with spaces and capitalization.
+// This function covert camelCase to Human Readable form
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
