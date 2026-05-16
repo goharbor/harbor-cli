@@ -223,7 +223,8 @@ func Capitalize(s string) string {
 	if s == "" {
 		return ""
 	}
-	return strings.ToUpper(s[:1]) + s[1:]
+	return s
+	// trings.ToUpper(s[:1]) + s[1:]
 }
 
 // GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
