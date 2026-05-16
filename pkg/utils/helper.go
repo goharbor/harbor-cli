@@ -26,15 +26,14 @@ import (
 )
 
 var (
-	emailRegex       = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	configPathRegex  = regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
-	flRegex          = regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
-	tagNameRegex     = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
-	projectNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
+	emailRegex        = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	configPathRegex   = regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
+	flRegex           = regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
+	tagNameRegex      = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
+	projectNameRegex  = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
 	registryNameRegex = regexp.MustCompile(`^[\w][\w.-]{0,63}$`)
-	domainNameRegex  = regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`)
+	domainNameRegex   = regexp.MustCompile(`^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`)
 )
-
 
 func pluralise(value int, unit string) string {
 	if value == 1 {
