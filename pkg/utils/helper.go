@@ -181,7 +181,7 @@ func ValidateRegistryName(rn string) bool {
 // The host may be an IP address, "localhost", or an RFC 1123-style hostname validated by domainNameRegex.
 func ValidateURL(rawURL string) error {
 	pattern := `^(?i:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`
-	re := regexp.MustCompile(pattern)
+	domainNameRegex := regexp.MustCompile(pattern)
 
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
@@ -201,14 +201,13 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
-	if !re.MatchString(host) {
+	if !domainNameRegex.MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
 
 	return nil
 }
 
-// PrintFormat prints the response in the specified format (json, yaml, or csv).
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)
