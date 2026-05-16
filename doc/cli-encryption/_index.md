@@ -70,4 +70,4 @@ Another recommended method to store production encryption secrets are external s
 
 ### File-based Keyring (Fallback)
 
-In environments where neither a system keyring nor environment-based keyring is available, Harbor CLI can store the encryption key in a file. By default, this file-based keyring is located at `~/.harbor/keyring`. The stored key is protected by file permissions set to allow only the owner to read or write the file. However, **this approach is less secure** and is **not recommended for production**.
+In environments where neither a system keyring nor environment-based keyring is available, Harbor CLI can store the encryption key in a file.By default, this file-based keyring is located within your XDG-compliant directory structure (e.g., ~/.local/share/harbor-cli/keyring or ~/.config/harbor-cli/keyring). The stored key is protected by file permissions set to allow only the owner to read or write the file. However, **this approach is less secure** and is **not recommended for production**.
