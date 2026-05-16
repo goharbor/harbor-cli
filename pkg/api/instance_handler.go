@@ -22,7 +22,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/instance/create"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func CreateInstance(opts create.CreateView) error {
@@ -72,7 +72,7 @@ func UpdateInstance(instanceName string, instance models.Instance) error {
 		return err
 	}
 
-	log.Infof("Instance %s updated", instance.Name)
+	logrus.Infof("Instance %s updated", instance.Name)
 	return nil
 }
 
