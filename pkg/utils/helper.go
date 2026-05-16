@@ -111,7 +111,7 @@ func ValidateFL(name string) bool {
 	return re.MatchString(name)
 }
 
-// ValidatePassword checks if the password format is valid.
+// check if the password format is valid
 func ValidatePassword(password string) error {
 	password = strings.TrimSpace(password)
 	if password == "" {
@@ -139,6 +139,7 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
+// check if the tag name is valid
 func ValidateTagName(tagName string) bool {
 	pattern := `^[\w][\w.-]{0,127}$`
 
@@ -147,6 +148,7 @@ func ValidateTagName(tagName string) bool {
 	return re.MatchString(tagName)
 }
 
+// check if the project name is valid
 func ValidateProjectName(projectName string) bool {
 	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$`
 

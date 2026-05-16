@@ -144,8 +144,8 @@ func StorageStringToBytes(storage string) (int64, error) {
 		"TiB": 1024 * 1024 * 1024 * 1024,
 	}
 
-	pattern := `^(\d+)(MiB|GiB|TiB)$`
-	re := regexp.MustCompile(pattern)
+	// Define the regex to parse the input string
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
 	matches := re.FindStringSubmatch(storage)
 	if matches == nil {
 		return 0, errors.New("invalid storage format")
