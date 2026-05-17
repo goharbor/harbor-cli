@@ -207,6 +207,25 @@ func ValidateURL(rawURL string) error {
 	return nil
 }
 
+// ValidateHTTPURL checks if the URL is valid and uses the http or https scheme.
+func ValidateHTTPURL(rawURL string) error {
+	if err := ValidateURL(rawURL); err != nil {
+		return err
+	}
+
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL format: %v", err)
+	}
+
+	scheme := strings.ToLower(parsedURL.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return fmt.Errorf("URL scheme must be http or https")
+	}
+
+	return nil
+}
+
 func PrintFormat[T any](resp T, format string) error {
 	if format == "json" {
 		PrintPayloadInJSONFormat(resp)

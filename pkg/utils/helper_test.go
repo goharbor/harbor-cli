@@ -167,6 +167,33 @@ func TestValidateURL(t *testing.T) {
 	}
 }
 
+func TestValidateHTTPURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid https domain", "https://demo.goharbor.io", false},
+		{"valid http domain", "http://registry.example.com", false},
+		{"valid localhost", "http://localhost:8080", false},
+		{"unsupported ftp scheme", "ftp://example.com/webhook", true},
+		{"unsupported file scheme", "file://example.com/webhook", true},
+		{"missing scheme", "example.com/webhook", true},
+		{"invalid host", "https://invalid..domain", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := utils.ValidateHTTPURL(tc.input)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestPrintFormat(t *testing.T) {
 	// capture stdout
 	var buf bytes.Buffer

@@ -83,7 +83,7 @@ func WebhookCreateView(createView *CreateView) error {
 				Title("Endpoint URL").
 				Value(&createView.EndpointURL).
 				Validate(func(str string) error {
-					return utils.ValidateURL(str)
+					return utils.ValidateHTTPURL(str)
 				}),
 			huh.NewInput().
 				Title("Auth Header").
