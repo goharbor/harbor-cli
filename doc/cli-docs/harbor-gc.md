@@ -22,7 +22,7 @@ Manage Garbage Collection in Harbor (schedule, history, logs)
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
@@ -35,3 +35,4 @@ Manage Garbage Collection in Harbor (schedule, history, logs)
 * [harbor gc schedule](harbor-gc-schedule.md)	 - Display the GC schedule
 * [harbor gc stop](harbor-gc-stop.md)	 - Stop a running GC job
 * [harbor gc update-schedule](harbor-gc-update-schedule.md)	 - update-schedule [schedule-type: none|hourly|daily|weekly|custom]
+

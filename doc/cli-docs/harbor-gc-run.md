@@ -18,16 +18,18 @@ harbor gc run [flags]
       --delete-untagged   Delete untagged artifacts (default true)
       --dry-run           Simulate GC without deleting artifacts
   -h, --help              help for run
+      --workers int       Number of workers for GC job (default 1)
 ```
 
 ### Options inherited from parent commands
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
 ### SEE ALSO
 
 * [harbor gc](harbor-gc.md)	 - Manage Garbage Collection
+
