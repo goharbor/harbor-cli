@@ -175,7 +175,7 @@ func GetRegistryProviders() ([]string, error) {
 }
 
 func GetRegistryIdByName(registryName string) (int64, error) {
-	var opts ListFlags
+	opts := ListFlags{Name: registryName}
 
 	r, err := ListRegistries(opts)
 	if err != nil {
@@ -188,5 +188,5 @@ func GetRegistryIdByName(registryName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("registry '%s' not found", registryName)
 }
