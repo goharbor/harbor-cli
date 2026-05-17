@@ -31,4 +31,3 @@ harbor gc run [flags]
 ### SEE ALSO
 
 * [harbor gc](harbor-gc.md)	 - Manage Garbage Collection
-

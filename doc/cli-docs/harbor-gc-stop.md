@@ -12,8 +12,8 @@ weight: 75
 
 Stop a running Garbage Collection job in Harbor.
 
-This command displays a list of currently running or pending GC jobs and 
-allows you to select one to stop. Only jobs with status "running" or "pending" 
+This command displays a list of currently running or pending GC jobs and
+allows you to select one to stop. Only jobs with status "running" or "pending"
 can be stopped.
 
 Examples:
@@ -46,4 +46,3 @@ harbor gc stop [flags]
 ### SEE ALSO
 
 * [harbor gc](harbor-gc.md)	 - Manage Garbage Collection
-

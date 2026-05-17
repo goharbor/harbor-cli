@@ -58,4 +58,3 @@ harbor gc list [flags]
 ### SEE ALSO
 
 * [harbor gc](harbor-gc.md)	 - Manage Garbage Collection
-

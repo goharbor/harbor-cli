@@ -135,4 +135,3 @@ func updateGCCustomSchedule(cron string) error {
 	logrus.Infof("Successfully updated GC schedule with custom cron expression: %s", cron)
 	return nil
 }
-

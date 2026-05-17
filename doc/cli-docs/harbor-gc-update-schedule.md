@@ -41,4 +41,3 @@ harbor gc update-schedule [flags]
 ### SEE ALSO
 
 * [harbor gc](harbor-gc.md)	 - Manage Garbage Collection
-

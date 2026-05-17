@@ -32,8 +32,8 @@ func StopGCCommand() *cobra.Command {
 		Short: "Stop a running GC job",
 		Long: `Stop a running Garbage Collection job in Harbor.
 
-This command displays a list of currently running or pending GC jobs and 
-allows you to select one to stop. Only jobs with status "running" or "pending" 
+This command displays a list of currently running or pending GC jobs and
+allows you to select one to stop. Only jobs with status "running" or "pending"
 can be stopped.
 
 Examples:

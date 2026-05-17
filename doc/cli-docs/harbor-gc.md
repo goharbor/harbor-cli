@@ -35,4 +35,3 @@ Manage Garbage Collection in Harbor (schedule, history, logs)
 * [harbor gc schedule](harbor-gc-schedule.md)	 - Display the GC schedule
 * [harbor gc stop](harbor-gc-stop.md)	 - Stop a running GC job
 * [harbor gc update-schedule](harbor-gc-update-schedule.md)	 - update-schedule [schedule-type: none|hourly|daily|weekly|custom]
-
