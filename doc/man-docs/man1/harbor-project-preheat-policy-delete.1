@@ -6,7 +6,7 @@ harbor-project-preheat-policy-delete - Delete a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy delete [NAME|ID] [POLICY_NAME] [flags]\fP
+\fBharbor project preheat policy delete [flags]\fP
 
 
 .SH DESCRIPTION
@@ -37,7 +37,8 @@ Delete a specific P2P preheat policy under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy delete [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy delete [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy delete [PROJECT_ID] [POLICY_NAME] --id
 .EE
 
 

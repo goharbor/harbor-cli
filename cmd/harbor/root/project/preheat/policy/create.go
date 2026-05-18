@@ -30,43 +30,25 @@ import (
 func CreatePolicyCommand() *cobra.Command {
 	var isID bool
 	var configFile string
+	var err error
+	var opts *create.CreateView
 
 	cmd := &cobra.Command{
-		Use:     "create [NAME|ID]",
-		Short:   "Create a preheat policy",
-		Long:    "Create a new P2P preheat policy under a project",
-		Example: `  harbor-cli project preheat policy create [NAME|ID]`,
-		Args:    cobra.MaximumNArgs(1),
+		Use:   "create",
+		Short: "Create a preheat policy",
+		Long:  "Create a new P2P preheat policy under a project",
+		Example: `  harbor project preheat policy create [PROJECT_NAME]
+  harbor project preheat policy create [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var projectName string
-
-			if isID && len(args) == 0 {
-				return fmt.Errorf("project ID must be provided when using --id")
-			}
-
-			if len(args) > 0 {
-				log.Debugf("Project name provided: %s", args[0])
-				projectName = args[0]
-			} else {
-				log.Debug("No project name provided, prompting user")
-				projectName, err = prompt.GetProjectNameFromUser()
-				if err != nil {
-					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
-				}
-			}
-
-			if isID {
-				project, err := api.GetProject(projectName, true)
-				if err != nil {
-					return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
-				}
-				projectName = project.Payload.Name
-			}
-
-			var opts *create.CreateView
+			log.Debug("Starting preheat policy create command")
 
 			if configFile != "" {
+				if len(args) > 0 {
+					return fmt.Errorf("arguments are not supported with --policy-config-file")
+				}
+
 				log.Debugf("Loading preheat policy configuration from file: %s", configFile)
 				opts, err = config.LoadConfigFromFile(configFile)
 				if err != nil {
@@ -76,23 +58,57 @@ func CreatePolicyCommand() *cobra.Command {
 				opts = &create.CreateView{
 					Enabled: true,
 				}
+
+				if isID && len(args) == 0 {
+					return fmt.Errorf("project ID must be provided when using --id")
+				}
+
+				if len(args) > 0 {
+					log.Debugf("Project name provided: %s", args[0])
+					opts.ProjectName = args[0]
+				} else {
+					log.Debug("No project name provided, prompting user")
+					opts.ProjectName, err = prompt.GetProjectNameFromUser()
+					if err != nil {
+						return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
+					}
+				}
+
+				if isID {
+					project, err := api.GetProject(opts.ProjectName, true)
+					if err != nil {
+						if utils.ParseHarborErrorCode(err) == "404" {
+							return fmt.Errorf("project %s does not exist", opts.ProjectName)
+						}
+						return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+					}
+					opts.ProjectName = project.Payload.Name
+				}
+			}
+
+			_, err = api.GetProject(opts.ProjectName, false)
+			if err != nil {
+				if utils.ParseHarborErrorCode(err) == "404" {
+					return fmt.Errorf("project %s does not exist. If you entered a project ID, use --id", opts.ProjectName)
+				}
+				return fmt.Errorf("failed to verify project: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			log.Debug("Fetching available providers...")
-			providers, err := api.ListProvidersUnderProject(projectName)
+			providers, err := api.ListProvidersUnderProject(opts.ProjectName)
 			if err != nil {
 				return fmt.Errorf("failed to list providers: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			if len(providers) == 0 {
-				return fmt.Errorf("no P2P provider instances available for project '%s'. Please create a provider instance first", projectName)
+				return fmt.Errorf("no P2P provider instances available for project '%s'. Please create a provider instance first", opts.ProjectName)
 			}
 
 			if configFile == "" {
 				create.CreatePreheatPolicyView(opts, providers)
 			}
 
-			providerID, err := resolveProviderID(providers, opts.ProviderName, projectName)
+			providerID, err := resolveProviderID(providers, opts.ProviderName, opts.ProjectName)
 			if err != nil {
 				return err
 			}
@@ -103,10 +119,10 @@ func CreatePolicyCommand() *cobra.Command {
 			}
 
 			log.Debug("Creating preheat policy...")
-			response, err := api.CreatePreheatPolicy(projectName, policy)
+			response, err := api.CreatePreheatPolicy(opts.ProjectName, policy)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "409" {
-					return fmt.Errorf("preheat policy '%s' already exists in project '%s'", opts.Name, projectName)
+					return fmt.Errorf("preheat policy '%s' already exists in project '%s'", opts.Name, opts.ProjectName)
 				}
 				return fmt.Errorf("failed to create preheat policy: %v", utils.ParseHarborErrorMsg(err))
 			}

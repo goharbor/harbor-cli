@@ -13,13 +13,14 @@ weight: 20
 Delete a specific P2P preheat policy under a project
 
 ```sh
-harbor project preheat policy delete [NAME|ID] [POLICY_NAME] [flags]
+harbor project preheat policy delete [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy delete [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy delete [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy delete [PROJECT_ID] [POLICY_NAME] --id
 ```
 
 ### Options

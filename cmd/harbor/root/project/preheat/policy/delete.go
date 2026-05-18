@@ -27,11 +27,12 @@ func DeletePolicyCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "delete [NAME|ID] [POLICY_NAME]",
-		Short:   "Delete a preheat policy",
-		Long:    "Delete a specific P2P preheat policy under a project",
-		Example: `  harbor-cli project preheat policy delete [NAME|ID] [POLICY_NAME]`,
-		Args:    cobra.MaximumNArgs(2),
+		Use:   "delete",
+		Short: "Delete a preheat policy",
+		Long:  "Delete a specific P2P preheat policy under a project",
+		Example: `  harbor project preheat policy delete [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy delete [PROJECT_ID] [POLICY_NAME] --id`,
+		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string

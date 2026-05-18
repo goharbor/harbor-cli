@@ -13,13 +13,15 @@ weight: 50
 Create a new P2P preheat policy under a project
 
 ```sh
-harbor project preheat policy create [NAME|ID] [flags]
+harbor project preheat policy create [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy create [NAME|ID]
+  harbor project preheat policy create [PROJECT_NAME]
+  harbor project preheat policy create [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
 ```
 
 ### Options

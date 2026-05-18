@@ -6,7 +6,7 @@ harbor-project-preheat-policy-update - Update a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy update [NAME|ID] [POLICY_NAME] [flags]\fP
+\fBharbor project preheat policy update [flags]\fP
 
 
 .SH DESCRIPTION
@@ -37,7 +37,8 @@ Update an existing P2P preheat policy under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy update [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy update [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy update [PROJECT_ID] [POLICY_NAME] --id
 .EE
 
 

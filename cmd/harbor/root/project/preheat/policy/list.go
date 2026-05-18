@@ -30,11 +30,12 @@ func ListPolicyCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "list [NAME|ID]",
-		Short:   "List preheat policies under a project",
-		Long:    "List project-scoped P2P preheat policies in Harbor",
-		Example: `  harbor-cli project preheat policy list [NAME|ID]`,
-		Args:    cobra.MaximumNArgs(1),
+		Use:   "list",
+		Short: "List preheat policies under a project",
+		Long:  "List project-scoped P2P preheat policies in Harbor",
+		Example: `  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName string

@@ -25,6 +25,7 @@ import (
 )
 
 type CreateView struct {
+	ProjectName string `json:"project_name,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	Enabled     bool   `json:"enabled,omitempty"`

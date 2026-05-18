@@ -6,7 +6,7 @@ harbor-project-preheat-policy-view - View details of a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy view [NAME|ID] [POLICY_NAME] [flags]\fP
+\fBharbor project preheat policy view [flags]\fP
 
 
 .SH DESCRIPTION
@@ -37,7 +37,8 @@ Get details of a specific P2P preheat policy under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy view [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy view [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy view [PROJECT_ID] [POLICY_NAME] --id
 .EE
 
 

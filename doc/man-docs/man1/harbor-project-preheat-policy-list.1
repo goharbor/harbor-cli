@@ -6,7 +6,7 @@ harbor-project-preheat-policy-list - List preheat policies under a project
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy list [NAME|ID] [flags]\fP
+\fBharbor project preheat policy list [flags]\fP
 
 
 .SH DESCRIPTION
@@ -53,7 +53,8 @@ List project-scoped P2P preheat policies in Harbor
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy list [NAME|ID]
+  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
 .EE
 
 

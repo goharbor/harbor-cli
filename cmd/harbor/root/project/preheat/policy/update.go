@@ -30,11 +30,12 @@ func UpdatePolicyCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "update [NAME|ID] [POLICY_NAME]",
-		Short:   "Update a preheat policy",
-		Long:    "Update an existing P2P preheat policy under a project",
-		Example: `  harbor-cli project preheat policy update [NAME|ID] [POLICY_NAME]`,
-		Args:    cobra.MaximumNArgs(2),
+		Use:   "update",
+		Short: "Update a preheat policy",
+		Long:  "Update an existing P2P preheat policy under a project",
+		Example: `  harbor project preheat policy update [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy update [PROJECT_ID] [POLICY_NAME] --id`,
+		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string

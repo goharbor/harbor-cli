@@ -13,13 +13,14 @@ weight: 20
 List project-scoped P2P preheat policies in Harbor
 
 ```sh
-harbor project preheat policy list [NAME|ID] [flags]
+harbor project preheat policy list [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy list [NAME|ID]
+  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
 ```
 
 ### Options
