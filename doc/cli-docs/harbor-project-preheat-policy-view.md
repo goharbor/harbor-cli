@@ -13,13 +13,14 @@ weight: 30
 Get details of a specific P2P preheat policy under a project
 
 ```sh
-harbor project preheat policy view [NAME|ID] [POLICY_NAME] [flags]
+harbor project preheat policy view [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy view [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy view [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy view [PROJECT_ID] [POLICY_NAME] --id
 ```
 
 ### Options

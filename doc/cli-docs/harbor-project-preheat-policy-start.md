@@ -13,13 +13,14 @@ weight: 55
 Manually trigger a specific P2P preheat policy under a project
 
 ```sh
-harbor project preheat policy start [NAME|ID] [POLICY_NAME] [flags]
+harbor project preheat policy start [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy start [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_ID] [POLICY_NAME] --id
 ```
 
 ### Options

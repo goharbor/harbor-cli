@@ -29,11 +29,12 @@ func ViewPolicyCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "view [NAME|ID] [POLICY_NAME]",
-		Short:   "View details of a preheat policy",
-		Long:    "Get details of a specific P2P preheat policy under a project",
-		Example: `  harbor-cli project preheat policy view [NAME|ID] [POLICY_NAME]`,
-		Args:    cobra.MaximumNArgs(2),
+		Use:   "view",
+		Short: "View details of a preheat policy",
+		Long:  "Get details of a specific P2P preheat policy under a project",
+		Example: `  harbor project preheat policy view [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy view [PROJECT_ID] [POLICY_NAME] --id`,
+		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, policyName string

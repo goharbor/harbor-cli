@@ -6,7 +6,7 @@ harbor-project-preheat-policy-create - Create a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy create [NAME|ID] [flags]\fP
+\fBharbor project preheat policy create [flags]\fP
 
 
 .SH DESCRIPTION
@@ -41,7 +41,9 @@ Create a new P2P preheat policy under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy create [NAME|ID]
+  harbor project preheat policy create [PROJECT_NAME]
+  harbor project preheat policy create [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
 .EE
 
 

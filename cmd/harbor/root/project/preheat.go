@@ -24,7 +24,10 @@ func Preheat() *cobra.Command {
 		Aliases: []string{"p2p"},
 		Short:   "Manage project preheat resources",
 		Long:    "Manage project-scoped P2P preheat policies, executions, and tasks in Harbor",
-		Example: `  harbor project preheat policy list`,
+		Example: `  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]`,
 	}
 	cmd.AddCommand(
 		preheat.PolicyCommand(),

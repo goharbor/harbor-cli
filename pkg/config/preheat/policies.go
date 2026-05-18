@@ -26,6 +26,7 @@ import (
 )
 
 type PolicyConfig struct {
+	ProjectName  string          `yaml:"project_name" json:"project_name"`
 	Name         string          `yaml:"name" json:"name"`
 	Description  string          `yaml:"description,omitempty" json:"description,omitempty"`
 	Enabled      bool            `yaml:"enabled,omitempty" json:"enabled,omitempty"`
@@ -113,6 +114,7 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.C
 	}
 
 	opts := &policycreate.CreateView{
+		ProjectName:  config.ProjectName,
 		Name:         config.Name,
 		Description:  config.Description,
 		ProviderName: config.ProviderName,
@@ -136,6 +138,10 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.C
 }
 
 func validateConfig(config *PolicyConfig) error {
+	if config.ProjectName == "" {
+		return fmt.Errorf("project_name is required")
+	}
+
 	if config.Name == "" {
 		return fmt.Errorf("name is required")
 	}

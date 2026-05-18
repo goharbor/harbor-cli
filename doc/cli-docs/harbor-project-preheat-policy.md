@@ -15,7 +15,11 @@ Manage P2P preheat policies under a project
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy list [NAME|ID]
+  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
+  harbor project preheat policy view [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]
 ```
 
 ### Options

@@ -6,7 +6,7 @@ harbor-project-preheat-policy-start - Manually trigger a preheat policy
 
 
 .SH SYNOPSIS
-\fBharbor project preheat policy start [NAME|ID] [POLICY_NAME] [flags]\fP
+\fBharbor project preheat policy start [flags]\fP
 
 
 .SH DESCRIPTION
@@ -37,7 +37,8 @@ Manually trigger a specific P2P preheat policy under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat policy start [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_ID] [POLICY_NAME] --id
 .EE
 
 

@@ -15,7 +15,10 @@ Manage project-scoped P2P preheat policies, executions, and tasks in Harbor
 ### Examples
 
 ```sh
-  harbor project preheat policy list
+  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]
 ```
 
 ### Options

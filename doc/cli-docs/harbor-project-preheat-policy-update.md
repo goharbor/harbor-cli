@@ -13,13 +13,14 @@ weight: 25
 Update an existing P2P preheat policy under a project
 
 ```sh
-harbor project preheat policy update [NAME|ID] [POLICY_NAME] [flags]
+harbor project preheat policy update [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat policy update [NAME|ID] [POLICY_NAME]
+  harbor project preheat policy update [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy update [PROJECT_ID] [POLICY_NAME] --id
 ```
 
 ### Options
