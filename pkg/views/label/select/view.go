@@ -42,8 +42,16 @@ func LabelList(label []*models.Label) (int64, error) {
 		os.Exit(1)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		return items[p.Choice], nil
+	if model, ok := p.(selection.Model); ok {
+		choice, err := model.SelectedChoice()
+		if err != nil {
+			return 0, err
+		}
+		id, exists := items[choice]
+		if !exists {
+			return 0, fmt.Errorf("selected label %q not found", choice)
+		}
+		return id, nil
 	}
 	return 0, fmt.Errorf("failed to get label id")
 }

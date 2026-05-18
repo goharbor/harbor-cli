@@ -39,14 +39,15 @@ func WebhookList(webhooks []*models.WebhookPolicy) (models.WebhookPolicy, error)
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
-			return models.WebhookPolicy{}, errors.New("user aborted selection")
+		choice, err := model.SelectedChoice()
+		if errors.Is(err, selection.ErrUserAborted) {
+			return models.WebhookPolicy{}, ErrUserAborted
 		}
-		if model.Choice == "" {
+		if err != nil {
 			return models.WebhookPolicy{}, errors.New("no webhook selected")
 		}
 		for _, webhook := range webhooks {
-			if webhook.Name == model.Choice {
+			if webhook.Name == choice {
 				return *webhook, nil
 			}
 		}
