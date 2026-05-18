@@ -42,19 +42,19 @@ func ListQuotaCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			quota, err := api.ListQuota(opts)
+			quotas, err := api.GetAllQuotas(api.ListQuota, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get quota list: %v", err)
 			}
 
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
-				err = utils.PrintFormat(quota, FormatFlag)
+				err = utils.PrintFormat(quotas, FormatFlag)
 				if err != nil {
 					return fmt.Errorf("failed to get quota list: %v", err)
 				}
 			} else {
-				list.ListQuotas(quota.Payload)
+				list.ListQuotas(quotas)
 			}
 			return nil
 		},
