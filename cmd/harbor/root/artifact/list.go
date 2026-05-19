@@ -18,9 +18,9 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	presenterartifact "github.com/goharbor/harbor-cli/pkg/presenter/artifact"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	artifactViews "github.com/goharbor/harbor-cli/pkg/views/artifact/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -70,20 +70,19 @@ Supports pagination, search queries, and sorting using flags.`,
 				repoName = prompt.GetRepoNameFromUser(projectName)
 			}
 
-			artifacts, err = api.ListArtifact(projectName, repoName, opts)
-
-			if err != nil {
-				return fmt.Errorf("failed to list artifacts: %v", err)
-			}
-
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
+				artifacts, err = api.ListArtifact(projectName, repoName, opts)
+
+				if err != nil {
+					return fmt.Errorf("failed to list artifacts: %v", err)
+				}
 				err = utils.PrintFormat(artifacts, FormatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				artifactViews.ListArtifacts(artifacts.Payload)
+				presenterartifact.ListArtifacts(projectName, repoName, opts)
 			}
 			return nil
 		},
