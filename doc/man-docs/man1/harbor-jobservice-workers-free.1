@@ -1,0 +1,45 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-workers-free - Free one worker (--job-id required)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice workers free [flags]\fP
+
+
+.SH DESCRIPTION
+Stop a running job by job ID to free its worker.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for free
+
+.PP
+\fB--job-id\fP=""
+	Running job ID to stop
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor jobservice workers free --job-id abc123
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-workers(1)\fP

@@ -1,0 +1,47 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package jobservice
+
+import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/jobs"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/pools"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/workers"
+	"github.com/spf13/cobra"
+)
+
+// JobService creates the jobservice command
+func JobService() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "jobservice",
+		Short: "Manage Harbor job service (admin only)",
+		Long: `Manage Harbor job service components including worker pools, job queues, schedules, and job logs.
+This requires system admin privileges.
+
+Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.
+
+Examples:
+  harbor jobservice pools list
+  harbor jobservice workers list
+  harbor jobservice jobs list
+  harbor jobservice jobs list --page 1 --page-size 10`,
+	}
+
+	cmd.AddCommand(
+		pools.PoolsCommand(),
+		workers.WorkersCommand(),
+		jobs.JobsCommand(),
+	)
+
+	return cmd
+}
