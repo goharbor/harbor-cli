@@ -1,0 +1,73 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package api
+
+import (
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/jobservice"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/schedule"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+)
+
+// ActionJobQueue performs an action on a job queue (stop/pause/resume)
+func ActionJobQueue(jobType, action string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Jobservice.ActionPendingJobs(ctx, &jobservice.ActionPendingJobsParams{
+		JobType: jobType,
+		ActionRequest: &models.ActionRequest{
+			Action: action,
+		},
+	})
+
+	return err
+}
+
+// ListSchedules retrieves schedules with pagination
+func ListSchedules(page, pageSize int64) (*schedule.ListSchedulesOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Schedule.ListSchedules(ctx, &schedule.ListSchedulesParams{
+		Page:     &page,
+		PageSize: &pageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// GetSchedulePaused retrieves the global scheduler paused status
+func GetSchedulePaused() (*schedule.GetSchedulePausedOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Schedule.GetSchedulePaused(ctx, &schedule.GetSchedulePausedParams{
+		JobType: "all",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
