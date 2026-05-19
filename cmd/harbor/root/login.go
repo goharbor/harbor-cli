@@ -218,12 +218,12 @@ func validateClientConnection(client *client.HarborAPI) error {
 	}
 
 	errorCode := utils.ParseHarborErrorCode(err)
-	// 401/403 = definite auth failure
-	if errorCode == "401" || errorCode == "403" {
+	// 401 = definite auth failure
+	if errorCode == "401" {
 		return fmt.Errorf("authentication failed, check your credentials: %v", utils.ParseHarborErrorMsg(err))
 	}
 
-	// For other errors (e.g. 412 for robot/OIDC accounts, 5xx),
+	// For other errors (e.g. 403 for robot accounts, 412 for OIDC accounts, 5xx, or deserialization errors),
 	// fall back to secondary endpoints to verify creds and reachability.
 	_, projectErr := client.Project.ListProjects(ctx, &project.ListProjectsParams{
 		Page:     new(int64(1)),
@@ -231,16 +231,18 @@ func validateClientConnection(client *client.HarborAPI) error {
 	})
 	_, pingErr := client.Ping.GetPing(ctx, &ping.GetPingParams{})
 
-	// If either secondary check returns 401/403, creds are bad.
+	// If either secondary check returns 401, creds are bad.
 	if projectErr != nil {
 		projCode := utils.ParseHarborErrorCode(projectErr)
-		if projCode == "401" || projCode == "403" {
+		if projCode == "401" {
 			return fmt.Errorf("authentication failed, check your credentials: %v", utils.ParseHarborErrorMsg(projectErr))
 		}
 	}
 
-	// Both passed → creds valid, server reachable
-	if projectErr == nil && pingErr == nil {
+	// If Ping succeeds, the server is reachable.
+	// If ListProjects succeeded (nil) or returned 403 (valid but restricted robot account),
+	// we consider the client connection validated.
+	if pingErr == nil && (projectErr == nil || utils.ParseHarborErrorCode(projectErr) == "403") {
 		return nil
 	}
 
