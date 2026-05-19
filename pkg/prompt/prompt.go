@@ -37,6 +37,10 @@ import (
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
+	phexecutions "github.com/goharbor/harbor-cli/pkg/views/preheat/execution/select"
+	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
+	phtasks "github.com/goharbor/harbor-cli/pkg/views/preheat/task/select"
+
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
@@ -466,4 +470,112 @@ func GetRetentionTagRule(retentionID string) int64 {
 		retview.RetentionList(response.Payload.Rules, retentionIndex)
 	}()
 	return <-retentionIndex
+}
+
+func GetPreheatPolicyNameFromUser(projectName string) (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListPreheatPolicies(projectName, false)
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{"", errors.New("no preheat policies found")}
+			return
+		}
+
+		name, err := phpolicies.PreheatPolicyList(response.Payload)
+		if err != nil {
+			if err == phpolicies.ErrUserAborted {
+				resultChan <- result{"", errors.New("user aborted policy selection")}
+			} else {
+				resultChan <- result{"", fmt.Errorf("error during policy selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{name, nil}
+	}()
+
+	res := <-resultChan
+	return res.name, res.err
+}
+
+func GetPreheatPolicyExecIDFromUser(projectName string, policyName string) (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	executionID := make(chan result)
+
+	go func() {
+		response, err := api.ListPreheatExecutions(projectName, policyName)
+		if err != nil {
+			executionID <- result{0, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			executionID <- result{0, errors.New("no preheat executions found")}
+			return
+		}
+
+		id, err := phexecutions.PreheatExecutionList(response.Payload)
+		if err != nil {
+			if err == phexecutions.ErrUserAborted {
+				executionID <- result{0, errors.New("user aborted execution selection")}
+			} else {
+				executionID <- result{0, fmt.Errorf("error during execution selection: %w", err)}
+			}
+			return
+		}
+
+		executionID <- result{id, nil}
+	}()
+
+	res := <-executionID
+	return res.id, res.err
+}
+
+func GetPreheatTaskIDFromUser(projectName, policyName string, executionID int64) (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	taskID := make(chan result)
+
+	go func() {
+		response, err := api.ListPreheatTasks(projectName, policyName, executionID)
+		if err != nil {
+			taskID <- result{0, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			taskID <- result{0, errors.New("no preheat tasks found")}
+			return
+		}
+
+		id, err := phtasks.PreheatTaskList(response.Payload)
+		if err != nil {
+			if err == phtasks.ErrUserAborted {
+				taskID <- result{0, errors.New("user aborted task selection")}
+			} else {
+				taskID <- result{0, fmt.Errorf("error during task selection: %w", err)}
+			}
+			return
+		}
+
+		taskID <- result{id, nil}
+	}()
+
+	res := <-taskID
+	return res.id, res.err
 }
