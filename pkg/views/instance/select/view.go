@@ -41,13 +41,14 @@ func InstanceList(instances []*models.Instance) (string, error) {
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
+		choice, err := model.SelectedChoice()
+		if errors.Is(err, selection.ErrUserAborted) {
 			return "", ErrUserAborted
 		}
-		if model.Choice == "" {
+		if err != nil {
 			return "", errors.New("no instance selected")
 		}
-		return model.Choice, nil
+		return choice, nil
 	}
 
 	return "", errors.New("unexpected program result")

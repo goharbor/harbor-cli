@@ -44,9 +44,16 @@ func ContextList(contexts []api.ContextListView, activeContext string) (string, 
 		os.Exit(1)
 	}
 
-	if p, ok := p.(selection.Model); ok {
+	if model, ok := p.(selection.Model); ok {
+		choice, err := model.SelectedChoice()
+		if err != nil {
+			return "", err
+		}
+		if len(choice) < 2 {
+			return "", errors.New("invalid context selection")
+		}
 		// Removing the initial spaces
-		return p.Choice[2:], nil
+		return choice[2:], nil
 	} else {
 		return "", errors.New("invalid program")
 	}

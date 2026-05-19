@@ -41,13 +41,14 @@ func ProjectList(projects []*models.Project) (string, error) {
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
+		choice, err := model.SelectedChoice()
+		if errors.Is(err, selection.ErrUserAborted) {
 			return "", ErrUserAborted
 		}
-		if model.Choice == "" {
+		if err != nil {
 			return "", errors.New("no project selected")
 		}
-		return model.Choice, nil
+		return choice, nil
 	}
 
 	return "", errors.New("unexpected program result")
@@ -93,13 +94,14 @@ func ProjectListWithId(projects []*models.Project) (int64, error) {
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
+		choice, err := model.SelectedChoice()
+		if errors.Is(err, selection.ErrUserAborted) {
 			return 0, ErrUserAborted
 		}
-		if model.Choice == "" {
+		if err != nil {
 			return 0, errors.New("no project selected")
 		}
-		return itemsMap[model.Choice], nil
+		return itemsMap[choice], nil
 	}
 
 	return 0, errors.New("unexpected program result")

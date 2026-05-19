@@ -43,8 +43,16 @@ func UserList(users []*models.UserResp) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if p, ok := p.(selection.Model); ok {
-		return items[p.Choice], nil
+	if model, ok := p.(selection.Model); ok {
+		choice, err := model.SelectedChoice()
+		if err != nil {
+			return 0, err
+		}
+		id, exists := items[choice]
+		if !exists {
+			return 0, fmt.Errorf("selected user %q not found", choice)
+		}
+		return id, nil
 	}
 	return 0, fmt.Errorf("failed to get user selection")
 }
