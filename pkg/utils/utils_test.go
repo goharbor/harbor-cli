@@ -15,11 +15,13 @@ package utils_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Sanitize_ServerAddress(t *testing.T) {
@@ -144,4 +146,39 @@ func TestStorageStringToBytes(t *testing.T) {
 	// Exceeding maximum value
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
+}
+
+func TestGetSecretStdinReadsPipedInput(t *testing.T) {
+	secret := getSecretFromPipe(t, "Abcd1234\n")
+
+	assert.Equal(t, "Abcd1234", secret)
+}
+
+func TestGetSecretStdinPreservesSecretWhitespace(t *testing.T) {
+	secret := getSecretFromPipe(t, "  Abcd1234  \r\n")
+
+	assert.Equal(t, "  Abcd1234  ", secret)
+}
+
+func getSecretFromPipe(t *testing.T, input string) string {
+	t.Helper()
+
+	oldStdin := os.Stdin
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+
+	_, err = writer.WriteString(input)
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+
+	os.Stdin = reader
+	t.Cleanup(func() {
+		os.Stdin = oldStdin
+		_ = reader.Close()
+	})
+
+	secret, err := utils.GetSecretStdin("Password: ")
+	require.NoError(t, err)
+
+	return secret
 }
