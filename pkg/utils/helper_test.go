@@ -147,6 +147,9 @@ func TestValidateURL(t *testing.T) {
 		{"valid localhost https", "https://localhost", false},
 		{"valid localhost http with port", "http://localhost:8080", false},
 		{"valid localhost https with port", "https://localhost:8443", false},
+		{"valid single-label hostname", "http://harbor", false},
+		{"valid single-label with hyphen", "https://registry-server", false},
+		{"valid single-label with port", "http://harbor:8080", false},
 
 		// invalid URLs
 		{"empty string", "", true},
