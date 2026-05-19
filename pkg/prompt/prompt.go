@@ -381,52 +381,79 @@ func GetRobotIDFromUser(projectID int64) (int64, error) {
 	return id, nil
 }
 
-func GetReplicationPolicyFromUser() int64 {
+func GetReplicationPolicyFromUser() (int64, error) {
 	replicationPolicyID := make(chan int64)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationPolicies()
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
+		}
+		if len(response.Payload) == 0 {
+			errChan <- fmt.Errorf("no replication policies found")
+			return
 		}
 		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
 	}()
 
-	return <-replicationPolicyID
+	select {
+	case id := <-replicationPolicyID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
-func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
+func GetReplicationExecutionIDFromUser(rpolicyID int64) (int64, error) {
 	executionID := make(chan int64)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationExecutions(rpolicyID)
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
 		}
 		if len(response.Payload) == 0 {
-			log.Fatal("no replication executions found")
+			errChan <- fmt.Errorf("no replication executions found")
+			return
 		}
 		rexecutions.ReplicationExecutionList(response.Payload, executionID)
 	}()
 
-	return <-executionID
+	select {
+	case id := <-executionID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
-func GetReplicationTaskIDFromUser(execID int64) int64 {
+func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
 	executionID := make(chan int64)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationTasks(execID)
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
 		}
 		if len(response.Payload) == 0 {
-			log.Fatal("no replication tasks found")
+			errChan <- fmt.Errorf("no replication tasks found")
+			return
 		}
 		rtasks.ReplicationTasksList(response.Payload, executionID)
 	}()
 
-	return <-executionID
+	select {
+	case id := <-executionID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
 // Get GetMemberIDFromUser choosing from list of members

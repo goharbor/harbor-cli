@@ -38,11 +38,24 @@ func LogsCommand() *cobra.Command {
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if execID != 0 && taskID == 0 {
-				taskID = prompt.GetReplicationTaskIDFromUser(execID)
+				var err error
+				taskID, err = prompt.GetReplicationTaskIDFromUser(execID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication task: %w", err)
+				}
 			} else if execID == 0 && taskID == 0 {
-				rpolicyID := prompt.GetReplicationPolicyFromUser()
-				execID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
-				taskID = prompt.GetReplicationTaskIDFromUser(execID)
+				rpolicyID, err := prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
+				execID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %w", err)
+				}
+				taskID, err = prompt.GetReplicationTaskIDFromUser(execID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication task: %w", err)
+				}
 			} else if execID == 0 && taskID != 0 {
 				return fmt.Errorf("execution ID must be provided if task ID is specified")
 			}

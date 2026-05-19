@@ -57,7 +57,11 @@ func ListCommand() *cobra.Command {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
 			} else {
-				rpolicyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				rpolicyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
 			}
 
 			log.Debug("Fetching executions...")
