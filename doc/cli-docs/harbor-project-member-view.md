@@ -6,35 +6,31 @@ weight: 90
 
 ### Description
 
-##### get project member by ID or name
-
-### Synopsis
-
-get member details by MemberID
+##### get project member information
 
 ```sh
-harbor project member view [ProjectName Or ID] [member ID] [flags]
+harbor project member view [projectName] [memberID] [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor project member view my-project [memberID]
+  harbor project member view my-project 5
+  harbor project member view my-project 5 --wide
 ```
 
 ### Options
 
 ```sh
-  -h, --help                 help for view
-      --id int               Member ID
-  -p, --projectname string   Project Name
+  -h, --help   help for view
+      --id     parses projectName as an ID
 ```
 
 ### Options inherited from parent commands
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
