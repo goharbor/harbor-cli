@@ -113,7 +113,7 @@ func UpdateWebhook(opts *edit.EditView) error {
 			Name:        opts.Name,
 			Targets: []*models.WebhookTargetObject{
 				{
-					Address:        opts.EndpointURL,
+					Address:        strings.TrimSpace(opts.EndpointURL),
 					AuthHeader:     opts.AuthHeader,
 					PayloadFormat:  models.PayloadFormatType(opts.PayloadFormat),
 					SkipCertVerify: !opts.VerifyRemoteCertificate,
