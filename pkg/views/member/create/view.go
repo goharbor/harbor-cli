@@ -55,10 +55,14 @@ var RoleOptions = map[string]int{
 }
 
 func CreateMemberView(createView *CreateView) {
-	roleOptions := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
-	var roleSelectOptions []huh.Option[int]
-	for id, name := range roleOptions {
-		roleSelectOptions = append(roleSelectOptions, huh.NewOption(name, id))
+	// Bind labels directly to canonical Harbor role IDs so the form and
+	// the --role/--roleid flags share one representation.
+	roleSelectOptions := []huh.Option[int]{
+		huh.NewOption("Project Admin", RoleOptions["Admin"]),
+		huh.NewOption("Developer", RoleOptions["Developer"]),
+		huh.NewOption("Guest", RoleOptions["Guest"]),
+		huh.NewOption("Maintainer", RoleOptions["Maintainer"]),
+		huh.NewOption("Limited Guest", RoleOptions["LimitedGuest"]),
 	}
 
 	groupOptions := []string{"None", "LDAP group", "HTTP group", "OIDC group"}
