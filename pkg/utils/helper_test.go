@@ -147,13 +147,20 @@ func TestValidateURL(t *testing.T) {
 		{"valid localhost https", "https://localhost", false},
 		{"valid localhost http with port", "http://localhost:8080", false},
 		{"valid localhost https with port", "https://localhost:8443", false},
+		{"valid single-label host", "http://harbor", false},
+		{"valid single-label host with hyphen", "http://harbor-core", false},
+		{"valid single-label host with port", "https://registry:8443", false},
 
 		// invalid URLs
 		{"empty string", "", true},
 		{"no host", "https://", true},
 		{"bare path", "/just/a/path", true},
+		{"unsupported ftp scheme", "ftp://example.com/webhook", true},
+		{"unsupported file scheme", "file://example.com/webhook", true},
 		{"invalid domain double dot", "https://invalid..domain", true},
 		{"domain starting with hyphen", "https://-invalid.com", true},
+		{"single-label host starting with hyphen", "https://-harbor", true},
+		{"single-label host ending with hyphen", "https://harbor-", true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -165,6 +172,9 @@ func TestValidateURL(t *testing.T) {
 			}
 		})
 	}
+
+	err := utils.ValidateURL("ftp://example.com/webhook")
+	assert.EqualError(t, err, "URL scheme must be http or https")
 }
 
 func TestPrintFormat(t *testing.T) {

@@ -177,14 +177,21 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
-// ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
-// Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
-func ValidateURL(rawURL string) error {
-	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+var (
+	domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+	hostLabelRegex  = regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`)
+)
 
+// ValidateURL checks if the URL has valid format, an HTTP(S) scheme, and a valid host.
+// Hostnames may be IP addresses, localhost, FQDNs, or single RFC 1123 labels for internal networks.
+func ValidateURL(rawURL string) error {
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %v", err)
+	}
+
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return fmt.Errorf("URL scheme must be http or https")
 	}
 
 	host := parsedURL.Hostname()
@@ -196,7 +203,7 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
-	if host == "localhost" {
+	if host == "localhost" || hostLabelRegex.MatchString(host) {
 		return nil
 	}
 
