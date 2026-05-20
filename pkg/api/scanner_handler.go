@@ -54,13 +54,20 @@ func CreateScanner(opts create.CreateView) error {
 	return nil
 }
 
-func ListScanners() (scanner.ListScannersOK, error) {
+func ListScanners(opts ...ListFlags) (scanner.ListScannersOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return scanner.ListScannersOK{}, err
 	}
+	var listFlags ListFlags
 
-	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{})
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{
+		Q: &listFlags.Q,
+	})
 
 	if err != nil {
 		return scanner.ListScannersOK{}, err
