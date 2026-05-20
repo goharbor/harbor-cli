@@ -25,6 +25,20 @@ import (
 	"unicode"
 )
 
+var (
+	emailRegex       = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	configPathRegex  = regexp.MustCompile(`^[\w./-]{1,255}\.(yaml|yml)$`)
+	flRegex          = regexp.MustCompile(`^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`)
+	lowercaseRegex   = regexp.MustCompile(`([a-z])+`)
+	uppercaseRegex   = regexp.MustCompile(`([A-Z])+`)
+	digitRegex       = regexp.MustCompile(`([0-9])+`)
+	tagNameRegex     = regexp.MustCompile(`^[\w][\w.-]{0,127}$`)
+	projectNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,254}$`)
+	registryRegex    = regexp.MustCompile(`^[\w][\w.-]{0,63}$`)
+	domainNameRegex  = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+	storageRegex     = regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
+)
+
 func pluralise(value int, unit string) string {
 	if value == 1 {
 		return fmt.Sprintf("%d %s ago", value, unit)
@@ -94,21 +108,15 @@ func ValidateUserName(username string) bool {
 }
 
 func ValidateEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(email)
+	return emailRegex.MatchString(email)
 }
 
 func ValidateConfigPath(configPath string) bool {
-	pattern := `^[\w./-]{1,255}\.(yaml|yml)$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(configPath)
+	return configPathRegex.MatchString(configPath)
 }
 
 func ValidateFL(name string) bool {
-	pattern := `^[A-Za-z]{1,20}\s[A-Za-z]{1,20}$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(name)
+	return flRegex.MatchString(name)
 }
 
 // check if the password format is valid
@@ -121,18 +129,15 @@ func ValidatePassword(password string) error {
 	if len(password) < 8 || len(password) > 256 {
 		return errors.New("wrong! the password length must be at least 8 characters and at most 256 characters")
 	}
-	// checking the password has a minimum of one lower case letter
-	if done, _ := regexp.MatchString("([a-z])+", password); !done {
+	if !lowercaseRegex.MatchString(password) {
 		return errors.New("wrong! the password doesn't have a lowercase letter")
 	}
 
-	// checking the password has a minimum of one upper case letter
-	if done, _ := regexp.MatchString("([A-Z])+", password); !done {
+	if !uppercaseRegex.MatchString(password) {
 		return errors.New("wrong! the password doesn't have an uppercase letter")
 	}
 
-	// checking if the password has a minimum of one digit
-	if done, _ := regexp.Match("([0-9])+", []byte(password)); !done {
+	if !digitRegex.MatchString(password) {
 		return errors.New("wrong! the password doesn't have a digit number")
 	}
 
@@ -141,20 +146,12 @@ func ValidatePassword(password string) error {
 
 // check if the tag name is valid
 func ValidateTagName(tagName string) bool {
-	pattern := `^[\w][\w.-]{0,127}$`
-
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(tagName)
+	return tagNameRegex.MatchString(tagName)
 }
 
 // check if the project name is valid
 func ValidateProjectName(projectName string) bool {
-	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$`
-
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(projectName)
+	return projectNameRegex.MatchString(projectName)
 }
 
 func ValidateStorageLimit(sl string) error {
@@ -170,18 +167,12 @@ func ValidateStorageLimit(sl string) error {
 }
 
 func ValidateRegistryName(rn string) bool {
-	pattern := `^[\w][\w.-]{0,63}$`
-
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(rn)
+	return registryRegex.MatchString(rn)
 }
 
 // ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
 // Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
-	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
-
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL format: %v", err)

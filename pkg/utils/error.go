@@ -21,6 +21,8 @@ import (
 	"strings"
 )
 
+var statusCodeRegex = regexp.MustCompile(`\(status\s+(\d{3})\)`)
+
 type HarborErrorPayload struct {
 	Errors []struct {
 		Code    string `json:"code"`
@@ -66,9 +68,7 @@ func ParseHarborErrorCode(err error) string {
 		}
 	}
 
-	// Try format: (status CODE) - e.g., (status 404)
-	re := regexp.MustCompile(`\(status\s+(\d{3})\)`)
-	if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
+	if matches := statusCodeRegex.FindStringSubmatch(errStr); len(matches) > 1 {
 		return matches[1]
 	}
 

@@ -145,41 +145,35 @@ func (m Model) footerView() string {
 }
 
 func (m Model) listView() string {
-	s := "Select Robot Permissions\n\n"
+	var sb strings.Builder
+	sb.WriteString("Select Robot Permissions\n\n")
 	var prev string
 	for i, choice := range m.choices {
-		// Render the row ith appropriate action message
 		choiceRes := choice.Resource
 		choiceAct := choice.Action
 		now := choice.Resource
 		if prev != now {
 			prev = now
-			s += blockStyle.Render(prev)
-			s += "\n\n"
+			sb.WriteString(blockStyle.Render(prev))
+			sb.WriteString("\n\n")
 		}
-		cursor := " " // no cursor
+		cursor := " "
 		if m.cursor == i {
 			choiceRes = itemStyle.Render(choice.Resource)
 			choiceAct = itemStyle.Render(choice.Action)
-			cursor = ">" // cursor!
+			cursor = ">"
 		}
-		checked := " " // not selected
+		checked := " "
 		if _, ok := m.selected[i]; ok {
 			choiceRes = selectedStyle.Render(choice.Resource)
 			choiceAct = selectedStyle.Render(choice.Action)
-			checked = "x" // selected!
+			checked = "x"
 		}
-		s += fmt.Sprintf(
-			"%s [%s] %s %s\n\n",
-			cursor,
-			checked,
-			choiceAct,
-			choiceRes,
-		)
+		fmt.Fprintf(&sb, "%s [%s] %s %s\n\n", cursor, checked, choiceAct, choiceRes)
 	}
-	s += "\nPress q to quit.\n"
+	sb.WriteString("\nPress q to quit.\n")
 
-	return s
+	return sb.String()
 }
 
 func (m Model) GetSelectedPermissions() *[]models.Permission {

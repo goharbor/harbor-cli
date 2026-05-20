@@ -132,7 +132,7 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 
 // Process permission scopes
 func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*create.RobotPermission, error) {
-	var result []*create.RobotPermission
+	result := make([]*create.RobotPermission, 0, len(scopes))
 
 	// Get available permissions for validation
 	availablePerms, err := GetAllAvailablePermissions()

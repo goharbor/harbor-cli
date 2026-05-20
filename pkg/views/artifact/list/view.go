@@ -37,7 +37,7 @@ var columns = []table.Column{
 }
 
 func ListArtifacts(artifacts []*models.Artifact) {
-	var rows []table.Row
+	rows := make([]table.Row, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		pushTime, _ := utils.FormatCreatedTime(artifact.PushTime.String())
 		artifactSize := utils.FormatSize(artifact.Size)

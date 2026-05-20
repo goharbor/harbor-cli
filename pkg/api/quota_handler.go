@@ -99,10 +99,11 @@ func UpdateQuota(quotaID int64, hardlimit *models.QuotaUpdateReq) error {
 func GetAllQuotas(listFunc func(ListQuotaFlags) (*quota.ListQuotasOK, error), opts ListQuotaFlags) ([]*models.Quota, error) {
 	var allQuotas []*models.Quota
 	if opts.PageSize == 0 {
+		const maxPages = 1000
 		opts.PageSize = 100
 		opts.Page = 1
 
-		for {
+		for i := 0; i < maxPages; i++ {
 			quotas, err := listFunc(opts)
 			if err != nil {
 				return nil, err

@@ -36,7 +36,7 @@ var columns = []table.Column{
 }
 
 func ListMembers(members []*models.ProjectMemberEntity, wide bool) {
-	var rows []table.Row
+	rows := make([]table.Row, 0, len(members))
 	for _, member := range members {
 		memberID := strconv.FormatInt(member.ID, 10)
 		roleName := utils.CamelCaseToHR(member.RoleName)

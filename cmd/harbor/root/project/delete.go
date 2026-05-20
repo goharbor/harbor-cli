@@ -37,8 +37,11 @@ func DeleteProjectCommand() *cobra.Command {
 		Long:    "Delete project by name or ID. Multiple projects can be deleted by providing their names as arguments. If no arguments are provided, it will prompt for the project name. Use --project-id to specify the project ID for single project directly. The --force flag will delete all repositories and artifacts within the project.",
 		Args:    cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			const maxConcurrentDeletes = 5
+
 			var wg sync.WaitGroup
 			var mu sync.Mutex
+			sem := make(chan struct{}, maxConcurrentDeletes)
 
 			successfulDeletes := []string{}
 			failedDeletes := map[string]string{}
@@ -52,41 +55,33 @@ func DeleteProjectCommand() *cobra.Command {
 				}
 			}
 
+			deleteProject := func(name string, isID bool) {
+				sem <- struct{}{}
+				defer func() { <-sem }()
+				defer wg.Done()
+				log.Debugf("Deleting project '%s' with force=%v", name, forceDelete)
+				if err := api.DeleteProject(name, forceDelete, isID); err != nil {
+					mu.Lock()
+					failedDeletes[name] = utils.ParseHarborErrorMsg(err)
+					mu.Unlock()
+				} else {
+					mu.Lock()
+					successfulDeletes = append(successfulDeletes, name)
+					mu.Unlock()
+				}
+			}
+
 			if projectID != "" {
 				log.Debugf("Deleting project with ID: %s", projectID)
 				wg.Add(1)
-				go func(id string) {
-					defer wg.Done()
-					if err := api.DeleteProject(id, forceDelete, true); err != nil {
-						mu.Lock()
-						failedDeletes[id] = utils.ParseHarborErrorMsg(err)
-						mu.Unlock()
-					} else {
-						mu.Lock()
-						successfulDeletes = append(successfulDeletes, id)
-						mu.Unlock()
-					}
-				}(projectID)
+				go deleteProject(projectID, true)
 			} else if len(args) > 0 {
-				// Delete by project name from args
 				log.Debugf("Deleting %d projects from args...", len(args))
 				for _, projectName := range args {
 					pn := projectName
 					log.Debugf("Initiating delete for project: %s", pn)
 					wg.Add(1)
-					go func(projectName string) {
-						defer wg.Done()
-						log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
-						if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
-							mu.Lock()
-							failedDeletes[projectName] = utils.ParseHarborErrorMsg(err)
-							mu.Unlock()
-						} else {
-							mu.Lock()
-							successfulDeletes = append(successfulDeletes, projectName)
-							mu.Unlock()
-						}
-					}(pn)
+					go deleteProject(pn, false)
 				}
 			} else {
 				// If no arguments provided, prompt user for project name

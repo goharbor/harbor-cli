@@ -220,3 +220,27 @@ func TestPrintFormat(t *testing.T) {
 	err = utils.PrintFormat(obj, "xml")
 	assert.Error(t, err)
 }
+
+func BenchmarkValidateEmail(b *testing.B) {
+	for b.Loop() {
+		utils.ValidateEmail("user@example.com")
+	}
+}
+
+func BenchmarkValidatePassword(b *testing.B) {
+	for b.Loop() {
+		_ = utils.ValidatePassword("Abcd1234")
+	}
+}
+
+func BenchmarkValidateProjectName(b *testing.B) {
+	for b.Loop() {
+		utils.ValidateProjectName("my-project-123")
+	}
+}
+
+func BenchmarkValidateURL(b *testing.B) {
+	for b.Loop() {
+		_ = utils.ValidateURL("https://demo.goharbor.io")
+	}
+}

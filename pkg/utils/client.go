@@ -17,11 +17,14 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	log "github.com/sirupsen/logrus"
 )
+
+const DefaultAPITimeout = 30 * time.Second
 
 var (
 	ClientInstance *v2client.HarborAPI
@@ -57,7 +60,8 @@ func ContextWithClient() (context.Context, *v2client.HarborAPI, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultAPITimeout) //nolint:lostcancel // CLI process exits after each command; cancel released on timeout
+	_ = cancel
 	return ctx, client, nil
 }
 
