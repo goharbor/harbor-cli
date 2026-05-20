@@ -23,53 +23,66 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var fillProjectView = create.CreateProjectView
+
+func buildCreateView(opts *create.CreateView, args []string) (*create.CreateView, error) {
+	if len(args) > 0 {
+		opts.ProjectName = args[0]
+	}
+
+	if opts.ProxyCache && opts.RegistryID == "" {
+		return nil, fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
+	}
+
+	if !opts.ProxyCache && opts.RegistryID != "" {
+		return nil, fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+	}
+
+	var createView *create.CreateView
+	if opts.ProjectName == "" || opts.StorageLimit == "" {
+		log.Debug("Switching to interactive view...")
+		createView = &create.CreateView{
+			ProjectName:  opts.ProjectName,
+			Public:       opts.Public,
+			RegistryID:   opts.RegistryID,
+			StorageLimit: opts.StorageLimit,
+			ProxyCache:   opts.ProxyCache,
+		}
+
+		err := fillProjectView(createView)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the required params to create project: %w", err)
+		}
+	} else {
+		createView = opts
+	}
+
+	return createView, nil
+}
+
+func createProject(createProjectAPI func(opts create.CreateView) error, opts *create.CreateView, args []string) error {
+	createView, err := buildCreateView(opts, args)
+	if err != nil {
+		return err
+	}
+
+	if err := createProjectAPI(*createView); err != nil {
+		return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
+	}
+	fmt.Printf("project '%s' created successfully\n", createView.ProjectName)
+	return nil
+}
+
 // CreateProjectCommand creates a new `harbor create project` command
 func CreateProjectCommand() *cobra.Command {
-	var opts create.CreateView
-
+	opts := &create.CreateView{}
+	createProjectAPI := api.CreateProject
 	cmd := &cobra.Command{
 		Use:   "create [project name]",
 		Short: "create project",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var ProjectName string
-			if len(args) > 0 {
-				opts.ProjectName = args[0]
-			}
-
-			if opts.ProxyCache && opts.RegistryID == "" {
-				return fmt.Errorf("proxy cache selected but no registry ID provided. Use --registry-id")
-			}
-
-			if !opts.ProxyCache && opts.RegistryID != "" {
-				return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
-			}
-
-			if opts.ProjectName != "" && opts.StorageLimit != "" {
-				log.Debug("Attempting to create project using flags...")
-				err = api.CreateProject(opts)
-				ProjectName = opts.ProjectName
-			} else {
-				log.Debug("Switching to interactive view...")
-				createView := &create.CreateView{
-					ProjectName:  opts.ProjectName,
-					Public:       opts.Public,
-					RegistryID:   opts.RegistryID,
-					StorageLimit: opts.StorageLimit,
-					ProxyCache:   opts.ProxyCache,
-				}
-
-				err = createProjectView(createView)
-				ProjectName = createView.ProjectName
-			}
-
-			if err != nil {
-				return fmt.Errorf("failed to create project: %v", utils.ParseHarborErrorMsg(err))
-			}
-
-			fmt.Printf("Project '%s' created successfully\n", ProjectName)
-			return nil
+			return createProject(createProjectAPI, opts, args)
 		}}
 
 	flags := cmd.Flags()
@@ -79,21 +92,4 @@ func CreateProjectCommand() *cobra.Command {
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
 	return cmd
-}
-
-func createProjectView(createView *create.CreateView) error {
-	if createView == nil {
-		createView = &create.CreateView{
-			ProjectName:  "",
-			Public:       false,
-			RegistryID:   "",
-			StorageLimit: "-1",
-		}
-	}
-
-	err := create.CreateProjectView(createView)
-	if err != nil {
-		return err
-	}
-	return api.CreateProject(*createView)
 }
