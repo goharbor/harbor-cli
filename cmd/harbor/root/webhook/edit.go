@@ -85,9 +85,11 @@ or leave them out and use the interactive prompt to select and update a webhook.
 				opts.NotifyType != "" &&
 				len(opts.EventType) != 0 &&
 				opts.EndpointURL != "" {
-				if err := utils.ValidateURL(opts.EndpointURL); err != nil {
+				formattedURL := utils.FormatUrl(opts.EndpointURL)
+				if err := utils.ValidateURL(formattedURL); err != nil {
 					return err
 				}
+				opts.EndpointURL = formattedURL
 				err = api.UpdateWebhook(&opts)
 			} else {
 				err = editWebhookView(editView)
