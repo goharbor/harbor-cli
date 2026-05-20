@@ -1,6 +1,6 @@
 {
   "name": "harbor-cli",
-  "engineVersion": "v0.19.7",
+  "engineVersion": "v0.19.10",
   "sdk": {
     "source": "go"
   },
