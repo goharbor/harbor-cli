@@ -58,8 +58,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
 					[]string{"id", "priority", "disabled", "action", "template"},
 				)
 				if qErr != nil {
-					log.Errorf("error while building query parameter: %v", qErr)
-					return
+					return qErr
 				}
 
 				opts.Q = q
@@ -77,6 +76,7 @@ You can specify the project name as an argument or, if omitted, you will be prom
 			resp, err = api.ListImmutable(projectName, opts)
 			if err != nil {
 				return fmt.Errorf("failed to list immutablility rule: %v", err)
+
 			}
 
 			FormatFlag := viper.GetString("output-format")
