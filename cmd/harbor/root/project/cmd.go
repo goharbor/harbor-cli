@@ -29,6 +29,7 @@ func Project() *cobra.Command {
 		CreateProjectCommand(),
 		DeleteProjectCommand(),
 		ListProjectCommand(),
+		SummaryCommand(),
 		ViewCommand(),
 		LogsProjectCommmand(),
 		config.ProjectConfigCommand(),
