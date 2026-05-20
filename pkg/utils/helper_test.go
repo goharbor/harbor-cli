@@ -220,3 +220,32 @@ func TestPrintFormat(t *testing.T) {
 	err = utils.PrintFormat(obj, "xml")
 	assert.Error(t, err)
 }
+
+func TestCamelCaseToHR(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"basic camelCase", "camelCase", "Camel Case"},
+		{"basic PascalCase", "PascalCase", "Pascal Case"},
+		{"single word", "simple", "Simple"},
+		{"existing spaces", "already Human Readable", "Already Human Readable"},
+		{"uppercase acronym", "ID", "ID"},
+		{"prefixed acronym", "UserID", "User ID"},
+		{"complex acronym", "JSONData", "JSON Data"},
+		{"all caps", "ALLCAPS", "ALLCAPS"},
+		{"all lower", "alllower", "Alllower"},
+		{"mixed case", "MixedUPPERAndLower", "Mixed UPPER And Lower"},
+		{"lowercase prefix", "httpError", "Http Error"},
+		{"uppercase acronym", "HTTPError", "HTTP Error"},
+		{"empty string", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.CamelCaseToHR(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
