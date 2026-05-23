@@ -21,9 +21,10 @@ A user can only create up to 15 tag retention rules per project.
 ### Examples
 
 ```sh
-  harbor tag retention create    # Create a new tag retention rule
-  harbor tag retention list      # List all tag retention rules in the project
-  harbor tag retention delete    # Delete a specific tag retention rules
+  harbor tag retention create         # Create a new tag retention rule
+  harbor tag retention list           # List all tag retention rules in the project
+  harbor tag retention delete         # Delete a specific tag retention rules
+  harbor tag retention tasks list     # List retention execution tasks
 ```
 
 ### Options
@@ -46,4 +47,5 @@ A user can only create up to 15 tag retention rules per project.
 * [harbor tag retention create](harbor-tag-retention-create.md)	 - Create a tag retention rule in a project
 * [harbor tag retention delete](harbor-tag-retention-delete.md)	 - Delete a tag retention rule for a project
 * [harbor tag retention list](harbor-tag-retention-list.md)	 - List tag retention rules of a project
+* [harbor tag retention tasks](harbor-tag-retention-tasks.md)	 - Manage retention execution tasks
 

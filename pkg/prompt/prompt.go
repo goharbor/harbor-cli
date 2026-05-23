@@ -40,6 +40,7 @@ import (
 	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	rexecView "github.com/goharbor/harbor-cli/pkg/views/retention/executions"
 	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
@@ -504,4 +505,26 @@ func GetPreheatPolicyNameFromUser(projectName string) (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+func GetRetentionExecutionIDFromUser(retentionID string) int64 {
+	executionID := make(chan int64)
+	length := make(chan int)
+
+	go func() {
+		response, err := api.ListRetentionExecutions(retentionID)
+		if err != nil || response == nil {
+			length <- 0
+			return
+		}
+
+		length <- len(response.Payload)
+		rexecView.RetentionExecutionList(response.Payload, executionID)
+	}()
+
+	if <-length == 0 {
+		return 0
+	}
+
+	return <-executionID
 }
