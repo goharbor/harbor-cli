@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"dagger/harbor-cli/internal/dagger"
@@ -36,12 +37,19 @@ func (m *HarborCli) Checksum(ctx context.Context,
 		}
 
 		split := strings.Split(v, "/")
-		sums[out] = split[len(split)-1] // Taking only filename
+		filename := split[len(split)-1]
+		sums[filename] = strings.TrimSpace(out)
 	}
 
+	filenames := make([]string, 0, len(sums))
+	for filename := range sums {
+		filenames = append(filenames, filename)
+	}
+	sort.Strings(filenames)
+
 	content := ""
-	for k, v := range sums {
-		content += fmt.Sprintf("%s %s\n", strings.TrimSuffix(k, "\n"), v)
+	for _, filename := range filenames {
+		content += fmt.Sprintf("%s %s\n", sums[filename], filename)
 	}
 
 	buildDir = buildDir.WithFile("checksums.txt", dag.File("checksums.txt", content))
