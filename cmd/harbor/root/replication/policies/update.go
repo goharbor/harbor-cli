@@ -101,7 +101,6 @@ func UpdateCommand() *cobra.Command {
 
 			var updatedPolicy *models.ReplicationPolicy
 
-			fmt.Println("Updated policy replicate deletion:", createView.ReplicateDeletion)
 			if createView.ReplicationMode == "Pull" {
 				updatedPolicy = ConvertToPolicy(createView, existingPolicy.Payload.SrcRegistry)
 				updatedPolicy.ID = policyID
