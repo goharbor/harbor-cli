@@ -188,5 +188,8 @@ func GetRegistryIdByName(registryName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf(
+    "registry with name %q not found",
+    registryName,
+)
 }
