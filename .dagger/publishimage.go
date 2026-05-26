@@ -253,29 +253,29 @@ func (m *HarborCli) Sign(ctx context.Context,
 	registryPassword *dagger.Secret,
 	imageAddr string,
 ) (string, error) {
-	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
+	cosignCtr := dag.Container().
+		From("cgr.dev/chainguard/cosign").
+		WithSecretVariable("REGISTRY_PASSWORD", registryPassword)
 
-	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
-
-	// If githubToken is provided, use it to sign the image
+	// If githubToken is provided, configure OIDC for keyless signing
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == nil || actionsIdTokenRequestToken == nil {
-			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%v) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl != nil, actionsIdTokenRequestToken != nil)
 		}
-		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
-		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		cosignCtr = cosignCtr.
+			WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
-	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+	return cosignCtr.
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{
-			"cosign", "sign", "--yes", "--recursive",
-			"--registry-username", registryUsername,
-			"--registry-password", registryPasswordPlain,
-			imageAddr,
-			"--timeout", "1m",
+			"sh", "-c",
+			fmt.Sprintf(
+				"cosign sign --yes --recursive --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 1m",
+				registryUsername, imageAddr,
+			),
 		}).Stdout(ctx)
 }
 
