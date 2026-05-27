@@ -16,9 +16,9 @@ package member
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -27,6 +27,37 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/spf13/cobra"
 )
+
+// roleFlagAliases maps every accepted spelling of --role to a canonical
+// Harbor role ID. Keys are pre-normalized (lowercase, separators stripped).
+var roleFlagAliases = map[string]int{
+	"projectadmin": 1, "admin": 1,
+	"developer":    2,
+	"guest":        3,
+	"maintainer":   4,
+	"limitedguest": 5,
+}
+
+// resolveRoleFlags collapses --role and --roleid into one canonical Harbor
+// role ID (1..5). (0, nil) means "no role specified" — the interactive view
+// will prompt for one.
+func resolveRoleFlags(roleName string, roleID int) (int, error) {
+	if roleName != "" {
+		key := strings.ToLower(strings.NewReplacer("_", "", " ", "", "-", "").Replace(roleName))
+		matched, ok := roleFlagAliases[key]
+		if !ok {
+			return 0, fmt.Errorf("invalid --role %q (expected one of: Project_Admin, Developer, Guest, Maintainer, Limited_Guest)", roleName)
+		}
+		if roleID != 0 && roleID != matched {
+			return 0, fmt.Errorf("--role %q (id %d) conflicts with --roleid %d", roleName, matched, roleID)
+		}
+		roleID = matched
+	}
+	if roleID != 0 && (roleID < 1 || roleID > 5) {
+		return 0, fmt.Errorf("invalid --roleid %d (must be 1=Admin, 2=Developer, 3=Guest, 4=Maintainer, 5=LimitedGuest)", roleID)
+	}
+	return roleID, nil
+}
 
 func CreateMemberCommand() *cobra.Command {
 	var opts create.CreateView
@@ -59,9 +90,14 @@ func CreateMemberCommand() *cobra.Command {
 				}
 			}
 
+			opts.RoleID, err = resolveRoleFlags(opts.RoleName, opts.RoleID)
+			if err != nil {
+				return err
+			}
+
 			sysInfo, err := api.GetSystemInfo()
 			if err != nil {
-				fmt.Println("could not access server info")
+				return fmt.Errorf("could not access server info: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			createView := &create.CreateView{
@@ -81,7 +117,6 @@ func CreateMemberCommand() *cobra.Command {
 				},
 			}
 
-			// check if role and member is valid
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
 				err = api.CreateMember(*createView)
 			} else {
@@ -89,7 +124,7 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				logrus.Errorf("failed to create user: %v", err)
+				return fmt.Errorf("failed to create member: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			fmt.Printf("successfully added user %s to project %s\n", createView.MemberUser.Username, opts.ProjectName)

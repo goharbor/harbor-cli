@@ -117,7 +117,7 @@ func GetUsersIdByName(userName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("user %q not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
