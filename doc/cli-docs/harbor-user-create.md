@@ -27,12 +27,8 @@ harbor user create [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-<<<<<<< HEAD
-  -o, --output-format string   Output format. One of: json|yaml|csv
-=======
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
-  -o, --output-format string   Output format. One of: json|yaml
->>>>>>> a929b09 (feat: fix lint & suggestion)
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
