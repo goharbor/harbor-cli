@@ -38,5 +38,8 @@ Examples:
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor jobservice jobs](harbor-jobservice-jobs.md)	 - Manage job logs (view by job ID)
+* [harbor jobservice pools](harbor-jobservice-pools.md)	 - Manage worker pools (list available pools)
 * [harbor jobservice queues](harbor-jobservice-queues.md)	 - Manage job queues (list, stop, pause, resume)
+* [harbor jobservice workers](harbor-jobservice-workers.md)	 - Manage workers (list all/by pool, free, free-all)
 
