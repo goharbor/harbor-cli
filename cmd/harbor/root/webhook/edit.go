@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var updateWebhook = api.UpdateWebhook
+
 func EditWebhookCmd() *cobra.Command {
 	var opts edit.EditView
 	cmd := &cobra.Command{
@@ -90,7 +92,7 @@ or leave them out and use the interactive prompt to select and update a webhook.
 					return err
 				}
 				opts.EndpointURL = formattedURL
-				err = api.UpdateWebhook(&opts)
+				err = updateWebhook(&opts)
 			} else {
 				err = editWebhookView(editView)
 			}
@@ -149,5 +151,5 @@ func editWebhookView(view *edit.EditView) error {
 		view.NotifyType = selectedWebhook.Targets[0].Type
 	}
 	edit.WebhookEditView(view)
-	return api.UpdateWebhook(view)
+	return updateWebhook(view)
 }

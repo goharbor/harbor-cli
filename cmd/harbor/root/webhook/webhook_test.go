@@ -17,10 +17,23 @@ import (
 	"bytes"
 	"testing"
 
+	webhookcreate "github.com/goharbor/harbor-cli/pkg/views/webhook/create"
+	webhookedit "github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestCreateWebhookCmd_NormalizesEndpointURLBeforeValidation(t *testing.T) {
+func TestCreateWebhookCmd_AcceptsAndNormalizesEndpointURL(t *testing.T) {
+	originalCreateWebhook := createWebhook
+	t.Cleanup(func() {
+		createWebhook = originalCreateWebhook
+	})
+
+	createWebhook = func(opts *webhookcreate.CreateView) error {
+		assert.Equal(t, "https://example.com/webhook", opts.EndpointURL)
+		return nil
+	}
+
 	cmd := CreateWebhookCmd()
 
 	var buf bytes.Buffer
@@ -35,13 +48,20 @@ func TestCreateWebhookCmd_NormalizesEndpointURLBeforeValidation(t *testing.T) {
 	})
 
 	err := cmd.Execute()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to create webhook")
-	assert.NotContains(t, err.Error(), "invalid URL format")
-	assert.NotContains(t, err.Error(), "invalid host")
+	require.NoError(t, err)
 }
 
-func TestEditWebhookCmd_NormalizesEndpointURLBeforeValidation(t *testing.T) {
+func TestEditWebhookCmd_AcceptsAndNormalizesEndpointURL(t *testing.T) {
+	originalUpdateWebhook := updateWebhook
+	t.Cleanup(func() {
+		updateWebhook = originalUpdateWebhook
+	})
+
+	updateWebhook = func(opts *webhookedit.EditView) error {
+		assert.Equal(t, "https://example.com/webhook", opts.EndpointURL)
+		return nil
+	}
+
 	cmd := EditWebhookCmd()
 
 	var buf bytes.Buffer
@@ -56,10 +76,7 @@ func TestEditWebhookCmd_NormalizesEndpointURLBeforeValidation(t *testing.T) {
 	})
 
 	err := cmd.Execute()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to edit webhook")
-	assert.NotContains(t, err.Error(), "invalid URL format")
-	assert.NotContains(t, err.Error(), "invalid host")
+	require.NoError(t, err)
 }
 
 func TestEditWebhookCmd_InvalidEndpointURLReturnsValidationError(t *testing.T) {

@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var createWebhook = api.CreateWebhook
+
 func CreateWebhookCmd() *cobra.Command {
 	var opts create.CreateView
 
@@ -75,7 +77,7 @@ or leave them out and be guided through an interactive prompt to input each fiel
 					return err
 				}
 				opts.EndpointURL = formattedURL
-				err = api.CreateWebhook(&opts)
+				err = createWebhook(&opts)
 			} else {
 				err = createWebhookView(createView)
 			}
@@ -112,5 +114,5 @@ func createWebhookView(view *create.CreateView) error {
 	if err != nil {
 		return err
 	}
-	return api.CreateWebhook(view)
+	return createWebhook(view)
 }
