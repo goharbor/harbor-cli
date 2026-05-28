@@ -29,7 +29,6 @@ var columns = []table.Column{
 	{Title: "Value", Width: tablelist.Width3XL},
 }
 
-
 var order = []string{
 	"Project Name",
 	"Project ID",
