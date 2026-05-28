@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 )
 
 func TestSummaryCommand_InvalidArgs(t *testing.T) {
@@ -54,4 +53,3 @@ func TestSummaryCommand_Flags(t *testing.T) {
 	err := cmd.Execute()
 	assert.Error(t, err)
 }
-
