@@ -13,20 +13,20 @@ weight: 70
 List preheat executions under a project
 
 ```sh
-harbor project preheat execution list [flags]
+harbor project preheat execution list [PROJECT_NAME|ID] [POLICY_NAME] [flags]
 ```
 
 ### Examples
 
 ```sh
-  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]
+  harbor-cli project preheat execution list [PROJECT_NAME|ID] [POLICY_NAME]
 ```
 
 ### Options
 
 ```sh
   -h, --help            help for list
-      --id              Get preheat executions by project id
+      --id              Use project ID instead of name
       --page int        Page number (default 1)
       --page-size int   Size of per page (default 10)
   -q, --query string    Query string to query resources

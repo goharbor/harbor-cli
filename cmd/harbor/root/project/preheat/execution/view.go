@@ -33,7 +33,7 @@ func ViewExecutionCommand() *cobra.Command {
 		Use:     "view [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]",
 		Short:   "View preheat execution details",
 		Long:    "Get details of a specific P2P preheat execution under a project",
-		Example: `  harbor-cli project preheat execution view [NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
+		Example: `  harbor-cli project preheat execution view [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
 		Args:    cobra.MaximumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
@@ -110,7 +110,7 @@ func ViewExecutionCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get preheat policy execution by project id")
+	flags.BoolVar(&isID, "id", false, "Use project ID instead of name")
 
 	return cmd
 }

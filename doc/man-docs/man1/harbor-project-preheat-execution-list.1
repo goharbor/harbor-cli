@@ -6,7 +6,7 @@ harbor-project-preheat-execution-list - List preheat executions
 
 
 .SH SYNOPSIS
-\fBharbor project preheat execution list [flags]\fP
+\fBharbor project preheat execution list [PROJECT_NAME|ID] [POLICY_NAME] [flags]\fP
 
 
 .SH DESCRIPTION
@@ -19,7 +19,7 @@ List preheat executions under a project
 
 .PP
 \fB--id\fP[=false]
-	Get preheat executions by project id
+	Use project ID instead of name
 
 .PP
 \fB--page\fP=1
@@ -53,7 +53,7 @@ List preheat executions under a project
 
 .SH EXAMPLE
 .EX
-  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]
+  harbor-cli project preheat execution list [PROJECT_NAME|ID] [POLICY_NAME]
 .EE
 
 

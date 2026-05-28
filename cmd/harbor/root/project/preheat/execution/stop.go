@@ -31,7 +31,7 @@ func StopExecutionCommand() *cobra.Command {
 		Use:     "stop [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]",
 		Short:   "Stop preheat execution",
 		Long:    "Stop a specific P2P preheat execution of a policy under a project",
-		Example: `  harbor-cli project preheat execution stop [NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
+		Example: `  harbor-cli project preheat execution stop [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]`,
 		Args:    cobra.MaximumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
@@ -100,7 +100,7 @@ func StopExecutionCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get preheat policy execution by project id")
+	flags.BoolVar(&isID, "id", false, "Use project ID instead of name")
 
 	return cmd
 }

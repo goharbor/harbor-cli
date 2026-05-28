@@ -19,14 +19,14 @@ harbor project preheat execution view [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION
 ### Examples
 
 ```sh
-  harbor-cli project preheat execution view [NAME|ID] [POLICY_NAME] [EXECUTION_ID]
+  harbor-cli project preheat execution view [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID]
 ```
 
 ### Options
 
 ```sh
   -h, --help   help for view
-      --id     Get preheat policy execution by project id
+      --id     Use project ID instead of name
 ```
 
 ### Options inherited from parent commands

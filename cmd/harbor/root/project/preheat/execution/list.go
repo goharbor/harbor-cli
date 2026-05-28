@@ -30,10 +30,10 @@ func ListExecutionCommand() *cobra.Command {
 	var isID bool
 
 	cmd := &cobra.Command{
-		Use:     "list",
+		Use:     "list [PROJECT_NAME|ID] [POLICY_NAME]",
 		Short:   "List preheat executions",
 		Long:    "List preheat executions under a project",
-		Example: `  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]`,
+		Example: `  harbor-cli project preheat execution list [PROJECT_NAME|ID] [POLICY_NAME]`,
 		Args:    cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
@@ -108,7 +108,7 @@ func ListExecutionCommand() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVar(&isID, "id", false, "Get preheat executions by project id")
+	flags.BoolVar(&isID, "id", false, "Use project ID instead of name")
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 10, "Size of per page")
 	flags.StringVarP(&opts.Q, "query", "q", "", "Query string to query resources")
