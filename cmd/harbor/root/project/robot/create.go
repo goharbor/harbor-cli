@@ -102,7 +102,7 @@ Examples:
 				if loadErr != nil {
 					return fmt.Errorf("failed to load robot config from file: %v", loadErr)
 				}
-				logrus.Info("Successfully loaded robot configuration")
+				logrus.Debug("Successfully loaded robot configuration")
 				opts = *loadedOpts
 				if opts.ProjectName == "" {
 					opts.ProjectName = opts.Permissions[0].Namespace
@@ -196,7 +196,7 @@ Examples:
 				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			logrus.Infof("Successfully created robot account '%s' (ID: %d)",
+			fmt.Printf("Successfully created robot account '%s' (ID: %d)\n",
 				response.Payload.Name, response.Payload.ID)
 
 			FormatFlag := viper.GetString("output-format")
@@ -209,7 +209,7 @@ Examples:
 			name, secret := response.Payload.Name, response.Payload.Secret
 
 			if exportToFile {
-				logrus.Info("Exporting robot credentials to file")
+				fmt.Printf("Exporting robot credentials to file\n")
 				exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
 				return nil
 			} else {

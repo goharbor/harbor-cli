@@ -14,12 +14,13 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project_metadata"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListConfig(isID bool, projectNameOrID string) (*project_metadata.ListProjectMetadatasOK, error) {
@@ -55,7 +56,7 @@ func UpdateConfig(isID bool, projectNameOrID string, metadata models.ProjectMeta
 		return err
 	}
 	if response != nil {
-		log.Info("Metadata updated successfully")
+		fmt.Println("Metadata updated successfully")
 	}
 
 	return nil

@@ -37,7 +37,10 @@ import (
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
+	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
+
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
@@ -456,4 +459,49 @@ func GetRoleIDFromUser() int64 {
 	}()
 
 	return <-roleID
+}
+
+func GetRetentionTagRule(retentionID string) int64 {
+	retentionIndex := make(chan int64)
+	go func() {
+		response, _ := api.ListRetention(retentionID)
+		retview.RetentionList(response.Payload.Rules, retentionIndex)
+	}()
+	return <-retentionIndex
+}
+
+func GetPreheatPolicyNameFromUser(projectName string) (string, error) {
+	type result struct {
+		name string
+		err  error
+	}
+	resultChan := make(chan result)
+
+	go func() {
+		response, err := api.ListPreheatPolicies(projectName, false)
+		if err != nil {
+			resultChan <- result{"", err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			resultChan <- result{"", errors.New("no preheat policies found")}
+			return
+		}
+
+		name, err := phpolicies.PreheatPolicyList(response.Payload)
+		if err != nil {
+			if err == phpolicies.ErrUserAborted {
+				resultChan <- result{"", errors.New("user aborted policy selection")}
+			} else {
+				resultChan <- result{"", fmt.Errorf("error during policy selection: %w", err)}
+			}
+			return
+		}
+
+		resultChan <- result{name, nil}
+	}()
+
+	res := <-resultChan
+	return res.name, res.err
 }

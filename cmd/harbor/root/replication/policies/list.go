@@ -52,7 +52,7 @@ func ListCommand() *cobra.Command {
 
 			log.WithField("count", len(allPolicies.Payload)).Debug("Number of policies fetched")
 			if len(allPolicies.Payload) == 0 {
-				log.Info("No policies found")
+				fmt.Println("No policies found")
 				return nil
 			}
 

@@ -23,7 +23,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/create"
 	"github.com/goharbor/harbor-cli/pkg/views/scanner/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -117,7 +116,7 @@ Only the fields passed through flags will be updated; other fields will retain t
 				return fmt.Errorf("failed to update scanner: %v", err)
 			}
 
-			log.Infof("Scanner %q updated successfully", updateView.Name)
+			fmt.Printf("Scanner %q updated successfully\n", updateView.Name)
 			return nil
 		},
 	}

@@ -153,7 +153,7 @@ func GetKeyringProvider() KeyringProvider {
 		BaseDir: filepath.Join(homeDir, ".harbor", "keyring"),
 	}
 
-	logrus.Info("System keyring not available, using file-based keyring")
+	logrus.Warn("System keyring not available, using file-based keyring")
 	return fileKeyring
 }
 

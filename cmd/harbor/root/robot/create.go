@@ -129,7 +129,7 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		return fmt.Errorf("failed to load robot config from file: %v", err)
 	}
 
-	logrus.Info("Successfully loaded robot configuration")
+	logrus.Debug("Successfully loaded robot configuration")
 	*opts = *loadedOpts
 
 	if opts.Level != "system" {
@@ -158,7 +158,7 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		}
 	}
 
-	logrus.Infof("Loaded system robot with %d system permissions and %d project-specific permissions",
+	logrus.Debugf("Loaded system robot with %d system permissions and %d project-specific permissions",
 		len(*permissions), len(projectPermissionsMap))
 
 	return nil
@@ -326,7 +326,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 		}
 	}
 
-	logrus.Infof("Successfully created robot account '%s' (ID: %d)",
+	fmt.Printf("Successfully created robot account '%s' (ID: %d)\n",
 		response.Payload.Name, response.Payload.ID)
 
 	// Handle output format
@@ -340,7 +340,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 	name, secret := response.Payload.Name, response.Payload.Secret
 
 	if exportToFile {
-		logrus.Info("Exporting robot credentials to file")
+		fmt.Printf("Exporting robot credentials to file\n")
 		exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
 		return nil
 	}
