@@ -1,0 +1,47 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-tag-retention-tasks-list - List retention tasks for an execution
+
+
+.SH SYNOPSIS
+\fBharbor tag retention tasks list [PROJECT_NAME] [flags]\fP
+
+
+.SH DESCRIPTION
+List repository-level retention tasks for a specific retention execution
+
+
+.SH OPTIONS
+\fB-e\fP, \fB--execution-id\fP=-1
+	Retention execution ID
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB-i\fP, \fB--project-id\fP=-1
+	Project ID
+
+.PP
+\fB-p\fP, \fB--project-name\fP=""
+	Project name
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-tag-retention-tasks(1)\fP

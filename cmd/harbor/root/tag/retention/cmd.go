@@ -28,15 +28,17 @@ within a project. Tag retention rules help in managing and controlling the lifec
 of tags by defining rules for automatic cleanup and retention.
 
 A user can only create up to 15 tag retention rules per project.`,
-		Example: `  harbor tag retention create    # Create a new tag retention rule
-  harbor tag retention list      # List all tag retention rules in the project
-  harbor tag retention delete    # Delete a specific tag retention rules`,
+		Example: `  harbor tag retention create         # Create a new tag retention rule
+  harbor tag retention list           # List all tag retention rules in the project
+  harbor tag retention delete         # Delete a specific tag retention rules
+  harbor tag retention tasks list     # List retention execution tasks`,
 	}
 
 	cmd.AddCommand(
 		CreateRetentionCommand(),
 		ListRetentionRulesCommand(),
 		DeleteRetentionRuleCommand(),
+		TasksCommand(),
 	)
 	return cmd
 }
