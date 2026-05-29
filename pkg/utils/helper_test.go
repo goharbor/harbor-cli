@@ -202,6 +202,20 @@ func TestPrintFormat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, buf.String(), "foo: bar")
 
+	// CSV
+	buf.Reset()
+	r, w, _ = os.Pipe()
+	os.Stdout = w
+	err = utils.PrintFormat([]payload{obj}, "csv")
+	w.Close()
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
+	os.Stdout = oldOut
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Foo")
+	assert.Contains(t, buf.String(), "bar")
+
 	// unsupported
 	err = utils.PrintFormat(obj, "xml")
 	assert.Error(t, err)

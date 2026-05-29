@@ -96,7 +96,7 @@ func UpdateCommand() *cobra.Command {
 				}
 			}
 
-			log.Infof("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
+			log.Debugf("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
 			create.CreateRPolicyView(createView, true)
 
 			var updatedPolicy *models.ReplicationPolicy
@@ -114,7 +114,7 @@ func UpdateCommand() *cobra.Command {
 				return fmt.Errorf("failed to update replication policy: %w", err)
 			}
 
-			log.Infof("Successfully updated replication policy: %s (ID: %d)", updatedPolicy.Name, policyID)
+			fmt.Printf("Successfully updated replication policy: %s (ID: %d)\n", updatedPolicy.Name, policyID)
 			return nil
 		},
 	}

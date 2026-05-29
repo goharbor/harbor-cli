@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/update"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -80,7 +79,7 @@ func UpdateQuotaCommand() *cobra.Command {
 				return fmt.Errorf("failed to update quota: %v", err)
 			}
 
-			log.Infof("quota updated successfully!")
+			fmt.Println("Quota updated successfully!")
 
 			return nil
 		},

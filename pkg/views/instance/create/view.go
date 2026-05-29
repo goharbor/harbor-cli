@@ -19,7 +19,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -33,17 +32,8 @@ type CreateView struct {
 	Insecure    bool
 }
 
-func CreateInstanceView(createView *CreateView) {
-	cv := CreateView{
-		AuthInfo: map[string]string{
-			"username": "",
-			"password": "",
-			"token":    "",
-		},
-	}
-	username := cv.AuthInfo["username"]
-	password := cv.AuthInfo["password"]
-	token := cv.AuthInfo["token"]
+func CreateInstanceView(createView *CreateView) error {
+	var username, password, token string
 	theme := huh.ThemeCharm()
 
 	err := huh.NewForm(
@@ -77,11 +67,11 @@ func CreateInstanceView(createView *CreateView) {
 					if strings.TrimSpace(str) == "" {
 						return errors.New("endpoint cannot be empty or only spaces")
 					}
-					formattedUrl := utils.FormatUrl(str)
-					if err := utils.ValidateURL(formattedUrl); err != nil {
+					formattedURL := utils.FormatUrl(str)
+					if err := utils.ValidateURL(formattedURL); err != nil {
 						return err
 					}
-					createView.Endpoint = formattedUrl
+					createView.Endpoint = formattedURL
 					return nil
 				}),
 			huh.NewConfirm().
@@ -90,7 +80,7 @@ func CreateInstanceView(createView *CreateView) {
 				Affirmative("yes").
 				Negative("no"),
 			huh.NewConfirm().
-				Title("Verify Cert").
+				Title("Skip Certificate Verification").
 				Value(&createView.Insecure).
 				Affirmative("yes").
 				Negative("no"),
@@ -151,6 +141,20 @@ func CreateInstanceView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	switch createView.AuthMode {
+	case "BASIC":
+		createView.AuthInfo = map[string]string{
+			"username": username,
+			"password": password,
+		}
+	case "OAUTH":
+		createView.AuthInfo = map[string]string{
+			"token": token,
+		}
+	}
+
+	return nil
 }

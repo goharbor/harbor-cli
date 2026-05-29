@@ -14,6 +14,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -38,7 +40,7 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 		return err
 	}
 
-	log.Infof("Artifact deleted successfully: %s/%s@%s", projectName, repoName, reference)
+	fmt.Printf("Artifact deleted successfully: %s/%s@%s\n", projectName, repoName, reference)
 	return nil
 }
 
@@ -107,7 +109,7 @@ func StartScanArtifact(projectName, repoName, reference string) error {
 		return err
 	}
 
-	log.Infof("Scan started successfully: %s/%s@%s", projectName, repoName, reference)
+	fmt.Printf("Scan started successfully: %s/%s@%s\n", projectName, repoName, reference)
 	return nil
 }
 
@@ -128,7 +130,7 @@ func StopScanArtifact(projectName, repoName, reference string) error {
 		return err
 	}
 
-	log.Infof("Scan stopped successfully: %s/%s@%s", projectName, repoName, reference)
+	fmt.Printf("Scan stopped successfully: %s/%s@%s\n", projectName, repoName, reference)
 	return nil
 }
 
@@ -150,7 +152,7 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 		return err
 	}
 
-	log.Infof("Tag deleted successfully: %s/%s@%s:%s", projectName, repoName, reference, tag)
+	fmt.Printf("Tag deleted successfully: %s/%s@%s:%s\n", projectName, repoName, reference, tag)
 	return nil
 }
 
@@ -193,7 +195,7 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 		log.Errorf("Failed to create tag: %v", err)
 		return err
 	}
-	log.Infof("Tag created successfully: %s/%s@%s:%s", projectName, repoName, reference, tagName)
+	fmt.Printf("Tag created successfully: %s/%s@%s:%s\n", projectName, repoName, reference, tagName)
 	return nil
 }
 

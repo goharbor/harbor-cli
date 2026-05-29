@@ -40,7 +40,7 @@ func (m *HarborCli) AptBuild(ctx context.Context,
 
 	// Building `Package` file for each arch
 	for _, arch := range archs {
-		pkgDir := fmt.Sprintf("buildDirs/stable/main/binary-%s", arch)
+		pkgDir := fmt.Sprintf("dists/stable/main/binary-%s", arch)
 		poolDir := "pool/main/m"
 
 		container = container.WithExec([]string{
@@ -53,7 +53,7 @@ func (m *HarborCli) AptBuild(ctx context.Context,
 	// Release File
 	container = container.WithExec([]string{
 		"bash", "-c",
-		`cat <<EOF > /repo/buildDirs/stable/Release
+		`cat <<EOF > /repo/dists/stable/Release
 Origin: https://github.com/goharbor/harbor-cli  
 Label: HarborCLI 
 Suite: stable
@@ -62,6 +62,12 @@ Architectures: amd64 arm64
 Components: main
 Description: Harbor CLI — a command-line interface for interacting with your Harbor container registry.
 EOF`,
+	})
+
+	// CNAME File
+	container = container.WithExec([]string{
+		"bash", "-c",
+		`echo 'harborcli.goharbor.io' > /repo/CNAME`,
 	})
 
 	container = container.
@@ -79,7 +85,7 @@ EOF`,
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        git add buildDirs pool 
+        git add dists pool CNAME 
 
         git commit -m "Update APT repo for %s" || echo "No changes to commit"
         git push origin gh-pages -f

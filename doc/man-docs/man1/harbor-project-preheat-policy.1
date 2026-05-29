@@ -1,0 +1,45 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-preheat-policy - Manage preheat policies
+
+
+.SH SYNOPSIS
+\fBharbor project preheat policy [flags]\fP
+
+
+.SH DESCRIPTION
+Manage P2P preheat policies under a project
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for policy
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor project preheat policy list [PROJECT_NAME]
+  harbor project preheat policy list [PROJECT_ID] --id
+  harbor project preheat policy create -f [CONFIG_FILE]
+  harbor project preheat policy view [PROJECT_NAME] [POLICY_NAME]
+  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project-preheat(1)\fP, \fBharbor-project-preheat-policy-create(1)\fP, \fBharbor-project-preheat-policy-delete(1)\fP, \fBharbor-project-preheat-policy-list(1)\fP, \fBharbor-project-preheat-policy-start(1)\fP, \fBharbor-project-preheat-policy-update(1)\fP, \fBharbor-project-preheat-policy-view(1)\fP

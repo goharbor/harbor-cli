@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListRegistries(opts ...ListFlags) (*registry.ListRegistriesOK, error) {
@@ -75,7 +74,7 @@ func CreateRegistry(opts CreateRegView) error {
 		return err
 	}
 
-	log.Infof("Registry %s created", opts.Name)
+	fmt.Printf("Registry %s created\n", opts.Name)
 	return nil
 }
 
@@ -89,7 +88,7 @@ func DeleteRegistry(registryName int64) error {
 		return err
 	}
 
-	log.Info("registry deleted successfully")
+	fmt.Println("Registry deleted successfully")
 
 	return nil
 }
@@ -152,7 +151,7 @@ func UpdateRegistry(updateView *models.Registry, projectID int64) error {
 		return err
 	}
 
-	log.Info("registry updated successfully")
+	fmt.Println("Registry updated successfully")
 
 	return nil
 }

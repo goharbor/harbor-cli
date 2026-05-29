@@ -81,3 +81,20 @@ type GetMemberOptions struct {
 	ID              int64
 	ProjectNameOrID string
 }
+
+type ListVulnerabilityOptions struct {
+	CVEID       string
+	CVSSScore   string
+	Severity    string
+	Repository  string
+	ProjectName string
+	Package     string
+	Tag         string
+	Digest      string
+	Exclude     string
+	WithTag     bool
+	Fixable     bool
+	All         bool
+	Page        int64
+	PageSize    int64
+}

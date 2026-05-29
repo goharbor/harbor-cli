@@ -14,13 +14,13 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateUser(opts create.CreateView) error {
@@ -43,7 +43,7 @@ func CreateUser(opts create.CreateView) error {
 	}
 
 	if response != nil {
-		log.Infof("User `%s` created successfully", opts.Username)
+		fmt.Printf("User `%s` created successfully\n", opts.Username)
 	}
 
 	return nil
@@ -59,7 +59,7 @@ func DeleteUser(userId int64) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("User deleted successfully with id %d", userId)
+	fmt.Printf("User deleted successfully with id %d\n", userId)
 	return nil
 }
 
@@ -76,7 +76,7 @@ func ElevateUser(userId int64) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("user elevated role to admin successfully with id %d", userId)
+	fmt.Printf("user elevated role to admin successfully with id %d\n", userId)
 	return nil
 }
 
@@ -136,7 +136,7 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 		return err
 	}
 	if response != nil {
-		log.Infof("User password changed for userId %d", userId)
+		fmt.Printf("User password changed for userId %d\n", userId)
 	}
 	return nil
 }

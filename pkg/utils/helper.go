@@ -216,6 +216,10 @@ func PrintFormat[T any](resp T, format string) error {
 		PrintPayloadInYAMLFormat(resp)
 		return nil
 	}
+	if format == "csv" {
+		PrintPayloadInCSVFormat(resp)
+		return nil
+	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)
 }
 
