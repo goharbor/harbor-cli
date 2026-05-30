@@ -462,13 +462,15 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func GetRetentionTagRule(retentionID string) int64 {
-	retentionIndex := make(chan int64)
-	go func() {
-		response, _ := api.ListRetention(retentionID)
-		retview.RetentionList(response.Payload.Rules, retentionIndex)
-	}()
-	return <-retentionIndex
+func GetRetentionTagRule(retentionID string) (int, error) {
+	response, err := api.ListRetention(retentionID)
+	if err != nil {
+		return 0, err
+	}
+	if response.Payload == nil || len(response.Payload.Rules) == 0 {
+		return 0, fmt.Errorf("no retention rules found")
+	}
+	return retview.RetentionList(response.Payload.Rules)
 }
 
 func GetPreheatPolicyNameFromUser(projectName string) (string, error) {
