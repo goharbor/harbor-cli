@@ -83,14 +83,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "ctrl+c":
-			m.Aborted = true
-			return m, tea.Quit
-		case "esc":
-			if m.List.FilterState() != list.Filtering {
-				m.Aborted = true
-				return m, tea.Quit
-			}
 		case "enter":
 			if m.List.FilterState() != list.Filtering {
 				i, ok := m.List.SelectedItem().(Item)
