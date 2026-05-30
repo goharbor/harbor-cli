@@ -384,36 +384,78 @@ func GetRobotIDFromUser(projectID int64) (int64, error) {
 }
 
 func GetReplicationPolicyFromUser() (int64, error) {
-	response, err := api.ListReplicationPolicies()
-	if err != nil {
+	replicationPolicyID := make(chan int64, 1)
+	errChan := make(chan error, 1)
+
+	go func() {
+		response, err := api.ListReplicationPolicies()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if len(response.Payload) == 0 {
+			errChan <- fmt.Errorf("no replication policies found")
+			return
+		}
+		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID, errChan)
+	}()
+
+	select {
+	case id := <-replicationPolicyID:
+		return id, nil
+	case err := <-errChan:
 		return 0, err
 	}
-	if len(response.Payload) == 0 {
-		return 0, fmt.Errorf("no replication policies found")
-	}
-	return rpolicies.ReplicationPoliciesList(response.Payload)
 }
 
 func GetReplicationExecutionIDFromUser(rpolicyID int64) (int64, error) {
-	response, err := api.ListReplicationExecutions(rpolicyID)
-	if err != nil {
+	executionID := make(chan int64, 1)
+	errChan := make(chan error, 1)
+
+	go func() {
+		response, err := api.ListReplicationExecutions(rpolicyID)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if len(response.Payload) == 0 {
+			errChan <- fmt.Errorf("no replication executions found")
+			return
+		}
+		rexecutions.ReplicationExecutionList(response.Payload, executionID, errChan)
+	}()
+
+	select {
+	case id := <-executionID:
+		return id, nil
+	case err := <-errChan:
 		return 0, err
 	}
-	if len(response.Payload) == 0 {
-		return 0, fmt.Errorf("no replication executions found")
-	}
-	return rexecutions.ReplicationExecutionList(response.Payload)
 }
 
 func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
-	response, err := api.ListReplicationTasks(execID)
-	if err != nil {
+	taskID := make(chan int64, 1)
+	errChan := make(chan error, 1)
+
+	go func() {
+		response, err := api.ListReplicationTasks(execID)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if len(response.Payload) == 0 {
+			errChan <- fmt.Errorf("no replication tasks found")
+			return
+		}
+		rtasks.ReplicationTasksList(response.Payload, taskID, errChan)
+	}()
+
+	select {
+	case id := <-taskID:
+		return id, nil
+	case err := <-errChan:
 		return 0, err
 	}
-	if len(response.Payload) == 0 {
-		return 0, fmt.Errorf("no replication tasks found")
-	}
-	return rtasks.ReplicationTasksList(response.Payload)
 }
 
 // Get GetMemberIDFromUser choosing from list of members

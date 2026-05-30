@@ -25,7 +25,7 @@ import (
 
 var ErrUserAborted = errors.New("user aborted selection")
 
-func ReplicationExecutionList(executions []*models.ReplicationExecution) (int64, error) {
+func ReplicationExecutionList(executions []*models.ReplicationExecution, choice chan<- int64, errChan chan<- error) {
 	itemsList := make([]list.Item, len(executions))
 	for i, p := range executions {
 		displayName := fmt.Sprintf("ID: %d, Status: %s, Trigger: %s, Start Time: %s, Succeed: %d, Total: %d",
@@ -37,24 +37,25 @@ func ReplicationExecutionList(executions []*models.ReplicationExecution) (int64,
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		return 0, fmt.Errorf("error running selection program: %w", err)
+		errChan <- fmt.Errorf("error running selection program: %w", err)
+		return
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
-			return 0, ErrUserAborted
-		}
 		if model.Choice == "" {
-			return 0, errors.New("no replication execution selected")
+			errChan <- errors.New("user aborted selection")
+			return
 		}
 		// Extract the ID from model.Choice
 		var execID int64
 		_, err = fmt.Sscanf(model.Choice, "ID: %d", &execID)
 		if err != nil {
-			return 0, fmt.Errorf("error parsing execution ID: %w", err)
+			errChan <- fmt.Errorf("error parsing execution ID: %w", err)
+			return
 		}
-		return execID, nil
+		choice <- execID
+		return
 	}
 
-	return 0, errors.New("unexpected program result")
+	errChan <- errors.New("unexpected program result")
 }
