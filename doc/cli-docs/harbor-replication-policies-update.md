@@ -54,7 +54,7 @@ harbor replication policies update [policy-id] [flags]
       --copy-by-chunk            Transfer artifacts in chunks for better reliability
       --cron string              Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. "0 0 */6 * * *")
       --description string       New description for the replication policy
-      --enabled                  Enable the replication policy
+      --enabled                  Whether the replication policy is enabled or not
   -h, --help                     help for update
       --label-filter string      Label filter type: matches or excludes
       --label-pattern string     Label filter pattern (e.g. env=prod or env=prod,ver=1.0)
