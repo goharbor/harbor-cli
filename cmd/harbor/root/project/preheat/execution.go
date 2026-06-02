@@ -11,27 +11,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package project
+package preheat
 
 import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/preheat"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/project/preheat/execution"
 	"github.com/spf13/cobra"
 )
 
-func Preheat() *cobra.Command {
+func ExecutionCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "preheat",
-		Aliases: []string{"p2p"},
-		Short:   "Manage project preheat resources",
-		Long:    "Manage project-scoped P2P preheat policies, executions, and tasks in Harbor",
-		Example: `  harbor project preheat policy list [PROJECT_NAME]
-  harbor project preheat policy list [PROJECT_ID] --id
-  harbor project preheat policy create -f [CONFIG_FILE]
-  harbor project preheat policy start [PROJECT_NAME] [POLICY_NAME]`,
+		Use:     "execution",
+		Aliases: []string{"exec"},
+		Short:   "Manage preheat executions",
+		Long:    "Manage P2P preheat executions under a project",
+		Example: `  harbor-cli project preheat execution list [NAME|ID] [POLICY_NAME]`,
 	}
+
 	cmd.AddCommand(
-		preheat.PolicyCommand(),
-		preheat.ExecutionCommand(),
+		execution.ListExecutionCommand(),
+		execution.ViewExecutionCommand(),
+		execution.StopExecutionCommand(),
 	)
 
 	return cmd

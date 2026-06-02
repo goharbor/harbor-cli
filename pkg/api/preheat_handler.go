@@ -152,3 +152,65 @@ func ListProvidersUnderProject(projectName string) ([]*models.ProviderUnderProje
 	}
 	return response.Payload, nil
 }
+
+func ListPreheatExecutions(projectName string, policyName string, opts ...ListFlags) (*preheat.ListExecutionsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	response, err := client.Preheat.ListExecutions(ctx, &preheat.ListExecutionsParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		Page:              &listFlags.Page,
+		PageSize:          &listFlags.PageSize,
+		Q:                 &listFlags.Q,
+		Sort:              &listFlags.Sort,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func GetPreheatExecution(projectName string, policyName string, executionID int64) (*preheat.GetExecutionOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.GetExecution(ctx, &preheat.GetExecutionParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func StopPreheatExecution(projectName string, policyName string, executionID int64) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Preheat.StopExecution(ctx, &preheat.StopExecutionParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+		Execution: &models.Execution{
+			Status: "Stopped",
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
