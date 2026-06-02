@@ -54,10 +54,12 @@ func UpdateCommand() *cobra.Command {
 		Short: "Update an existing replication policy",
 		Long: `Update an existing replication policy.
 
-When update flags are provided, the command runs non-interactively and updates only the specified fields while preserving all other values.`,
+When update flags are provided, the command runs non-interactively and updates only the specified fields while preserving all other values. Policy ID is required when update flags are used.
+For interactive mode, omit all flags and the command will guide you through the update process.`,
 		Example: `harbor replication policies update 1 --name production-sync --enabled=true`,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			isNonInteractiveMode := hasReplicationUpdateFlagChanges(cmd)
 			var policyID int64
 			if len(args) > 0 {
 				var err error
@@ -65,7 +67,11 @@ When update flags are provided, the command runs non-interactively and updates o
 				if err != nil {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
+			} else if isNonInteractiveMode {
+				// In non-interactive mode, policy-id is required
+				return fmt.Errorf("policy-id is required when update flags are provided. Usage: harbor replication policies update <policy-id> --flag=value")
 			} else {
+				// In interactive mode, prompt for policy ID
 				policyID = prompt.GetReplicationPolicyFromUser()
 			}
 
