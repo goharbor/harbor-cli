@@ -199,7 +199,7 @@ When update flags are provided, the command runs non-interactively and updates o
 	flags.StringVar(&opts.TriggerType, "trigger-type", "", "Trigger type: manual, scheduled, or event_based")
 	flags.StringVar(&opts.CronString, "cron", "", "Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. \"0 0 */6 * * *\")")
 	flags.StringVar(&opts.Speed, "speed", "", "Maximum replication speed in KB/s (-1 for unlimited)")
-	flags.BoolVar(&opts.Enabled, "enabled", false, "Enable the replication policy")
+	flags.BoolVar(&opts.Enabled, "enabled", false, "Whether the replication policy is enabled or not")
 	flags.BoolVar(&opts.Override, "override", false, "Override artifacts on destination if they already exist")
 	flags.BoolVar(&opts.ReplicateDeletion, "replicate-deletion", false, "Replicate deletion operations to the destination")
 	flags.BoolVar(&opts.CopyByChunk, "copy-by-chunk", false, "Transfer artifacts in chunks for better reliability")
@@ -243,7 +243,20 @@ func applyReplicationUpdateFlags(cmd *cobra.Command, createView *create.CreateVi
 	}
 
 	if flags.Changed("resource-filter") {
-		createView.ResourceFilter = opts.ResourceFilter
+		v := strings.ToLower(strings.TrimSpace(opts.ResourceFilter))
+		switch createView.ReplicationMode {
+		case "Pull":
+			if v != "image" {
+				return fmt.Errorf("--resource-filter must be 'image' for Pull mode, got %q", opts.ResourceFilter)
+			}
+		case "Push":
+			if v != "" && v != "image" && v != "artifact" {
+				return fmt.Errorf("--resource-filter must be '', 'image', or 'artifact' for Push mode, got %q", opts.ResourceFilter)
+			}
+		default:
+			return fmt.Errorf("unknown replication mode %q", createView.ReplicationMode)
+		}
+		createView.ResourceFilter = v
 	}
 
 	if flags.Changed("name-filter") {
@@ -283,12 +296,23 @@ func applyReplicationUpdateFlags(cmd *cobra.Command, createView *create.CreateVi
 	}
 
 	if flags.Changed("cron") {
-		createView.CronString = opts.CronString
+		createView.CronString = strings.TrimSpace(opts.CronString)
+		if createView.TriggerType != "scheduled" {
+			return fmt.Errorf("--cron can only be used when --trigger-type=scheduled (current trigger-type: %s)", createView.TriggerType)
+		}
 	}
 
-	// Validate cron dependency: required when trigger-type is scheduled.
-	if createView.TriggerType == "scheduled" && createView.CronString == "" {
-		return fmt.Errorf("--cron is required when --trigger-type=scheduled")
+	// Validate cron dependency/format for scheduled triggers.
+	if createView.TriggerType == "scheduled" {
+		if createView.CronString == "" {
+			return fmt.Errorf("--cron is required when --trigger-type=scheduled")
+		}
+		if flags.Changed("cron") || flags.Changed("trigger-type") {
+			fields := strings.Fields(createView.CronString)
+			if len(fields) != 6 {
+				return fmt.Errorf("--cron must have exactly 6 fields (found %d): seconds minutes hours day-month month day-week", len(fields))
+			}
+		}
 	}
 
 	if flags.Changed("speed") {
