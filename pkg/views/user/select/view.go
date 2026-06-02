@@ -28,7 +28,7 @@ func UserList(users []*models.UserResp) (int64, error) {
 	items := map[string]int64{}
 
 	if len(users) == 0 {
-		return 0, errors.New("No users found in the registry.")
+		return 0, errors.New("no users found in the registry")
 	}
 
 	for _, r := range users {

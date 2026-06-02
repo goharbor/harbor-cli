@@ -64,7 +64,7 @@ func UpdateRobotView(updateView *UpdateView) {
 				Value(&duration).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Expiration cannot be empty")
+						return errors.New("expiration cannot be empty")
 					}
 					dur, err := strconv.ParseInt(str, 10, 64)
 					if err != nil {

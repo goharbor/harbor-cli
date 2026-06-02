@@ -17,4 +17,4 @@ This section describes the comprehensive set of commands provided by the Harbor 
 
 ## Access the Documentation Source Files
 
-The source files for this documentation set are located in the [Harbor CLI repository on Github](https://github.com/goharbor/harbor-cli/tree/main/doc/cli-docs).
+The source files for this documentation set are located in the [Harbor CLI repository on GitHub](https://github.com/goharbor/harbor-cli/tree/main/doc/cli-docs).

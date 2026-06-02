@@ -4,7 +4,7 @@ Welcome to the Harbor CLI documentation guide! This document outlines the steps 
 
 ## Overview
 
-The [doc.go](./doc.go) script is designed to create markdown files that detail the functions of commands available in the Harbor CLI. These files are generated based on the existing cli commands and it will be placed in the [cli-docs](./cli-docs) directory.
+The [doc.go](./doc.go) script is designed to create markdown files that detail the functions of commands available in the Harbor CLI. These files are generated based on the existing cli commands and they will be placed in the [cli-docs](./cli-docs) directory.
 
 ## Steps to Generate CLI Documentation
 
@@ -13,13 +13,13 @@ The [doc.go](./doc.go) script is designed to create markdown files that detail t
     git clone https://github.com/goharbor/harbor-cli.git
 ```
 
-1. Navigate to the doc directory:
+2. Navigate to the doc directory:
 ```bash
     cd harbor-cli/doc
 ```
-change your directory to the `doc` folder where the `doc.go` script is located.
+Change your directory to the `doc` folder where the `doc.go` script is located.
 
-2. Run the `doc.go` file:
+3. Run the `doc.go` file:
 ```bash
     go run doc.go
 ```
@@ -34,7 +34,7 @@ git clone https://github.com/goharbor/harbor-cli.git
 cd harbor-cli
 dagger call run-doc --source=. export --path=doc
 ```
-This would runs the dagger function and generate markdown files in [cli-docs](./cli-docs).
+This will run the dagger function and generate markdown files in [cli-docs](./cli-docs).
 
 ### Note
 

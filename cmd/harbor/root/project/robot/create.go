@@ -108,7 +108,7 @@ Examples:
 					opts.ProjectName = opts.Permissions[0].Namespace
 				}
 				if opts.Level != "project" {
-					return fmt.Errorf("invalid robot configuration: level must be 'project'. If you try to create a system-level robot, please run the `harbor-cli robot create` command instead.")
+					return fmt.Errorf("invalid robot configuration: level must be 'project'. If you try to create a system-level robot, please run the `harbor-cli robot create` command instead")
 				}
 				permissions = make([]models.Permission, len(opts.Permissions[0].Access))
 				for i, access := range opts.Permissions[0].Access {

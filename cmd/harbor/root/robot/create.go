@@ -133,7 +133,7 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 	*opts = *loadedOpts
 
 	if opts.Level != "system" {
-		return fmt.Errorf("invalid robot configuration: level must be 'system'. If you try to create a project-level robot, please run the `harbor-cli project robot create` command instead.")
+		return fmt.Errorf("invalid robot configuration: level must be 'system'. If you try to create a project-level robot, please run the `harbor-cli project robot create` command instead")
 	}
 
 	// Extract system-level and project permissions
@@ -320,7 +320,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 	if err != nil {
 		errorCode := utils.ParseHarborErrorCode(err)
 		if errorCode == "403" {
-			return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+			return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command")
 		} else {
 			return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 		}

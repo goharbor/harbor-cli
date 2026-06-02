@@ -69,7 +69,7 @@ func UpdateQuotaView(quta *models.Quota) string {
 				Options(storageUnitSelectOptions...).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Storage Type cannot be empty.")
+						return errors.New("storage Type cannot be empty")
 					}
 					return nil
 				}),
@@ -79,11 +79,11 @@ func UpdateQuotaView(quta *models.Quota) string {
 				Value(&value).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Quota Limits cannot be empty")
+						return errors.New("quota Limits cannot be empty")
 					}
 					intval, err := strconv.ParseInt(str, 10, 64)
 					if err != nil {
-						return errors.New("Quota limit must be a valid integer")
+						return errors.New("quota limit must be a valid integer")
 					}
 					createView.Value = intval
 					return nil

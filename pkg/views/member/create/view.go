@@ -88,11 +88,11 @@ func CreateMemberView(createView *CreateView) {
 				Value(&createView.MemberUser.Username).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Username cannot be empty.")
+						return errors.New("username cannot be empty")
 					}
 
 					if !utils.ValidateUserName(str) {
-						return errors.New("Invalid username. Must be 1-255 characters long and cannot contain special characters: , \" ~ # % $")
+						return errors.New("invalid username. Must be 1-255 characters long and cannot contain special characters: , \" ~ # % $")
 					}
 
 					return nil

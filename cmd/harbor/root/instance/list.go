@@ -54,7 +54,7 @@ This command provides an easy way to view all instances along with their details
 			if FormatFlag != "" {
 				err = utils.PrintFormat(instance, FormatFlag)
 				if err != nil {
-					return fmt.Errorf("Failed to print config: %v", err)
+					return fmt.Errorf("failed to print config: %v", err)
 				}
 			} else {
 				list.ListInstance(instance.Payload)

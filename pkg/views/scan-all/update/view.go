@@ -48,14 +48,14 @@ func validateCronExpression(cron string) error {
 	fields := strings.Fields(cron)
 	if len(fields) != 6 {
 		if len(fields) == 5 {
-			return fmt.Errorf("you entered a 5-field cron expression, but Harbor requires 6 fields (with seconds)\n"+
+			return fmt.Errorf("you entered a 5-field cron expression, but Harbor requires 6 fields (with seconds)"+
 				"Please add a seconds field at the beginning. For example: '0 %s'", cron)
 		}
 		return fmt.Errorf("harbor requires exactly 6 fields in cron expressions (seconds minute hour day month weekday), got %d", len(fields))
 	}
 	cronRegex := regexp.MustCompile(`^(\*|[0-9]|[1-5][0-9]|\*/[0-9]+) (\*|[0-9]|[1-5][0-9]|\*/[0-9]+) (\*|[0-9]|1[0-9]|2[0-3]|\*/[0-9]+) (\*|[1-9]|[12][0-9]|3[01]|\*/[0-9]+) (\*|[1-9]|1[0-2]|\*/[0-9]+) (\*|[0-6]|\*/[0-9]+)$`)
 	if !cronRegex.MatchString(cron) {
-		return errors.New("invalid cron expression format\n" +
+		return errors.New("invalid cron expression format" +
 			"Examples:\n" +
 			"  0 0 0 * * *    - Daily at midnight\n" +
 			"  0 0 */6 * * *  - Every 6 hours\n" +

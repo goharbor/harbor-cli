@@ -37,7 +37,7 @@ func SearchProjectCommand() *cobra.Command {
 			}
 			log.Debugf("Found %d projects", len(projects.Payload.Project))
 			if len(projects.Payload.Project) == 0 {
-				return fmt.Errorf("No projects found with name similar to : %s", args[0])
+				return fmt.Errorf("no projects found with name similar to : %s", args[0])
 			}
 
 			FormatFlag := viper.GetString("output-format")

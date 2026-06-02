@@ -62,7 +62,7 @@ func DeleteRegistryCommand() *cobra.Command {
 				if finalErr == nil {
 					finalErr = err
 				} else {
-					return fmt.Errorf("Error: %v", err)
+					return fmt.Errorf("error: %v", err)
 				}
 			}
 

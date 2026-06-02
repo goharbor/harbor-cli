@@ -47,7 +47,7 @@ func UserPasswordChangeCmd() *cobra.Command {
 					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
 				}
 				if userId == 0 {
-					return fmt.Errorf("User with name '%s' not found", args[0])
+					return fmt.Errorf("user with name '%s' not found", args[0])
 				}
 			} else {
 				userId, err = prompt.GetUserIdFromUser()
@@ -61,7 +61,7 @@ func UserPasswordChangeCmd() *cobra.Command {
 			err = api.ResetPassword(userId, *resetView)
 			if err != nil {
 				if isUnauthorizedError(err) {
-					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+					return fmt.Errorf("permission denied: Admin privileges are required to execute this command")
 				} else {
 					return fmt.Errorf("failed to reset user password: %v", err)
 				}

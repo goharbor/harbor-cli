@@ -67,13 +67,13 @@ Supported flag values:
 			} else {
 				projectIDOrName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
-					return fmt.Errorf("Failed to get project name: %v", err)
+					return fmt.Errorf("failed to get project name: %v", err)
 				}
 				isID = false
 			}
 			resp, err := api.GetProject(projectIDOrName, isID)
 			if err != nil {
-				return fmt.Errorf("Failed to list project config: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to list project config: %v", utils.ParseHarborErrorMsg(err))
 			}
 			conf := resp.Payload.Metadata
 			flags := cmd.Flags()
@@ -134,7 +134,7 @@ Supported flag values:
 
 			err = api.UpdateConfig(isID, projectIDOrName, *conf)
 			if err != nil {
-				return fmt.Errorf("Failed to update project config: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to update project config: %v", utils.ParseHarborErrorMsg(err))
 			}
 			fmt.Printf("Project %s configuration updated successfully.\n", projectIDOrName)
 			return nil
@@ -162,10 +162,10 @@ func validateFlag(flagName, flagValue string) error {
 		"critical": true,
 	}
 	if flagName == "severity" && !allowed[flagValue] {
-		return fmt.Errorf("Invalid value for --%s: %s. Allowed values are: low, medium, high, critical", flagName, flagValue)
+		return fmt.Errorf("invalid value for --%s: %s. Allowed values are: low, medium, high, critical", flagName, flagValue)
 	}
 	if flagName != "severity" && flagValue != "true" && flagValue != "false" {
-		return fmt.Errorf("Invalid value for --%s: %s. Expected 'true' or 'false'", flagName, flagValue)
+		return fmt.Errorf("invalid value for --%s: %s. Expected 'true' or 'false'", flagName, flagValue)
 	}
 
 	return nil

@@ -50,7 +50,7 @@ func UserCreateCmd() *cobra.Command {
 
 			if err != nil {
 				if isUnauthorizedError(err) {
-					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+					return fmt.Errorf("permission denied: Admin privileges are required to execute this command")
 				} else {
 					return fmt.Errorf("failed to create user: %v", err)
 				}

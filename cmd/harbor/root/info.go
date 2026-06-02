@@ -60,7 +60,7 @@ The output can be formatted as table (default), JSON, or YAML using the '--outpu
 
 			cliinfo, err = api.GetCLIInfo()
 			if err != nil {
-				return fmt.Errorf("Failed to get CLI info: %w", err)
+				return fmt.Errorf("failed to get CLI info: %w", err)
 			}
 			systemInfo := list.CreateSystemInfo(
 				generalInfo.Payload,

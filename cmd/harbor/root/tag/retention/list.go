@@ -55,7 +55,7 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if projectID != -1 && projectName != "" {
-				return fmt.Errorf("Cannot specify both --project-id and --project-name flags")
+				return fmt.Errorf("cannot specify both --project-id and --project-name flags")
 			}
 
 			if projectID == -1 && projectName == "" {

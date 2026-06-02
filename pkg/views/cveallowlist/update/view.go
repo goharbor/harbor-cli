@@ -50,7 +50,7 @@ func UpdateCveView(updateView *UpdateView) {
 			huh.NewInput().
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("ExpireDate cannot be empty")
+						return errors.New("expireDate cannot be empty")
 					}
 					return nil
 				}).

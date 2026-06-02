@@ -189,7 +189,7 @@ func ValidateURL(rawURL string) error {
 
 	host := parsedURL.Hostname()
 	if host == "" {
-		return fmt.Errorf("URL must contain a valid host")
+		return fmt.Errorf("uRL must contain a valid host")
 	}
 
 	if net.ParseIP(host) != nil {

@@ -274,7 +274,7 @@ func GetCurrentHarborData() (*HarborData, error) {
 	defer configMutex.RUnlock()
 
 	if CurrentHarborData == nil {
-		return nil, errors.New("HarborData is not yet initialized")
+		return nil, errors.New("harborData is not yet initialized")
 	}
 
 	return CurrentHarborData, nil

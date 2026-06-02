@@ -90,7 +90,7 @@ Examples:
 			if secret != "" {
 				err = utils.ValidatePassword(secret)
 				if err != nil {
-					return fmt.Errorf("Invalid secret: %v\n", err)
+					return fmt.Errorf("invalid secret: %v", err)
 				}
 			}
 			if secretStdin {

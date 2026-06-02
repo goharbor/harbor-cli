@@ -29,7 +29,7 @@ func getRefProjectName(ref models.QuotaRefObject) (string, error) {
 		projectName, _ := refMap["name"].(string)
 		return projectName, nil
 	}
-	return "", fmt.Errorf("Error: Ref is not of expected type")
+	return "", fmt.Errorf("error: Ref is not of expected type")
 }
 
 func QuotaList(quotas []*models.Quota, choice chan<- int64) {

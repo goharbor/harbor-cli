@@ -94,7 +94,7 @@ Examples:
 			if secret != "" {
 				err = utils.ValidatePassword(secret)
 				if err != nil {
-					return fmt.Errorf("Invalid secret: %v\n", err)
+					return fmt.Errorf("invalid secret: %v", err)
 				}
 			}
 			if secretStdin {
@@ -103,7 +103,7 @@ Examples:
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				return fmt.Errorf("failed to refresh robot secret: %v\n", err)
+				return fmt.Errorf("failed to refresh robot secret: %v", err)
 			}
 
 			fmt.Println("Secret updated successfully.")

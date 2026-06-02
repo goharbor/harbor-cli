@@ -53,8 +53,7 @@ func Doc() error {
 		log.Printf("Folder %s does not exist", folderName)
 		err = os.Mkdir(folderName, 0755)
 		if err != nil {
-			log.Printf("Failed to create directory %s : %v", folderName, err)
-			log.Fatal("Error creating folder:", err)
+			log.Fatalf("Failed to create directory %s: %v", folderName, err)
 		}
 	}
 	docDir := fmt.Sprintf("%s/%s", currentDir, folderName)
