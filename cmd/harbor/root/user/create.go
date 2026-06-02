@@ -35,8 +35,9 @@ func UserCreateCmd() *cobra.Command {
 			var err error
 
 			if opts.Email != "" {
-				if _, err := mail.ParseAddress(opts.Email); err != nil {
-					return fmt.Errorf("invalid email format: %v", err)
+				addr, err := mail.ParseAddress(opts.Email)
+				if err != nil || addr.Address != opts.Email {
+					return fmt.Errorf("invalid email format: %q", opts.Email)
 				}
 			}
 			createView := &create.CreateView{
