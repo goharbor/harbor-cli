@@ -44,17 +44,14 @@ func ListWebhooks(webhooks []*models.WebhookPolicy) {
 		} else {
 			webhookEnabled = "False"
 		}
-		payloadFormat := "--"
-		if len(webhook.Targets[0].PayloadFormat) != 0 {
-			payloadFormat = string(webhook.Targets[0].PayloadFormat)
-		}
+		endpointURL, notifyType, payloadFormat := webhookTargetDetails(webhook)
 		creationTime, _ := utils.FormatCreatedTime(webhook.CreationTime.String())
 		rows = append(rows, table.Row{
 			strconv.FormatInt(webhook.ID, 10),
 			webhook.Name,
 			webhookEnabled,
-			webhook.Targets[0].Address,
-			webhook.Targets[0].Type,
+			endpointURL,
+			notifyType,
 			payloadFormat,
 			creationTime,
 		})
@@ -65,4 +62,28 @@ func ListWebhooks(webhooks []*models.WebhookPolicy) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func webhookTargetDetails(webhook *models.WebhookPolicy) (string, string, string) {
+	if len(webhook.Targets) == 0 || webhook.Targets[0] == nil {
+		return "--", "--", "--"
+	}
+
+	target := webhook.Targets[0]
+	payloadFormat := "--"
+	if len(target.PayloadFormat) != 0 {
+		payloadFormat = string(target.PayloadFormat)
+	}
+
+	endpointURL := target.Address
+	if endpointURL == "" {
+		endpointURL = "--"
+	}
+
+	notifyType := target.Type
+	if notifyType == "" {
+		notifyType = "--"
+	}
+
+	return endpointURL, notifyType, payloadFormat
 }
