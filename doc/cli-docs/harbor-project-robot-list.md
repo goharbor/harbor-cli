@@ -51,11 +51,14 @@ harbor project robot list [projectName] [flags]
 ### Options
 
 ```sh
+      --fuzzy strings    Fuzzy match filter (key=value)
   -h, --help             help for list
+      --match strings    exact match filter (key=value)
       --page int         Page number (default 1)
       --page-size int    Size of per page (default 10)
       --project-id int   Project ID
   -q, --query string     Query string to query resources
+      --range strings    range filter (key=min~max)
       --sort string      Sort the resource list in ascending or descending order
 ```
 
