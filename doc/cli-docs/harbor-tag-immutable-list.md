@@ -33,7 +33,11 @@ harbor tag immutable list [PROJECT_NAME] [flags]
 ### Options
 
 ```sh
-  -h, --help   help for list
+      --fuzzy strings   Fuzzy match filter (key=value)
+  -h, --help            help for list
+      --match strings   exact match filter (key=value)
+  -q, --query string    Query string to query resources
+      --range strings   range filter (key=min~max)
 ```
 
 ### Options inherited from parent commands
