@@ -145,3 +145,34 @@ func TestStorageStringToBytes(t *testing.T) {
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
 }
+
+func TestValidateCronExpression(t *testing.T) {
+	tests := []struct {
+		name    string
+		cron    string
+		wantErr bool
+	}{
+		{"Empty string", "", true},
+		{"5 fields (missing seconds)", "0 0 * * *", true},
+		{"7 fields (too many)", "0 0 0 * * * *", true},
+		{"Valid daily midnight", "0 0 0 * * *", false},
+		{"Valid every 6 hours", "0 0 */6 * * *", false},
+		{"Valid weekly Sunday", "0 0 0 * * 0", false},
+		{"Invalid character", "0 0 A * * *", true},
+		{"Invalid step 0", "0 0 */0 * * *", true},
+		{"Invalid second > 59", "60 0 0 * * *", true},
+		{"Invalid minute > 59", "0 60 0 * * *", true},
+		{"Invalid hour > 23", "0 0 24 * * *", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := utils.ValidateCronExpression(tt.cron)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

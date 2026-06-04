@@ -14,7 +14,6 @@
 package scan_all
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -144,7 +143,7 @@ func updateCustomSchedule(cron string) error {
 		update.UpdateSchedule(&cron)
 	}
 
-	if err := validateCron(cron); err != nil {
+	if err := utils.ValidateCronExpression(cron); err != nil {
 		return err
 	}
 
@@ -161,29 +160,11 @@ func updateCustomSchedule(cron string) error {
 	if err != nil {
 		errMsg := utils.ParseHarborErrorMsg(err)
 		if strings.Contains(errMsg, "400") {
-			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the standard 5-field format (minute hour day month weekday)")
+			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the standard 6-field format (seconds minute hour day month weekday)")
 		}
 		return fmt.Errorf("failed to update scan schedule: %v", errMsg)
 	}
 
 	fmt.Printf("Successfully set scan all schedule with custom cron expression\n")
-	return nil
-}
-
-func validateCron(cron string) error {
-	if cron == "" {
-		return errors.New("cron expression cannot be empty")
-	}
-	fields := strings.Fields(cron)
-	if len(fields) < 6 {
-		if len(fields) == 5 {
-			logrus.Debugf("Converting 5-field cron to 6-field by adding '0' for seconds")
-			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
-		}
-		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
-	}
-	if len(fields) > 6 {
-		return fmt.Errorf("too many fields in cron expression, expected 6 but got %d", len(fields))
-	}
 	return nil
 }
