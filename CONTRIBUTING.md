@@ -144,6 +144,14 @@ A good PR includes:
 go test ./...
 ```
 
+### Running Integration Tests with Dagger
+
+Run integration tests with a local Harbor service (requires Dagger):
+
+```bash
+dagger call test-integration
+```
+
 ## 🧹 Code Guidelines
 
 - Use `go fmt ./...` to format your code.
