@@ -39,9 +39,12 @@ var columns = []table.Column{
 func ListTasks(tasks []*models.Task) {
 	var rows []table.Row
 	for _, task := range tasks {
-		startTime, _ := utils.FormatCreatedTime(task.StartTime)
+		startTime := "-"
+		if task.StartTime != "" {
+			startTime, _ = utils.FormatCreatedTime(task.StartTime)
+		}
 		endTime := "-"
-		if task.Status != "Running" && task.EndTime != "" {
+		if task.EndTime != "" {
 			endTime, _ = utils.FormatCreatedTime(task.EndTime)
 		}
 
