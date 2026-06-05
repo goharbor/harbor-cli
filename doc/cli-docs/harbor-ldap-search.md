@@ -1,6 +1,6 @@
 ---
 title: harbor ldap search
-weight: 70
+weight: 60
 ---
 ## harbor ldap search
 

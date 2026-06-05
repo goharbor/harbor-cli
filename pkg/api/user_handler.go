@@ -104,20 +104,35 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 }
 
 func GetUsersIdByName(userName string) (int64, error) {
-	var opts ListFlags
-
-	u, err := ListUsers(opts)
+	q, err := utils.BuildQueryParam(nil, []string{fmt.Sprintf("username=%s", userName)}, nil, []string{"username"})
 	if err != nil {
 		return 0, err
 	}
 
-	for _, user := range u.Payload {
-		if user.Username == userName {
-			return user.UserID, nil
+	page := int64(1)
+	pageSize := int64(100)
+	for {
+		opts := ListFlags{
+			Page:     page,
+			PageSize: pageSize,
+			Q:        q,
 		}
+		u, err := ListUsers(opts)
+		if err != nil {
+			return 0, err
+		}
+		for _, user := range u.Payload {
+			if user.Username == userName {
+				return user.UserID, nil
+			}
+		}
+		if int64(len(u.Payload)) < pageSize {
+			break
+		}
+		page++
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("user '%s' not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {

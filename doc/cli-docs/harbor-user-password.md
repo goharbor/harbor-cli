@@ -1,6 +1,6 @@
 ---
 title: harbor user password
-weight: 30
+weight: 90
 ---
 ## harbor user password
 
@@ -20,6 +20,7 @@ harbor user password [flags]
 
 ```sh
   -h, --help   help for password
+      --id     Use ID instead of username
 ```
 
 ### Options inherited from parent commands

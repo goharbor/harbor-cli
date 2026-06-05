@@ -1,6 +1,6 @@
 ---
 title: harbor scanner metadata
-weight: 60
+weight: 55
 ---
 ## harbor scanner metadata
 

@@ -1,6 +1,6 @@
 ---
 title: harbor user elevate
-weight: 180
+weight: 95
 ---
 ## harbor user elevate
 
@@ -20,6 +20,7 @@ harbor user elevate [flags]
 
 ```sh
   -h, --help   help for elevate
+      --id     Use ID instead of username
 ```
 
 ### Options inherited from parent commands

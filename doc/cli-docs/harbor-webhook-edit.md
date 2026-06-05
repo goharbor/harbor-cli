@@ -1,6 +1,6 @@
 ---
 title: harbor webhook edit
-weight: 55
+weight: 10
 ---
 ## harbor webhook edit
 

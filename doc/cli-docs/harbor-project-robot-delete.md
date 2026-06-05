@@ -1,6 +1,6 @@
 ---
 title: harbor project robot delete
-weight: 5
+weight: 90
 ---
 ## harbor project robot delete
 
