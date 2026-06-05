@@ -55,9 +55,15 @@ func TestFormatUrl(t *testing.T) {
 }
 
 func TestFormatSize(t *testing.T) {
-	// 1048576 bytes == 1 MiB
 	assert.Equal(t, "1.00MiB", utils.FormatSize(1024*1024))
 	assert.Equal(t, "0B", utils.FormatSize(0))
+	assert.Equal(t, "Unlimited", utils.FormatSize(-1))
+}
+
+func TestFormatCount(t *testing.T) {
+	assert.Equal(t, "100", utils.FormatCount(100))
+	assert.Equal(t, "0", utils.FormatCount(0))
+	assert.Equal(t, "Unlimited", utils.FormatCount(-1))
 }
 
 func TestValidateUserName(t *testing.T) {
