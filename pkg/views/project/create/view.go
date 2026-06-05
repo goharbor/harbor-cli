@@ -69,6 +69,7 @@ func CreateProjectView(createView *CreateView) error {
 		registrySelectOptions = append(registrySelectOptions, huh.NewOption(name, id))
 	}
 
+	var storageUnit string
 	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -90,9 +91,9 @@ func CreateProjectView(createView *CreateView) error {
 				Negative("no"),
 			huh.NewInput().
 				Title("Storage Limit").
+				Description("Enter -1 for no limit").
 				Value(&createView.StorageLimit).
 				Validate(func(str string) error {
-					// Assuming StorageLimit is an int64
 					if strings.TrimSpace(str) == "" {
 						return errors.New("storage limit cannot be empty or only spaces")
 					}
@@ -101,6 +102,14 @@ func CreateProjectView(createView *CreateView) error {
 					}
 					return nil
 				}),
+			huh.NewSelect[string]().
+				Title("Storage Unit Type").
+				Options(
+					huh.NewOption("MiB", "MiB"),
+					huh.NewOption("GiB", "GiB"),
+					huh.NewOption("TiB", "TiB"),
+				).
+				Value(&storageUnit),
 
 			huh.NewConfirm().
 				Title("Proxy Cache").
@@ -128,5 +137,11 @@ func CreateProjectView(createView *CreateView) error {
 	if err != nil {
 		return err
 	}
+
+	// Combine the numeric value and the selected unit
+	if createView.StorageLimit != "-1" {
+		createView.StorageLimit = createView.StorageLimit + storageUnit
+	}
+
 	return nil
 }
