@@ -26,7 +26,7 @@ harbor project preheat task list [PROJECT_NAME|ID] [POLICY_NAME] [EXECUTION_ID] 
 
 ```sh
   -h, --help            help for list
-      --id              Get preheat tasks by project id
+      --id              Use project ID instead of name
       --page int        Page number (default 1)
       --page-size int   Size of per page (default 10)
   -q, --query string    Query string to query resources
