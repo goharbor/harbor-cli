@@ -135,6 +135,10 @@ func UpdateScanner(registrationID string, opts models.ScannerRegistration) error
 		return err
 	}
 
+	if opts.Auth == "None" {
+		opts.Auth = ""
+	}
+
 	scannerRegReq := models.ScannerRegistrationReq{
 		Name:             &opts.Name,
 		Description:      opts.Description,
