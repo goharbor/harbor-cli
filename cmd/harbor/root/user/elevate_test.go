@@ -73,6 +73,8 @@ func newmockUserElevator(userCnt int, expectAuthError bool, confirmElevationFrom
 }
 
 func TestElevateUser(t *testing.T) {
+	origUseID := elevateUseID
+	defer func() { elevateUseID = origUseID }()
 	origGetUsersId := getUsersIDByName
 	origPrompt := getUserIDFromUser
 	origConfirm := confirmElevation
@@ -89,6 +91,7 @@ func TestElevateUser(t *testing.T) {
 		args            []string
 		expectedAdminID []int64
 		expectedErr     string
+		useID           bool
 	}{
 		{
 			name: "successfully elevate user by username",
@@ -172,6 +175,7 @@ func TestElevateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			elevateUseID = tt.useID
 			m := tt.setup()
 
 			err := ElevateUser(tt.args)
