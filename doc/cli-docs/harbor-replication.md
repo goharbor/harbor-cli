@@ -1,6 +1,6 @@
 ---
 title: harbor replication
-weight: 10
+weight: 70
 ---
 ## harbor replication
 

@@ -111,20 +111,27 @@ func GetUsersIdByName(userName string) (int64, error) {
 		return 0, err
 	}
 
-	opts := ListFlags{Q: q}
-	u, err := ListUsers(opts)
-	if err != nil {
-		return 0, err
-	}
-
-	if len(u.Payload) == 0 {
-		return 0, fmt.Errorf("user '%s' not found", userName)
-	}
-
-	for _, user := range u.Payload {
-		if user.Username == userName {
-			return user.UserID, nil
+	page := int64(1)
+	pageSize := int64(100)
+	for {
+		opts := ListFlags{
+			Page:     page,
+			PageSize: pageSize,
+			Q:        q,
 		}
+		u, err := ListUsers(opts)
+		if err != nil {
+			return 0, err
+		}
+		for _, user := range u.Payload {
+			if user.Username == userName {
+				return user.UserID, nil
+			}
+		}
+		if int64(len(u.Payload)) < pageSize {
+			break
+		}
+		page++
 	}
 
 	return 0, fmt.Errorf("user '%s' not found", userName)

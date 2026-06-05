@@ -1,6 +1,6 @@
 ---
 title: harbor project config
-weight: 25
+weight: 55
 ---
 ## harbor project config
 

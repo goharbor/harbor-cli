@@ -47,6 +47,11 @@ func UserDeleteCmd() *cobra.Command {
 							errChan <- fmt.Errorf("invalid ID '%s': %v", arg, parseErr)
 							continue
 						}
+						if parsedID <= 0 {
+							errChan <- fmt.Errorf("invalid ID '%s': must be a positive integer", arg)
+							continue
+						}
+
 						userID = parsedID
 					} else {
 						// Fallback to name search

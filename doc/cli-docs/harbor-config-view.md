@@ -1,6 +1,6 @@
 ---
 title: harbor config view
-weight: 15
+weight: 85
 ---
 ## harbor config view
 

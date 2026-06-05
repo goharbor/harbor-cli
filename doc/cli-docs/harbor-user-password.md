@@ -1,6 +1,6 @@
 ---
 title: harbor user password
-weight: 60
+weight: 90
 ---
 ## harbor user password
 

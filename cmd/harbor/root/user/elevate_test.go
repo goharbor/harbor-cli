@@ -172,7 +172,7 @@ func TestElevateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setup()
+			m := tt.setup()
 
 			err := ElevateUser(tt.args)
 
@@ -181,8 +181,14 @@ func TestElevateUser(t *testing.T) {
 			} else {
 				assert.NoError(t, err, "Expected no error")
 			}
+
+			for _, id := range tt.expectedAdminID {
+				isAdmin, exists := m.admins[id]
+				assert.True(t, exists && isAdmin, "User with ID %d should be an admin", id)
+			}
 		})
 	}
+
 }
 
 func TestElevateUserCmd(t *testing.T) {

@@ -1,6 +1,6 @@
 ---
 title: harbor repo search
-weight: 90
+weight: 50
 ---
 ## harbor repo search
 

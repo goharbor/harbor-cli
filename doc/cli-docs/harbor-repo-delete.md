@@ -1,6 +1,6 @@
 ---
 title: harbor repo delete
-weight: 30
+weight: 80
 ---
 ## harbor repo delete
 

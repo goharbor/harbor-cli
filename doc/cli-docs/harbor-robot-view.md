@@ -1,6 +1,6 @@
 ---
 title: harbor robot view
-weight: 55
+weight: 30
 ---
 ## harbor robot view
 

@@ -1,6 +1,6 @@
 ---
 title: harbor project config update
-weight: 55
+weight: 50
 ---
 ## harbor project config update
 

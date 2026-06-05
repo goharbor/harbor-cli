@@ -49,6 +49,10 @@ func UserPasswordChangeCmd() *cobra.Command {
 					if parseErr != nil {
 						return fmt.Errorf("invalid ID '%s': %v", args[0], parseErr)
 					}
+					if parsedID <= 0 {
+						return fmt.Errorf("invalid ID '%s': must be a positive integer", args[0])
+					}
+
 					userId = parsedID
 				} else {
 					userId, err = api.GetUsersIdByName(args[0])

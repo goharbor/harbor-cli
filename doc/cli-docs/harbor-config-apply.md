@@ -1,6 +1,6 @@
 ---
 title: harbor config apply
-weight: 35
+weight: 55
 ---
 ## harbor config apply
 

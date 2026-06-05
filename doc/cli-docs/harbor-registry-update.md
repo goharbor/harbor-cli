@@ -1,6 +1,6 @@
 ---
 title: harbor registry update
-weight: 75
+weight: 80
 ---
 ## harbor registry update
 

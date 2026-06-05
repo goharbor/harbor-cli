@@ -1,6 +1,6 @@
 ---
 title: harbor project member create
-weight: 70
+weight: 95
 ---
 ## harbor project member create
 

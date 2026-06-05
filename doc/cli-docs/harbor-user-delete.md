@@ -1,6 +1,6 @@
 ---
 title: harbor user delete
-weight: 35
+weight: 40
 ---
 ## harbor user delete
 
