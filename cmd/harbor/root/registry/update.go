@@ -68,6 +68,7 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			flags := cmd.Flags()
+			interactive := !hasUpdateValues(opts)
 			if flags.Changed("name") {
 				updateView.Name = opts.Name
 			}
@@ -97,7 +98,9 @@ func UpdateRegistryCommand() *cobra.Command {
 				updateView.Credential.Type = opts.Credential.Type
 			}
 
-			update.UpdateRegistryView(updateView)
+			if interactive {
+				update.UpdateRegistryView(updateView)
+			}
 			err = api.UpdateRegistry(updateView, registryId)
 			if err != nil {
 				return fmt.Errorf("failed to update registry: %v", err)
@@ -117,4 +120,15 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
 
 	return cmd
+}
+
+func hasUpdateValues(opts *models.Registry) bool {
+	return opts.Name != "" ||
+		opts.Type != "" ||
+		opts.Description != "" ||
+		opts.URL != "" ||
+		opts.Insecure ||
+		opts.Credential.AccessKey != "" ||
+		opts.Credential.AccessSecret != "" ||
+		opts.Credential.Type != ""
 }
