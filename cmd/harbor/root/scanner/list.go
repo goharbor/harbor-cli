@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/scanner/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,7 +36,7 @@ func ListScannerCommand() *cobra.Command {
 
 			scanners := scannersResp.Payload
 			if len(scanners) == 0 {
-				log.Info("No scanners found")
+				fmt.Println("No scanners found")
 				return nil
 			}
 

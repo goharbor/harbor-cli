@@ -84,7 +84,7 @@ Note: For custom schedules, if you provide a 5-field cron expression, the CLI wi
 				return fmt.Errorf("invalid schedule type: %s. Valid types are: none, hourly, daily, weekly, custom", args[0])
 			}
 
-			logrus.Infof("Updating scan all schedule to type: %s", scheduleType)
+			logrus.Debugf("Updating scan all schedule to type: %s", scheduleType)
 
 			switch scheduleType {
 			case "None":
@@ -108,17 +108,17 @@ Note: For custom schedules, if you provide a 5-field cron expression, the CLI wi
 }
 
 func updateScheduleToNone() error {
-	logrus.Info("Setting scan all schedule to None (disabled)")
+	logrus.Debug("Setting scan all schedule to None (disabled)")
 	err := api.UpdateScanAllSchedule(models.ScheduleObj{Type: "None"})
 	if err != nil {
 		return fmt.Errorf("failed to disable scan schedule: %v", utils.ParseHarborErrorMsg(err))
 	}
-	logrus.Info("Successfully disabled scan all schedule")
+	fmt.Printf("Successfully disabled scan all schedule\n")
 	return nil
 }
 
 func updatePredefinedSchedule(scheduleType string) error {
-	logrus.Infof("Setting scan all schedule to %s", scheduleType)
+	logrus.Debugf("Setting scan all schedule to %s", scheduleType)
 
 	// Random cron expression and time needed by API
 	randomCron := "0 0 * * * * "
@@ -134,13 +134,13 @@ func updatePredefinedSchedule(scheduleType string) error {
 		return fmt.Errorf("failed to update scan schedule: %v", utils.ParseHarborErrorMsg(err))
 	}
 
-	logrus.Infof("Successfully set scan all schedule to %s", scheduleType)
+	fmt.Printf("Successfully set scan all schedule to %s\n", scheduleType)
 	return nil
 }
 
 func updateCustomSchedule(cron string) error {
 	if cron == "" {
-		logrus.Info("Opening interactive form for custom schedule configuration")
+		logrus.Debug("Opening interactive form for custom schedule configuration")
 		update.UpdateSchedule(&cron)
 	}
 
@@ -148,7 +148,7 @@ func updateCustomSchedule(cron string) error {
 		return err
 	}
 
-	logrus.Infof("Setting scan all schedule with custom cron expression: %s", cron)
+	logrus.Debugf("Setting scan all schedule with custom cron expression: %s", cron)
 
 	// Random time needed by API
 	randomTime := strfmt.DateTime{}
@@ -166,7 +166,7 @@ func updateCustomSchedule(cron string) error {
 		return fmt.Errorf("failed to update scan schedule: %v", errMsg)
 	}
 
-	logrus.Info("Successfully set scan all schedule with custom cron expression")
+	fmt.Printf("Successfully set scan all schedule with custom cron expression\n")
 	return nil
 }
 
@@ -177,7 +177,7 @@ func validateCron(cron string) error {
 	fields := strings.Fields(cron)
 	if len(fields) < 6 {
 		if len(fields) == 5 {
-			logrus.Infof("Converting 5-field cron to 6-field by adding '0' for seconds")
+			logrus.Debugf("Converting 5-field cron to 6-field by adding '0' for seconds")
 			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
 		}
 		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")

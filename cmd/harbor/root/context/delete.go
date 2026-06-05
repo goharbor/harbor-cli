@@ -81,9 +81,9 @@ If you specify --name, that credential (rather than the "current" one) will be u
 				}
 
 				if found {
-					logrus.Infof("Removed credential '%s' and cleared CurrentCredentialName", currentName)
+					logrus.Debugf("Removed credential '%s' and cleared CurrentCredentialName", currentName)
 				} else {
-					logrus.Infof("No credential named '%s' found; cleared CurrentCredentialName anyway", currentName)
+					logrus.Debugf("No credential named '%s' found; cleared CurrentCredentialName anyway", currentName)
 				}
 
 				return nil

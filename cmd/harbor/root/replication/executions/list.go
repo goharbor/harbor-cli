@@ -68,7 +68,7 @@ func ListCommand() *cobra.Command {
 
 			log.WithField("count", len(executions.Payload)).Debug("Number of executions fetched")
 			if len(executions.Payload) == 0 {
-				log.Info("No executions found")
+				fmt.Println("No executions found")
 				return nil
 			}
 

@@ -25,17 +25,17 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: 6},
-	{Title: "Name", Width: 12},
-	{Title: "Provider", Width: 12},
-	{Title: "Endpoint", Width: 24},
-	{Title: "Status", Width: 12},
-	{Title: "Auth Mode", Width: 10},
-	{Title: "Description", Width: 12},
-	{Title: "Default", Width: 8},
-	{Title: "Insecure", Width: 8},
-	{Title: "Enabled", Width: 8},
-	{Title: "Setup Timestamp", Width: 20},
+	{Title: "ID", Width: tablelist.WidthXS},
+	{Title: "Name", Width: tablelist.WidthM},
+	{Title: "Provider", Width: tablelist.WidthM},
+	{Title: "Endpoint", Width: tablelist.WidthXXL},
+	{Title: "Status", Width: tablelist.WidthM},
+	{Title: "Auth Mode", Width: tablelist.WidthM},
+	{Title: "Description", Width: tablelist.WidthM},
+	{Title: "Default", Width: tablelist.WidthS},
+	{Title: "Insecure", Width: tablelist.WidthS},
+	{Title: "Enabled", Width: tablelist.WidthS},
+	{Title: "Setup Timestamp", Width: tablelist.WidthXL},
 }
 
 func ListInstance(instance []*models.Instance) {

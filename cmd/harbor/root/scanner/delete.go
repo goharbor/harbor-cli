@@ -18,7 +18,6 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +57,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to delete scanner: %v", err)
 			}
-			log.Infof("Scanner deleted successfully")
+			fmt.Printf("Scanner deleted successfully\n")
 			return nil
 		},
 	}

@@ -14,10 +14,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
@@ -40,7 +42,7 @@ func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
 		return err
 	}
 
-	log.Infof("Repository %s/%s deleted successfully", projectName, repoName)
+	fmt.Printf("Repository %s/%s deleted successfully\n", projectName, repoName)
 	return nil
 }
 
@@ -106,4 +108,33 @@ func SearchRepository(query string) (search.SearchOK, error) {
 	}
 
 	return *response, nil
+}
+
+func UpdateRepository(projectName, repoName string, description string, existingRepo *models.Repository) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	repo := &models.Repository{
+		ID:            existingRepo.ID,
+		Name:          existingRepo.Name,
+		ProjectID:     existingRepo.ProjectID,
+		Description:   description,
+		ArtifactCount: existingRepo.ArtifactCount,
+		PullCount:     existingRepo.PullCount,
+		CreationTime:  existingRepo.CreationTime,
+		UpdateTime:    existingRepo.UpdateTime,
+	}
+
+	_, err = client.Repository.UpdateRepository(ctx, &repository.UpdateRepositoryParams{
+		ProjectName:    projectName,
+		RepositoryName: repoName,
+		Repository:     repo,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

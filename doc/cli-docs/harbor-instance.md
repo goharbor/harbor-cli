@@ -33,4 +33,7 @@ These instances represent external services such as Dragonfly or Kraken that hel
 * [harbor instance create](harbor-instance-create.md)	 - Create a new preheat provider instance in Harbor
 * [harbor instance delete](harbor-instance-delete.md)	 - Delete a preheat provider instance by its name or ID
 * [harbor instance list](harbor-instance-list.md)	 - List all preheat provider instances in Harbor
+* [harbor instance ping](harbor-instance-ping.md)	 - Ping preheat provider instance by name or id
+* [harbor instance update](harbor-instance-update.md)	 - Update a preheat provider instance in Harbor
+* [harbor instance view](harbor-instance-view.md)	 - get preheat provider instance by name or id
 

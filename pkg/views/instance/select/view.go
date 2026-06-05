@@ -14,6 +14,7 @@
 package instance
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -23,26 +24,31 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func InstanceList(instance []*models.Instance, choice chan<- string) {
-	itemsList := make([]list.Item, len(instance))
+var ErrUserAborted = errors.New("user aborted selection")
 
-	items := map[string]string{}
-
-	for i, r := range instance {
-		items[r.Name] = r.Name
-		itemsList[i] = selection.Item(r.Name)
+func InstanceList(instances []*models.Instance) (string, error) {
+	items := make([]list.Item, len(instances))
+	for i, instance := range instances {
+		items[i] = selection.Item(instance.Name)
 	}
 
-	m := selection.NewModel(itemsList, "Instance")
+	m := selection.NewModel(items, "Instance")
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
-
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+	if model, ok := p.(selection.Model); ok {
+		if model.Aborted {
+			return "", ErrUserAborted
+		}
+		if model.Choice == "" {
+			return "", errors.New("no instance selected")
+		}
+		return model.Choice, nil
 	}
+
+	return "", errors.New("unexpected program result")
 }

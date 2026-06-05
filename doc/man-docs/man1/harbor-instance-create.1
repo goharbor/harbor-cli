@@ -16,23 +16,35 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 
 
 .SH OPTIONS
-\fB-a\fP, \fB--authmode\fP="NONE"
-	Choosing different types of authentication method
+\fB--auth-password\fP=""
+	Password for BASIC authentication
 
 .PP
-\fB--description\fP=""
+\fB--auth-token\fP=""
+	Token for OAUTH authentication
+
+.PP
+\fB--auth-username\fP=""
+	Username for BASIC authentication
+
+.PP
+\fB-a\fP, \fB--authmode\fP="NONE"
+	Authentication mode (NONE, BASIC, OAUTH)
+
+.PP
+\fB-d\fP, \fB--description\fP=""
 	Description of the instance
 
 .PP
 \fB--enable\fP[=true]
-	Whether it is enabled or not
+	Whether the instance is enabled or not
 
 .PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for create
 
 .PP
-\fB-i\fP, \fB--insecure\fP[=true]
+\fB-i\fP, \fB--insecure\fP[=false]
 	Whether or not the certificate will be verified when Harbor tries to access the server
 
 .PP
@@ -41,11 +53,11 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 
 .PP
 \fB-p\fP, \fB--provider\fP=""
-	Provider for the instance
+	Provider for the instance (e.g. dragonfly, kraken)
 
 .PP
 \fB-u\fP, \fB--url\fP=""
-	URL for the instance
+	Endpoint URL for the instance
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -63,7 +75,7 @@ You will need to provide the instance's name, vendor, endpoint, and optionally o
 
 .SH EXAMPLE
 .EX
-  harbor-cli instance create --name my-instance --provider Dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true
+  harbor-cli instance create --name my-instance --provider dragonfly --url http://dragonfly.local --description "My preheat provider instance" --enable=true
 .EE
 
 

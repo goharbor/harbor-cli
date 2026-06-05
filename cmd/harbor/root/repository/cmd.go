@@ -26,6 +26,7 @@ func Repository() *cobra.Command {
 		RepoViewCmd(),
 		RepoDeleteCmd(),
 		SearchRepoCmd(),
+		UpdateRepositoryCommand(),
 	)
 
 	return cmd

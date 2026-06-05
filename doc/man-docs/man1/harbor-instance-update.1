@@ -1,0 +1,84 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-instance-update - Update a preheat provider instance in Harbor
+
+
+.SH SYNOPSIS
+\fBharbor instance update [NAME|ID] [flags]\fP
+
+
+.SH DESCRIPTION
+Update a preheat provider instance in Harbor by name or ID. If no update
+flags are provided, the command opens an interactive update form.
+
+
+.SH OPTIONS
+\fB--auth-password\fP=""
+	Password for BASIC authentication
+
+.PP
+\fB--auth-token\fP=""
+	Token for OAUTH authentication
+
+.PP
+\fB--auth-username\fP=""
+	Username for BASIC authentication
+
+.PP
+\fB-a\fP, \fB--authmode\fP=""
+	Authentication mode (NONE, BASIC, OAUTH)
+
+.PP
+\fB-d\fP, \fB--description\fP=""
+	Description of the instance
+
+.PP
+\fB--enable\fP[=false]
+	Whether the instance is enabled or not
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--id\fP[=false]
+	Get instance by id
+
+.PP
+\fB-i\fP, \fB--insecure\fP[=false]
+	Whether or not the certificate will be verified when Harbor tries to access the server
+
+.PP
+\fB-n\fP, \fB--name\fP=""
+	New name for the instance
+
+.PP
+\fB-u\fP, \fB--url\fP=""
+	Endpoint URL for the instance
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor-cli instance update my-instance --description "Updated preheat instance"
+  harbor-cli instance update 1 --id --enable=false
+  harbor-cli instance update my-instance --authmode BASIC --auth-username admin --auth-password Harbor12345
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-instance(1)\fP

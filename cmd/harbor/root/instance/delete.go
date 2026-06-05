@@ -43,7 +43,10 @@ If no argument is provided, you will be prompted to select an instance from a li
 			} else if len(args) > 0 {
 				instanceName = args[0]
 			} else {
-				instanceName = prompt.GetInstanceFromUser()
+				instanceName, err = prompt.GetInstanceNameFromUser()
+				if err != nil {
+					return fmt.Errorf("%v", err)
+				}
 			}
 			err = api.DeleteInstance(instanceName)
 			if err != nil {

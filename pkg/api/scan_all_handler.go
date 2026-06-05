@@ -14,10 +14,11 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan_all"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateScanAllSchedule(schedule models.ScheduleObj) error {
@@ -34,7 +35,7 @@ func CreateScanAllSchedule(schedule models.ScheduleObj) error {
 
 	if response != nil {
 		// The CreateScanAllSchedule API is used only for scanning all artifacts now
-		log.Info("Scan started successfully")
+		fmt.Println("Scan started successfully")
 	}
 	return nil
 }
@@ -52,7 +53,7 @@ func UpdateScanAllSchedule(schedule models.ScheduleObj) error {
 	}
 
 	if response != nil {
-		log.Info("Schedule updated successfully")
+		fmt.Println("Schedule updated successfully")
 	}
 	return nil
 }
@@ -70,7 +71,7 @@ func StopScanAll() error {
 	}
 
 	if response != nil {
-		log.Info("Scan all stopped successfully")
+		fmt.Println("Scan all stopped successfully")
 	}
 	return nil
 }

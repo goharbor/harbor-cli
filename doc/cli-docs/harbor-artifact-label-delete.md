@@ -33,7 +33,8 @@ harbor artifact label delete [flags]
 ### Options
 
 ```sh
-  -h, --help   help for delete
+  -h, --help      help for delete
+  -p, --project   Delete project-scoped labels. eg --project, -p(specific project)
 ```
 
 ### Options inherited from parent commands

@@ -42,6 +42,7 @@ harbor help
 * [harbor health](harbor-health.md)	 - Get the health status of Harbor components
 * [harbor info](harbor-info.md)	 - Display detailed Harbor system, statistics, and CLI environment information
 * [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
+* [harbor jobservice](harbor-jobservice.md)	 - Manage Harbor job service (admin only)
 * [harbor label](harbor-label.md)	 - Manage labels in Harbor
 * [harbor ldap](harbor-ldap.md)	 - Manage ldap users and groups
 * [harbor login](harbor-login.md)	 - Log in to Harbor registry

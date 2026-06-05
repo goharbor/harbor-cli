@@ -26,6 +26,9 @@ These instances represent external services such as Dragonfly or Kraken that hel
 		CreateInstanceCommand(),
 		DeleteInstanceCommand(),
 		ListInstanceCommand(),
+		PingInstanceCommand(),
+		UpdateInstanceCommand(),
+		ViewInstanceCommand(),
 	)
 	return cmd
 }

@@ -257,7 +257,7 @@ func SetCurrentHarborConfig(config *HarborConfig) error {
 	// Update our global in-memory config
 	CurrentHarborConfig = config
 
-	log.Infof("Harbor configuration updated at %s", configPath)
+	fmt.Printf("Harbor configuration updated at %s", configPath)
 	return err
 }
 
@@ -304,7 +304,7 @@ func CreateDataFile(dataFilePath string, initialConfigPath string) error {
 			log.Fatalf("Failed to write data file: %v", err)
 		}
 
-		log.Infof("Data file created at %s with configPath: %s", dataFilePath, dataFile.ConfigPath)
+		fmt.Printf("Data file created at %s with configPath: %s\n", dataFilePath, dataFile.ConfigPath)
 	} else if err != nil {
 		log.Fatalf("Error checking data file: %v", err)
 	}
@@ -378,7 +378,7 @@ func UpdateDataFile(dataFilePath string, newConfigPath string) error {
 		log.Fatalf("failed to write updated data file: %v", err)
 	}
 
-	log.Infof("Data file at %s updated with new configPath: %s", dataFilePath, absConfigPath)
+	fmt.Printf("Data file at %s updated with new configPath: %s\n", dataFilePath, absConfigPath)
 	return nil
 }
 
@@ -405,7 +405,7 @@ func CreateConfigFile(configPath string) error {
 			log.Fatalf("failed to write config file: %v", err)
 		}
 
-		log.Infof("Config file created at %s", configPath)
+		fmt.Printf("Config file created at %s", configPath)
 	} else if err != nil {
 		log.Fatalf("error checking config file: %v", err)
 	}
@@ -421,7 +421,7 @@ func UpdateConfigFile(config *HarborConfig) error {
 
 	// Ensure we know where to write the config
 	if CurrentHarborData == nil {
-		return errors.New("harbor data is nil – check that your config initialization completed")
+		return errors.New("harbor data is nil, check that your config initialization completed")
 	}
 	configPath := CurrentHarborData.ConfigPath
 
@@ -452,7 +452,7 @@ func UpdateConfigFile(config *HarborConfig) error {
 	// Also update our global in-memory config
 	CurrentHarborConfig = config
 
-	log.Infof("Updated config file at %s", configPath)
+	fmt.Printf("Updated config file at %s\n", configPath)
 	return nil
 }
 
@@ -505,7 +505,7 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
-	log.Infof("Added credential '%s' to config file at %s", credential.Name, configPath)
+	fmt.Printf("Added credential '%s' to config file at %s\n", credential.Name, configPath)
 	return nil
 }
 
@@ -550,7 +550,7 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
-	log.Infof("Updated credential '%s' in config file at %s.", updatedCredential.Name, configPath)
-	log.Infof("Switched to context '%s'", updatedCredential.Name)
+	fmt.Printf("Updated credential '%s' in config file at %s.\n", updatedCredential.Name, configPath)
+	fmt.Printf("Switched to context '%s'\n", updatedCredential.Name)
 	return nil
 }

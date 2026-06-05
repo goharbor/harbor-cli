@@ -106,7 +106,7 @@ Examples:
 				return fmt.Errorf("failed to refresh robot secret: %v\n", err)
 			}
 
-			log.Info("Secret updated successfully.")
+			fmt.Println("Secret updated successfully.")
 
 			if response.Payload.Secret != "" {
 				secret = response.Payload.Secret

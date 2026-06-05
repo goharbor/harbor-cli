@@ -106,3 +106,19 @@ func Test_Login_Success_RobotAccount(t *testing.T) {
 	err := cmd.Execute()
 	assert.NoError(t, err, "Expected no error for robot account login")
 }
+
+func Test_Login_Failure_MutuallyExclusiveFlags(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+
+	assert.NoError(t, cmd.Flags().Set("username", "admin"))
+	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
+	assert.NoError(t, cmd.Flags().Set("password-stdin", "true"))
+
+	err := cmd.Execute()
+	assert.Error(t, err, "Expected error when both --password and --password-stdin are set")
+}

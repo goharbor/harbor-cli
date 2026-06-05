@@ -107,7 +107,7 @@ Examples:
 				}
 			}
 
-			log.Info("Secret updated successfully.")
+			fmt.Println("Secret updated successfully.")
 
 			if response.Payload.Secret != "" {
 				secret = response.Payload.Secret
