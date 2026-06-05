@@ -45,13 +45,13 @@ func ListCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching policies...")
-			allPolicies, err := api.ListReplicationPolicies(opts)
+			allPolicies, err := api.GetAllReplicationPolicies(api.ListReplicationPolicies, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.WithField("count", len(allPolicies.Payload)).Debug("Number of policies fetched")
-			if len(allPolicies.Payload) == 0 {
+			log.WithField("count", len(allPolicies)).Debug("Number of policies fetched")
+			if len(allPolicies) == 0 {
 				fmt.Println("No policies found")
 				return nil
 			}
@@ -59,13 +59,13 @@ func ListCommand() *cobra.Command {
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				log.WithField("output_format", formatFlag).Debug("Output format selected")
-				err = utils.PrintFormat(allPolicies.Payload, formatFlag)
+				err = utils.PrintFormat(allPolicies, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
 				log.Debug("Listing projects using default view")
-				list.ListPolicies(allPolicies.Payload)
+				list.ListPolicies(allPolicies)
 			}
 			return nil
 		},
