@@ -36,15 +36,18 @@ var columns = []table.Column{
 	{Title: "End Time", Width: tablelist.WidthL},
 }
 
+// Go's zero time formatted as RFC3339, used by Harbor for unset time fields.
+const zeroTime = "0001-01-01T00:00:00Z"
+
 func ListTasks(tasks []*models.Task) {
 	var rows []table.Row
 	for _, task := range tasks {
 		startTime := "-"
-		if task.StartTime != "" {
+		if task.StartTime != zeroTime {
 			startTime, _ = utils.FormatCreatedTime(task.StartTime)
 		}
 		endTime := "-"
-		if task.EndTime != "" {
+		if task.EndTime != zeroTime {
 			endTime, _ = utils.FormatCreatedTime(task.EndTime)
 		}
 
