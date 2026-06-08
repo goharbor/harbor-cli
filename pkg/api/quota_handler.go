@@ -133,5 +133,5 @@ func getRefProjectID(ref models.QuotaRefObject) (string, error) {
 		id, _ := refMap["id"]
 		return fmt.Sprintf("%v", id), nil
 	}
-	return "", fmt.Errorf("Error: Ref is not of expected type")
+	return "", fmt.Errorf("error: Ref is not of expected type")
 }
