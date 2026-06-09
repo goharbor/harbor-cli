@@ -41,6 +41,7 @@ import (
 	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
