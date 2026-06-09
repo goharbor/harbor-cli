@@ -177,6 +177,9 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+// MaxPageSize is the maximum supported value for the page size parameter.
+const MaxPageSize int64 = 100
+
 // ValidatePagination validates page and page size parameters.
 func ValidatePagination(page, pageSize int64) error {
 	if page < 1 {
@@ -187,8 +190,8 @@ func ValidatePagination(page, pageSize int64) error {
 		return fmt.Errorf("page size must be greater than or equal to 0")
 	}
 
-	if pageSize > 100 {
-		return fmt.Errorf("page size should be less than or equal to 100")
+	if pageSize > MaxPageSize {
+		return fmt.Errorf("page size should be less than or equal to %d", MaxPageSize)
 	}
 
 	return nil

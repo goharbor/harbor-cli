@@ -149,8 +149,7 @@ func TestValidatePagination(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := utils.ValidatePagination(tc.page, tc.pageSize)
 			if tc.expectErr {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tc.errMsg)
+				assert.EqualError(t, err, tc.errMsg)
 			} else {
 				assert.NoError(t, err)
 			}

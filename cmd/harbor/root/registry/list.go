@@ -39,7 +39,7 @@ func ListRegistryCommand() *cobra.Command {
 			registry, err := api.ListRegistries(opts)
 
 			if err != nil {
-				return fmt.Errorf("failed to get projects list: %v", err)
+				return fmt.Errorf("failed to get registry list: %v", err)
 			}
 			if len(registry.Payload) == 0 {
 				fmt.Println("No registries found")
