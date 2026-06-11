@@ -121,6 +121,7 @@ func DeleteProjectCommand() *cobra.Command {
 				return fmt.Errorf("failed to delete %d project(s)", len(failedDeletes))
 			}
 
+			log.Debug("All requested projects deleted successfully.")
 			return nil
 		},
 	}
