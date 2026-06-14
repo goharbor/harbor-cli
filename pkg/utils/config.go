@@ -27,11 +27,20 @@ import (
 )
 
 type Credential struct {
-	Name          string `yaml:"name"`
-	Username      string `yaml:"username"`
-	Password      string `yaml:"password"`
-	ServerAddress string `yaml:"serveraddress"`
+	Name          string `mapstructure:"name" yaml:"name"`
+	Username      string `mapstructure:"username" yaml:"username"`
+	Password      string `mapstructure:"password,omitempty" yaml:"password,omitempty"`
+	ServerAddress string `mapstructure:"serveraddress" yaml:"serveraddress"`
+	AuthType      string `mapstructure:"auth-type,omitempty" yaml:"auth-type,omitempty"`
+	IDToken       string `mapstructure:"id-token,omitempty" yaml:"id-token,omitempty"`
+	RefreshToken  string `mapstructure:"refresh-token,omitempty" yaml:"refresh-token,omitempty"`
+	ExpiresAt     int64  `mapstructure:"expires-at,omitempty" yaml:"expires-at,omitempty"`
 }
+
+const (
+	AuthTypeBasic = "basic"
+	AuthTypeOIDC  = "oidc"
+)
 
 type HarborConfig struct {
 	CurrentCredentialName string                `mapstructure:"current-credential-name" yaml:"current-credential-name"`
@@ -505,6 +514,7 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
+	CurrentHarborConfig = &c
 	fmt.Printf("Added credential '%s' to config file at %s\n", credential.Name, configPath)
 	return nil
 }
@@ -550,7 +560,91 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
+	CurrentHarborConfig = &c
 	fmt.Printf("Updated credential '%s' in config file at %s.\n", updatedCredential.Name, configPath)
 	fmt.Printf("Switched to context '%s'\n", updatedCredential.Name)
 	return nil
+}
+
+func AddOIDCCredentials(serverAddress, username, idToken, refreshToken string, expiresAt int64, configPath string) error {
+	if err := GenerateEncryptionKey(); err != nil {
+		return fmt.Errorf("failed to generate encryption key: %w", err)
+	}
+	key, err := GetEncryptionKey()
+	if err != nil {
+		return fmt.Errorf("failed to get encryption key: %w", err)
+	}
+
+	encryptedIDToken, err := Encrypt(key, []byte(idToken))
+	if err != nil {
+		return fmt.Errorf("failed to encrypt id token: %w", err)
+	}
+
+	var encryptedRefreshToken string
+	if refreshToken != "" {
+		encryptedRefreshToken, err = Encrypt(key, []byte(refreshToken))
+		if err != nil {
+			return fmt.Errorf("failed to encrypt refresh token: %w", err)
+		}
+	}
+
+	credential := Credential{
+		Name:          DefaultCredentialName(username, serverAddress),
+		Username:      username,
+		ServerAddress: serverAddress,
+		AuthType:      AuthTypeOIDC,
+		IDToken:       encryptedIDToken,
+		RefreshToken:  encryptedRefreshToken,
+		ExpiresAt:     expiresAt,
+	}
+
+	if _, err := GetCredentials(credential.Name); err == nil {
+		return UpdateCredentialsInConfigFile(credential, configPath)
+	}
+	return AddCredentialsToConfigFile(credential, configPath)
+}
+
+func GetDecryptedIDToken(credentialName string) (string, error) {
+	credential, err := GetCredentials(credentialName)
+	if err != nil {
+		return "", err
+	}
+	if credential.AuthType != AuthTypeOIDC {
+		return "", fmt.Errorf("credential %q is not an OIDC credential", credentialName)
+	}
+	key, err := GetEncryptionKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to get encryption key: %w", err)
+	}
+	return Decrypt(key, credential.IDToken)
+}
+
+func UpdateOIDCTokens(credentialName, idToken, refreshToken string, expiresAt int64, configPath string) error {
+	credential, err := GetCredentials(credentialName)
+	if err != nil {
+		return err
+	}
+	if credential.AuthType != AuthTypeOIDC {
+		return fmt.Errorf("credential %q is not an OIDC credential", credentialName)
+	}
+	key, err := GetEncryptionKey()
+	if err != nil {
+		return fmt.Errorf("failed to get encryption key: %w", err)
+	}
+	encryptedIDToken, err := Encrypt(key, []byte(idToken))
+	if err != nil {
+		return fmt.Errorf("failed to encrypt id token: %w", err)
+	}
+	credential.IDToken = encryptedIDToken
+	credential.ExpiresAt = expiresAt
+
+	if refreshToken != "" {
+		encryptedRefreshToken, err := Encrypt(key, []byte(refreshToken))
+		if err != nil {
+			return fmt.Errorf("failed to encrypt refresh token: %w", err)
+		}
+		credential.RefreshToken = encryptedRefreshToken
+	}
+
+	return UpdateCredentialsInConfigFile(credential, configPath)
 }

@@ -107,3 +107,27 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
 }
+
+func Test_AddOIDCCredentials(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	err := utils.AddOIDCCredentials("https://demo.goharbor.io", "alice", "id-token", "refresh-token", 12345, data.ConfigPath)
+	assert.NoError(t, err)
+
+	cred, err := utils.GetCredentials("alice@https-demo-goharbor-io")
+	assert.NoError(t, err)
+	assert.Equal(t, utils.AuthTypeOIDC, cred.AuthType)
+	assert.Equal(t, "alice", cred.Username)
+	assert.Equal(t, "https://demo.goharbor.io", cred.ServerAddress)
+	assert.Equal(t, int64(12345), cred.ExpiresAt)
+	assert.NotEmpty(t, cred.IDToken)
+	assert.NotEmpty(t, cred.RefreshToken)
+	assert.Empty(t, cred.Password)
+
+	idToken, err := utils.GetDecryptedIDToken(cred.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, "id-token", idToken)
+}
