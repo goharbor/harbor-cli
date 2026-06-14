@@ -14,6 +14,7 @@
 package utils_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -106,4 +107,41 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.CurrentCredentialName, "CurrentCredentialName should not be nil")
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
+}
+
+func Test_Config_EnvVar_Directory(t *testing.T) {
+	utils.ConfigInitialization.Reset()
+	helpers.SetMockKeyring(t)
+	tempDir := t.TempDir()
+	configDir := filepath.Join(tempDir, "harbor-cli")
+	assert.NoError(t, os.MkdirAll(configDir, os.ModePerm))
+
+	helpers.SafeSetEnv("HARBOR_CLI_CONFIG", configDir)
+	helpers.SafeSetEnv("XDG_DATA_HOME", filepath.Join(tempDir, ".data"))
+	utils.InitConfig("", false)
+
+	currentData, err := utils.GetCurrentHarborData()
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, currentData)
+
+	expectedConfigPath := filepath.Join(configDir, "config.yaml")
+	assert.Equal(t, expectedConfigPath, currentData.ConfigPath)
+}
+
+func Test_Config_Flag_Directory(t *testing.T) {
+	utils.ConfigInitialization.Reset()
+	helpers.SetMockKeyring(t)
+	tempDir := t.TempDir()
+	configDir := filepath.Join(tempDir, "harbor-cli")
+	assert.NoError(t, os.MkdirAll(configDir, os.ModePerm))
+	helpers.SafeSetEnv("XDG_DATA_HOME", filepath.Join(tempDir, ".data"))
+
+	utils.InitConfig(configDir, true)
+
+	currentData, err := utils.GetCurrentHarborData()
+	assert.NoError(t, err)
+	defer helpers.ConfigCleanup(t, currentData)
+
+	expectedConfigPath := filepath.Join(configDir, "config.yaml")
+	assert.Equal(t, expectedConfigPath, currentData.ConfigPath)
 }
