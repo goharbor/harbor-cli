@@ -60,7 +60,7 @@ func ElevateUser(args []string) error {
 		return err
 	}
 	if !confirm {
-		err = errors.New("User did not confirm elevation. Aborting command.")
+		err = errors.New("user did not confirm elevation. Aborting command.")
 		log.Error(err.Error())
 		return err
 	}
@@ -68,7 +68,7 @@ func ElevateUser(args []string) error {
 	err = elevateUserAPI(userId)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			err = errors.New("Permission denied: Admin privileges are required to execute this command.")
+			err = errors.New("permission denied: Admin privileges are required to execute this command.")
 		} else {
 			err = fmt.Errorf("failed to elevate user: %v", err)
 		}
