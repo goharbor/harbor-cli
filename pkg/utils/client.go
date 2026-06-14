@@ -16,8 +16,14 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/go-openapi/runtime"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	log "github.com/sirupsen/logrus"
@@ -75,6 +81,9 @@ func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to get credential %s: %w", credentialName, err)
 	}
+	if credential.AuthType == AuthTypeOIDC {
+		return getOIDCClient(credential)
+	}
 
 	// Get encryption key
 	key, err := GetEncryptionKey()
@@ -94,4 +103,35 @@ func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, erro
 		Password: decryptedPassword,
 	}
 	return GetClientByConfig(clientConfig), nil
+}
+
+func getOIDCClient(credential Credential) (*v2client.HarborAPI, error) {
+	idToken, err := GetDecryptedIDToken(credential.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if credential.ExpiresAt > 0 && time.Now().Unix() >= credential.ExpiresAt-60 {
+		return nil, fmt.Errorf("OIDC session expired or is about to expire. Please run `harbor login %s --oidc` again", credential.ServerAddress)
+	}
+
+	return buildOIDCClient(credential.ServerAddress, idToken)
+}
+
+func buildOIDCClient(serverAddress, idToken string) (*v2client.HarborAPI, error) {
+	u, err := url.Parse(serverAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse server URL: %w", err)
+	}
+	if u.Scheme == "" || u.Host == "" {
+		return nil, fmt.Errorf("invalid server URL: %s", serverAddress)
+	}
+
+	basePath := strings.TrimRight(u.Path, "/")
+	transport := httptransport.New(u.Host, basePath, []string{u.Scheme})
+	transport.DefaultAuthentication = runtime.ClientAuthInfoWriterFunc(func(req runtime.ClientRequest, _ strfmt.Registry) error {
+		return req.SetHeaderParam("Authorization", "Bearer "+idToken)
+	})
+
+	return v2client.New(transport, strfmt.Default), nil
 }

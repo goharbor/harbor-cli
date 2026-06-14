@@ -122,3 +122,23 @@ func Test_Login_Failure_MutuallyExclusiveFlags(t *testing.T) {
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error when both --password and --password-stdin are set")
 }
+
+func Test_Login_Failure_OIDCMutuallyExclusiveFlags(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+
+	assert.NoError(t, cmd.Flags().Set("oidc", "true"))
+	assert.NoError(t, cmd.Flags().Set("username", "admin"))
+
+	err := cmd.Execute()
+	assert.Error(t, err, "Expected error when --oidc and --username are set")
+}
+
+func Test_RunOIDCLogin_Failure_MissingServer(t *testing.T) {
+	err := root.RunOIDCLogin("")
+	assert.Error(t, err)
+}
