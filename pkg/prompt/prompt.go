@@ -309,7 +309,7 @@ func GetQuotaIDFromUser() int64 {
 	QuotaID := make(chan int64)
 
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := api.ListQuota(api.ListQuotaFlags{})
 		if err != nil {
 			log.Errorf("failed to list quota: %v", err)
 		}
@@ -384,52 +384,79 @@ func GetRobotIDFromUser(projectID int64) (int64, error) {
 	return id, nil
 }
 
-func GetReplicationPolicyFromUser() int64 {
-	replicationPolicyID := make(chan int64)
+func GetReplicationPolicyFromUser() (int64, error) {
+	replicationPolicyID := make(chan int64, 1)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationPolicies()
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
 		}
-		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
+		if len(response.Payload) == 0 {
+			errChan <- fmt.Errorf("no replication policies found")
+			return
+		}
+		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID, errChan)
 	}()
 
-	return <-replicationPolicyID
+	select {
+	case id := <-replicationPolicyID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
-func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
-	executionID := make(chan int64)
+func GetReplicationExecutionIDFromUser(rpolicyID int64) (int64, error) {
+	executionID := make(chan int64, 1)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationExecutions(rpolicyID)
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
 		}
 		if len(response.Payload) == 0 {
-			log.Fatal("no replication executions found")
+			errChan <- fmt.Errorf("no replication executions found")
+			return
 		}
-		rexecutions.ReplicationExecutionList(response.Payload, executionID)
+		rexecutions.ReplicationExecutionList(response.Payload, executionID, errChan)
 	}()
 
-	return <-executionID
+	select {
+	case id := <-executionID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
-func GetReplicationTaskIDFromUser(execID int64) int64 {
-	executionID := make(chan int64)
+func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
+	taskID := make(chan int64, 1)
+	errChan := make(chan error, 1)
 
 	go func() {
 		response, err := api.ListReplicationTasks(execID)
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
+			return
 		}
 		if len(response.Payload) == 0 {
-			log.Fatal("no replication tasks found")
+			errChan <- fmt.Errorf("no replication tasks found")
+			return
 		}
-		rtasks.ReplicationTasksList(response.Payload, executionID)
+		rtasks.ReplicationTasksList(response.Payload, taskID, errChan)
 	}()
 
-	return <-executionID
+	select {
+	case id := <-taskID:
+		return id, nil
+	case err := <-errChan:
+		return 0, err
+	}
 }
 
 // Get GetMemberIDFromUser choosing from list of members

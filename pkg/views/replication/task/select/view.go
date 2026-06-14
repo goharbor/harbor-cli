@@ -14,8 +14,8 @@
 package task
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +23,9 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64) {
+var ErrUserAborted = errors.New("user aborted selection")
+
+func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64, errChan chan<- error) {
 	itemsList := make([]list.Item, len(tasks))
 	for i, p := range tasks {
 		displayName := fmt.Sprintf("ID: %d, Status: %s, Operation: %s, Src: %s, Dst: %s, Start Time: %s",
@@ -35,18 +37,25 @@ func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64) 
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		errChan <- fmt.Errorf("error running selection program: %w", err)
+		return
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		// Extract the ID from p.Choice
+	if model, ok := p.(selection.Model); ok {
+		if model.Choice == "" {
+			errChan <- errors.New("user aborted selection")
+			return
+		}
+		// Extract the ID from model.Choice
 		var taskID int64
-		_, err = fmt.Sscanf(p.Choice, "ID: %d", &taskID)
+		_, err = fmt.Sscanf(model.Choice, "ID: %d", &taskID)
 		if err != nil {
-			fmt.Println("error parsing task ID:", err)
-			os.Exit(1)
+			errChan <- fmt.Errorf("error parsing task ID: %w", err)
+			return
 		}
 		choice <- taskID
+		return
 	}
+
+	errChan <- errors.New("unexpected program result")
 }
