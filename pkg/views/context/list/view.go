@@ -22,9 +22,15 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
+
+// ListView represents a context entry in the list view
+type ListView struct {
+	Name     string
+	Username string
+	Server   string
+}
 
 var columns = []table.Column{
 	{Title: "Name", Width: tablelist.Width3XL},
@@ -32,7 +38,7 @@ var columns = []table.Column{
 	{Title: "Server Address", Width: tablelist.WidthXXL},
 }
 
-func ListContexts(contexts []api.ContextListView, currentCredential string) {
+func ListContexts(contexts []ListView, currentCredential string) {
 	rows := selectActiveContext(contexts, currentCredential)
 
 	var opts []tea.ProgramOption
@@ -48,7 +54,7 @@ func ListContexts(contexts []api.ContextListView, currentCredential string) {
 	}
 }
 
-func selectActiveContext(contexts []api.ContextListView, currentCredential string) []table.Row {
+func selectActiveContext(contexts []ListView, currentCredential string) []table.Row {
 	var rows []table.Row
 
 	for _, ctx := range contexts {

@@ -22,6 +22,14 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
+type ListQuotaFlags struct {
+	PageSize    int64
+	Page        int64
+	Sort        string
+	Reference   string
+	ReferenceID string
+}
+
 func ListQuota(opts ListQuotaFlags) (*quota.ListQuotasOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
