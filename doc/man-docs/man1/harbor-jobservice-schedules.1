@@ -2,24 +2,20 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-jobservice - Manage Harbor job service (admin only)
+harbor-jobservice-schedules - Manage schedules (list/status/pause-all/resume-all)
 
 
 .SH SYNOPSIS
-\fBharbor jobservice [flags]\fP
+\fBharbor jobservice schedules [flags]\fP
 
 
 .SH DESCRIPTION
-Manage Harbor job service components including worker pools, job queues, schedules, and job logs.
-This requires system admin privileges.
-
-.PP
-Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.
+List schedules and manage global scheduler status.
 
 
 .SH OPTIONS
 \fB-h\fP, \fB--help\fP[=false]
-	help for jobservice
+	help for schedules
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -36,4 +32,4 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-jobservice-queues(1)\fP, \fBharbor-jobservice-schedules(1)\fP
+\fBharbor-jobservice(1)\fP, \fBharbor-jobservice-schedules-list(1)\fP, \fBharbor-jobservice-schedules-pause-all(1)\fP, \fBharbor-jobservice-schedules-resume-all(1)\fP, \fBharbor-jobservice-schedules-status(1)\fP

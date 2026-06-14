@@ -11,28 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package jobservice
+package schedules
 
-import (
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/queues"
-	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/schedules"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-// JobService creates the jobservice command
-func JobService() *cobra.Command {
+// SchedulesCommand creates the schedules subcommand
+func SchedulesCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "jobservice",
-		Short: "Manage Harbor job service (admin only)",
-		Long: `Manage Harbor job service components including worker pools, job queues, schedules, and job logs.
-This requires system admin privileges.
-
-Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.`,
+		Use:   "schedules",
+		Short: "Manage schedules (list/status/pause-all/resume-all)",
+		Long:  "List schedules and manage global scheduler status.",
 	}
 
 	cmd.AddCommand(
-		queues.QueuesCommand(),
-		schedules.SchedulesCommand(),
+		ListCommand(),
+		StatusCommand(),
+		PauseAllCommand(),
+		ResumeAllCommand(),
 	)
 
 	return cmd

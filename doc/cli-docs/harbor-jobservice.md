@@ -33,4 +33,5 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor jobservice queues](harbor-jobservice-queues.md)	 - Manage job queues (list, stop, pause, resume)
+* [harbor jobservice schedules](harbor-jobservice-schedules.md)	 - Manage schedules (list/status/pause-all/resume-all)
 
