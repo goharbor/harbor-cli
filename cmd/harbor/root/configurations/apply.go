@@ -66,8 +66,7 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				}
 
 				if configurations == nil {
-					warningStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)
-					fmt.Println(warningStyle.Render("Warning: Config file is empty or contains no valid configurations."))
+					fmt.Println("Warning: Config file is empty or contains no valid configurations.")
 					return nil
 				}
 			} else {
