@@ -10,12 +10,77 @@ harbor-replication-policies-update - Update an existing replication policy
 
 
 .SH DESCRIPTION
-Update an existing replication policy
+Update an existing replication policy.
+
+When called without any update flags, the command opens the interactive TUI wizard
+(existing behavior preserved). When any update flag is provided, the command runs
+non-interactively: it loads the existing policy as the baseline and applies only the
+explicitly provided flags (partial update).
 
 
 .SH OPTIONS
+\fB--copy-by-chunk\fP[=false]
+	Transfer artifacts in chunks for better reliability
+
+.PP
+\fB--cron\fP=""
+	Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. "0 0 */6 * * *")
+
+.PP
+\fB--description\fP=""
+	New description for the replication policy
+
+.PP
+\fB--enabled\fP[=false]
+	Whether the replication policy is enabled or not
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for update
+
+.PP
+\fB--label-filter\fP=""
+	Label filter type: matches or excludes
+
+.PP
+\fB--label-pattern\fP=""
+	Label filter pattern (e.g. env=prod or env=prod,ver=1.0)
+
+.PP
+\fB--name\fP=""
+	New name for the replication policy
+
+.PP
+\fB--name-filter\fP=""
+	Repository name filter pattern (supports wildcards, e.g. library/*)
+
+.PP
+\fB--override\fP[=false]
+	Override artifacts on destination if they already exist
+
+.PP
+\fB--replicate-deletion\fP[=false]
+	Replicate deletion operations to the destination
+
+.PP
+\fB--resource-filter\fP=""
+	Resource type filter: image, artifact, or empty for all
+
+.PP
+\fB--speed\fP=""
+	Maximum replication speed in KB/s (-1 for unlimited)
+
+.PP
+\fB--tag-filter\fP=""
+	Tag filter type: matches or excludes
+
+.PP
+\fB--tag-pattern\fP=""
+	Tag filter pattern (e.g. v*, latest, *-prod)
+
+.PP
+\fB--trigger-type\fP=""
+	Trigger type: manual, scheduled, or event_based
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
