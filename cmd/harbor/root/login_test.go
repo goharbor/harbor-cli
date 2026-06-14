@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
-	helpers "github.com/goharbor/harbor-cli/test/helper"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	helpers "github.com/goharbor/harbor-cli/test/helper"
 	"github.com/stretchr/testify/assert"
 )
 
