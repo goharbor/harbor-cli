@@ -73,7 +73,7 @@ func CreateRegistryCommand() *cobra.Command {
 		&opts.Insecure,
 		"insecure",
 		"",
-		true,
+		false,
 		"Whether Harbor will verify the server certificate",
 	)
 	flags.StringVarP(
