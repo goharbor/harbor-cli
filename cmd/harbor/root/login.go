@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client"
@@ -38,6 +39,7 @@ var (
 	Name             string
 	passwordStdin    bool
 	skipVerifyClient bool
+	oidcLogin        bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -50,6 +52,10 @@ func LoginCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				serverAddress = args[0]
+			}
+
+			if oidcLogin {
+				return RunOIDCLogin(serverAddress)
 			}
 
 			if passwordStdin {
@@ -87,9 +93,13 @@ func LoginCommand() *cobra.Command {
 	flags.StringVarP(&Name, "context-name", "n", "", "Login context name (optional)")
 	flags.StringVarP(&Password, "password", "p", "", "Password (not recommended, use --password-stdin for better security)")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.BoolVar(&oidcLogin, "oidc", false, "Authenticate using Harbor OIDC browser login")
 	flags.BoolVarP(&skipVerifyClient, "skip-verify-client", "", false, "Skip whether the clients basic auth credentials shall be validated against the Harbor server during login. This is not recommended as it may lead to storing invalid credentials. Use this flag if you want to skip validation of credentials during login, for example, when the Harbor server is not reachable at the moment of login but you still want to store the credentials for later use.")
 
 	cmd.MarkFlagsMutuallyExclusive("password", "password-stdin")
+	cmd.MarkFlagsMutuallyExclusive("oidc", "username")
+	cmd.MarkFlagsMutuallyExclusive("oidc", "password")
+	cmd.MarkFlagsMutuallyExclusive("oidc", "password-stdin")
 
 	return cmd
 }
@@ -205,6 +215,41 @@ func RunLogin(opts login.LoginView) error {
 	}
 	log.Debugf("Credentials successfully added to the config file.")
 	fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
+	return nil
+}
+
+func RunOIDCLogin(serverAddress string) error {
+	if serverAddress == "" {
+		return fmt.Errorf("server address is required for OIDC login")
+	}
+	serverAddress = utils.FormatUrl(serverAddress)
+	if err := utils.ValidateURL(serverAddress); err != nil {
+		return fmt.Errorf("invalid server URL: %w", err)
+	}
+
+	loginResp, err := utils.InitiateOIDCLogin(serverAddress)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Open this URL in your browser to authenticate:\n\n  %s\n\n", loginResp.RedirectURL)
+	fmt.Print("Waiting for authentication...\n")
+
+	tokenResp, err := utils.PollForOIDCToken(serverAddress, loginResp.TransactionID, 10*time.Minute)
+	if err != nil {
+		return err
+	}
+
+	harborData, err := utils.GetCurrentHarborData()
+	if err != nil {
+		return fmt.Errorf("failed to get current harbor data: %s", err)
+	}
+
+	if err := utils.AddOIDCCredentials(serverAddress, tokenResp.Username, tokenResp.IDToken, tokenResp.RefreshToken, tokenResp.ExpiresAt, harborData.ConfigPath); err != nil {
+		return fmt.Errorf("failed to store OIDC credential: %w", err)
+	}
+
+	fmt.Printf("Login successful for %s at %s\n", tokenResp.Username, serverAddress)
 	return nil
 }
 
