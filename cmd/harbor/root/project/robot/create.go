@@ -204,8 +204,7 @@ Examples:
 				name := response.Payload.Name
 				res, err := api.GetRobot(response.Payload.ID)
 				if err != nil {
-					return fmt.Errorf("failed to get robot details: %v",
-						utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot details: %v", utils.ParseHarborErrorMsg(err))
 				}
 				utils.SavePayloadJSON(name, res.Payload)
 				return nil
