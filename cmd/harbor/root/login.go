@@ -235,7 +235,7 @@ func RunOIDCLogin(serverAddress string) error {
 	fmt.Printf("Open this URL in your browser to authenticate:\n\n  %s\n\n", loginResp.RedirectURL)
 	fmt.Print("Waiting for authentication...\n")
 
-	tokenResp, err := utils.PollForOIDCToken(serverAddress, loginResp.TransactionID, 10*time.Minute)
+	tokenResp, err := utils.PollForOIDCToken(serverAddress, loginResp.State, 10*time.Minute)
 	if err != nil {
 		return err
 	}
