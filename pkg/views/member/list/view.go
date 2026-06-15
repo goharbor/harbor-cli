@@ -37,6 +37,13 @@ var columns = []table.Column{
 
 func ListMembers(members []*models.ProjectMemberEntity, wide bool) {
 	var rows []table.Row
+	localColumns := columns
+
+	if !wide {
+		colsToRemove := []string{"Role ID", "Project ID"}
+		localColumns = utils.RemoveColumns(localColumns, colsToRemove)
+	}
+
 	for _, member := range members {
 		memberID := strconv.FormatInt(member.ID, 10)
 		roleName := utils.CamelCaseToHR(member.RoleName)
@@ -61,10 +68,8 @@ func ListMembers(members []*models.ProjectMemberEntity, wide bool) {
 				projectID,
 			})
 		} else {
-			colsToRemove := []string{"Role ID", "Project ID"}
-			columns = utils.RemoveColumns(columns, colsToRemove)
 			rows = append(rows, table.Row{
-				memberID, // Member Name
+				memberID,
 				member.EntityName,
 				memberType,
 				roleName,
@@ -72,7 +77,7 @@ func ListMembers(members []*models.ProjectMemberEntity, wide bool) {
 		}
 	}
 
-	m := tablelist.NewModel(columns, rows, len(rows))
+	m := tablelist.NewModel(localColumns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
