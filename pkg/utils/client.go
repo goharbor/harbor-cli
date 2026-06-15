@@ -115,10 +115,10 @@ func getOIDCClient(credential Credential) (*v2client.HarborAPI, error) {
 		return nil, fmt.Errorf("OIDC session expired or is about to expire. Please run `harbor login %s --oidc` again", credential.ServerAddress)
 	}
 
-	return buildOIDCClient(credential.ServerAddress, idToken)
+	return buildClientWithToken(credential.ServerAddress, idToken)
 }
 
-func buildOIDCClient(serverAddress, idToken string) (*v2client.HarborAPI, error) {
+func buildClientWithToken(serverAddress, idToken string) (*v2client.HarborAPI, error) {
 	u, err := url.Parse(serverAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse server URL: %w", err)
