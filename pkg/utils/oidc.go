@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	oidcCLILoginPath = "/c/oidc/cli/login"
+	oidcCLILoginPath = "/c/oidc/login"
 	oidcCLITokenPath = "/c/oidc/cli-token"
 )
 
 type OIDCLoginResponse struct {
-	RedirectURL    string `json:"redirect_url"`
-	TransactionID string `json:"transaction_id"`
+	RedirectURL string `json:"redirect_url"`
+	State       string `json:"state"`
 }
 
 type OIDCPollResponse struct {
@@ -51,8 +51,15 @@ func InitiateOIDCLogin(serverAddress string) (*OIDCLoginResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse OIDC login endpoint: %w", err)
+	}
+	q := u.Query()
+	q.Set("mode", "cli")
+	u.RawQuery = q.Encode()
 
-	resp, err := http.Get(endpoint) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
+	resp, err := http.Get(u.String()) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate OIDC login: %w", err)
 	}
@@ -67,15 +74,15 @@ func InitiateOIDCLogin(serverAddress string) (*OIDCLoginResponse, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
 		return nil, fmt.Errorf("failed to decode OIDC login response: %w", err)
 	}
-	if loginResp.RedirectURL == "" || loginResp.TransactionID == "" {
-		return nil, fmt.Errorf("invalid OIDC login response: missing redirect_url or transaction_id")
+	if loginResp.RedirectURL == "" || loginResp.State == "" {
+		return nil, fmt.Errorf("invalid OIDC login response: missing redirect_url or state")
 	}
 	return &loginResp, nil
 }
 
-func PollForOIDCToken(serverAddress, transactionID string, timeout time.Duration) (*OIDCPollResponse, error) {
-	if transactionID == "" {
-		return nil, fmt.Errorf("transaction ID is required")
+func PollForOIDCToken(serverAddress, state string, timeout time.Duration) (*OIDCPollResponse, error) {
+	if state == "" {
+		return nil, fmt.Errorf("state is required")
 	}
 	serverAddress = FormatUrl(serverAddress)
 	if err := ValidateURL(serverAddress); err != nil {
@@ -91,7 +98,7 @@ func PollForOIDCToken(serverAddress, transactionID string, timeout time.Duration
 		return nil, fmt.Errorf("failed to parse OIDC token endpoint: %w", err)
 	}
 	q := u.Query()
-	q.Set("transaction_id", transactionID)
+	q.Set("state", state)
 	u.RawQuery = q.Encode()
 
 	deadline := time.Now().Add(timeout)

@@ -27,10 +27,11 @@ import (
 
 func TestInitiateOIDCLogin(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/c/oidc/cli/login", r.URL.Path)
+		assert.Equal(t, "/c/oidc/login", r.URL.Path)
+		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
 		_ = json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
-			RedirectURL:    "https://idp.example/authorize",
-			TransactionID: "tx-1",
+			RedirectURL: "https://idp.example/authorize",
+			State:       "state-1",
 		})
 	}))
 	defer server.Close()
@@ -39,13 +40,13 @@ func TestInitiateOIDCLogin(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://idp.example/authorize", resp.RedirectURL)
-	assert.Equal(t, "tx-1", resp.TransactionID)
+	assert.Equal(t, "state-1", resp.State)
 }
 
 func TestPollForOIDCTokenReady(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
-		assert.Equal(t, "tx-1", r.URL.Query().Get("transaction_id"))
+		assert.Equal(t, "state-1", r.URL.Query().Get("state"))
 		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
 			Status:   "ready",
 			IDToken:  "id-token",
@@ -54,7 +55,7 @@ func TestPollForOIDCTokenReady(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "tx-1", time.Second)
+	resp, err := utils.PollForOIDCToken(server.URL, "state-1", time.Second)
 
 	require.NoError(t, err)
 	assert.Equal(t, "ready", resp.Status)
@@ -72,7 +73,7 @@ func TestPollForOIDCTokenFailed(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "tx-1", time.Second)
+	resp, err := utils.PollForOIDCToken(server.URL, "state-1", time.Second)
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "state expired")
