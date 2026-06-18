@@ -55,13 +55,14 @@ func CreateProjectView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	// I want it to be a map of registry ID to registry name
 	registries, err := getRegistryList()
-	if err != nil {
-		return err
-	}
 	registryOptions := map[string]string{}
-	for _, registry := range registries.Payload {
-		regiId := fmt.Sprintf("%d", registry.ID)
-		registryOptions[regiId] = fmt.Sprintf("%s (%s)", registry.Name, registry.URL)
+	if err != nil {
+		log.Debugf("failed to get registry list for proxy cache: %v", err)
+	} else if registries != nil && registries.Payload != nil {
+		for _, registry := range registries.Payload {
+			regiId := fmt.Sprintf("%d", registry.ID)
+			registryOptions[regiId] = fmt.Sprintf("%s (%s)", registry.Name, registry.URL)
+		}
 	}
 
 	var registrySelectOptions []huh.Option[string]
