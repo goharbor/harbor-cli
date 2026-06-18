@@ -53,15 +53,17 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 
 func CreateProjectView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
-	// I want it to be a map of registry ID to registry name
+	// Registry list is optional: if retrieval fails, the proxy-cache registry
+	// selector will simply be hidden and the form can still proceed.
+	registryOptions := map[string]string{}
 	registries, err := getRegistryList()
 	if err != nil {
-		return err
-	}
-	registryOptions := map[string]string{}
-	for _, registry := range registries.Payload {
-		regiId := fmt.Sprintf("%d", registry.ID)
-		registryOptions[regiId] = fmt.Sprintf("%s (%s)", registry.Name, registry.URL)
+		log.Warnf("failed to retrieve registry list, proxy cache registry selection will be unavailable: %v", err)
+	} else {
+		for _, r := range registries.Payload {
+			regiId := fmt.Sprintf("%d", r.ID)
+			registryOptions[regiId] = fmt.Sprintf("%s (%s)", r.Name, r.URL)
+		}
 	}
 
 	var registrySelectOptions []huh.Option[string]
