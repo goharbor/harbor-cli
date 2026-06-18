@@ -93,6 +93,21 @@ func TestParseHarborErrorCode(t *testing.T) {
 			expected: "404",
 		},
 		{
+			name:     "error with brackets format and spaces",
+			err:      errors.New("[GET /api/v2.0/projects] [409] conflict"),
+			expected: "409",
+		},
+		{
+			name:     "error with wrapped bracket prefix",
+			err:      errors.New("[some-info] failed to view: [GET /api/v2.0/projects][403] forbidden"),
+			expected: "403",
+		},
+		{
+			name:     "error with multiple prefix brackets and spaces",
+			err:      errors.New("[Test] [some-info] [GET /api/v2.0/projects] [500] internal error"),
+			expected: "500",
+		},
+		{
 			name:     "error with status format",
 			err:      errors.New("failed to call api (status 500)"),
 			expected: "500",
