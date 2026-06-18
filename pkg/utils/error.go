@@ -57,18 +57,14 @@ func ParseHarborErrorCode(err error) string {
 	errStr := err.Error()
 
 	// Try format: [METHOD /path][CODE] - e.g., [GET /projects][404]
-	parts := strings.Split(errStr, "]")
-	if len(parts) >= 2 {
-		codePart := strings.TrimSpace(parts[1])
-		if strings.HasPrefix(codePart, "[") && len(codePart) == 4 {
-			code := codePart[1:4]
-			return code
-		}
+	reBracket := regexp.MustCompile(`\]\s*\[(\d{3})\]`)
+	if matches := reBracket.FindStringSubmatch(errStr); len(matches) > 1 {
+		return matches[1]
 	}
 
 	// Try format: (status CODE) - e.g., (status 404)
-	re := regexp.MustCompile(`\(status\s+(\d{3})\)`)
-	if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
+	reStatus := regexp.MustCompile(`\(status\s+(\d{3})\)`)
+	if matches := reStatus.FindStringSubmatch(errStr); len(matches) > 1 {
 		return matches[1]
 	}
 
