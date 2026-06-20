@@ -17,12 +17,10 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-openapi/runtime"
-	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
@@ -127,11 +125,12 @@ func buildClientWithToken(serverAddress, idToken string) (*v2client.HarborAPI, e
 		return nil, fmt.Errorf("invalid server URL: %s", serverAddress)
 	}
 
-	basePath := strings.TrimRight(u.Path, "/")
-	transport := httptransport.New(u.Host, basePath, []string{u.Scheme})
-	transport.DefaultAuthentication = runtime.ClientAuthInfoWriterFunc(func(req runtime.ClientRequest, _ strfmt.Registry) error {
-		return req.SetHeaderParam("Authorization", "Bearer "+idToken)
-	})
+	cfg := &harbor.Config{
+		URL: u,
+		AuthInfo: runtime.ClientAuthInfoWriterFunc(func(req runtime.ClientRequest, _ strfmt.Registry) error {
+			return req.SetHeaderParam("Authorization", "Bearer "+idToken)
+		}),
+	}
 
-	return v2client.New(transport, strfmt.Default), nil
+	return v2client.New(cfg.ToV2Config()), nil
 }
