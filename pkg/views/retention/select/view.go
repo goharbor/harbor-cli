@@ -26,9 +26,9 @@ import (
 
 var ErrUserAborted = errors.New("user aborted selection")
 
-func RetentionList(rules []*models.RetentionRule) (int, error) {
+func RetentionList(rules []*models.RetentionRule) (int64, error) {
 	itemsList := make([]list.Item, len(rules))
-	items := map[string]int{}
+	items := map[string]int64{}
 
 	for i, rule := range rules {
 		scopeStrs := []string{}
@@ -57,7 +57,7 @@ func RetentionList(rules []*models.RetentionRule) (int, error) {
 			rule.Template,
 		)
 
-		items[display] = i
+		items[display] = int64(i)
 		itemsList[i] = selection.Item(display)
 	}
 

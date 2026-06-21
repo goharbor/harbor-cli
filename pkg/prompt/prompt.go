@@ -462,13 +462,14 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func GetRetentionTagRule(retentionID string) (int, error) {
+func GetRetentionTagRule(retentionID string) (int64, error) {
 	response, err := api.ListRetention(retentionID)
 	if err != nil {
 		return 0, err
 	}
 	if response.Payload == nil || len(response.Payload.Rules) == 0 {
-		return 0, fmt.Errorf("no retention rules found")
+		fmt.Println("No retention rules found")
+		return -1, nil
 	}
 	return retview.RetentionList(response.Payload.Rules)
 }
