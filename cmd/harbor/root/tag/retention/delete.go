@@ -80,9 +80,10 @@ Examples:
 				return err
 			}
 			if retentionIndex < 0 {
+				fmt.Println("No retention rules found")
 				return nil
 			}
-			err = api.DeleteRetention(retentionID, retentionIndex)
+			err = api.DeleteRetention(retentionID, int(retentionIndex))
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}

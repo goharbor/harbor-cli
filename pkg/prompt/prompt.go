@@ -309,7 +309,7 @@ func GetQuotaIDFromUser() int64 {
 	QuotaID := make(chan int64)
 
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := api.ListQuota(api.ListQuotaFlags{})
 		if err != nil {
 			log.Errorf("failed to list quota: %v", err)
 		}
@@ -468,7 +468,6 @@ func GetRetentionTagRule(retentionID string) (int64, error) {
 		return 0, err
 	}
 	if response.Payload == nil || len(response.Payload.Rules) == 0 {
-		fmt.Println("No retention rules found")
 		return -1, nil
 	}
 	return retview.RetentionList(response.Payload.Rules)
