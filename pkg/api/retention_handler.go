@@ -121,7 +121,7 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	return retentionid, nil
 }
 
-func DeleteRetention(retentionID string, ruleIndex int64) error {
+func DeleteRetention(retentionID string, ruleIndex int) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -137,12 +137,11 @@ func DeleteRetention(retentionID string, ruleIndex int64) error {
 		return fmt.Errorf("retention policy is empty")
 	}
 
-	idx := int(ruleIndex)
-	if idx < 0 || idx >= len(existingPolicy.Rules) {
+	if ruleIndex < 0 || ruleIndex >= len(existingPolicy.Rules) {
 		return fmt.Errorf("invalid rule index")
 	}
 
-	copy(existingPolicy.Rules[idx:], existingPolicy.Rules[idx+1:])
+	copy(existingPolicy.Rules[ruleIndex:], existingPolicy.Rules[ruleIndex+1:])
 	existingPolicy.Rules[len(existingPolicy.Rules)-1] = nil
 	existingPolicy.Rules = existingPolicy.Rules[:len(existingPolicy.Rules)-1]
 
