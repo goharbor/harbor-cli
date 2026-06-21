@@ -61,7 +61,7 @@ func RetentionList(rules []*models.RetentionRule) (int64, error) {
 		itemsList[i] = selection.Item(display)
 	}
 
-	m := selection.NewModel(itemsList, "Select a Retention Rule")
+	m := selection.NewModel(itemsList, "Retention Rule")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
@@ -73,7 +73,7 @@ func RetentionList(rules []*models.RetentionRule) (int64, error) {
 			return 0, ErrUserAborted
 		}
 		if model.Choice == "" {
-			return 0, errors.New("no retention rule selected")
+			return 0, ErrUserAborted
 		}
 		return items[model.Choice], nil
 	}
