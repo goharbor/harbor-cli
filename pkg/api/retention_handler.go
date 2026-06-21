@@ -121,7 +121,7 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	return retentionid, nil
 }
 
-func DeleteRetention(retentionID string, ruleIndex int) error {
+func DeleteRetention(retentionID string, ruleIndex int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -133,11 +133,12 @@ func DeleteRetention(retentionID string, ruleIndex int) error {
 	}
 
 	existingPolicy := retentionResp.Payload
-	if ruleIndex < 0 || ruleIndex >= len(existingPolicy.Rules) {
+	idx := int(ruleIndex)
+	if idx < 0 || idx >= len(existingPolicy.Rules) {
 		return fmt.Errorf("invalid rule index")
 	}
 
-	existingPolicy.Rules = append(existingPolicy.Rules[:ruleIndex], existingPolicy.Rules[ruleIndex+1:]...)
+	existingPolicy.Rules = append(existingPolicy.Rules[:idx], existingPolicy.Rules[idx+1:]...)
 
 	_, err = client.Retention.UpdateRetention(ctx, &retention.UpdateRetentionParams{
 		ID:     int64(retentionResp.Payload.ID),

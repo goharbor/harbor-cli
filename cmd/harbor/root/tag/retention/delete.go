@@ -79,6 +79,9 @@ Examples:
 			if err != nil {
 				return err
 			}
+			if retentionIndex < 0 {
+				return nil
+			}
 			err = api.DeleteRetention(retentionID, retentionIndex)
 			if err != nil {
 				return fmt.Errorf("%w", err)
