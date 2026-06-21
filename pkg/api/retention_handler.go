@@ -133,12 +133,18 @@ func DeleteRetention(retentionID string, ruleIndex int64) error {
 	}
 
 	existingPolicy := retentionResp.Payload
+	if existingPolicy == nil {
+		return fmt.Errorf("retention policy is empty")
+	}
+
 	idx := int(ruleIndex)
 	if idx < 0 || idx >= len(existingPolicy.Rules) {
 		return fmt.Errorf("invalid rule index")
 	}
 
-	existingPolicy.Rules = append(existingPolicy.Rules[:idx], existingPolicy.Rules[idx+1:]...)
+	copy(existingPolicy.Rules[idx:], existingPolicy.Rules[idx+1:])
+	existingPolicy.Rules[len(existingPolicy.Rules)-1] = nil
+	existingPolicy.Rules = existingPolicy.Rules[:len(existingPolicy.Rules)-1]
 
 	_, err = client.Retention.UpdateRetention(ctx, &retention.UpdateRetentionParams{
 		ID:     int64(retentionResp.Payload.ID),
