@@ -79,12 +79,14 @@ func cleanManPages(docDir string) error {
 			if err != nil {
 				return err
 			}
-			f, err := root.Open(relPath)
-			if err != nil {
-				return err
-			}
-			content, err := io.ReadAll(f)
-			f.Close()
+			content, err := func() ([]byte, error) {
+				f, err := root.Open(relPath)
+				if err != nil {
+					return nil, err
+				}
+				defer f.Close()
+				return io.ReadAll(f)
+			}()
 			if err != nil {
 				return err
 			}
@@ -110,8 +112,8 @@ func cleanManPages(docDir string) error {
 			if err != nil {
 				return err
 			}
+			defer wf.Close()
 			_, err = wf.Write([]byte(cleanedContent))
-			wf.Close()
 			if err != nil {
 				return err
 			}
