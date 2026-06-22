@@ -45,7 +45,7 @@ The project's first goal is to reach WebUI parity.
 
 ❌ Distribution
 
-❌ GC
+✅ gc           Manage Garbage Collection
 
 ❌ Job Service   Dashboard
 
