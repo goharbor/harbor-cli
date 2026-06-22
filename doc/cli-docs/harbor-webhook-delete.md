@@ -1,6 +1,6 @@
 ---
 title: harbor webhook delete
-weight: 70
+weight: 65
 ---
 ## harbor webhook delete
 

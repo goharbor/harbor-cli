@@ -1,6 +1,6 @@
 ---
 title: harbor scan all update schedule
-weight: 50
+weight: 75
 ---
 ## harbor scan-all update-schedule
 

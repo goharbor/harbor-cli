@@ -1,6 +1,6 @@
 ---
 title: harbor project robot update
-weight: 55
+weight: 50
 ---
 ## harbor project robot update
 

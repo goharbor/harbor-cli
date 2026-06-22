@@ -1,6 +1,6 @@
 ---
 title: harbor project robot refresh
-weight: 25
+weight: 90
 ---
 ## harbor project robot refresh
 

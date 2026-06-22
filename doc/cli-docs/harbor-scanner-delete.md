@@ -1,6 +1,6 @@
 ---
 title: harbor scanner delete
-weight: 45
+weight: 95
 ---
 ## harbor scanner delete
 

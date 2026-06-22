@@ -1,0 +1,41 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-schedule - Get the current GC schedule
+
+
+.SH SYNOPSIS
+\fBharbor gc schedule [flags]\fP
+
+
+.SH DESCRIPTION
+Retrieve the configuration and schedule parameters for automatic Garbage Collection.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for schedule
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor gc schedule
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP

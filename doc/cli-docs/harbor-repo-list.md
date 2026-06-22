@@ -1,6 +1,6 @@
 ---
 title: harbor repo list
-weight: 150
+weight: 50
 ---
 ## harbor repo list
 

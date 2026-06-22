@@ -1,6 +1,6 @@
 ---
 title: harbor artifact tags create
-weight: 65
+weight: 95
 ---
 ## harbor artifact tags create
 

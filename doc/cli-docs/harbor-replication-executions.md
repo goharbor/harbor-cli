@@ -1,6 +1,6 @@
 ---
 title: harbor replication executions
-weight: 70
+weight: 20
 ---
 ## harbor replication executions
 

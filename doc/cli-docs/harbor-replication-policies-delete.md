@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies delete
-weight: 55
+weight: 30
 ---
 ## harbor replication policies delete
 

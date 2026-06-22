@@ -1,0 +1,53 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-trigger - Trigger Garbage Collection immediately
+
+
+.SH SYNOPSIS
+\fBharbor gc trigger [flags]\fP
+
+
+.SH DESCRIPTION
+Start a manual Garbage Collection job immediately in Harbor registry.
+
+
+.SH OPTIONS
+\fB--delete-untagged\fP[=false]
+	Delete untagged artifacts
+
+.PP
+\fB--dry-run\fP[=false]
+	Simulate the GC process without deleting actual blobs
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for trigger
+
+.PP
+\fB-i\fP, \fB--interactive\fP[=false]
+	Trigger Garbage Collection interactively
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor gc trigger --delete-untagged --dry-run=false
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP

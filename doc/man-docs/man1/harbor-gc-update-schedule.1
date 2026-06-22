@@ -1,0 +1,76 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-update-schedule - Update automatic GC schedule
+
+
+.SH SYNOPSIS
+\fBharbor gc update-schedule [schedule-type: none|hourly|daily|weekly|custom] [flags]\fP
+
+
+.SH DESCRIPTION
+Configure or update the automatic Garbage Collection schedule for the registry.
+
+.PP
+Available schedule types:
+  - none:    Disable scheduled Garbage Collection
+  - hourly:  Run GC every hour
+  - daily:   Run GC once per day
+  - weekly:  Run GC once per week
+  - custom:  Define a custom schedule using a cron expression
+
+.PP
+For custom schedules, Harbor requires a 6-field cron expression in the format:
+  seconds minutes hours day-of-month month day-of-week
+
+.PP
+Examples:
+  # Disable automatic Garbage Collection
+  harbor gc update-schedule none
+
+.PP
+# Configure daily Garbage Collection deleting untagged artifacts
+  harbor gc update-schedule daily --delete-untagged
+
+.PP
+# Configure custom schedule (e.g. daily at 3:00 AM) in dry-run mode
+  harbor gc update-schedule custom --cron "0 0 3 * * *" --dry-run
+
+
+.SH OPTIONS
+\fB--cron\fP=""
+	Cron expression for custom schedule (include in double quotes)
+
+.PP
+\fB--delete-untagged\fP[=false]
+	Delete untagged artifacts
+
+.PP
+\fB--dry-run\fP[=false]
+	Simulate the GC process without deleting actual blobs
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update-schedule
+
+.PP
+\fB-i\fP, \fB--interactive\fP[=false]
+	Update GC schedule interactively
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP

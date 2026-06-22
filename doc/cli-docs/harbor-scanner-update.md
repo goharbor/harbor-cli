@@ -1,6 +1,6 @@
 ---
 title: harbor scanner update
-weight: 90
+weight: 5
 ---
 ## harbor scanner update
 

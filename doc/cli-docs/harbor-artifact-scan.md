@@ -1,6 +1,6 @@
 ---
 title: harbor artifact scan
-weight: 60
+weight: 55
 ---
 ## harbor artifact scan
 

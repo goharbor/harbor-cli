@@ -1,6 +1,6 @@
 ---
 title: harbor artifact scan start
-weight: 80
+weight: 60
 ---
 ## harbor artifact scan start
 

@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies create
-weight: 85
+weight: 20
 ---
 ## harbor replication policies create
 

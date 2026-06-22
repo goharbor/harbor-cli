@@ -1,6 +1,6 @@
 ---
 title: harbor replication log
-weight: 10
+weight: 55
 ---
 ## harbor replication log
 

@@ -1,0 +1,41 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc-log - Get GC execution log
+
+
+.SH SYNOPSIS
+\fBharbor gc log [gc-id] [flags]\fP
+
+
+.SH DESCRIPTION
+Retrieve the execution log of a specific Garbage Collection run by its ID.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for log
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor gc log 12
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-gc(1)\fP

@@ -1,6 +1,6 @@
 ---
 title: harbor robot list
-weight: 65
+weight: 60
 ---
 ## harbor robot list
 

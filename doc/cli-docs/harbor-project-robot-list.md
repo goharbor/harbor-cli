@@ -1,6 +1,6 @@
 ---
 title: harbor project robot list
-weight: 35
+weight: 5
 ---
 ## harbor project robot list
 
