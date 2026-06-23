@@ -23,7 +23,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
-	log "github.com/sirupsen/logrus"
 )
 
 // Function variables for testing - these can be swapped in tests
@@ -93,7 +92,7 @@ func CreateMember(opts create.CreateView) error {
 	}
 
 	if response != nil {
-		log.Info("Member created successfully")
+		fmt.Println("Member created successfully")
 	}
 
 	return nil
@@ -109,7 +108,7 @@ func DeleteAllMember(projectName string, xIsResourceName bool) error {
 
 	length := len(response.Payload)
 	if length < 1 {
-		log.Info("No members found in project")
+		fmt.Println("No members found in project")
 		return fmt.Errorf("no members found in project %s", projectName)
 	}
 
@@ -160,7 +159,7 @@ func DeleteMember(projectName string, memberID int64, xIsResourceName bool) erro
 		return err
 	}
 
-	log.Info("Member deleted successfully")
+	fmt.Println("Member deleted successfully")
 	return nil
 }
 
@@ -192,7 +191,7 @@ func DeleteMemberByUsername(projectName string, username string, xIsResourceName
 		return err
 	}
 
-	log.Info("Member deleted successfully")
+	fmt.Println("Member deleted successfully")
 	return nil
 }
 
@@ -214,7 +213,7 @@ func UpdateMember(opts UpdateMemberOptions) error {
 		return err
 	}
 
-	log.Info("member role updated successfully")
+	fmt.Println("Member role updated successfully")
 
 	return nil
 }

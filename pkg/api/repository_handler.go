@@ -14,11 +14,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
@@ -41,7 +42,7 @@ func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
 		return err
 	}
 
-	log.Infof("Repository %s/%s deleted successfully", projectName, repoName)
+	fmt.Printf("Repository %s/%s deleted successfully\n", projectName, repoName)
 	return nil
 }
 

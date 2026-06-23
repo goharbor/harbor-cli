@@ -54,7 +54,7 @@ The scan progress and results can be monitored through the metrics command
 or through the Harbor web interface.`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Info("Initiating manual scan of all artifacts")
+			logrus.Debug("Initiating manual scan of all artifacts")
 			// Random cron expression and random time need to be passed to the API, even though they are not used, otherwise it returns bad request
 			randomCron := "0 * * * * *"
 			randomTime := strfmt.DateTime{}
@@ -62,7 +62,7 @@ or through the Harbor web interface.`,
 			if err != nil {
 				return fmt.Errorf("failed to start scan all operation: %v", utils.ParseHarborErrorMsg(err))
 			}
-			logrus.Info("Successfully started scan all operation")
+			fmt.Printf("Successfully started scan all operation\n")
 			return nil
 		},
 	}

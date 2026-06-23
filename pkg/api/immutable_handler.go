@@ -14,11 +14,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/immutable"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/immutable/create"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateImmutable(opts create.CreateView, projectName string) error {
@@ -46,7 +47,7 @@ func CreateImmutable(opts create.CreateView, projectName string) error {
 		return err
 	}
 
-	log.Info("Added Tag Immutability Rule")
+	fmt.Println("Added Tag Immutability Rule")
 	return nil
 }
 
@@ -73,7 +74,7 @@ func DeleteImmutable(projectName string, ImmutableID int64) error {
 		return err
 	}
 
-	log.Info("immutable rule deleted successfully")
+	fmt.Println("Immutable rule deleted successfully")
 
 	return nil
 }

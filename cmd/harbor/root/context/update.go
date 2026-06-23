@@ -69,8 +69,7 @@ If you specify --name, that credential (rather than the "current" one) will be u
 
 			// 5. Confirm to the user (logrus.Info is fine here; no error)
 			canonicalPath := strings.Join(actualSegments, ".")
-			logrus.Infof("Successfully updated %s to '%s'", canonicalPath, newValue)
-
+			fmt.Printf("Successfully updated %s to '%s'\n", canonicalPath, newValue)
 			return nil
 		},
 	}
