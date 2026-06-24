@@ -15,6 +15,7 @@ package registry
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -37,10 +38,21 @@ func UpdateRegistryCommand() *cobra.Command {
 			var err error
 			var registryId int64
 
+			interactive := !hasUpdateValues(opts)
+
+			if !interactive && len(args) == 0 {
+				return fmt.Errorf("registry ID is mandatory for non-interactive updates")
+			}
+
 			if len(args) > 0 {
-				registryId, err = api.GetRegistryIdByName(args[0])
-				if err != nil {
-					return fmt.Errorf("failed to get registry id: %v", err)
+				id, err := strconv.ParseInt(args[0], 10, 64)
+				if err == nil {
+					registryId = id
+				} else {
+					registryId, err = api.GetRegistryIdByName(args[0])
+					if err != nil {
+						return fmt.Errorf("failed to get registry id: %v", err)
+					}
 				}
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
@@ -68,7 +80,6 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			flags := cmd.Flags()
-			interactive := !hasUpdateValues(opts)
 			if flags.Changed("name") {
 				updateView.Name = opts.Name
 			}
