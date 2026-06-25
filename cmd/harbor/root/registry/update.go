@@ -15,7 +15,6 @@ package registry
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -38,21 +37,10 @@ func UpdateRegistryCommand() *cobra.Command {
 			var err error
 			var registryId int64
 
-			interactive := !hasUpdateValues(opts)
-
-			if !interactive && len(args) == 0 {
-				return fmt.Errorf("registry ID is mandatory for non-interactive updates")
-			}
-
 			if len(args) > 0 {
-				id, err := strconv.ParseInt(args[0], 10, 64)
-				if err == nil {
-					registryId = id
-				} else {
-					registryId, err = api.GetRegistryIdByName(args[0])
-					if err != nil {
-						return fmt.Errorf("failed to get registry id: %v", err)
-					}
+				registryId, err = api.GetRegistryIdByName(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to get registry id: %v", err)
 				}
 			} else {
 				registryId = prompt.GetRegistryNameFromUser()
@@ -79,37 +67,12 @@ func UpdateRegistryCommand() *cobra.Command {
 				},
 			}
 
-			flags := cmd.Flags()
-			if flags.Changed("name") {
-				updateView.Name = opts.Name
-			}
-			if flags.Changed("type") {
-				updateView.Type = opts.Type
-			}
-			if flags.Changed("description") {
-				updateView.Description = opts.Description
-			}
-			if flags.Changed("url") {
-				formattedUrl := utils.FormatUrl(opts.URL)
-				if err := utils.ValidateURL(formattedUrl); err != nil {
+			if hasUpdateFlagChanges(cmd) {
+				err = applyUpdateFlags(cmd, updateView, opts)
+				if err != nil {
 					return err
 				}
-				updateView.URL = formattedUrl
-			}
-			if flags.Changed("insecure") {
-				updateView.Insecure = opts.Insecure
-			}
-			if flags.Changed("credential-access-key") {
-				updateView.Credential.AccessKey = opts.Credential.AccessKey
-			}
-			if flags.Changed("credential-access-secret") {
-				updateView.Credential.AccessSecret = opts.Credential.AccessSecret
-			}
-			if flags.Changed("credential-type") {
-				updateView.Credential.Type = opts.Credential.Type
-			}
-
-			if interactive {
+			} else {
 				update.UpdateRegistryView(updateView)
 			}
 			err = api.UpdateRegistry(updateView, registryId)
@@ -133,13 +96,47 @@ func UpdateRegistryCommand() *cobra.Command {
 	return cmd
 }
 
-func hasUpdateValues(opts *models.Registry) bool {
-	return opts.Name != "" ||
-		opts.Type != "" ||
-		opts.Description != "" ||
-		opts.URL != "" ||
-		opts.Insecure ||
-		opts.Credential.AccessKey != "" ||
-		opts.Credential.AccessSecret != "" ||
-		opts.Credential.Type != ""
+func hasUpdateFlagChanges(cmd *cobra.Command) bool {
+	flags := cmd.Flags()
+	return flags.Changed("name") ||
+		flags.Changed("type") ||
+		flags.Changed("url") ||
+		flags.Changed("description") ||
+		flags.Changed("insecure") ||
+		flags.Changed("credential-access-key") ||
+		flags.Changed("credential-access-secret") ||
+		flags.Changed("credential-type")
+}
+
+func applyUpdateFlags(cmd *cobra.Command, updateView *models.Registry, opts *models.Registry) error {
+	flags := cmd.Flags()
+	if flags.Changed("name") {
+		updateView.Name = opts.Name
+	}
+	if flags.Changed("type") {
+		updateView.Type = opts.Type
+	}
+	if flags.Changed("description") {
+		updateView.Description = opts.Description
+	}
+	if flags.Changed("url") {
+		formattedUrl := utils.FormatUrl(opts.URL)
+		if err := utils.ValidateURL(formattedUrl); err != nil {
+			return err
+		}
+		updateView.URL = formattedUrl
+	}
+	if flags.Changed("insecure") {
+		updateView.Insecure = opts.Insecure
+	}
+	if flags.Changed("credential-access-key") {
+		updateView.Credential.AccessKey = opts.Credential.AccessKey
+	}
+	if flags.Changed("credential-access-secret") {
+		updateView.Credential.AccessSecret = opts.Credential.AccessSecret
+	}
+	if flags.Changed("credential-type") {
+		updateView.Credential.Type = opts.Credential.Type
+	}
+	return nil
 }
