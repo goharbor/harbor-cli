@@ -54,12 +54,22 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				fileType := filepath.Ext(cfgFile)
 				switch fileType {
 				case ".yaml", ".yml":
-					if err := yaml.Unmarshal(data, &configurations); err != nil {
-						return fmt.Errorf("failed to parse YAML: %v", err)
+					var wrapper configWrapper
+					if err := yaml.Unmarshal(data, &wrapper); err == nil && wrapper.Configurations != nil {
+						configurations = wrapper.Configurations
+					} else {
+						if err := yaml.Unmarshal(data, &configurations); err != nil {
+							return fmt.Errorf("failed to parse YAML: %v", err)
+						}
 					}
 				case ".json":
-					if err := json.Unmarshal(data, &configurations); err != nil {
-						return fmt.Errorf("failed to parse JSON: %v", err)
+					var wrapper configWrapper
+					if err := json.Unmarshal(data, &wrapper); err == nil && wrapper.Configurations != nil {
+						configurations = wrapper.Configurations
+					} else {
+						if err := json.Unmarshal(data, &configurations); err != nil {
+							return fmt.Errorf("failed to parse JSON: %v", err)
+						}
 					}
 				default:
 					return fmt.Errorf("unsupported file type: %s, expected '.yaml/.yml' or '.json'", fileType)
@@ -124,4 +134,8 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 	flags.BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation prompt before applying changes.")
 
 	return cmd
+}
+
+type configWrapper struct {
+	Configurations *models.Configurations `yaml:"configurations" json:"configurations"`
 }
