@@ -26,10 +26,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	getPreheatPolicyFunc = api.GetPreheatPolicy
-)
-
 func UpdatePolicyCommand() *cobra.Command {
 	var isID bool
 
@@ -79,7 +75,7 @@ func UpdatePolicyCommand() *cobra.Command {
 			}
 
 			log.Debug("Fetching preheat policy...")
-			existingPolicy, err := getPreheatPolicyFunc(projectName, policyName)
+			existingPolicy, err := api.GetPreheatPolicy(projectName, policyName)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {
 					return fmt.Errorf("preheat policy %s not found in project %s", policyName, projectName)

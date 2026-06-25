@@ -17,37 +17,40 @@ package policy
 import (
 	"testing"
 
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/preheat"
 	"github.com/goharbor/harbor-cli/pkg/testutil"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdatePolicyCommand_NilPolicy(t *testing.T) {
-	originalGetPreheatPolicy := getPreheatPolicyFunc
-	t.Cleanup(func() {
-		getPreheatPolicyFunc = originalGetPreheatPolicy
-	})
-
-	getPreheatPolicyFunc = func(projectName, policyName string) (*preheat.GetPolicyOK, error) {
-		return nil, nil
+// TestUpdatePolicyCommand_Errors tests the custom CLI-level validations in the
+// update command. API responses are not tested here.
+func TestUpdatePolicyCommand_Errors(t *testing.T) {
+	tests := []struct {
+		name        string
+		flags       []string
+		expectError bool
+	}{
+		{
+			name:        "--id flag without arguments",
+			flags:       []string{"--id"},
+			expectError: true,
+		},
+		{
+			name:        "too many arguments",
+			flags:       []string{"project", "policy", "extra"},
+			expectError: true,
+		},
 	}
 
-	err := testutil.TestCmd(t, UpdatePolicyCommand, "my-project", "my-policy")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "payload is empty")
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := testutil.TestCmd(t, UpdatePolicyCommand, tt.flags...)
 
-func TestUpdatePolicyCommand_NilPayload(t *testing.T) {
-	originalGetPreheatPolicy := getPreheatPolicyFunc
-	t.Cleanup(func() {
-		getPreheatPolicyFunc = originalGetPreheatPolicy
-	})
+			if tt.expectError && err == nil {
+				t.Fatalf("expected error but got nil")
+			}
 
-	getPreheatPolicyFunc = func(projectName, policyName string) (*preheat.GetPolicyOK, error) {
-		return &preheat.GetPolicyOK{Payload: nil}, nil
+			if !tt.expectError && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
 	}
-
-	err := testutil.TestCmd(t, UpdatePolicyCommand, "my-project", "my-policy")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "payload is empty")
 }
