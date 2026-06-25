@@ -15,10 +15,10 @@
 package policy
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/preheat"
+	"github.com/goharbor/harbor-cli/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,13 +32,7 @@ func TestUpdatePolicyCommand_NilPolicy(t *testing.T) {
 		return nil, nil
 	}
 
-	cmd := UpdatePolicyCommand()
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-	cmd.SetErr(&buf)
-	cmd.SetArgs([]string{"my-project", "my-policy"})
-
-	err := cmd.Execute()
+	err := testutil.TestCmd(t, UpdatePolicyCommand, "my-project", "my-policy")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "payload is empty")
 }
@@ -53,13 +47,7 @@ func TestUpdatePolicyCommand_NilPayload(t *testing.T) {
 		return &preheat.GetPolicyOK{Payload: nil}, nil
 	}
 
-	cmd := UpdatePolicyCommand()
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-	cmd.SetErr(&buf)
-	cmd.SetArgs([]string{"my-project", "my-policy"})
-
-	err := cmd.Execute()
+	err := testutil.TestCmd(t, UpdatePolicyCommand, "my-project", "my-policy")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "payload is empty")
 }
