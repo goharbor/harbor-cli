@@ -16,7 +16,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -136,38 +135,32 @@ func DefaultCredentialName(username, server string) string {
 	return fmt.Sprintf("%s@%s", username, sanitized)
 }
 
+var storageMultipliers = map[string]int64{
+	"MiB": 1024 * 1024,
+	"GiB": 1024 * 1024 * 1024,
+	"TiB": 1024 * 1024 * 1024 * 1024,
+}
+
 func StorageStringToBytes(storage string) (int64, error) {
-	// Define the conversion multipliers
-	multipliers := map[string]int64{
-		"MiB": 1024 * 1024,
-		"GiB": 1024 * 1024 * 1024,
-		"TiB": 1024 * 1024 * 1024 * 1024,
-	}
-
-	// Define the regex to parse the input string
-	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)$`)
-	matches := re.FindStringSubmatch(storage)
-	if matches == nil {
-		return 0, errors.New("invalid storage format")
-	}
-
-	// Extract the value and unit from the matches
-	valueStr, unit := matches[1], matches[2]
-	value, err := strconv.ParseInt(valueStr, 10, 64)
-	if err != nil {
+	if err := ValidateStorageLimit(storage); err != nil {
 		return 0, err
 	}
 
-	// Calculate the value in bytes
-	bytes := value * multipliers[unit]
-
-	// Check if the value exceeds 1024 TB
-	maxBytes := 1024 * 1024 * 1024 * 1024 * 1024
-	if bytes > int64(maxBytes) {
-		return 0, errors.New("value exceeds 1024 TB")
+	if storage == "-1" {
+		return -1, nil
 	}
 
-	return bytes, nil
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)?$`)
+	matches := re.FindStringSubmatch(storage)
+
+	value, _ := strconv.ParseInt(matches[1], 10, 64)
+
+	var multiplier int64 = 1
+	if unit := matches[2]; unit != "" {
+		multiplier = storageMultipliers[unit]
+	}
+
+	return value * multiplier, nil
 }
 
 func SavePayloadJSON(filename string, payload any) {

@@ -158,14 +158,38 @@ func ValidateProjectName(projectName string) bool {
 }
 
 func ValidateStorageLimit(sl string) error {
-	storageLimit, err := strconv.Atoi(sl)
-	if err != nil {
-		return errors.New("the storage limit only takes integer values")
+	if sl == "-1" {
+		return nil
 	}
 
-	if storageLimit < -1 || (storageLimit > -1 && storageLimit < 0) || storageLimit > 1024 {
-		return errors.New("the maximum value for the storage cannot exceed 1024 terabytes and -1 for no limit")
+	re := regexp.MustCompile(`^(\d+)(MiB|GiB|TiB)?$`)
+	matches := re.FindStringSubmatch(sl)
+	if matches == nil {
+		return errors.New("invalid storage format: only binary units (MiB, GiB, TiB) or plain numbers are supported")
 	}
+
+	valueStr, unit := matches[1], matches[2]
+	value, err := strconv.ParseInt(valueStr, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	var multiplier int64 = 1
+	if unit != "" {
+		var ok bool
+		multiplier, ok = storageMultipliers[unit]
+		if !ok {
+			return fmt.Errorf("invalid unit: %s", unit)
+		}
+	}
+
+	const maxTiB int64 = 1024
+	maxBytes := maxTiB * 1024 * 1024 * 1024 * 1024
+
+	if value > maxBytes/multiplier {
+		return fmt.Errorf("value exceeds the maximum allowed limit of %d TiB", maxTiB)
+	}
+
 	return nil
 }
 
