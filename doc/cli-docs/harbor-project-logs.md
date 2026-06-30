@@ -1,6 +1,6 @@
 ---
 title: harbor project logs
-weight: 90
+weight: 75
 ---
 ## harbor project logs
 

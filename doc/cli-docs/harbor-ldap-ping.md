@@ -1,6 +1,6 @@
 ---
 title: harbor ldap ping
-weight: 90
+weight: 10
 ---
 ## harbor ldap ping
 

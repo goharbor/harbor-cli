@@ -1,6 +1,6 @@
 ---
 title: harbor quota list
-weight: 85
+weight: 95
 ---
 ## harbor quota list
 

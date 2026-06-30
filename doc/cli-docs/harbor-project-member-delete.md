@@ -1,6 +1,6 @@
 ---
 title: harbor project member delete
-weight: 30
+weight: 5
 ---
 ## harbor project member delete
 

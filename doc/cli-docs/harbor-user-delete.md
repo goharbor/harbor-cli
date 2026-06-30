@@ -1,6 +1,6 @@
 ---
 title: harbor user delete
-weight: 185
+weight: 40
 ---
 ## harbor user delete
 
@@ -16,6 +16,7 @@ harbor user delete [flags]
 
 ```sh
   -h, --help   help for delete
+      --id     Use ID instead of username
 ```
 
 ### Options inherited from parent commands

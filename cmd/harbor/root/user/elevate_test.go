@@ -14,12 +14,9 @@
 package user
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,6 +73,8 @@ func newmockUserElevator(userCnt int, expectAuthError bool, confirmElevationFrom
 }
 
 func TestElevateUser(t *testing.T) {
+	origUseID := elevateUseID
+	defer func() { elevateUseID = origUseID }()
 	origGetUsersId := getUsersIDByName
 	origPrompt := getUserIDFromUser
 	origConfirm := confirmElevation
@@ -92,6 +91,7 @@ func TestElevateUser(t *testing.T) {
 		args            []string
 		expectedAdminID []int64
 		expectedErr     string
+		useID           bool
 	}{
 		{
 			name: "successfully elevate user by username",
@@ -120,7 +120,7 @@ func TestElevateUser(t *testing.T) {
 			},
 			args:            []string{"nonexistent"},
 			expectedAdminID: []int64{},
-			expectedErr:     "failed to get user id",
+			expectedErr:     "not found",
 		},
 		{
 			name: "user id is zero logs not found",
@@ -149,7 +149,7 @@ func TestElevateUser(t *testing.T) {
 			},
 			args:            []string{"test1"},
 			expectedAdminID: []int64{},
-			expectedErr:     "did not confirm",
+			expectedErr:     "user declined",
 		},
 		{
 			name: "confirmation prompt returns error",
@@ -175,22 +175,15 @@ func TestElevateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			originalLogOutput := log.StandardLogger().Out
-			log.SetOutput(&buf)
-			defer log.SetOutput(originalLogOutput)
-
+			elevateUseID = tt.useID
 			m := tt.setup()
 
-			_ = ElevateUser(tt.args)
-
-			logs := buf.String()
-			logs = strings.ToLower(logs)
+			err := ElevateUser(tt.args)
 
 			if tt.expectedErr != "" {
-				assert.Contains(t, logs, tt.expectedErr, "Expected error logs to contain %s but got %s", tt.expectedErr, logs)
+				assert.ErrorContains(t, err, tt.expectedErr, "Expected error to contain %s", tt.expectedErr)
 			} else {
-				assert.Empty(t, logs, "Expected no error logs but got: %s", logs)
+				assert.NoError(t, err, "Expected no error")
 			}
 
 			for _, id := range tt.expectedAdminID {
