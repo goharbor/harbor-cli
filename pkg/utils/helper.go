@@ -177,6 +177,26 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+// MaxPageSize is the maximum supported value for the page size parameter.
+const MaxPageSize int64 = 100
+
+// ValidatePagination validates page and page size parameters.
+func ValidatePagination(page, pageSize int64) error {
+	if page < 1 {
+		return fmt.Errorf("page number must be greater than or equal to 1")
+	}
+
+	if pageSize < 0 {
+		return fmt.Errorf("page size must be greater than or equal to 0")
+	}
+
+	if pageSize > MaxPageSize {
+		return fmt.Errorf("page size should be less than or equal to %d", MaxPageSize)
+	}
+
+	return nil
+}
+
 // ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
 // Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
