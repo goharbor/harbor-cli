@@ -14,10 +14,14 @@
 package root_test
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	helpers "github.com/goharbor/harbor-cli/test/helper"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -121,4 +125,59 @@ func Test_Login_Failure_MutuallyExclusiveFlags(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error when both --password and --password-stdin are set")
+}
+
+func Test_Login_Failure_OIDCMutuallyExclusiveFlags(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+
+	assert.NoError(t, cmd.Flags().Set("oidc", "true"))
+	assert.NoError(t, cmd.Flags().Set("username", "admin"))
+
+	err := cmd.Execute()
+	assert.Error(t, err, "Expected error when --oidc and --username are set")
+}
+
+func Test_RunOIDCLogin_Failure_MissingServer(t *testing.T) {
+	err := root.RunOIDCLogin("")
+	assert.Error(t, err)
+}
+
+func Test_RunOIDCLogin_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/c/oidc/login":
+			assert.Equal(t, "cli", r.URL.Query().Get("mode"))
+			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
+				RedirectURL: "https://idp.example/authorize",
+				State:       "state-1",
+			}))
+		case "/c/oidc/cli-token":
+			assert.Equal(t, "state-1", r.URL.Query().Get("state"))
+			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+				Status:   "ready",
+				IDToken:  "id-token",
+				Username: "alice",
+			}))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	err := root.RunOIDCLogin(server.URL)
+	assert.NoError(t, err)
+
+	cred, err := utils.GetCredentials(utils.DefaultCredentialName("alice", server.URL))
+	assert.NoError(t, err)
+	assert.Equal(t, utils.AuthTypeOIDC, cred.AuthType)
 }
