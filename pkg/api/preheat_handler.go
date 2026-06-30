@@ -214,3 +214,47 @@ func StopPreheatExecution(projectName string, policyName string, executionID int
 	}
 	return nil
 }
+
+func ListPreheatTasks(projectName, policyName string, executionID int64, opts ...ListFlags) (*preheat.ListTasksOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	var listFlags ListFlags
+	if len(opts) > 0 {
+		listFlags = opts[0]
+	}
+
+	response, err := client.Preheat.ListTasks(ctx, &preheat.ListTasksParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+		Page:              &listFlags.Page,
+		PageSize:          &listFlags.PageSize,
+		Q:                 &listFlags.Q,
+		Sort:              &listFlags.Sort,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func GetPreheatLog(projectName, policyName string, executionID, taskID int64) (*preheat.GetPreheatLogOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Preheat.GetPreheatLog(ctx, &preheat.GetPreheatLogParams{
+		ProjectName:       projectName,
+		PreheatPolicyName: policyName,
+		ExecutionID:       executionID,
+		TaskID:            taskID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
