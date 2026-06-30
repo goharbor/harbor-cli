@@ -16,7 +16,6 @@ package root
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
@@ -28,7 +27,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/login"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 )
 
 var (
@@ -53,13 +51,11 @@ func LoginCommand() *cobra.Command {
 			}
 
 			if passwordStdin {
-				fmt.Print("Password: ")
-				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
+				password, err := utils.GetSecretStdin("Password: ")
 				if err != nil {
 					return fmt.Errorf("failed to read password from stdin: %v", err)
 				}
-				fmt.Println()
-				Password = string(passwordBytes)
+				Password = password
 			}
 
 			loginView := login.LoginView{
