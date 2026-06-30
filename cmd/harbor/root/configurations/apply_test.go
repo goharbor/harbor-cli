@@ -22,6 +22,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// --- Command metadata tests ---
+
 func TestApplyConfigCmd_Metadata(t *testing.T) {
 	cmd := ApplyConfigCmd()
 
@@ -95,6 +97,197 @@ func TestApplyConfigCmd_Errors(t *testing.T) {
 				if !strings.Contains(err.Error(), tt.errContains) {
 					t.Fatalf("expected error containing %q, got %q", tt.errContains, err.Error())
 				}
+			}
+		})
+	}
+}
+
+// --- YAML parsing regression tests (fixes #1023) ---
+//
+// These tests directly exercise parseYAMLConfig to verify that:
+//   - the documented wrapped format (configurations: ...) is parsed correctly
+//   - a malformed wrapped file (wrong type under "configurations") is rejected
+//     with an error and does NOT silently fall back to a no-op flat parse
+//   - legacy flat files continue to work for backward compatibility
+//   - an empty "configurations" key is an explicit error
+
+func TestParseYAMLConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantErr     bool
+		errContains string
+		// checkResult is called only when wantErr is false.
+		checkResult func(t *testing.T, got interface{})
+	}{
+		{
+			name: "valid wrapped YAML",
+			input: `
+configurations:
+  auth_mode: db_auth
+`,
+			wantErr: false,
+			checkResult: func(t *testing.T, got interface{}) {
+				if got == nil {
+					t.Fatal("expected non-nil configurations")
+				}
+			},
+		},
+		{
+			// Regression test for #1023: a file that starts with "configurations:"
+			// but has an invalid value type must NOT silently succeed and produce
+			// a no-op apply.
+			name: "malformed wrapped YAML — configurations is a scalar not a map",
+			input: `
+configurations: "this should be a map"
+`,
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			// Regression test for #1023: a list under configurations must be rejected.
+			name: "malformed wrapped YAML — configurations is a list not a map",
+			input: `
+configurations:
+  - invalid_list_item
+`,
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			// Legacy flat files must continue to work (backward compatibility).
+			name: "legacy flat YAML",
+			input: `
+auth_mode: db_auth
+`,
+			wantErr: false,
+			checkResult: func(t *testing.T, got interface{}) {
+				if got == nil {
+					t.Fatal("expected non-nil configurations")
+				}
+			},
+		},
+		{
+			// "configurations:" with a null/empty value must return an error,
+			// not an empty configurations object that silently no-ops.
+			name:        "empty configurations key in YAML",
+			input:       "configurations:\n",
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			name:        "invalid YAML syntax",
+			input:       ":\t: invalid yaml :::",
+			wantErr:     true,
+			errContains: "failed to parse YAML",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseYAMLConfig([]byte(tt.input))
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error but got nil")
+				}
+				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
+					t.Fatalf("expected error containing %q, got: %v", tt.errContains, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tt.checkResult != nil {
+				tt.checkResult(t, got)
+			}
+		})
+	}
+}
+
+// --- JSON parsing regression tests (fixes #1023) ---
+
+func TestParseJSONConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantErr     bool
+		errContains string
+		checkResult func(t *testing.T, got interface{})
+	}{
+		{
+			name:    "valid wrapped JSON",
+			input:   `{"configurations": {"auth_mode": "db_auth"}}`,
+			wantErr: false,
+			checkResult: func(t *testing.T, got interface{}) {
+				if got == nil {
+					t.Fatal("expected non-nil configurations")
+				}
+			},
+		},
+		{
+			// Regression test for #1023: "configurations" pointing to a scalar
+			// must be rejected, not silently treated as empty.
+			name:        "malformed wrapped JSON — configurations is a string not an object",
+			input:       `{"configurations": "not-an-object"}`,
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			// Regression test for #1023: "configurations" pointing to a list
+			// must be rejected.
+			name:        "malformed wrapped JSON — configurations is an array",
+			input:       `{"configurations": ["a", "b"]}`,
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			// Legacy flat files must continue to work (backward compatibility).
+			name:    "legacy flat JSON",
+			input:   `{"auth_mode": "db_auth"}`,
+			wantErr: false,
+			checkResult: func(t *testing.T, got interface{}) {
+				if got == nil {
+					t.Fatal("expected non-nil configurations")
+				}
+			},
+		},
+		{
+			// "configurations": null must return an error.
+			name:        "null configurations value in JSON",
+			input:       `{"configurations": null}`,
+			wantErr:     true,
+			errContains: "configurations",
+		},
+		{
+			name:        "invalid JSON syntax",
+			input:       `{not valid json`,
+			wantErr:     true,
+			errContains: "failed to parse JSON",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseJSONConfig([]byte(tt.input))
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error but got nil")
+				}
+				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
+					t.Fatalf("expected error containing %q, got: %v", tt.errContains, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tt.checkResult != nil {
+				tt.checkResult(t, got)
 			}
 		})
 	}

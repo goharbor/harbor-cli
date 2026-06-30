@@ -54,22 +54,14 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				fileType := filepath.Ext(cfgFile)
 				switch fileType {
 				case ".yaml", ".yml":
-					var wrapper configWrapper
-					if err := yaml.Unmarshal(data, &wrapper); err == nil && wrapper.Configurations != nil {
-						configurations = wrapper.Configurations
-					} else {
-						if err := yaml.Unmarshal(data, &configurations); err != nil {
-							return fmt.Errorf("failed to parse YAML: %v", err)
-						}
+					configurations, err = parseYAMLConfig(data)
+					if err != nil {
+						return err
 					}
 				case ".json":
-					var wrapper configWrapper
-					if err := json.Unmarshal(data, &wrapper); err == nil && wrapper.Configurations != nil {
-						configurations = wrapper.Configurations
-					} else {
-						if err := json.Unmarshal(data, &configurations); err != nil {
-							return fmt.Errorf("failed to parse JSON: %v", err)
-						}
+					configurations, err = parseJSONConfig(data)
+					if err != nil {
+						return err
 					}
 				default:
 					return fmt.Errorf("unsupported file type: %s, expected '.yaml/.yml' or '.json'", fileType)
@@ -138,4 +130,71 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 
 type configWrapper struct {
 	Configurations *models.Configurations `yaml:"configurations" json:"configurations"`
+}
+
+// parseYAMLConfig parses a YAML configuration file into *models.Configurations.
+//
+// If the file contains a top-level "configurations" key (the documented wrapped
+// format), that key is decoded exclusively. A malformed wrapper (e.g. wrong
+// value type under "configurations") is treated as a fatal error so it cannot
+// silently fall back and produce an empty no-op apply.
+//
+// If no "configurations" key is present the file is treated as a legacy flat
+// configuration document for backward compatibility.
+func parseYAMLConfig(data []byte) (*models.Configurations, error) {
+	// Use a raw map to detect whether the top-level "configurations" key exists.
+	var rawMap map[string]interface{}
+	if err := yaml.Unmarshal(data, &rawMap); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %v", err)
+	}
+
+	if _, hasWrapper := rawMap["configurations"]; hasWrapper {
+		// Wrapped format: decode strictly into configWrapper.
+		var wrapper configWrapper
+		if err := yaml.Unmarshal(data, &wrapper); err != nil {
+			return nil, fmt.Errorf("failed to parse wrapped YAML configurations: %v", err)
+		}
+		if wrapper.Configurations == nil {
+			return nil, fmt.Errorf("'configurations' key is present in YAML but its value is empty or invalid")
+		}
+		return wrapper.Configurations, nil
+	}
+
+	// Legacy flat format.
+	var configurations models.Configurations
+	if err := yaml.Unmarshal(data, &configurations); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %v", err)
+	}
+	return &configurations, nil
+}
+
+// parseJSONConfig parses a JSON configuration file into *models.Configurations.
+//
+// Same detection strategy as parseYAMLConfig: check for a top-level
+// "configurations" key and treat a malformed wrapper as fatal.
+func parseJSONConfig(data []byte) (*models.Configurations, error) {
+	// Use a raw map to detect whether the top-level "configurations" key exists.
+	var rawMap map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+
+	if _, hasWrapper := rawMap["configurations"]; hasWrapper {
+		// Wrapped format: decode strictly into configWrapper.
+		var wrapper configWrapper
+		if err := json.Unmarshal(data, &wrapper); err != nil {
+			return nil, fmt.Errorf("failed to parse wrapped JSON configurations: %v", err)
+		}
+		if wrapper.Configurations == nil {
+			return nil, fmt.Errorf("'configurations' key is present in JSON but its value is empty or invalid")
+		}
+		return wrapper.Configurations, nil
+	}
+
+	// Legacy flat format.
+	var configurations models.Configurations
+	if err := json.Unmarshal(data, &configurations); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+	return &configurations, nil
 }
