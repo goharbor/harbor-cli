@@ -56,7 +56,8 @@ func ListImmutable(projectName string) (immutable.ListImmuRulesOK, error) {
 	if err != nil {
 		return immutable.ListImmuRulesOK{}, err
 	}
-	response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{ProjectNameOrID: projectName})
+	XIsResourceName := true
+	response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{ProjectNameOrID: projectName, XIsResourceName: &XIsResourceName})
 	if err != nil {
 		return immutable.ListImmuRulesOK{}, err
 	}
@@ -69,7 +70,8 @@ func DeleteImmutable(projectName string, ImmutableID int64) error {
 	if err != nil {
 		return err
 	}
-	_, err = client.Immutable.DeleteImmuRule(ctx, &immutable.DeleteImmuRuleParams{ProjectNameOrID: projectName, ImmutableRuleID: ImmutableID})
+	XIsResourceName := true
+	_, err = client.Immutable.DeleteImmuRule(ctx, &immutable.DeleteImmuRuleParams{ProjectNameOrID: projectName, ImmutableRuleID: ImmutableID, XIsResourceName: &XIsResourceName})
 	if err != nil {
 		return err
 	}
