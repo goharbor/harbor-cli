@@ -155,6 +155,10 @@ harbor help
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)
 
+	cmd = LogoutCommand()
+	cmd.GroupID = "access"
+	root.AddCommand(cmd)
+
 	cmd = user.User()
 	cmd.GroupID = "access"
 	root.AddCommand(cmd)

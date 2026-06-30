@@ -1,0 +1,45 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-logout - Log out from Harbor registry
+
+
+.SH SYNOPSIS
+\fBharbor logout [flags]\fP
+
+
+.SH DESCRIPTION
+Remove the current credential from the local CLI config.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for logout
+
+.PP
+\fB-y\fP, \fB--yes\fP[=false]
+	Skip confirmation prompt
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor logout
+.EE
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP
