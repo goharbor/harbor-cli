@@ -251,3 +251,29 @@ func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column
 
 	return filteredColumns
 }
+
+// ValidateCronExpression ensures the provided cron string matches Harbor's 6-field requirements.
+func ValidateCronExpression(cron string) error {
+	if cron == "" {
+		return errors.New("cron expression cannot be empty")
+	}
+	fields := strings.Fields(cron)
+	if len(fields) != 6 {
+		if len(fields) == 5 {
+			return fmt.Errorf("you entered a 5-field cron expression, but Harbor requires 6 fields (with seconds)\n"+
+				"Please add a seconds field at the beginning. For example: '0 %s'", cron)
+		}
+		return fmt.Errorf("harbor requires exactly 6 fields in cron expressions (seconds minute hour day month weekday), got %d", len(fields))
+	}
+
+	cronRegex := regexp.MustCompile(`^(\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|[1-5][0-9]|\*/([1-9]|[1-5][0-9])) (\*|[0-9]|1[0-9]|2[0-3]|\*/([1-9]|1[0-9]|2[0-3])) (\*|[1-9]|[12][0-9]|3[01]|\*/([1-9]|[12][0-9]|3[01])) (\*|[1-9]|1[0-2]|\*/([1-9]|1[0-2])) (\*|[0-6]|\*/[1-6])$`)
+
+	if !cronRegex.MatchString(cron) {
+		return errors.New("invalid cron expression format\n" +
+			"Examples:\n" +
+			"  0 0 0 * * *    - Daily at midnight\n" +
+			"  0 0 */6 * * *  - Every 6 hours\n" +
+			"  0 0 0 * * 0    - Weekly on Sunday at midnight")
+	}
+	return nil
+}
