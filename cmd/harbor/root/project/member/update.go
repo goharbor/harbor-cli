@@ -53,36 +53,36 @@ func UpdateMemberCommand() *cobra.Command {
 				}
 			}
 
-			if memberName == "" {
-				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
-
-				if opts.ID == 0 {
-					return fmt.Errorf("No members found in project")
-				}
-			} else {
-				opts.ID, err = api.GetUsersIdByName(memberName)
-				if err != nil {
-					return err
-				}
-			}
-
 			if roleID == 0 {
 				roleID = prompt.GetRoleIDFromUser()
 			}
-			opts.RoleID = &models.RoleRequest{
-				RoleID: roleID,
-			}
+			role := &models.RoleRequest{RoleID: roleID}
 
 			// when set true parses projectNameOrID as projectName
 			// else it parses as an integer ID
 			opts.XIsResourceName = !isID
+			opts.RoleID = role
 
-			err = api.UpdateMember(opts)
-			if err != nil {
-				return fmt.Errorf("failed to get members list: %v", err)
+			if memberName != "" {
+				if err = api.UpdateMemberByUsername(opts.ProjectNameOrID, memberName, opts.XIsResourceName, role); err != nil {
+					return fmt.Errorf("failed to update member: %v", err)
+				}
+				fmt.Printf("successfully updated %s to role ID %d in project %s\n", memberName, roleID, opts.ProjectNameOrID)
+				return nil
 			}
 
-			fmt.Printf("successfully updated user with ID %d with role ID %d for project %s\n", opts.ID, opts.RoleID, opts.ProjectNameOrID)
+			if opts.ID == 0 {
+				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
+				if opts.ID == 0 {
+					return fmt.Errorf("No members found in project")
+				}
+			}
+
+			if err = api.UpdateMember(opts); err != nil {
+				return fmt.Errorf("failed to update member: %v", err)
+			}
+
+			fmt.Printf("successfully updated member ID %d to role ID %d in project %s\n", opts.ID, roleID, opts.ProjectNameOrID)
 			return nil
 		},
 	}
