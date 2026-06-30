@@ -45,6 +45,40 @@ func ListReplicationPolicies(opts ...ListFlags) (*replication.ListReplicationPol
 	return response, nil
 }
 
+func GetAllReplicationPolicies(
+	listFunc func(...ListFlags) (*replication.ListReplicationPoliciesOK, error),
+	opts ListFlags,
+) ([]*models.ReplicationPolicy, error) {
+	var allPolicies []*models.ReplicationPolicy
+	if opts.PageSize == 0 {
+		opts.PageSize = 100
+		opts.Page = 1
+
+		for {
+			policies, err := listFunc(opts)
+			if err != nil {
+				return nil, err
+			}
+
+			allPolicies = append(allPolicies, policies.Payload...)
+
+			if len(policies.Payload) < int(opts.PageSize) {
+				break
+			}
+
+			opts.Page++
+		}
+	} else {
+		policies, err := listFunc(opts)
+		if err != nil {
+			return nil, err
+		}
+		allPolicies = policies.Payload
+	}
+
+	return allPolicies, nil
+}
+
 func GetReplicationPolicy(policyID int64) (*replication.GetReplicationPolicyOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -164,6 +198,41 @@ func ListReplicationExecutions(policyID int64, opts ...ListFlags) (*replication.
 		return nil, err
 	}
 	return response, nil
+}
+
+func GetAllReplicationExecutions(
+	policyID int64,
+	listFunc func(int64, ...ListFlags) (*replication.ListReplicationExecutionsOK, error),
+	opts ListFlags,
+) ([]*models.ReplicationExecution, error) {
+	var allExecutions []*models.ReplicationExecution
+	if opts.PageSize == 0 {
+		opts.PageSize = 100
+		opts.Page = 1
+
+		for {
+			executions, err := listFunc(policyID, opts)
+			if err != nil {
+				return nil, err
+			}
+
+			allExecutions = append(allExecutions, executions.Payload...)
+
+			if len(executions.Payload) < int(opts.PageSize) {
+				break
+			}
+
+			opts.Page++
+		}
+	} else {
+		executions, err := listFunc(policyID, opts)
+		if err != nil {
+			return nil, err
+		}
+		allExecutions = executions.Payload
+	}
+
+	return allExecutions, nil
 }
 
 func GetReplicationExecution(executionID int64) (*replication.GetReplicationExecutionOK, error) {

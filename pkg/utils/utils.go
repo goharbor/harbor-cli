@@ -18,11 +18,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/gocarina/gocsv"
@@ -187,13 +187,25 @@ func SavePayloadJSON(filename string, payload any) {
 
 // Get Password as Stdin
 func GetSecretStdin(prompt string) (string, error) {
-	fmt.Print(prompt)
-	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	if term.IsTerminal(int(os.Stdin.Fd())) { // #nosec G115 - fd fits in int on all supported platforms
+		fmt.Print(prompt)
+		bytePassword, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
+		if err != nil {
+			return "", err
+		}
+		fmt.Println() // move to the next line after input
+		return trimSecretLineEnding(bytePassword), nil
+	}
+
+	bytePassword, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println() // move to the next line after input
-	return strings.TrimSpace(string(bytePassword)), nil
+	return trimSecretLineEnding(bytePassword), nil
+}
+
+func trimSecretLineEnding(secret []byte) string {
+	return strings.TrimRight(string(secret), "\r\n")
 }
 
 func ToKebabCase(s string) string {

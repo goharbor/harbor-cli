@@ -14,6 +14,7 @@
 package selection
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -24,6 +25,11 @@ import (
 )
 
 const listHeight = 14
+
+var (
+	ErrUserAborted = errors.New("user aborted selection")
+	ErrNoSelection = errors.New("no item selected")
+)
 
 type Item string
 
@@ -83,6 +89,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
+		case "ctrl+c":
+			m.Aborted = true
+			return m, tea.Quit
+		case "esc", "q":
+			if m.List.FilterState() != list.Filtering {
+				m.Aborted = true
+				return m, tea.Quit
+			}
 		case "enter":
 			if m.List.FilterState() != list.Filtering {
 				i, ok := m.List.SelectedItem().(Item)
@@ -97,6 +111,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.List, cmd = m.List.Update(msg)
 	return m, cmd
+}
+
+func (m Model) SelectedChoice() (string, error) {
+	if m.Aborted {
+		return "", ErrUserAborted
+	}
+	if m.Choice == "" {
+		return "", ErrNoSelection
+	}
+	return m.Choice, nil
 }
 
 func (m Model) View() string {
