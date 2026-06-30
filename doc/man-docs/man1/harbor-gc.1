@@ -1,0 +1,61 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-gc - Manage Garbage Collection in Harbor
+
+
+.SH SYNOPSIS
+\fBharbor gc [flags]\fP
+
+
+.SH DESCRIPTION
+Use this command to manage registry-wide Garbage Collection (GC) in your Harbor instance.
+
+.PP
+Garbage Collection cleans up deleted or orphaned blobs/tags in the registry to free up storage space.
+This command supports listing execution history, viewing logs, showing schedule configuration, stopping running jobs, and triggering manual runs.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for gc
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  # View Garbage Collection execution history
+  harbor gc history
+
+  # Get the current Garbage Collection schedule
+  harbor gc schedule
+
+  # Trigger Garbage Collection run immediately
+  harbor gc trigger --delete-untagged --dry-run=false
+
+  # View execution logs for a GC run
+  harbor gc log 12
+
+  # Stop a running Garbage Collection run
+  harbor gc stop 12
+
+  # Update the automatic Garbage Collection schedule
+  harbor gc update-schedule daily --delete-untagged
+.EE
+
+
+.SH SEE ALSO
+\fBharbor(1)\fP, \fBharbor-gc-history(1)\fP
