@@ -64,6 +64,11 @@ Make sure to run 'harbor config get' first to populate the local config file wit
 				default:
 					return fmt.Errorf("unsupported file type: %s, expected '.yaml/.yml' or '.json'", fileType)
 				}
+
+				if configurations == nil {
+					fmt.Println("Warning: Config file is empty or contains no valid configurations.")
+					return nil
+				}
 			} else {
 				return fmt.Errorf("no config file specified")
 			}
