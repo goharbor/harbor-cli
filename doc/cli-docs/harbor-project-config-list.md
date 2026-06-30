@@ -46,7 +46,7 @@ harbor project config list  [project_name] [flags]
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
       --id                     Use project ID instead of name
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 

@@ -40,6 +40,29 @@ func (m *HarborCli) PublishImageAndSign(
 	}
 
 	for _, addr := range imageAddrs {
+		// Generate SBOM (SPDX JSON) for the published image
+		sbom := m.GenerateSBOM(
+			ctx,
+			addr,
+			registryUsername,
+			registryPassword,
+		)
+
+		// Attest SBOM to the image using Cosign in-toto attestation
+		if _, err := m.AttestSBOM(
+			ctx,
+			sbom,
+			addr,
+			registryUsername,
+			registryPassword,
+			githubToken,
+			actionsIdTokenRequestUrl,
+			actionsIdTokenRequestToken,
+		); err != nil {
+			return "", fmt.Errorf("failed to attest SBOM for image %s: %w", addr, err)
+		}
+		fmt.Printf("Attested SBOM for image: %s\n", addr)
+
 		_, err = m.Sign(
 			ctx,
 			githubToken,
@@ -230,29 +253,29 @@ func (m *HarborCli) Sign(ctx context.Context,
 	registryPassword *dagger.Secret,
 	imageAddr string,
 ) (string, error) {
-	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
+	cosignCtr := dag.Container().
+		From("cgr.dev/chainguard/cosign").
+		WithSecretVariable("REGISTRY_PASSWORD", registryPassword)
 
-	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
-
-	// If githubToken is provided, use it to sign the image
+	// If githubToken is provided, configure OIDC for keyless signing
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == nil || actionsIdTokenRequestToken == nil {
-			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%v) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl != nil, actionsIdTokenRequestToken != nil)
 		}
-		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
-		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		cosignCtr = cosignCtr.
+			WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
-	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+	return cosignCtr.
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{
-			"cosign", "sign", "--yes", "--recursive",
-			"--registry-username", registryUsername,
-			"--registry-password", registryPasswordPlain,
-			imageAddr,
-			"--timeout", "1m",
+			"sh", "-c",
+			cosignWithRetry(fmt.Sprintf(
+				"cosign sign --yes --recursive --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 2m",
+				shellQuote(registryUsername), shellQuote(imageAddr),
+			)),
 		}).Stdout(ctx)
 }
 
@@ -263,4 +286,106 @@ func getVersion(tags []string) string {
 		}
 	}
 	return "latest"
+}
+
+// GenerateSBOM uses Syft to create an SPDX JSON SBOM for a given image and returns it as a file
+func (m *HarborCli) GenerateSBOM(
+	ctx context.Context,
+	imageAddr string,
+	registryUsername string,
+	registryPassword *dagger.Secret,
+) *dagger.File {
+	syftCtr := dag.Container().
+		From("anchore/syft:latest").
+		WithSecretVariable("SYFT_REGISTRY_AUTH_PASSWORD", registryPassword).
+		WithEnvVariable("SYFT_REGISTRY_AUTH_USERNAME", registryUsername).
+		// anchore/syft is FROM scratch with ENTRYPOINT ["/syft"] and no $PATH,
+		// so call the binary by its absolute path.
+		WithExec([]string{"/syft", imageAddr, "-o", "spdx-json=/sbom.spdx.json"})
+
+	return syftCtr.File("/sbom.spdx.json")
+}
+
+// AttestSBOM attaches an in-toto attestation (SBOM predicate) to the image using Cosign
+func (m *HarborCli) AttestSBOM(
+	ctx context.Context,
+	sbomFile *dagger.File,
+	imageAddr string,
+	registryUsername string,
+	registryPassword *dagger.Secret,
+	// +optional
+	githubToken *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestUrl *dagger.Secret,
+	// +optional
+	actionsIdTokenRequestToken *dagger.Secret,
+) (string, error) {
+	cosignCtr := dag.Container().
+		From("cgr.dev/chainguard/cosign").
+		WithMountedFile("/sbom.spdx.json", sbomFile).
+		WithSecretVariable("REGISTRY_PASSWORD", registryPassword)
+
+	// If githubToken is provided, configure OIDC for keyless signing
+	if githubToken != nil {
+		if actionsIdTokenRequestUrl == nil || actionsIdTokenRequestToken == nil {
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%v) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl != nil, actionsIdTokenRequestToken != nil)
+		}
+		cosignCtr = cosignCtr.
+			WithSecretVariable("GITHUB_TOKEN", githubToken).
+			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
+			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
+	}
+
+	// Use cosign attest to create in-toto attestation with SPDX JSON predicate
+	// The registry password is already available as REGISTRY_PASSWORD env var
+	return cosignCtr.WithExec([]string{
+		"sh", "-c",
+		cosignWithRetry(fmt.Sprintf(
+			"cosign attest --yes --type spdxjson --predicate /sbom.spdx.json --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 2m",
+			shellQuote(registryUsername), shellQuote(imageAddr),
+		)),
+	}).Stdout(ctx)
+}
+
+func cosignWithRetry(command string) string {
+	return fmt.Sprintf(`
+set +e
+attempt=1
+max_attempts=3
+
+while [ "$attempt" -le "$max_attempts" ]; do
+	output=$(%s 2>&1)
+	status=$?
+	printf '%%s\n' "$output"
+
+	if [ "$status" -eq 0 ]; then
+		exit 0
+	fi
+
+	case "$output" in
+		*createLogEntryConflict*|*"equivalent entry already exists"*)
+			printf 'cosign transparency log entry already exists; treating as success\n'
+			exit 0
+			;;
+	esac
+
+	if [ "$attempt" -eq "$max_attempts" ]; then
+		exit "$status"
+	fi
+
+	case "$output" in
+		*INTERNAL_ERROR*|*"stream error"*|*timeout*|*"connection reset"*|*"temporary failure"*)
+			sleep $((attempt * 10))
+			attempt=$((attempt + 1))
+			;;
+		*)
+			exit "$status"
+			;;
+	esac
+done
+`, command)
+}
+
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

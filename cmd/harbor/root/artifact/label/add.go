@@ -24,6 +24,7 @@ import (
 
 // AddLabelArtifactCommmand adds a label to an artifact
 func AddLabelArtifactCommmand() *cobra.Command {
+	var isProject bool
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Attach a label to an artifact in a Harbor project repository",
@@ -47,6 +48,7 @@ Examples:
 				labelName                        string
 				labelID                          int64
 				err                              error
+				opts                             api.ListFlags
 			)
 
 			if len(args) >= 1 {
@@ -62,15 +64,25 @@ Examples:
 				repoName = prompt.GetRepoNameFromUser(projectName)
 				reference = prompt.GetReferenceFromUser(repoName, projectName)
 			}
+			if isProject {
+				id, err := api.GetProjectIDFromName(projectName)
+				if err != nil {
+					return err
+				}
+				opts.Scope = "p"
+				opts.ProjectID = id
+			} else {
+				opts.Scope = "g"
+			}
 
 			if len(args) == 2 {
 				labelName = args[1]
-				labelID, err = api.GetLabelIdByName(labelName, api.ListFlags{})
+				labelID, err = api.GetLabelIdByName(labelName, opts)
 				if err != nil {
 					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
 			} else {
-				labelID, err = prompt.GetLabelIdFromUser(api.ListFlags{})
+				labelID, err = prompt.GetLabelIdFromUser(opts)
 				if err != nil {
 					return fmt.Errorf("failed to get label id: %v", utils.ParseHarborErrorMsg(err))
 				}
@@ -86,6 +98,8 @@ Examples:
 			return nil
 		},
 	}
+	flags := cmd.Flags()
+	flags.BoolVarP(&isProject, "project", "p", false, "Add project-scoped labels. eg --project, -p(specific project)")
 
 	return cmd
 }

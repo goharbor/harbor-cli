@@ -129,14 +129,16 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		return fmt.Errorf("failed to load robot config from file: %v", err)
 	}
 
-	logrus.Info("Successfully loaded robot configuration")
+	logrus.Debug("Successfully loaded robot configuration")
 	*opts = *loadedOpts
 
+	if opts.Level != "system" {
+		return fmt.Errorf("invalid robot configuration: level must be 'system'. If you try to create a project-level robot, please run the `harbor-cli project robot create` command instead.")
+	}
+
 	// Extract system-level and project permissions
-	var systemPermFound bool
 	for _, perm := range opts.Permissions {
 		if perm.Kind == "system" && perm.Namespace == "/" {
-			systemPermFound = true
 			*permissions = make([]models.Permission, len(perm.Access))
 			for i, access := range perm.Access {
 				(*permissions)[i] = models.Permission{
@@ -156,11 +158,7 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		}
 	}
 
-	if !systemPermFound {
-		return fmt.Errorf("system robot configuration must include system-level permissions")
-	}
-
-	logrus.Infof("Loaded system robot with %d system permissions and %d project-specific permissions",
+	logrus.Debugf("Loaded system robot with %d system permissions and %d project-specific permissions",
 		len(*permissions), len(projectPermissionsMap))
 
 	return nil
@@ -304,12 +302,15 @@ func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission
 		})
 	}
 
-	// Add system permissions
-	mergedPermissions = append(mergedPermissions, &create.RobotPermission{
-		Namespace: "/",
-		Access:    accessesSystem,
-		Kind:      "system",
-	})
+	// check whether system permissions are included
+	if len(accessesSystem) > 0 {
+		// Add system permissions
+		mergedPermissions = append(mergedPermissions, &create.RobotPermission{
+			Namespace: "/",
+			Access:    accessesSystem,
+			Kind:      "system",
+		})
+	}
 
 	return mergedPermissions
 }
@@ -325,7 +326,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 		}
 	}
 
-	logrus.Infof("Successfully created robot account '%s' (ID: %d)",
+	fmt.Printf("Successfully created robot account '%s' (ID: %d)\n",
 		response.Payload.Name, response.Payload.ID)
 
 	// Handle output format
@@ -339,7 +340,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 	name, secret := response.Payload.Name, response.Payload.Secret
 
 	if exportToFile {
-		logrus.Info("Exporting robot credentials to file")
+		fmt.Printf("Exporting robot credentials to file\n")
 		exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
 		return nil
 	}

@@ -20,6 +20,9 @@ import (
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/harbor"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/ping"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/login"
@@ -29,11 +32,12 @@ import (
 )
 
 var (
-	serverAddress string
-	Username      string
-	Password      string
-	Name          string
-	passwordStdin bool
+	serverAddress    string
+	Username         string
+	Password         string
+	Name             string
+	passwordStdin    bool
+	skipVerifyClient bool
 )
 
 // LoginCommand creates a new `harbor login` command
@@ -80,9 +84,12 @@ func LoginCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&Username, "username", "u", "", "Username")
-	flags.StringVarP(&Name, "context-name", "", "", "Login context name (optional)")
-	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.StringVarP(&Name, "context-name", "n", "", "Login context name (optional)")
+	flags.StringVarP(&Password, "password", "p", "", "Password (not recommended, use --password-stdin for better security)")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.BoolVarP(&skipVerifyClient, "skip-verify-client", "", false, "Skip whether the clients basic auth credentials shall be validated against the Harbor server during login. This is not recommended as it may lead to storing invalid credentials. Use this flag if you want to skip validation of credentials during login, for example, when the Harbor server is not reachable at the moment of login but you still want to store the credentials for later use.")
+
+	cmd.MarkFlagsMutuallyExclusive("password", "password-stdin")
 
 	return cmd
 }
@@ -133,13 +140,13 @@ func RunLogin(opts login.LoginView) error {
 		return fmt.Errorf("invalid server URL: %w", err)
 	}
 	client := utils.GetClientByConfig(clientConfig)
-	ctx := context.Background()
-	_, err = client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
-	if err != nil {
-		if !strings.Contains(err.Error(), "status 412") {
-			return fmt.Errorf("%v", utils.ParseHarborErrorMsg(err))
+
+	if !skipVerifyClient {
+		if err := validateClientConnection(client); err != nil {
+			return err
 		}
 	}
+
 	if err := utils.GenerateEncryptionKey(); err != nil {
 		fmt.Println("Encryption key already exists or could not be created:", err)
 	}
@@ -199,4 +206,55 @@ func RunLogin(opts login.LoginView) error {
 	log.Debugf("Credentials successfully added to the config file.")
 	fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 	return nil
+}
+
+func validateClientConnection(client *client.HarborAPI) error {
+	ctx := context.Background()
+
+	// Primary check: GetCurrentUserInfo requires auth → 401 for bad creds.
+	_, err := client.User.GetCurrentUserInfo(ctx, &user.GetCurrentUserInfoParams{})
+	if err == nil {
+		return nil
+	}
+
+	errorCode := utils.ParseHarborErrorCode(err)
+	// 401/403 = definite auth failure
+	if errorCode == "401" || errorCode == "403" {
+		return fmt.Errorf("authentication failed, check your credentials: %v", utils.ParseHarborErrorMsg(err))
+	}
+
+	// For other errors (e.g. 412 for robot/OIDC accounts, 5xx),
+	// fall back to secondary endpoints to verify creds and reachability.
+	_, projectErr := client.Project.ListProjects(ctx, &project.ListProjectsParams{
+		Page:     new(int64(1)),
+		PageSize: new(int64(1)),
+	})
+	_, pingErr := client.Ping.GetPing(ctx, &ping.GetPingParams{})
+
+	// If either secondary check returns 401/403, creds are bad.
+	if projectErr != nil {
+		projCode := utils.ParseHarborErrorCode(projectErr)
+		if projCode == "401" || projCode == "403" {
+			return fmt.Errorf("authentication failed, check your credentials: %v", utils.ParseHarborErrorMsg(projectErr))
+		}
+	}
+
+	// Both passed → creds valid, server reachable
+	if projectErr == nil && pingErr == nil {
+		return nil
+	}
+
+	// Build diagnostic message
+	var results []string
+	if projectErr != nil {
+		results = append(results, fmt.Sprintf("ListProjects failed: %v", projectErr))
+	} else {
+		results = append(results, "ListProjects succeeded")
+	}
+	if pingErr != nil {
+		results = append(results, fmt.Sprintf("Ping failed: %v", pingErr))
+	} else {
+		results = append(results, "Ping succeeded")
+	}
+	return fmt.Errorf("server error (status %s): %v (%s)", errorCode, utils.ParseHarborErrorMsg(err), strings.Join(results, "; "))
 }

@@ -113,13 +113,28 @@ dagger call run-doc export --path=./doc
 git commit -s -m "feat(project): add delete command for project resources"
 ```
 
-### 7. Push and Open a PR
+### 7. Push to your own fork
 
 ```bash
 git push origin feat/<your-feature-name>
 ```
 
-Then, [Open a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on GitHub
+### 8. Create a dedicated issue **first**
+
+Before opening a pull request, please [open a dedicated issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue) describing the problem you're solving or the feature you're proposing. This gives maintainers a chance to provide early feedback and helps avoid duplicated effort.
+
+**Pull requests without a linked issue will not be reviewed and may be closed.**
+
+### 9. Open a Pull Request
+
+Once your issue has been acknowledged, [open a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and [link it to your issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue).
+
+A good PR includes:
+- A clear description of **what** changed and **why**
+- Evidence that you tested your changes (screenshots, terminal output, etc.)
+- Well-structured, readable commits
+
+> **A note on AI-generated contributions:** We appreciate the intent, but please don't submit PRs that are purely AI-generated without your own understanding and review. Drive-by PRs — especially bulk or low-effort ones produced by AI tools — add review burden for maintainers and will be closed. If you use AI to assist your work, that's fine — just make sure you understand every line you're submitting and can speak to the changes in review.
 
 ## 🧪 Running Tests
 

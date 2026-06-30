@@ -44,6 +44,9 @@ func ListProjectCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting project list command")
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
 
 			if opts.PageSize < 0 {
 				return fmt.Errorf("page size must be greater than or equal to 0")
@@ -90,7 +93,7 @@ func ListProjectCommand() *cobra.Command {
 
 			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
 			if len(allProjects) == 0 {
-				log.Info("No projects found")
+				fmt.Println("No projects found")
 				return nil
 			}
 			formatFlag := viper.GetString("output-format")

@@ -50,7 +50,7 @@ You can use this command to verify changes after updating the schedule with the 
 		Args:    cobra.MaximumNArgs(0),
 		Aliases: []string{"vs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Info("Retrieving scan all schedule configuration")
+			logrus.Debug("Retrieving scan all schedule configuration")
 			schedule, err := api.GetScanAllSchedule()
 			if err != nil {
 				logrus.Errorf("Failed to retrieve scan all schedule: %v", utils.ParseHarborErrorMsg(err))

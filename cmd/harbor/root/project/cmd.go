@@ -35,6 +35,7 @@ func Project() *cobra.Command {
 		SearchProjectCommand(),
 		Robot(),
 		Member(),
+		Preheat(),
 	)
 
 	return cmd

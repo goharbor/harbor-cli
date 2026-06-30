@@ -37,7 +37,17 @@ func ListCommand() *cobra.Command {
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting replication executions list command")
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
 
+			if opts.PageSize < 0 {
+				return fmt.Errorf("page size must be greater than or equal to 0")
+			}
+
+			if opts.PageSize > 100 {
+				return fmt.Errorf("page size should be less than or equal to 100")
+			}
 			var rpolicyID int64
 			if len(args) > 0 {
 				var err error
@@ -50,14 +60,6 @@ func ListCommand() *cobra.Command {
 				rpolicyID = prompt.GetReplicationPolicyFromUser()
 			}
 
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
-			}
-
 			log.Debug("Fetching executions...")
 			executions, err := api.ListReplicationExecutions(rpolicyID, opts)
 			if err != nil {
@@ -66,7 +68,7 @@ func ListCommand() *cobra.Command {
 
 			log.WithField("count", len(executions.Payload)).Debug("Number of executions fetched")
 			if len(executions.Payload) == 0 {
-				log.Info("No executions found")
+				fmt.Println("No executions found")
 				return nil
 			}
 

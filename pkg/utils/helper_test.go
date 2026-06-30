@@ -143,6 +143,10 @@ func TestValidateURL(t *testing.T) {
 		{"valid IPv4", "http://192.168.1.1", false},
 		{"valid IPv4 with port", "http://192.168.1.1:8080", false},
 		{"valid IPv6", "http://[::1]", false},
+		{"valid localhost http", "http://localhost", false},
+		{"valid localhost https", "https://localhost", false},
+		{"valid localhost http with port", "http://localhost:8080", false},
+		{"valid localhost https with port", "https://localhost:8443", false},
 
 		// invalid URLs
 		{"empty string", "", true},
@@ -197,6 +201,20 @@ func TestPrintFormat(t *testing.T) {
 	os.Stdout = oldOut
 	assert.NoError(t, err)
 	assert.Contains(t, buf.String(), "foo: bar")
+
+	// CSV
+	buf.Reset()
+	r, w, _ = os.Pipe()
+	os.Stdout = w
+	err = utils.PrintFormat([]payload{obj}, "csv")
+	w.Close()
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
+	os.Stdout = oldOut
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Foo")
+	assert.Contains(t, buf.String(), "bar")
 
 	// unsupported
 	err = utils.PrintFormat(obj, "xml")

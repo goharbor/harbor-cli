@@ -19,10 +19,11 @@ harbor login [server] [flags]
 ### Options
 
 ```sh
-      --context-name string   Login context name (optional)
+  -n, --context-name string   Login context name (optional)
   -h, --help                  help for login
-  -p, --password string       Password
+  -p, --password string       Password (not recommended, use --password-stdin for better security)
       --password-stdin        Take the password from stdin
+      --skip-verify-client    Skip whether the clients basic auth credentials shall be validated against the Harbor server during login. This is not recommended as it may lead to storing invalid credentials. Use this flag if you want to skip validation of credentials during login, for example, when the Harbor server is not reachable at the moment of login but you still want to store the credentials for later use.
   -u, --username string       Username
 ```
 
@@ -30,7 +31,7 @@ harbor login [server] [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 

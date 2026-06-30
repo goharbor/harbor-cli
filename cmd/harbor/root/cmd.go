@@ -23,6 +23,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/instance"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/labels"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/ldap"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/project"
@@ -85,7 +86,7 @@ harbor help
 		},
 	}
 
-	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml")
+	root.PersistentFlags().StringVarP(&output, "output-format", "o", "", "Output format. One of: json|yaml|csv")
 	root.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/harbor-cli/config.yaml)")
 	root.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
@@ -200,6 +201,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = vulnerability.Vulnerability()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = jobservice.JobService()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 

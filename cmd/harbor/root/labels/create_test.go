@@ -248,3 +248,16 @@ func TestCreateLabelCommand_FlagDescriptions(t *testing.T) {
 	descFlag := flags.Lookup("description")
 	assert.Contains(t, descFlag.Usage, "Description of the label")
 }
+
+func TestListLabelCommand_InvalidPage(t *testing.T) {
+	cmd := ListLabelCommand()
+
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{"--page", "0"})
+
+	err := cmd.Execute()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "page number must be greater than or equal to 1")
+}

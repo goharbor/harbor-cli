@@ -15,6 +15,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -22,7 +23,12 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
-	log "github.com/sirupsen/logrus"
+)
+
+// Function variables for testing - these can be swapped in tests
+var (
+	listMembersFunc  = ListMembers
+	deleteMemberFunc = DeleteMember
 )
 
 // View a Member in a project
@@ -86,46 +92,58 @@ func CreateMember(opts create.CreateView) error {
 	}
 
 	if response != nil {
-		log.Info("Member created successfully")
+		fmt.Println("Member created successfully")
 	}
 
 	return nil
 }
 
-func DeleteAllMember(projectName string, xIsResourceName bool) {
+func DeleteAllMember(projectName string, xIsResourceName bool) error {
 	var wg sync.WaitGroup
-	response, _ := ListMembers(projectName, "", true)
-	length := len(response.Payload)
-	errChan := make(chan error, length)
 
-	if length < 1 {
-		log.Info("No members found in project")
-		return
+	response, err := listMembersFunc(projectName, "", true)
+	if err != nil {
+		return fmt.Errorf("failed to list members: %w", err)
 	}
+
+	length := len(response.Payload)
+	if length < 1 {
+		fmt.Println("No members found in project")
+		return fmt.Errorf("no members found in project %s", projectName)
+	}
+
+	errChan := make(chan error, length)
 
 	for _, member := range response.Payload {
 		wg.Add(1)
 		go func(memberID int64) {
 			defer wg.Done()
-			err := DeleteMember(projectName, memberID, xIsResourceName)
+			err := deleteMemberFunc(projectName, memberID, xIsResourceName)
 			if err != nil {
 				errChan <- err
 			}
-		}(member.ID) // Pass member.ID to the goroutine
+		}(member.ID)
 	}
 
-	// Wait for all goroutines to finish
+	// Wait for all goroutines to finish then close the channel
 	go func() {
 		wg.Wait()
 		close(errChan)
 	}()
 
-	// Handle errors after all deletions are done
+	// Collect errors from deletions
+	var errs []error
 	for err := range errChan {
 		if err != nil {
-			log.Errorln("Error:", err)
+			errs = append(errs, err)
 		}
 	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to delete %d member(s): %w", len(errs), errors.Join(errs...))
+	}
+
+	return nil
 }
 
 func DeleteMember(projectName string, memberID int64, xIsResourceName bool) error {
@@ -141,7 +159,7 @@ func DeleteMember(projectName string, memberID int64, xIsResourceName bool) erro
 		return err
 	}
 
-	log.Info("Member deleted successfully")
+	fmt.Println("Member deleted successfully")
 	return nil
 }
 
@@ -173,7 +191,7 @@ func DeleteMemberByUsername(projectName string, username string, xIsResourceName
 		return err
 	}
 
-	log.Info("Member deleted successfully")
+	fmt.Println("Member deleted successfully")
 	return nil
 }
 
@@ -195,7 +213,7 @@ func UpdateMember(opts UpdateMemberOptions) error {
 		return err
 	}
 
-	log.Info("member role updated successfully")
+	fmt.Println("Member role updated successfully")
 
 	return nil
 }

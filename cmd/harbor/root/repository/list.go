@@ -36,6 +36,10 @@ func ListRepositoryCommand() *cobra.Command {
 		Long:    `Get information of all repositories in a project`,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
+
 			if opts.PageSize < 0 {
 				return fmt.Errorf("page size must be greater than or equal to 0")
 			}
@@ -61,7 +65,7 @@ func ListRepositoryCommand() *cobra.Command {
 				return fmt.Errorf("failed to list repositories: %v", err)
 			}
 			if len(repos.Payload) == 0 {
-				log.Info("No repositories found")
+				fmt.Println("No repositories found")
 				return nil
 			}
 			FormatFlag := viper.GetString("output-format")

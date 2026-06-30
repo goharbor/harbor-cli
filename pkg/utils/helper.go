@@ -196,6 +196,10 @@ func ValidateURL(rawURL string) error {
 		return nil
 	}
 
+	if host == "localhost" {
+		return nil
+	}
+
 	if !domainNameRegex.MatchString(host) {
 		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
 	}
@@ -210,6 +214,10 @@ func PrintFormat[T any](resp T, format string) error {
 	}
 	if format == "yaml" {
 		PrintPayloadInYAMLFormat(resp)
+		return nil
+	}
+	if format == "csv" {
+		PrintPayloadInCSVFormat(resp)
 		return nil
 	}
 	return fmt.Errorf("unable to output in the specified '%s' format", format)

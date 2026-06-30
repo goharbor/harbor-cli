@@ -35,6 +35,9 @@ This command provides an easy way to view all instances along with their details
 		Example: `  harbor-cli instance list --page 1 --page-size 10
   harbor-cli instance list --query "name=my-instance" --sort "asc"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
 			if opts.PageSize < 0 {
 				return fmt.Errorf("page size must be greater than or equal to 0")
 			}
@@ -42,7 +45,7 @@ This command provides an easy way to view all instances along with their details
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			instance, err := api.ListInstance(opts)
+			instance, err := api.ListAllInstance(opts)
 
 			if err != nil {
 				return fmt.Errorf("failed to get instance list: %v", err)

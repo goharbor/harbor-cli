@@ -54,7 +54,7 @@ Examples:
   harbor-cli scan-all metrics --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Info("Retrieving scan all metrics")
+			logrus.Debug("Retrieving scan all metrics")
 			metrics, err := api.GetScanAllMetrics(scheduled)
 			if err != nil {
 				logrus.Errorf("Failed to retrieve scan all metrics: %v", utils.ParseHarborErrorMsg(err))

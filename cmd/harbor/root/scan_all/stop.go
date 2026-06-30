@@ -14,6 +14,8 @@
 package scan_all
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -37,13 +39,13 @@ Examples:
   harbor-cli scan-all stop && harbor-cli scan-all metrics`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Info("Stopping scan all operation")
+			logrus.Debug("Stopping scan all operation")
 			err := api.StopScanAll()
 			if err != nil {
 				logrus.Errorf("Failed to stop scan all operation: %v", utils.ParseHarborErrorMsg(err))
 				return err
 			}
-			logrus.Info("Successfully stopped scan all operation")
+			fmt.Printf("Successfully stopped scan all operation\n")
 			return nil
 		},
 	}

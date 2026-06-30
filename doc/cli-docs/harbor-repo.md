@@ -22,7 +22,7 @@ Manage repositories in Harbor context
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-  -o, --output-format string   Output format. One of: json|yaml
+  -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
 
@@ -32,5 +32,6 @@ Manage repositories in Harbor context
 * [harbor repo delete](harbor-repo-delete.md)	 - Delete a repository
 * [harbor repo list](harbor-repo-list.md)	 - list repositories within a project
 * [harbor repo search](harbor-repo-search.md)	 - search repository based on their names
+* [harbor repo update](harbor-repo-update.md)	 - Update a repository
 * [harbor repo view](harbor-repo-view.md)	 - Get repository information
 

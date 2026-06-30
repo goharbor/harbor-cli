@@ -14,7 +14,7 @@ Authenticate with Harbor Registry.
 
 
 .SH OPTIONS
-\fB--context-name\fP=""
+\fB-n\fP, \fB--context-name\fP=""
 	Login context name (optional)
 
 .PP
@@ -23,11 +23,15 @@ Authenticate with Harbor Registry.
 
 .PP
 \fB-p\fP, \fB--password\fP=""
-	Password
+	Password (not recommended, use --password-stdin for better security)
 
 .PP
 \fB--password-stdin\fP[=false]
 	Take the password from stdin
+
+.PP
+\fB--skip-verify-client\fP[=false]
+	Skip whether the clients basic auth credentials shall be validated against the Harbor server during login. This is not recommended as it may lead to storing invalid credentials. Use this flag if you want to skip validation of credentials during login, for example, when the Harbor server is not reachable at the moment of login but you still want to store the credentials for later use.
 
 .PP
 \fB-u\fP, \fB--username\fP=""
@@ -40,7 +44,7 @@ Authenticate with Harbor Registry.
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
-	Output format. One of: json|yaml
+	Output format. One of: json|yaml|csv
 
 .PP
 \fB-v\fP, \fB--verbose\fP[=false]

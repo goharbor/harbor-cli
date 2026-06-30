@@ -48,6 +48,9 @@ harbor-cli logs --follow --refresh-interval 2s
 
 harbor-cli logs --output-format json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Page < 1 {
+				return fmt.Errorf("page number must be greater than or equal to 1")
+			}
 			if opts.PageSize < 0 {
 				return fmt.Errorf("page size must be greater than or equal to 0")
 			}

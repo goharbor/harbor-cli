@@ -27,7 +27,7 @@ const listHeight = 14
 
 type Item string
 
-func (i Item) FilterValue() string { return "" }
+func (i Item) FilterValue() string { return string(i) }
 
 type ItemDelegate struct{}
 
@@ -84,11 +84,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "enter":
-			i, ok := m.List.SelectedItem().(Item)
-			if ok {
-				m.Choice = string(i)
+			if m.List.FilterState() != list.Filtering {
+				i, ok := m.List.SelectedItem().(Item)
+				if ok {
+					m.Choice = string(i)
+					return m, tea.Quit
+				}
 			}
-			return m, tea.Quit
 		}
 	}
 
