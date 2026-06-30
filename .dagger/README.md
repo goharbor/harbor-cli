@@ -94,6 +94,28 @@ dagger call run-doc export --path=docs/cli
 - If you modify or add new pipeline steps, document them under **Dagger Functions Overview** to maintain clarity.
 - Always validate pipelines with `dagger call pipeline` locally before merging into main.
 
+### 🚀 `PublishImage(registry, imageTags)`
+
+Publishes the Harbor CLI container image to a registry.
+
+```bash
+dagger call publish-image \
+  --registry=demo.goharbor.io \
+  --registry-username=harbor-cli \
+  --registry-password=env:REGPASS \
+  --imageTags=v0.1.0,latest
+```
+
+### 📦 `PublishToScoop(version, githubToken)`
+
+Updates the Scoop manifest (`scoop/harbor-cli.json`) for Windows users. Uses the **same repo approach** — only needs the built-in `GITHUB_TOKEN`, no external secrets.
+
+```bash
+dagger call publish-to-scoop \
+  --version="0.6.0" \
+  --github-token=env:GITHUB_TOKEN
+```
+
 ---
 
 ## 📚 References
