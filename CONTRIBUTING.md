@@ -34,12 +34,20 @@ source ~/.zshrc # or restart your terminal
 
 ### Build from Source
 
-Make sure [Go](https://go.dev/) is installed (≥ v1.24).
+Make sure [Go](https://go.dev/) is installed (≥ v1.26.3), matching the version declared in `go.mod`.
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
 go build -o harbor-cli cmd/harbor/main.go
 ./harbor-cli --help
+```
+
+On Windows, use PowerShell commands and build the executable with the `.exe` suffix:
+
+```powershell
+git clone https://github.com/goharbor/harbor-cli.git; cd harbor-cli
+go build -o bin/harbor-cli.exe cmd/harbor/main.go
+.\bin\harbor-cli.exe --help
 ```
 
 Alternatively, use [Dagger](https://docs.dagger.io/) for isolated builds:
