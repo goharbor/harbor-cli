@@ -83,6 +83,10 @@ func UpdatePolicyCommand() *cobra.Command {
 				return fmt.Errorf("failed to get preheat policy: %v", utils.ParseHarborErrorMsg(err))
 			}
 
+			if existingPolicy == nil || existingPolicy.Payload == nil {
+				return fmt.Errorf("preheat policy %s payload is empty", policyName)
+			}
+
 			log.Debug("Fetching available providers...")
 			providers, err := api.ListProvidersUnderProject(projectName)
 			if err != nil {
