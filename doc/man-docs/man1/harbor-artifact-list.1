@@ -24,8 +24,16 @@ Supports pagination, search queries, and sorting using flags.
 
 
 .SH OPTIONS
+\fB--fuzzy\fP=[]
+	Fuzzy match filter (key=value)
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for list
+
+.PP
+\fB--match\fP=[]
+	exact match filter (key=value)
 
 .PP
 \fB-p\fP, \fB--page\fP=1
@@ -38,6 +46,10 @@ Supports pagination, search queries, and sorting using flags.
 .PP
 \fB-q\fP, \fB--query\fP=""
 	Query string to query resources
+
+.PP
+\fB--range\fP=[]
+	range filter (key=min~max)
 
 .PP
 \fB-s\fP, \fB--sort\fP=""

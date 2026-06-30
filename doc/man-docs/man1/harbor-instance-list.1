@@ -16,8 +16,16 @@ This command provides an easy way to view all instances along with their details
 
 
 .SH OPTIONS
+\fB--fuzzy\fP=[]
+	Fuzzy match filter (key=value)
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for list
+
+.PP
+\fB--match\fP=[]
+	exact match filter (key=value)
 
 .PP
 \fB--page\fP=1
@@ -30,6 +38,10 @@ This command provides an easy way to view all instances along with their details
 .PP
 \fB-q\fP, \fB--query\fP=""
 	Query string to query resources
+
+.PP
+\fB--range\fP=[]
+	range filter (key=min~max)
 
 .PP
 \fB--sort\fP=""

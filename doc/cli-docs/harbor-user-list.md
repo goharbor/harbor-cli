@@ -15,10 +15,13 @@ harbor user list [flags]
 ### Options
 
 ```sh
+      --fuzzy strings   Fuzzy match filter (key=value)
   -h, --help            help for list
+      --match strings   exact match filter (key=value)
   -p, --page int        Page number (default 1)
   -n, --page-size int   Size of per page (0 to fetch all)
   -q, --query string    Query string to query resources
+      --range strings   range filter (key=min~max)
   -s, --sort string     Sort the resource list in ascending or descending order
 ```
 
