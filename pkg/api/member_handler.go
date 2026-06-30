@@ -25,6 +25,28 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 )
 
+type ListMemberOptions struct {
+	XIsResourceName bool
+	ProjectNameOrID string
+	Page            int64
+	PageSize        int64
+	EntityName      string
+	WithDetail      bool
+}
+
+type UpdateMemberOptions struct {
+	XIsResourceName bool
+	ID              int64
+	ProjectNameOrID string
+	RoleID          *models.RoleRequest
+}
+
+type GetMemberOptions struct {
+	XIsResourceName bool
+	ID              int64
+	ProjectNameOrID string
+}
+
 // Function variables for testing - these can be swapped in tests
 var (
 	listMembersFunc  = ListMembers

@@ -17,7 +17,6 @@ package context
 import (
 	"fmt"
 
-	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/context/list"
 	"github.com/spf13/cobra"
@@ -45,9 +44,9 @@ func ListContextCommand() *cobra.Command {
 					return fmt.Errorf("failed to print config: %w", err)
 				}
 			} else {
-				var cxlist []api.ContextListView
+				var cxlist []list.ListView
 				for _, cred := range config.Credentials {
-					cx := api.ContextListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
+					cx := list.ListView{Name: cred.Name, Username: cred.Username, Server: cred.ServerAddress}
 					cxlist = append(cxlist, cx)
 				}
 				currentCredential := config.CurrentCredentialName
