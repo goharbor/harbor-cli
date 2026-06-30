@@ -14,8 +14,8 @@
 package retention
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -24,7 +24,9 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func RetentionList(rules []*models.RetentionRule, choice chan<- int64) {
+var ErrUserAborted = errors.New("user aborted selection")
+
+func RetentionList(rules []*models.RetentionRule) (int64, error) {
 	itemsList := make([]list.Item, len(rules))
 	items := map[string]int64{}
 
@@ -55,21 +57,28 @@ func RetentionList(rules []*models.RetentionRule, choice chan<- int64) {
 			rule.Template,
 		)
 
-		items[display] = rule.ID
+		items[display] = int64(i)
 		itemsList[i] = selection.Item(display)
 	}
 
-	m := selection.NewModel(itemsList, "Select a Retention Rule")
+	m := selection.NewModel(itemsList, "Retention Rule")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		fmt.Println("Error running selection UI:", err)
-		os.Exit(1)
+		return 0, fmt.Errorf("error running selection UI: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+	if model, ok := p.(selection.Model); ok {
+		if model.Aborted {
+			return 0, ErrUserAborted
+		}
+		if model.Choice == "" {
+			return 0, ErrUserAborted
+		}
+		return items[model.Choice], nil
 	}
+
+	return 0, errors.New("unexpected program result")
 }
 
 func formatParams(params map[string]interface{}) string {

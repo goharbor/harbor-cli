@@ -309,7 +309,7 @@ func GetQuotaIDFromUser() int64 {
 	QuotaID := make(chan int64)
 
 	go func() {
-		response, err := api.ListQuota(*&api.ListQuotaFlags{})
+		response, err := api.ListQuota(api.ListQuotaFlags{})
 		if err != nil {
 			log.Errorf("failed to list quota: %v", err)
 		}
@@ -462,13 +462,15 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func GetRetentionTagRule(retentionID string) int64 {
-	retentionIndex := make(chan int64)
-	go func() {
-		response, _ := api.ListRetention(retentionID)
-		retview.RetentionList(response.Payload.Rules, retentionIndex)
-	}()
-	return <-retentionIndex
+func GetRetentionTagRule(retentionID string) (int64, error) {
+	response, err := api.ListRetention(retentionID)
+	if err != nil {
+		return 0, err
+	}
+	if response.Payload == nil || len(response.Payload.Rules) == 0 {
+		return -1, nil
+	}
+	return retview.RetentionList(response.Payload.Rules)
 }
 
 func GetPreheatPolicyNameFromUser(projectName string) (string, error) {

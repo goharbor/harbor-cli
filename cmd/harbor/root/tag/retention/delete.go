@@ -75,8 +75,15 @@ Examples:
 					return fmt.Errorf("error retrieving retention policy ID: %w", err)
 				}
 			}
-			retentionIndex := prompt.GetRetentionTagRule(retentionID)
-			err = api.DeleteRetention(projectName, int(retentionIndex))
+			retentionIndex, err := prompt.GetRetentionTagRule(retentionID)
+			if err != nil {
+				return err
+			}
+			if retentionIndex < 0 {
+				fmt.Println("No retention rules found")
+				return nil
+			}
+			err = api.DeleteRetention(retentionID, int(retentionIndex))
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
