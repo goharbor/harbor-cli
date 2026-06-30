@@ -35,6 +35,7 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scan_all"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/scanner"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/schedule/purge"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/tag"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/user"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/vulnerability"
@@ -147,6 +148,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = ldap.Ldap()
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
+	cmd = purge.Purge()
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 
