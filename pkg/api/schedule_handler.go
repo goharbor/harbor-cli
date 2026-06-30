@@ -14,9 +14,79 @@
 package api
 
 import (
+	"fmt"
+
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/gc"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan_all"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/schedule"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
+
+// CreateSchedule acts as a smart router, sending the schedule to the correct Harbor API
+func CreateSchedule(jobType string, cronString string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	// Build the generic schedule payload
+	schedulePayload := &models.Schedule{
+		Parameters: map[string]interface{}{
+			"delete_untagged": false,
+		},
+		Schedule: &models.ScheduleObj{
+			Type: "Custom",
+			Cron: cronString,
+		},
+	}
+
+	// Route to the correct API based on the type
+	switch jobType {
+	case "gc":
+		_, err = client.GC.UpdateGCSchedule(ctx, &gc.UpdateGCScheduleParams{
+			Schedule: schedulePayload,
+		})
+	case "scan-all":
+		_, err = client.ScanAll.UpdateScanAllSchedule(ctx, &scan_all.UpdateScanAllScheduleParams{
+			Schedule: schedulePayload,
+		})
+	default:
+		return fmt.Errorf("unsupported schedule type: %s. Supported types are: gc, scan-all", jobType)
+	}
+
+	return err
+}
+
+// DeleteSchedule acts as a smart router to delete a schedule
+func DeleteSchedule(jobType string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	// To delete a schedule in Harbor, we send a PUT request with Type "None"
+	schedulePayload := &models.Schedule{
+		Schedule: &models.ScheduleObj{
+			Type: "None",
+		},
+	}
+
+	switch jobType {
+	case "gc":
+		_, err = client.GC.UpdateGCSchedule(ctx, &gc.UpdateGCScheduleParams{
+			Schedule: schedulePayload,
+		})
+	case "scan-all":
+		_, err = client.ScanAll.UpdateScanAllSchedule(ctx, &scan_all.UpdateScanAllScheduleParams{
+			Schedule: schedulePayload,
+		})
+	default:
+		return fmt.Errorf("unsupported schedule type: %s. Supported types are: gc, scan-all", jobType)
+	}
+
+	return err
+}
 
 func ListSchedule(opts ...ListFlags) (schedule.ListSchedulesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
