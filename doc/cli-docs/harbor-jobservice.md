@@ -15,6 +15,12 @@ This requires system admin privileges.
 
 Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.
 
+Examples:
+  harbor jobservice pools list
+  harbor jobservice workers list
+  harbor jobservice jobs list
+  harbor jobservice jobs list --page 1 --page-size 10
+
 ### Options
 
 ```sh
@@ -32,5 +38,8 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor jobservice jobs](harbor-jobservice-jobs.md)	 - Manage job logs (view by job ID)
+* [harbor jobservice pools](harbor-jobservice-pools.md)	 - Manage worker pools (list available pools)
 * [harbor jobservice queues](harbor-jobservice-queues.md)	 - Manage job queues (list, stop, pause, resume)
+* [harbor jobservice workers](harbor-jobservice-workers.md)	 - Manage workers (list all/by pool, free, free-all)
 
