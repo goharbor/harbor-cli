@@ -15,6 +15,7 @@ package replication
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,12 +32,17 @@ func LogsCommand() *cobra.Command {
 		Use:   "log [EXECUTION_ID] [TASK_ID]",
 		Short: "get replication execution logs by execution and task id",
 		Long:  `Get the logs of a specific replication execution and task by their IDs. If no IDs are provided, it will prompt the user to select them interactively.`,
-		Example: `  harbor replication log -e 12345 -t 67890
-		  harbor replication log --execution-id 12345 --task-id 67890
-		  harbor replication log --execution-id 12345
+		Example: `  harbor replication log 12345 67890
+  harbor replication log -e 12345 -t 67890
+  harbor replication log --execution-id 12345 --task-id 67890
+  harbor replication log --execution-id 12345
   harbor replication log`,
-		Args: cobra.MaximumNArgs(0),
+		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := applyLogArgs(args, &execID, &taskID); err != nil {
+				return err
+			}
+
 			if execID != 0 && taskID == 0 {
 				taskID = prompt.GetReplicationTaskIDFromUser(execID)
 			} else if execID == 0 && taskID == 0 {
@@ -72,4 +78,30 @@ func LogsCommand() *cobra.Command {
 	flags.Int64VarP(&taskID, "task-id", "t", 0, "Replication task ID")
 
 	return cmd
+}
+
+func applyLogArgs(args []string, execID, taskID *int64) error {
+	var err error
+
+	if len(args) > 0 {
+		if *execID != 0 {
+			return fmt.Errorf("execution ID cannot be provided both as a flag and an argument")
+		}
+		*execID, err = strconv.ParseInt(args[0], 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid replication execution ID %q: %w", args[0], err)
+		}
+	}
+
+	if len(args) > 1 {
+		if *taskID != 0 {
+			return fmt.Errorf("task ID cannot be provided both as a flag and an argument")
+		}
+		*taskID, err = strconv.ParseInt(args[1], 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid replication task ID %q: %w", args[1], err)
+		}
+	}
+
+	return nil
 }
