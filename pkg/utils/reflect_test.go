@@ -1,3 +1,16 @@
+// Copyright Project Harbor Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package utils_test
 
 import (
@@ -69,6 +82,12 @@ func TestConvertToConfigurations(t *testing.T) {
 	assert.Equal(t, int64(30), *cfg.TokenExpiration)
 }
 
+func TestConvertToConfigurations_NilPanics(t *testing.T) {
+	assert.Panics(t, func() {
+		utils.ConvertToConfigurations(nil)
+	})
+}
+
 func TestExtractConfigurationsByCategory_Nil(t *testing.T) {
 	cfg := utils.ExtractConfigurationsByCategory(nil, "authentication")
 	assert.NotNil(t, cfg)
@@ -76,8 +95,8 @@ func TestExtractConfigurationsByCategory_Nil(t *testing.T) {
 
 func TestExtractConfigurationsByCategory_FiltersByCategory(t *testing.T) {
 	resp := &models.ConfigurationsResponse{
-		AuthMode:                  &models.StringConfigItem{Value: "db_auth"},
-		SelfRegistration:          &models.BoolConfigItem{Value: true},
+		AuthMode:                   &models.StringConfigItem{Value: "db_auth"},
+		SelfRegistration:           &models.BoolConfigItem{Value: true},
 		ProjectCreationRestriction: &models.StringConfigItem{Value: "adminonly"},
 	}
 
