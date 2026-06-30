@@ -331,7 +331,10 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 
 	// Handle output format
 	if formatFlag := viper.GetString("output-format"); formatFlag != "" {
-		res, _ := api.GetRobot(response.Payload.ID)
+		res, err := api.GetRobot(response.Payload.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get robot details: %v", utils.ParseHarborErrorMsg(err))
+		}
 		utils.SavePayloadJSON(response.Payload.Name, res.Payload)
 		return nil
 	}
