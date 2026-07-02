@@ -71,13 +71,13 @@ func CreateSystemInfo(
 		SystemInfo: generalInfo,
 		VolumeInfo: &Volumes{
 			Free: func() uint64 {
-				if volumes.Storage != nil && len(volumes.Storage) > 0 {
+				if volumes != nil && volumes.Storage != nil && len(volumes.Storage) > 0 {
 					return volumes.Storage[0].Free
 				}
 				return 0
 			}(),
 			Total: func() uint64 {
-				if volumes.Storage != nil && len(volumes.Storage) > 0 {
+				if volumes != nil && volumes.Storage != nil && len(volumes.Storage) > 0 {
 					return volumes.Storage[0].Total
 				}
 				return 0
