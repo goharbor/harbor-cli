@@ -96,10 +96,9 @@ func UserUpdateCmd() *cobra.Command {
 
 			if err != nil {
 				if isUnauthorizedError(err) {
-					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to update user: %v", err)
+					return fmt.Errorf("permission denied: admin privileges are required to execute this command")
 				}
+				return fmt.Errorf("failed to update user: %v", err)
 			}
 			return nil
 		},
