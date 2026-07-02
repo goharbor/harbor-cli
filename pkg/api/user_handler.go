@@ -165,37 +165,52 @@ func UpdateUserProfile(userID int64, email, realname, comment string) error {
 }
 
 func GetUserByIDOrName(arg string) (*models.UserResp, error) {
-	var opts ListFlags
-	u, err := ListUsers(opts)
-	if err != nil {
-		return nil, err
-	}
-
+	opts := ListFlags{Page: 1, PageSize: 100}
 	id, idErr := strconv.ParseInt(arg, 10, 64)
 
-	for _, uResp := range u.Payload {
-		if idErr == nil && uResp.UserID == id {
-			return uResp, nil
+	for {
+		u, err := ListUsers(opts)
+		if err != nil {
+			return nil, err
 		}
-		if uResp.Username == arg {
-			return uResp, nil
+
+		for _, uResp := range u.Payload {
+			if idErr == nil && uResp.UserID == id {
+				return uResp, nil
+			}
+			if uResp.Username == arg {
+				return uResp, nil
+			}
 		}
+
+		if len(u.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
 	}
 
 	return nil, fmt.Errorf("user %q not found", arg)
 }
 
 func GetUserByID(userID int64) (*models.UserResp, error) {
-	var opts ListFlags
-	u, err := ListUsers(opts)
-	if err != nil {
-		return nil, err
-	}
+	opts := ListFlags{Page: 1, PageSize: 100}
 
-	for _, uResp := range u.Payload {
-		if uResp.UserID == userID {
-			return uResp, nil
+	for {
+		u, err := ListUsers(opts)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, uResp := range u.Payload {
+			if uResp.UserID == userID {
+				return uResp, nil
+			}
+		}
+
+		if len(u.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
 	}
 
 	return nil, fmt.Errorf("user with ID %d not found", userID)
