@@ -142,7 +142,7 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 	return nil
 }
 
-func UpdateUserProfile(userId int64, email, realname, comment string) error {
+func UpdateUserProfile(userID int64, email, realname, comment string) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -154,13 +154,13 @@ func UpdateUserProfile(userId int64, email, realname, comment string) error {
 			Realname: realname,
 			Comment:  comment,
 		},
-		UserID: userId,
+		UserID: userID,
 	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("User profile updated successfully for userId %d\n", userId)
+	fmt.Printf("User profile updated successfully for userID %d\n", userID)
 	return nil
 }
 
