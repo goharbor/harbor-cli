@@ -15,6 +15,7 @@ package api
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -140,3 +141,79 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 	}
 	return nil
 }
+
+func UpdateUserProfile(userID int64, email, realname, comment string) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.User.UpdateUserProfile(ctx, &user.UpdateUserProfileParams{
+		Profile: &models.UserProfile{
+			Email:    email,
+			Realname: realname,
+			Comment:  comment,
+		},
+		UserID: userID,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("User profile updated successfully for userID %d\n", userID)
+	return nil
+}
+
+func GetUserByIDOrName(arg string) (*models.UserResp, error) {
+	opts := ListFlags{Page: 1, PageSize: 100}
+	id, idErr := strconv.ParseInt(arg, 10, 64)
+
+	for {
+		u, err := ListUsers(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, uResp := range u.Payload {
+			if idErr == nil && uResp.UserID == id {
+				return uResp, nil
+			}
+			if uResp.Username == arg {
+				return uResp, nil
+			}
+		}
+
+		if len(u.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
+	}
+
+	return nil, fmt.Errorf("user %q not found", arg)
+}
+
+func GetUserByID(userID int64) (*models.UserResp, error) {
+	opts := ListFlags{Page: 1, PageSize: 100}
+
+	for {
+		u, err := ListUsers(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, uResp := range u.Payload {
+			if uResp.UserID == userID {
+				return uResp, nil
+			}
+		}
+
+		if len(u.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
+	}
+
+	return nil, fmt.Errorf("user with ID %d not found", userID)
+}
+
+

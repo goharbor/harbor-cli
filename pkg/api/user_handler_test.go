@@ -11,28 +11,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package user
+package api
 
 import (
-	"github.com/spf13/cobra"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func User() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "user",
-		Short:   "Manage users",
-		Long:    `Manage users in Harbor`,
-		Example: `  harbor user list`,
-	}
+func TestUpdateUserProfile(t *testing.T) {
+	// Without a valid client context, this should return an error
+	err := UpdateUserProfile(1, "test@example.com", "Test User", "Test Comment")
+	assert.Error(t, err)
+}
 
-	cmd.AddCommand(
-		UserListCmd(),
-		UserCreateCmd(),
-		UserDeleteCmd(),
-		ElevateUserCmd(),
-		UserPasswordChangeCmd(),
-		UserUpdateCmd(),
-	)
+func TestGetUserByIDOrName(t *testing.T) {
+	// Without a valid client context, this should return an error
+	_, err := GetUserByIDOrName("admin")
+	assert.Error(t, err)
+}
 
-	return cmd
+func TestGetUserByID(t *testing.T) {
+	// Without a valid client context, this should return an error
+	_, err := GetUserByID(1)
+	assert.Error(t, err)
 }
