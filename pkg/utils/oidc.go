@@ -14,6 +14,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,8 +24,9 @@ import (
 )
 
 const (
-	oidcCLILoginPath = "/c/oidc/login"
-	oidcCLITokenPath = "/c/oidc/cli-token"
+	oidcCLILoginPath   = "/c/oidc/login"
+	oidcCLITokenPath   = "/c/oidc/cli-token"
+	oidcCLIRefreshPath = "/c/oidc/refresh"
 )
 
 type OIDCLoginResponse struct {
@@ -38,6 +40,17 @@ type OIDCPollResponse struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 	Username     string `json:"username,omitempty"`
 	ExpiresAt    int64  `json:"expires_at,omitempty"`
+	Error        string `json:"error,omitempty"`
+}
+
+type OIDCRefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type OIDCRefreshResponse struct {
+	IDToken      string `json:"id_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresAt    int64  `json:"expires_at"`
 	Error        string `json:"error,omitempty"`
 }
 
@@ -161,6 +174,59 @@ func pollOIDCTokenOnce(endpoint string) (*OIDCPollResponse, bool, error) {
 	default:
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		return nil, false, fmt.Errorf("failed to poll OIDC token: status %d: %s", resp.StatusCode, string(body))
+	}
+}
+
+func RefreshOIDCToken(serverAddress, refreshToken string) (*OIDCRefreshResponse, error) {
+	if refreshToken == "" {
+		return nil, fmt.Errorf("refresh token is required")
+	}
+
+	serverAddress = FormatUrl(serverAddress)
+	if err := ValidateURL(serverAddress); err != nil {
+		return nil, fmt.Errorf("invalid server URL: %w", err)
+	}
+
+	endpoint, err := joinServerPath(serverAddress, oidcCLIRefreshPath)
+	if err != nil {
+		return nil, err
+	}
+
+	payload, err := json.Marshal(&OIDCRefreshRequest{RefreshToken: refreshToken})
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode OIDC refresh request: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(payload))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OIDC refresh request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh OIDC token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var refreshResp OIDCRefreshResponse
+	switch resp.StatusCode {
+	case http.StatusOK:
+		if err := json.NewDecoder(resp.Body).Decode(&refreshResp); err != nil {
+			return nil, fmt.Errorf("failed to decode OIDC refresh response: %w", err)
+		}
+		if refreshResp.IDToken == "" {
+			return nil, fmt.Errorf("invalid OIDC refresh response: missing id_token")
+		}
+		return &refreshResp, nil
+	case http.StatusBadRequest:
+		if err := json.NewDecoder(resp.Body).Decode(&refreshResp); err == nil && refreshResp.Error != "" {
+			return nil, fmt.Errorf("OIDC refresh failed: %s", refreshResp.Error)
+		}
+		fallthrough
+	default:
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("failed to refresh OIDC token: status %d: %s", resp.StatusCode, string(body))
 	}
 }
 

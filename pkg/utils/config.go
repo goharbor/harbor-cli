@@ -612,11 +612,29 @@ func GetDecryptedIDToken(credentialName string) (string, error) {
 	if credential.AuthType != AuthTypeOIDC {
 		return "", fmt.Errorf("credential %q is not an OIDC credential", credentialName)
 	}
+	return decryptOIDCCredentialValue(credential.IDToken)
+}
+
+func GetDecryptedRefreshToken(credentialName string) (string, error) {
+	credential, err := GetCredentials(credentialName)
+	if err != nil {
+		return "", err
+	}
+	if credential.AuthType != AuthTypeOIDC {
+		return "", fmt.Errorf("credential %q is not an OIDC credential", credentialName)
+	}
+	if credential.RefreshToken == "" {
+		return "", nil
+	}
+	return decryptOIDCCredentialValue(credential.RefreshToken)
+}
+
+func decryptOIDCCredentialValue(encryptedValue string) (string, error) {
 	key, err := GetEncryptionKey()
 	if err != nil {
 		return "", fmt.Errorf("failed to get encryption key: %w", err)
 	}
-	return Decrypt(key, credential.IDToken)
+	return Decrypt(key, encryptedValue)
 }
 
 func UpdateOIDCTokens(credentialName, idToken, refreshToken string, expiresAt int64, configPath string) error {

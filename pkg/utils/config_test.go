@@ -130,4 +130,19 @@ func Test_AddOIDCCredentials(t *testing.T) {
 	idToken, err := utils.GetDecryptedIDToken(cred.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, "id-token", idToken)
+
+	refreshToken, err := utils.GetDecryptedRefreshToken(cred.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, "refresh-token", refreshToken)
+
+	err = utils.UpdateOIDCTokens(cred.Name, "next-id-token", "next-refresh-token", 67890, data.ConfigPath)
+	assert.NoError(t, err)
+
+	updatedIDToken, err := utils.GetDecryptedIDToken(cred.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, "next-id-token", updatedIDToken)
+
+	updatedRefreshToken, err := utils.GetDecryptedRefreshToken(cred.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, "next-refresh-token", updatedRefreshToken)
 }
