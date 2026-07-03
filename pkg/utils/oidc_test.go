@@ -15,6 +15,7 @@ package utils_test
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -77,4 +78,33 @@ func TestPollForOIDCTokenFailed(t *testing.T) {
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "state expired")
+}
+
+func TestRefreshOIDCToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/c/oidc/refresh", r.URL.Path)
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		var req utils.OIDCRefreshRequest
+		require.NoError(t, json.Unmarshal(body, &req))
+		assert.Equal(t, "refresh-token-1", req.RefreshToken)
+
+		_ = json.NewEncoder(w).Encode(utils.OIDCRefreshResponse{
+			IDToken:      "id-token-2",
+			RefreshToken: "refresh-token-2",
+			ExpiresAt:    1234567890,
+		})
+	}))
+	defer server.Close()
+
+	resp, err := utils.RefreshOIDCToken(server.URL, "refresh-token-1")
+
+	require.NoError(t, err)
+	assert.Equal(t, "id-token-2", resp.IDToken)
+	assert.Equal(t, "refresh-token-2", resp.RefreshToken)
+	assert.Equal(t, int64(1234567890), resp.ExpiresAt)
 }
