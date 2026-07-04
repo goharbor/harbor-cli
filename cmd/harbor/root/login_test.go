@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	helpers "github.com/goharbor/harbor-cli/test/helper"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
