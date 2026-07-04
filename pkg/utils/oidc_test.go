@@ -32,7 +32,7 @@ func TestInitiateOIDCLogin(t *testing.T) {
 		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
 		_ = json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
 			RedirectURL: "https://idp.example/authorize",
-			State:       "state-1",
+			PollToken:   "poll-token-1",
 		})
 	}))
 	defer server.Close()
@@ -41,13 +41,13 @@ func TestInitiateOIDCLogin(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://idp.example/authorize", resp.RedirectURL)
-	assert.Equal(t, "state-1", resp.State)
+	assert.Equal(t, "poll-token-1", resp.PollToken)
 }
 
 func TestPollForOIDCTokenReady(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
-		assert.Equal(t, "state-1", r.URL.Query().Get("state"))
+		assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
 		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
 			Status:   "ready",
 			IDToken:  "id-token",
@@ -56,7 +56,7 @@ func TestPollForOIDCTokenReady(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "state-1", time.Second)
+	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
 
 	require.NoError(t, err)
 	assert.Equal(t, "ready", resp.Status)
@@ -74,10 +74,25 @@ func TestPollForOIDCTokenFailed(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "state-1", time.Second)
+	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "state expired")
+}
+
+func TestPollForOIDCTokenExpired(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusGone)
+		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+			Status: "expired",
+		})
+	}))
+	defer server.Close()
+
+	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
+
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "expired before token retrieval")
 }
 
 func TestRefreshOIDCToken(t *testing.T) {

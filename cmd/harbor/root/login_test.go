@@ -160,10 +160,10 @@ func Test_RunOIDCLogin_Success(t *testing.T) {
 			assert.Equal(t, "cli", r.URL.Query().Get("mode"))
 			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
 				RedirectURL: "https://idp.example/authorize",
-				State:       "state-1",
+				PollToken:   "poll-token-1",
 			}))
 		case "/c/oidc/cli-token":
-			assert.Equal(t, "state-1", r.URL.Query().Get("state"))
+			assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
 			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCPollResponse{
 				Status:   "ready",
 				IDToken:  "id-token",

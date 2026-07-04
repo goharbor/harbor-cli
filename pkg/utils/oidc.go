@@ -31,7 +31,7 @@ const (
 
 type OIDCLoginResponse struct {
 	RedirectURL string `json:"redirect_url"`
-	State       string `json:"state"`
+	PollToken   string `json:"poll_token"`
 }
 
 type OIDCPollResponse struct {
@@ -87,15 +87,15 @@ func InitiateOIDCLogin(serverAddress string) (*OIDCLoginResponse, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
 		return nil, fmt.Errorf("failed to decode OIDC login response: %w", err)
 	}
-	if loginResp.RedirectURL == "" || loginResp.State == "" {
-		return nil, fmt.Errorf("invalid OIDC login response: missing redirect_url or state")
+	if loginResp.RedirectURL == "" || loginResp.PollToken == "" {
+		return nil, fmt.Errorf("invalid OIDC login response: missing redirect_url or poll_token")
 	}
 	return &loginResp, nil
 }
 
-func PollForOIDCToken(serverAddress, state string, timeout time.Duration) (*OIDCPollResponse, error) {
-	if state == "" {
-		return nil, fmt.Errorf("state is required")
+func PollForOIDCToken(serverAddress, pollToken string, timeout time.Duration) (*OIDCPollResponse, error) {
+	if pollToken == "" {
+		return nil, fmt.Errorf("poll token is required")
 	}
 	serverAddress = FormatUrl(serverAddress)
 	if err := ValidateURL(serverAddress); err != nil {
@@ -111,7 +111,7 @@ func PollForOIDCToken(serverAddress, state string, timeout time.Duration) (*OIDC
 		return nil, fmt.Errorf("failed to parse OIDC token endpoint: %w", err)
 	}
 	q := u.Query()
-	q.Set("state", state)
+	q.Set("poll_token", pollToken)
 	u.RawQuery = q.Encode()
 
 	deadline := time.Now().Add(timeout)
@@ -171,6 +171,11 @@ func pollOIDCTokenOnce(endpoint string) (*OIDCPollResponse, bool, error) {
 			return nil, false, fmt.Errorf("OIDC authentication failed: %s", pollResp.Error)
 		}
 		return nil, false, fmt.Errorf("OIDC authentication failed")
+	case http.StatusGone:
+		if err := json.NewDecoder(resp.Body).Decode(&pollResp); err != nil {
+			return nil, false, fmt.Errorf("OIDC login expired before token retrieval")
+		}
+		return nil, false, fmt.Errorf("OIDC login expired before token retrieval")
 	default:
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		return nil, false, fmt.Errorf("failed to poll OIDC token: status %d: %s", resp.StatusCode, string(body))
