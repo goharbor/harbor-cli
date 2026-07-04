@@ -25,7 +25,7 @@ import (
 
 const (
 	oidcCLILoginPath   = "/c/oidc/login"
-	oidcCLITokenPath   = "/c/oidc/cli-token"
+	oidcCLITokenPath   = "/c/oidc/cli-token" //nolint:gosec // endpoint is user-provided Harbor server URL for login.
 	oidcCLIRefreshPath = "/c/oidc/refresh"
 )
 

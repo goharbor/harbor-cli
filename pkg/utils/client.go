@@ -238,25 +238,6 @@ func buildClientWithAuth(serverAddress string, tokenManager *oidcTokenManager, t
 	return v2client.New(cfg.ToV2Config()), nil
 }
 
-func buildClientWithToken(serverAddress, idToken string) (*v2client.HarborAPI, error) {
-	u, err := url.Parse(serverAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse server URL: %w", err)
-	}
-	if u.Scheme == "" || u.Host == "" {
-		return nil, fmt.Errorf("invalid server URL: %s", serverAddress)
-	}
-
-	cfg := &harbor.Config{
-		URL: u,
-		AuthInfo: runtime.ClientAuthInfoWriterFunc(func(req runtime.ClientRequest, _ strfmt.Registry) error {
-			return req.SetHeaderParam("Authorization", "Bearer "+idToken)
-		}),
-	}
-
-	return v2client.New(cfg.ToV2Config()), nil
-}
-
 func (m *oidcTokenManager) Token() string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
