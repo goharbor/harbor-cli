@@ -28,9 +28,11 @@ func UserUpdateCmd() *cobra.Command {
 	var opts update.UpdateView
 
 	cmd := &cobra.Command{
-		Use:   "update [USER_NAME_OR_ID]",
-		Short: "update user profile",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "update [USER_NAME_OR_ID]",
+		Short:   "update user profile",
+		Long:    `The 'update' command allows sysadmins to modify an existing user's profile information, such as their email, realname, or comment.`,
+		Example: `  harbor user update admin --email newadmin@example.com --realname "System Admin"`,
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var userID int64
@@ -52,6 +54,15 @@ func UserUpdateCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+			}
+
+			cliInfo, err := api.GetCLIInfo()
+			if err != nil {
+				return err
+			}
+
+			if !cliInfo.IsSysAdmin && cliInfo.Username != existingUser.Username {
+				return fmt.Errorf("permission denied: admin privileges are required to view or update other users")
 			}
 
 			// If flags are provided, run non-interactively using the flags
@@ -95,9 +106,6 @@ func UserUpdateCmd() *cobra.Command {
 			}
 
 			if err != nil {
-				if isUnauthorizedError(err) {
-					return fmt.Errorf("permission denied: admin privileges are required to execute this command")
-				}
 				return fmt.Errorf("failed to update user: %v", err)
 			}
 			return nil
