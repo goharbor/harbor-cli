@@ -46,10 +46,15 @@ func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<-
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Choice == "" {
-			errChan <- errors.New("user aborted selection")
+			errChan <- ErrUserAborted
 			return
 		}
-		choice <- policyNameIDsMap[model.Choice]
+		id, found := policyNameIDsMap[model.Choice]
+		if !found {
+			errChan <- fmt.Errorf("selected policy %q not found in policy list", model.Choice)
+			return
+		}
+		choice <- id
 		return
 	}
 
