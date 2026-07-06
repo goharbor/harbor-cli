@@ -38,7 +38,7 @@ harbor replication policies update [policy-id] [flags]
 
   # Update resource/name/tag filters
   harbor replication policies update 1 \
-    --name-filter "library/" \
+    --name-filter "library/*" \
     --tag-filter matches \
     --tag-pattern "v*"
 
@@ -62,11 +62,11 @@ harbor replication policies update [policy-id] [flags]
       --name-filter string       Repository name filter pattern (supports wildcards, e.g. library/*)
       --override                 Override artifacts on destination if they already exist
       --replicate-deletion       Replicate deletion operations to the destination
-      --resource-filter string   Resource type filter: image, artifact, or empty for all
+      --resource-filter string   Resource type filter: Pull supports 'image' only; Push supports '', 'image', or 'artifact'
       --speed string             Maximum replication speed in KB/s (-1 for unlimited)
       --tag-filter string        Tag filter type: matches or excludes
       --tag-pattern string       Tag filter pattern (e.g. v*, latest, *-prod)
-      --trigger-type string      Trigger type: manual, scheduled, or event_based
+      --trigger-type string      Trigger type: manual, scheduled, or event_based (event_based is Push-only)
 ```
 
 ### Options inherited from parent commands

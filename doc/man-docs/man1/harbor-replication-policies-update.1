@@ -64,7 +64,7 @@ explicitly provided flags (partial update).
 
 .PP
 \fB--resource-filter\fP=""
-	Resource type filter: image, artifact, or empty for all
+	Resource type filter: Pull supports 'image' only; Push supports '', 'image', or 'artifact'
 
 .PP
 \fB--speed\fP=""
@@ -80,7 +80,7 @@ explicitly provided flags (partial update).
 
 .PP
 \fB--trigger-type\fP=""
-	Trigger type: manual, scheduled, or event_based
+	Trigger type: manual, scheduled, or event_based (event_based is Push-only)
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS

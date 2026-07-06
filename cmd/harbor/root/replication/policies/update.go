@@ -165,7 +165,7 @@ For interactive mode, omit all flags and the command will guide you through the 
 			log.Debugf("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
 
 			// Branch: non-interactive if any update flag was explicitly provided.
-			if hasReplicationUpdateFlagChanges(cmd) {
+			if isNonInteractiveMode {
 				if err := applyReplicationUpdateFlags(cmd, createView, opts); err != nil {
 					return err
 				}
@@ -196,13 +196,13 @@ For interactive mode, omit all flags and the command will guide you through the 
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Name, "name", "", "New name for the replication policy")
 	flags.StringVar(&opts.Description, "description", "", "New description for the replication policy")
-	flags.StringVar(&opts.ResourceFilter, "resource-filter", "", "Resource type filter: image, artifact, or empty for all")
+	flags.StringVar(&opts.ResourceFilter, "resource-filter", "", "Resource type filter: Pull supports 'image' only; Push supports '', 'image', or 'artifact'")
 	flags.StringVar(&opts.NameFilter, "name-filter", "", "Repository name filter pattern (supports wildcards, e.g. library/*)")
 	flags.StringVar(&opts.TagFilter, "tag-filter", "", "Tag filter type: matches or excludes")
 	flags.StringVar(&opts.TagPattern, "tag-pattern", "", "Tag filter pattern (e.g. v*, latest, *-prod)")
 	flags.StringVar(&opts.LabelFilter, "label-filter", "", "Label filter type: matches or excludes")
 	flags.StringVar(&opts.LabelPattern, "label-pattern", "", "Label filter pattern (e.g. env=prod or env=prod,ver=1.0)")
-	flags.StringVar(&opts.TriggerType, "trigger-type", "", "Trigger type: manual, scheduled, or event_based")
+	flags.StringVar(&opts.TriggerType, "trigger-type", "", "Trigger type: manual, scheduled, or event_based (event_based is Push-only)")
 	flags.StringVar(&opts.CronString, "cron", "", "Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. \"0 0 */6 * * *\")")
 	flags.StringVar(&opts.Speed, "speed", "", "Maximum replication speed in KB/s (-1 for unlimited)")
 	flags.BoolVar(&opts.Enabled, "enabled", false, "Whether the replication policy is enabled or not")
@@ -297,6 +297,9 @@ func applyReplicationUpdateFlags(cmd *cobra.Command, createView *create.CreateVi
 		v := strings.ToLower(strings.TrimSpace(opts.TriggerType))
 		if v != "manual" && v != "scheduled" && v != "event_based" {
 			return fmt.Errorf("--trigger-type must be 'manual', 'scheduled', or 'event_based', got %q", opts.TriggerType)
+		}
+		if v == "event_based" && createView.ReplicationMode == "Pull" {
+			return fmt.Errorf("--trigger-type=event_based is only supported for Push replication policies")
 		}
 		createView.TriggerType = v
 	}
