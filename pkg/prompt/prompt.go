@@ -465,7 +465,7 @@ func GetRoleIDFromUser() int64 {
 func GetRetentionTagRule(retentionID string) (int64, error) {
 	response, err := api.ListRetention(retentionID)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to list retention rules for retention policy %s: %w", retentionID, err)
 	}
 	if response.Payload == nil || len(response.Payload.Rules) == 0 {
 		return -1, nil

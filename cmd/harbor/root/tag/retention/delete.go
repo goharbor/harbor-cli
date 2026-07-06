@@ -22,6 +22,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var getProjectNameFromUser = prompt.GetProjectNameFromUser
+var getRetentionId = api.GetRetentionId
+var getRetentionTagRule = prompt.GetRetentionTagRule
+var deleteRetention = api.DeleteRetention
+
 func DeleteRetentionRuleCommand() *cobra.Command {
 	var projectName string
 	var projectID int
@@ -49,7 +54,7 @@ Examples:
 			}
 
 			if projectID == -1 && projectName == "" {
-				name, err := prompt.GetProjectNameFromUser()
+				name, err := getProjectNameFromUser()
 				if err != nil {
 					return err
 				}
@@ -66,7 +71,7 @@ Examples:
 				projectIDStr = projectName
 			}
 
-			retentionID, err := api.GetRetentionId(projectIDStr, isName)
+			retentionID, err := getRetentionId(projectIDStr, isName)
 			if err != nil {
 				if err.Error() == "No retention policy exists for this project" {
 					fmt.Println("No retention policy exists for this project")
@@ -75,7 +80,7 @@ Examples:
 					return fmt.Errorf("error retrieving retention policy ID: %w", err)
 				}
 			}
-			retentionIndex, err := prompt.GetRetentionTagRule(retentionID)
+			retentionIndex, err := getRetentionTagRule(retentionID)
 			if err != nil {
 				return err
 			}
@@ -83,7 +88,7 @@ Examples:
 				fmt.Println("No retention rules found")
 				return nil
 			}
-			err = api.DeleteRetention(retentionID, int(retentionIndex))
+			err = deleteRetention(retentionID, int(retentionIndex))
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}

@@ -134,7 +134,7 @@ func DeleteRetention(retentionID string, ruleIndex int) error {
 
 	existingPolicy := retentionResp.Payload
 	if existingPolicy == nil {
-		return fmt.Errorf("retention policy is empty")
+		return fmt.Errorf("retention policy payload is empty for retention ID %s", retentionID)
 	}
 
 	if ruleIndex < 0 || ruleIndex >= len(existingPolicy.Rules) {

@@ -69,9 +69,6 @@ func RetentionList(rules []*models.RetentionRule) (int64, error) {
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		if model.Aborted {
-			return 0, ErrUserAborted
-		}
 		if model.Choice == "" {
 			return 0, ErrUserAborted
 		}
