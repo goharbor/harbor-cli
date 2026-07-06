@@ -24,6 +24,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	getUserByIDOrNameFunc = api.GetUserByIDOrName
+	getUserIdFromUserFunc = prompt.GetUserIdFromUser
+	getUserByIDFunc       = api.GetUserByID
+	getCLIInfoFunc        = api.GetCLIInfo
+	updateUserProfileFunc = api.UpdateUserProfile
+	runUpdateUserViewFunc = update.UpdateUserView
+)
+
 func UserUpdateCmd() *cobra.Command {
 	var opts update.UpdateView
 
@@ -39,24 +48,24 @@ func UserUpdateCmd() *cobra.Command {
 			var existingUser *models.UserResp
 
 			if len(args) > 0 {
-				existingUser, err = api.GetUserByIDOrName(args[0])
+				existingUser, err = getUserByIDOrNameFunc(args[0])
 				if err != nil {
 					return err
 				}
 				userID = existingUser.UserID
 			} else {
 				// Interactive mode: select user from list
-				userID, err = prompt.GetUserIdFromUser()
+				userID, err = getUserIdFromUserFunc()
 				if err != nil {
 					return fmt.Errorf("failed to get user id: %v", err)
 				}
-				existingUser, err = api.GetUserByID(userID)
+				existingUser, err = getUserByIDFunc(userID)
 				if err != nil {
 					return err
 				}
 			}
 
-			cliInfo, err := api.GetCLIInfo()
+			cliInfo, err := getCLIInfoFunc()
 			if err != nil {
 				return err
 			}
@@ -94,7 +103,7 @@ func UserUpdateCmd() *cobra.Command {
 					}
 				}
 
-				err = api.UpdateUserProfile(userID, email, realname, comment)
+				err = updateUserProfileFunc(userID, email, realname, comment)
 			} else {
 				// Interactive mode
 				updateView := &update.UpdateView{
@@ -121,6 +130,6 @@ func UserUpdateCmd() *cobra.Command {
 }
 
 func updateUserView(userID int64, updateView *update.UpdateView) error {
-	update.UpdateUserView(updateView)
-	return api.UpdateUserProfile(userID, updateView.Email, updateView.Realname, updateView.Comment)
+	runUpdateUserViewFunc(updateView)
+	return updateUserProfileFunc(userID, updateView.Email, updateView.Realname, updateView.Comment)
 }
