@@ -22,24 +22,9 @@ func GC() *cobra.Command {
 		Long: `Use this command to manage registry-wide Garbage Collection (GC) in your Harbor instance.
 
 Garbage Collection cleans up deleted or orphaned blobs/tags in the registry to free up storage space.
-This command supports listing execution history, viewing logs, showing schedule configuration, stopping running jobs, and triggering manual runs.`,
+This command supports listing execution history.`,
 		Example: `  # View Garbage Collection execution history
-  harbor gc history
-
-  # Get the current Garbage Collection schedule
-  harbor gc schedule
-
-  # Trigger Garbage Collection run immediately
-  harbor gc trigger --delete-untagged --dry-run=false
-
-  # View execution logs for a GC run
-  harbor gc log 12
-
-  # Stop a running Garbage Collection run
-  harbor gc stop 12
-
-  # Update the automatic Garbage Collection schedule
-  harbor gc update-schedule daily --delete-untagged`,
+  harbor gc history`,
 	}
 
 	cmd.AddCommand(

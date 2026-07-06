@@ -35,6 +35,11 @@ func TestHistoryGCOperation_Errors(t *testing.T) {
 			flags:       []string{"--page-size", "101"},
 			expectError: true,
 		},
+		{
+			name:        "page number zero",
+			flags:       []string{"--page", "0"},
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
