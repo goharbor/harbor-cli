@@ -88,7 +88,10 @@ Examples:
 				}
 			}
 
-			label := api.GetLabel(labelID)
+			label, err := api.GetLabel(labelID)
+			if err != nil {
+				return fmt.Errorf("failed to get label: %v", utils.ParseHarborErrorMsg(err))
+			}
 
 			if _, err := api.AddLabelArtifact(projectName, repoName, reference, label); err != nil {
 				return fmt.Errorf("failed to add label to artifact: %v", utils.ParseHarborErrorMsg(err))
