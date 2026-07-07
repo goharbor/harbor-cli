@@ -38,4 +38,5 @@ harbor tag immutable
 * [harbor tag immutable create](harbor-tag-immutable-create.md)	 - create immutable tag rule
 * [harbor tag immutable delete](harbor-tag-immutable-delete.md)	 - delete immutable rule
 * [harbor tag immutable list](harbor-tag-immutable-list.md)	 - Display all immutable tag rules for a project
+* [harbor tag immutable update](harbor-tag-immutable-update.md)	 - update immutable tag rule
 

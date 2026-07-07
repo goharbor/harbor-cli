@@ -28,6 +28,7 @@ func Immutable() *cobra.Command {
 		CreateImmutableCommand(),
 		ListImmutableCommand(),
 		DeleteImmutableCommand(),
+		UpdateImmutableCommand(),
 	)
 
 	return cmd
