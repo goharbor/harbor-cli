@@ -27,6 +27,7 @@ func Project() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateProjectCommand(),
+		UpdateProjectCommand(),
 		DeleteProjectCommand(),
 		ListProjectCommand(),
 		ViewCommand(),

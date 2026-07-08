@@ -1,0 +1,72 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-update - Update a project
+
+
+.SH SYNOPSIS
+\fBharbor project update [project_name] [flags]\fP
+
+
+.SH DESCRIPTION
+Update project settings such as visibility, storage quota, and metadata.
+
+.PP
+Examples:
+  harbor project update myproject --public true
+  harbor project update myproject --storage-limit -1 --prevent-vul true
+
+
+.SH OPTIONS
+\fB--auto-scan\fP=""
+	Enable or disable auto scan (true/false)
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--id\fP[=false]
+	Use project ID instead of name
+
+.PP
+\fB--prevent-vul\fP=""
+	Enable or disable vulnerability prevention (true/false)
+
+.PP
+\fB--public\fP=""
+	Set project visibility (true/false)
+
+.PP
+\fB--registry-id\fP=""
+	ID of referenced registry for proxy cache projects
+
+.PP
+\fB--reuse-sys-cve\fP=""
+	Enable or disable reuse of system CVE allowlist (true/false)
+
+.PP
+\fB--severity\fP=""
+	Set severity level (none, low, medium, high, critical)
+
+.PP
+\fB--storage-limit\fP=""
+	Storage quota of the project in bytes (-1 for unlimited)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-project(1)\fP

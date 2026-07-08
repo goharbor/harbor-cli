@@ -188,6 +188,21 @@ func SearchProject(query string) (search.SearchOK, error) {
 	return *response, nil
 }
 
+func UpdateProject(useProjectID bool, projectNameOrID string, req *models.ProjectReq) error {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return err
+	}
+
+	useResourceName := !useProjectID
+	_, err = client.Project.UpdateProject(ctx, &project.UpdateProjectParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: &useResourceName,
+		Project:         req,
+	})
+	return err
+}
+
 func LogsProject(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
