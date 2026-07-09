@@ -15,6 +15,7 @@ package user
 
 import (
 	"fmt"
+	"net/mail"
 	"strings"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -32,6 +33,13 @@ func UserCreateCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+
+			if opts.Email != "" {
+				addr, err := mail.ParseAddress(opts.Email)
+				if err != nil || addr.Address != opts.Email {
+					return fmt.Errorf("invalid email format: %q", opts.Email)
+				}
+			}
 			createView := &create.CreateView{
 				Email:    opts.Email,
 				Realname: opts.Realname,

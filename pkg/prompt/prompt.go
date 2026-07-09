@@ -37,6 +37,7 @@ import (
 	rpolicies "github.com/goharbor/harbor-cli/pkg/views/replication/policies/select"
 	rtasks "github.com/goharbor/harbor-cli/pkg/views/replication/task/select"
 
+	phexecutions "github.com/goharbor/harbor-cli/pkg/views/preheat/execution/select"
 	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
@@ -504,4 +505,40 @@ func GetPreheatPolicyNameFromUser(projectName string) (string, error) {
 
 	res := <-resultChan
 	return res.name, res.err
+}
+
+func GetPreheatPolicyExecIDFromUser(projectName string, policyName string) (int64, error) {
+	type result struct {
+		id  int64
+		err error
+	}
+	executionID := make(chan result)
+
+	go func() {
+		response, err := api.ListPreheatExecutions(projectName, policyName)
+		if err != nil {
+			executionID <- result{0, err}
+			return
+		}
+
+		if len(response.Payload) == 0 {
+			executionID <- result{0, errors.New("no preheat executions found")}
+			return
+		}
+
+		id, err := phexecutions.PreheatExecutionList(response.Payload)
+		if err != nil {
+			if err == phexecutions.ErrUserAborted {
+				executionID <- result{0, errors.New("user aborted execution selection")}
+			} else {
+				executionID <- result{0, fmt.Errorf("error during execution selection: %w", err)}
+			}
+			return
+		}
+
+		executionID <- result{id, nil}
+	}()
+
+	res := <-executionID
+	return res.id, res.err
 }
