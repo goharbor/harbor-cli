@@ -213,7 +213,7 @@ func buildOIDCClient(credential Credential, idToken string) (*v2client.HarborAPI
 	}
 
 	return buildClientWithAuth(credential.ServerAddress, tokenManager, &oidcRetryTransport{
-		base:         harbor.InsecureTransport,
+		base:         http.DefaultTransport,
 		tokenManager: tokenManager,
 	})
 }
@@ -264,7 +264,7 @@ func (m *oidcTokenManager) Refresh() (string, error) {
 func (t *oidcRetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	base := t.base
 	if base == nil {
-		base = harbor.InsecureTransport
+		base = http.DefaultTransport
 	}
 
 	resp, err := base.RoundTrip(req)

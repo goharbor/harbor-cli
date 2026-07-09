@@ -18,6 +18,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -93,6 +94,23 @@ func TestPollForOIDCTokenExpired(t *testing.T) {
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "expired before token retrieval")
+}
+
+func TestPollForOIDCTokenTimeoutWhilePending(t *testing.T) {
+	var requests int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&requests, 1)
+		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
+		assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
+		w.WriteHeader(http.StatusAccepted)
+	}))
+	defer server.Close()
+
+	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", 100*time.Millisecond)
+
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "timed out waiting for OIDC authentication")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&requests))
 }
 
 func TestRefreshOIDCToken(t *testing.T) {

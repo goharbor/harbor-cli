@@ -72,7 +72,7 @@ func InitiateOIDCLogin(serverAddress string) (*OIDCLoginResponse, error) {
 	q.Set("mode", "cli")
 	u.RawQuery = q.Encode()
 
-	resp, err := http.Get(u.String()) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Get(u.String()) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate OIDC login: %w", err)
 	}
@@ -142,7 +142,7 @@ func PollForOIDCToken(serverAddress, pollToken string, timeout time.Duration) (*
 }
 
 func pollOIDCTokenOnce(endpoint string) (*OIDCPollResponse, bool, error) {
-	resp, err := http.Get(endpoint) //nolint:gosec // endpoint is the Harbor server URL validated by PollForOIDCToken.
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Get(endpoint) //nolint:gosec // endpoint is the Harbor server URL validated by PollForOIDCToken.
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to poll OIDC token: %w", err)
 	}
@@ -208,7 +208,7 @@ func RefreshOIDCToken(serverAddress, refreshToken string) (*OIDCRefreshResponse,
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh OIDC token: %w", err)
 	}
@@ -240,7 +240,11 @@ func joinServerPath(serverAddress, path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to parse server URL: %w", err)
 	}
-	u.Path = path
+	basePath := u.Path
+	for len(basePath) > 0 && basePath[len(basePath)-1] == '/' {
+		basePath = basePath[:len(basePath)-1]
+	}
+	u.Path = basePath + path
 	u.RawQuery = ""
 	u.Fragment = ""
 	return u.String(), nil

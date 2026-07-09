@@ -514,7 +514,9 @@ func AddCredentialsToConfigFile(credential Credential, configPath string) error 
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
+	configMutex.Lock()
 	CurrentHarborConfig = &c
+	configMutex.Unlock()
 	fmt.Printf("Added credential '%s' to config file at %s\n", credential.Name, configPath)
 	return nil
 }
@@ -560,7 +562,9 @@ func UpdateCredentialsInConfigFile(updatedCredential Credential, configPath stri
 		log.Fatalf("failed to write updated config file: %v", err)
 	}
 
+	configMutex.Lock()
 	CurrentHarborConfig = &c
+	configMutex.Unlock()
 	fmt.Printf("Updated credential '%s' in config file at %s.\n", updatedCredential.Name, configPath)
 	fmt.Printf("Switched to context '%s'\n", updatedCredential.Name)
 	return nil

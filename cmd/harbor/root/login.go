@@ -242,7 +242,7 @@ func RunOIDCLogin(serverAddress string) error {
 
 	harborData, err := utils.GetCurrentHarborData()
 	if err != nil {
-		return fmt.Errorf("failed to get current harbor data: %s", err)
+		return fmt.Errorf("failed to get current harbor data: %w", err)
 	}
 
 	if err := utils.AddOIDCCredentials(serverAddress, tokenResp.Username, tokenResp.IDToken, tokenResp.RefreshToken, tokenResp.ExpiresAt, harborData.ConfigPath); err != nil {
