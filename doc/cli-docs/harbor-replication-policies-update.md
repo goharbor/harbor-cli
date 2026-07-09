@@ -8,6 +8,10 @@ weight: 5
 
 ##### Update an existing replication policy
 
+### Synopsis
+
+Update an existing replication policy.
+
 When called without any update flags, the command opens the interactive TUI wizard
 (existing behavior preserved). When any update flag is provided, the command runs
 non-interactively — loading the existing policy as the baseline and applying only the

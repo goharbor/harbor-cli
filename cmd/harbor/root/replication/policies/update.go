@@ -54,9 +54,36 @@ func UpdateCommand() *cobra.Command {
 		Short: "Update an existing replication policy",
 		Long: `Update an existing replication policy.
 
-When update flags are provided, the command runs non-interactively and updates only the specified fields while preserving all other values. Policy ID is required when update flags are used.
-For interactive mode, omit all flags and the command will guide you through the update process.`,
-		Example: `harbor replication policies update 1 --name production-sync --enabled=true`,
+When called without any update flags, the command opens the interactive TUI wizard
+(existing behavior preserved). When any update flag is provided, the command runs
+non-interactively — loading the existing policy as the baseline and applying only the
+explicitly provided flags (partial update).`,
+		Example: `  # Interactive (existing behavior — opens TUI wizard)
+  harbor replication policies update 1
+
+  # Change only the name
+  harbor replication policies update 1 --name production-sync
+
+  # Enable the policy
+  harbor replication policies update 1 --enabled=true
+
+  # Update multiple fields at once
+  harbor replication policies update 1 \
+    --name production-sync \
+    --description "Production replication" \
+    --enabled=true \
+    --override=true
+
+  # Update resource/name/tag filters
+  harbor replication policies update 1 \
+    --name-filter "library/*" \
+    --tag-filter matches \
+    --tag-pattern "v*"
+
+  # Switch to a scheduled trigger
+  harbor replication policies update 1 \
+    --trigger-type scheduled \
+    --cron "0 0 */6 * * *"`,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			isNonInteractiveMode := hasReplicationUpdateFlagChanges(cmd)
