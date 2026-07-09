@@ -84,7 +84,7 @@ explicitly provided flags (partial update).`,
   harbor replication policies update 1 \
     --trigger-type scheduled \
     --cron "0 0 */6 * * *"`,
-		Args:    cobra.MaximumNArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			isNonInteractiveMode := hasReplicationUpdateFlagChanges(cmd)
 			var policyID int64
