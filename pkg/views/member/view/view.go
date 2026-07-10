@@ -48,9 +48,10 @@ func memberRow(member *models.ProjectMemberEntity, wide bool) table.Row {
 	roleName := utils.CamelCaseToHR(member.RoleName)
 
 	memberType := member.EntityType
-	if memberType == "u" {
+	switch memberType {
+	case "u":
 		memberType = "User"
-	} else if memberType == "g" {
+	case "g":
 		memberType = "Group"
 	}
 
