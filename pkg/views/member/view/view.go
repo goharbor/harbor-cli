@@ -36,10 +36,8 @@ var columns = []table.Column{
 	{Title: "Project ID", Width: 12},
 }
 
-func ViewMember(member *models.ProjectMemberEntity, wide bool) {
-	var rows []table.Row
+func memberRow(member *models.ProjectMemberEntity, wide bool) table.Row {
 	memberID := strconv.FormatInt(member.ID, 10)
-	projectID := strconv.FormatInt(member.ProjectID, 10)
 	roleName := utils.CamelCaseToHR(member.RoleName)
 
 	memberType := member.EntityType
@@ -51,25 +49,33 @@ func ViewMember(member *models.ProjectMemberEntity, wide bool) {
 
 	if wide {
 		roleID := strconv.FormatInt(member.RoleID, 10)
+		projectID := strconv.FormatInt(member.ProjectID, 10)
 
-		rows = append(rows, table.Row{
+		return table.Row{
 			memberID,
 			member.EntityName,
 			memberType,
 			roleName,
 			roleID,
 			projectID,
-		})
-	} else {
+		}
+	}
+
+	return table.Row{
+		memberID,
+		member.EntityName,
+		memberType,
+		roleName,
+	}
+}
+
+func ViewMember(member *models.ProjectMemberEntity, wide bool) {
+	rows := []table.Row{memberRow(member, wide)}
+
+	if !wide {
 		colsToRemove := []string{"Role ID", "Project ID"}
 		columns = utils.RemoveColumns(columns, colsToRemove)
 		log.Println(columns)
-		rows = append(rows, table.Row{
-			memberID, // Member Name
-			member.EntityName,
-			memberType,
-			roleName,
-		})
 	}
 
 	m := tablelist.NewModel(columns, rows, len(rows))
