@@ -16,7 +16,6 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -34,6 +33,14 @@ var columns = []table.Column{
 	{Title: "Role Name", Width: 16},
 	{Title: "Role ID", Width: 8},
 	{Title: "Project ID", Width: 12},
+}
+
+func memberColumns(wide bool) []table.Column {
+	if wide {
+		return columns
+	}
+	colsToRemove := []string{"Role ID", "Project ID"}
+	return utils.RemoveColumns(columns, colsToRemove)
 }
 
 func memberRow(member *models.ProjectMemberEntity, wide bool) table.Row {
@@ -72,13 +79,7 @@ func memberRow(member *models.ProjectMemberEntity, wide bool) table.Row {
 func ViewMember(member *models.ProjectMemberEntity, wide bool) {
 	rows := []table.Row{memberRow(member, wide)}
 
-	if !wide {
-		colsToRemove := []string{"Role ID", "Project ID"}
-		columns = utils.RemoveColumns(columns, colsToRemove)
-		log.Println(columns)
-	}
-
-	m := tablelist.NewModel(columns, rows, len(rows))
+	m := tablelist.NewModel(memberColumns(wide), rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
