@@ -20,6 +20,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMemberColumns(t *testing.T) {
+	t.Run("wide returns all columns", func(t *testing.T) {
+		got := memberColumns(true)
+		assert.Len(t, got, 6)
+	})
+
+	t.Run("non-wide hides Role ID and Project ID", func(t *testing.T) {
+		got := memberColumns(false)
+		assert.Len(t, got, 4)
+		for _, col := range got {
+			assert.NotEqual(t, "Role ID", col.Title)
+			assert.NotEqual(t, "Project ID", col.Title)
+		}
+	})
+
+	t.Run("non-wide call does not affect later wide calls", func(t *testing.T) {
+		memberColumns(false)
+		got := memberColumns(true)
+		assert.Len(t, got, 6)
+	})
+
+	t.Run("package-level columns are not mutated", func(t *testing.T) {
+		memberColumns(false)
+		assert.Len(t, columns, 6)
+	})
+}
+
 func TestMemberRow(t *testing.T) {
 	member := &models.ProjectMemberEntity{
 		ID:         1,
