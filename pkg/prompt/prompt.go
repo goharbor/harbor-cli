@@ -17,14 +17,18 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
+	listpkg "github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	list "github.com/goharbor/harbor-cli/pkg/views/context/switch"
+	contextswitch "github.com/goharbor/harbor-cli/pkg/views/context/switch"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
-	aview "github.com/goharbor/harbor-cli/pkg/views/artifact/select"
+	baseSelection "github.com/goharbor/harbor-cli/pkg/views/base/selection"
+	"github.com/goharbor/harbor-cli/pkg/views/base/selectionv2"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
@@ -40,7 +44,6 @@ import (
 	phexecutions "github.com/goharbor/harbor-cli/pkg/views/preheat/execution/select"
 	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
 
-	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
 	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
@@ -97,39 +100,42 @@ func GetProjectIDFromUser() (int64, error) {
 }
 
 func GetProjectNameFromUser() (string, error) {
-	type result struct {
-		name string
-		err  error
-	}
-	resultChan := make(chan result)
-
-	go func() {
+	model := selectionv2.NewModel("Project", "Loading projects...", func() ([]listpkg.Item, error) {
 		response, err := api.ListAllProjects()
 		if err != nil {
-			resultChan <- result{"", err}
-			return
+			return nil, err
 		}
-
 		if len(response.Payload) == 0 {
-			resultChan <- result{"", errors.New("no projects found")}
-			return
+			return nil, errors.New("no projects found")
 		}
 
-		name, err := pview.ProjectList(response.Payload)
-		if err != nil {
-			if err == pview.ErrUserAborted {
-				resultChan <- result{"", errors.New("user aborted project selection")}
-			} else {
-				resultChan <- result{"", fmt.Errorf("error during project selection: %w", err)}
-			}
-			return
+		items := make([]listpkg.Item, len(response.Payload))
+		for i, project := range response.Payload {
+			items[i] = baseSelection.Item(project.Name)
 		}
+		return items, nil
+	})
 
-		resultChan <- result{name, nil}
-	}()
+	finalModel, err := tea.NewProgram(model).Run()
+	if err != nil {
+		return "", fmt.Errorf("error during project selection: %w", err)
+	}
 
-	res := <-resultChan
-	return res.name, res.err
+	selectionModel, ok := finalModel.(selectionv2.Model)
+	if !ok {
+		return "", errors.New("unexpected project selection result")
+	}
+	if selectionModel.Err != nil {
+		return "", selectionModel.Err
+	}
+	if selectionModel.Aborted {
+		return "", errors.New("user aborted project selection")
+	}
+	if selectionModel.Choice == "" {
+		return "", errors.New("no project selected")
+	}
+
+	return selectionModel.Choice, nil
 }
 
 // GetRoleNameFromUser prompts the user to select a role and returns it.
@@ -144,27 +150,77 @@ func GetRoleNameFromUser() int64 {
 }
 
 func GetRepoNameFromUser(projectName string) string {
-	repositoryName := make(chan string)
-
-	go func() {
+	model := selectionv2.NewModel("Repository", fmt.Sprintf("Loading repositories for %s...", projectName), func() ([]listpkg.Item, error) {
 		response, err := api.ListRepository(projectName, false)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
-		repoView.RepositoryList(response.Payload, repositoryName)
-	}()
+		if len(response.Payload) == 0 {
+			return nil, errors.New("no repositories found")
+		}
 
-	return <-repositoryName
+		items := make([]listpkg.Item, len(response.Payload))
+		for i, repository := range response.Payload {
+			split := strings.Split(repository.Name, "/")
+			items[i] = baseSelection.Item(strings.Join(split[1:], "/"))
+		}
+		return items, nil
+	})
+
+	finalModel, err := tea.NewProgram(model).Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	selectionModel, ok := finalModel.(selectionv2.Model)
+	if !ok || selectionModel.Choice == "" {
+		log.Fatal("failed to select repository")
+	}
+	if selectionModel.Err != nil {
+		log.Fatal(selectionModel.Err)
+	}
+	if selectionModel.Aborted {
+		log.Fatal("user aborted repository selection")
+	}
+
+	return selectionModel.Choice
 }
 
 // complete the function
 func GetReferenceFromUser(repositoryName string, projectName string) string {
-	reference := make(chan string)
-	go func() {
-		response, _ := api.ListArtifact(projectName, repositoryName)
-		aview.ListArtifacts(response.Payload, reference)
-	}()
-	return <-reference
+	model := selectionv2.NewModel("Artifact", fmt.Sprintf("Loading artifacts for %s/%s...", projectName, repositoryName), func() ([]listpkg.Item, error) {
+		response, err := api.ListArtifact(projectName, repositoryName)
+		if err != nil {
+			return nil, err
+		}
+		if len(response.Payload) == 0 {
+			return nil, errors.New("no artifacts found")
+		}
+
+		items := make([]listpkg.Item, len(response.Payload))
+		for i, artifact := range response.Payload {
+			items[i] = baseSelection.Item(artifact.Digest)
+		}
+		return items, nil
+	})
+
+	finalModel, err := tea.NewProgram(model).Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	selectionModel, ok := finalModel.(selectionv2.Model)
+	if !ok || selectionModel.Choice == "" {
+		log.Fatal("failed to select artifact")
+	}
+	if selectionModel.Err != nil {
+		log.Fatal(selectionModel.Err)
+	}
+	if selectionModel.Aborted {
+		log.Fatal("user aborted artifact selection")
+	}
+
+	return selectionModel.Choice
 }
 
 func GetUserIdFromUser() (int64, error) {
@@ -330,7 +386,7 @@ func GetActiveContextFromUser() (string, error) {
 		cxlist = append(cxlist, cx)
 	}
 
-	res, err := list.ContextList(cxlist, config.CurrentCredentialName)
+	res, err := contextswitch.ContextList(cxlist, config.CurrentCredentialName)
 	if err != nil {
 		return "", err
 	}
