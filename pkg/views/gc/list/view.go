@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,7 +31,7 @@ var columns = []table.Column{
 	{Title: "Job Name", Width: tablelist.WidthXL},
 	{Title: "Status", Width: tablelist.WidthM},
 	{Title: "Kind", Width: tablelist.WidthM},
-	{Title: "Parameters", Width: tablelist.WidthXL},
+	{Title: "Parameters", Width: tablelist.WidthXL * 2},
 	{Title: "Creation Time", Width: tablelist.WidthXL},
 }
 
@@ -44,14 +43,7 @@ func ListGCHistory(history []*models.GCHistory) {
 			fmt.Println("Error formatting created time:", err)
 			os.Exit(1)
 		}
-		rows = append(rows, table.Row{
-			fmt.Sprintf("%d", run.ID),
-			run.JobName,
-			run.JobStatus,
-			run.JobKind,
-			formatParams(run.JobParameters),
-			createdTime,
-		})
+		rows = append(rows, historyRows(run, createdTime)...)
 	}
 
 	m := tablelist.NewModel(columns, rows, len(rows))
@@ -62,23 +54,39 @@ func ListGCHistory(history []*models.GCHistory) {
 	}
 }
 
-func formatParams(paramsStr string) string {
+func historyRows(run *models.GCHistory, createdTime string) []table.Row {
+	params := formatParams(run.JobParameters)
+	rows := []table.Row{{
+		fmt.Sprintf("%d", run.ID),
+		run.JobName,
+		run.JobStatus,
+		run.JobKind,
+		params[0],
+		createdTime,
+	}}
+	for _, param := range params[1:] {
+		rows = append(rows, table.Row{"", "", "", "", param, ""})
+	}
+	return rows
+}
+
+func formatParams(paramsStr string) []string {
 	if paramsStr == "" {
-		return "-"
+		return []string{"-"}
 	}
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(paramsStr), &m); err != nil {
-		return paramsStr
+		return []string{paramsStr}
 	}
 	parts := make([]string, 0, len(m))
 	for k, v := range m {
 		parts = append(parts, fmt.Sprintf("%s: %s", k, formatParamValue(v)))
 	}
 	if len(parts) == 0 {
-		return "-"
+		return []string{"-"}
 	}
 	sort.Strings(parts)
-	return strings.Join(parts, " | ")
+	return parts
 }
 
 func formatParamValue(value interface{}) string {
