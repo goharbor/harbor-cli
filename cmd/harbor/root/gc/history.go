@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/gc/list"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -44,10 +43,9 @@ func HistoryGCOperation() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			logrus.Debug("Fetching Garbage Collection execution history")
 			history, err := api.ListGCHistory(opts)
 			if err != nil {
-				return fmt.Errorf("failed to list GC history: %v", utils.ParseHarborErrorMsg(err))
+				return fmt.Errorf("failed to list GC history: %w", err)
 			}
 
 			if len(history) == 0 {

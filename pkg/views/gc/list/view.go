@@ -28,8 +28,8 @@ import (
 )
 
 var columns = []table.Column{
-	{Title: "ID", Width: tablelist.WidthXS},
-	{Title: "Job Name", Width: tablelist.WidthL},
+	{Title: "ID", Width: tablelist.WidthS},
+	{Title: "Job Name", Width: tablelist.WidthXL},
 	{Title: "Status", Width: tablelist.WidthM},
 	{Title: "Kind", Width: tablelist.WidthM},
 	{Title: "Parameters", Width: tablelist.WidthXL},
@@ -39,14 +39,14 @@ var columns = []table.Column{
 func ListGCHistory(history []*models.GCHistory) {
 	var rows []table.Row
 	for _, run := range history {
-		createdTime, _ := utils.FormatCreatedTime(run.CreationTime.String())
+		creationTimestamp := run.CreationTime.String()
 		rows = append(rows, table.Row{
 			fmt.Sprintf("%d", run.ID),
 			run.JobName,
 			run.JobStatus,
 			run.JobKind,
 			formatParams(run.JobParameters),
-			createdTime,
+			formatCreationTime(creationTimestamp),
 		})
 	}
 
@@ -58,6 +58,14 @@ func ListGCHistory(history []*models.GCHistory) {
 	}
 }
 
+func formatCreationTime(timestamp string) string {
+	createdTime, err := utils.FormatCreatedTime(timestamp)
+	if err != nil {
+		return timestamp
+	}
+	return createdTime
+}
+
 func formatParams(paramsStr string) string {
 	if paramsStr == "" {
 		return "-"
@@ -66,13 +74,25 @@ func formatParams(paramsStr string) string {
 	if err := json.Unmarshal([]byte(paramsStr), &m); err != nil {
 		return paramsStr
 	}
-	var parts []string
+	parts := make([]string, 0, len(m))
 	for k, v := range m {
-		parts = append(parts, fmt.Sprintf("%s=%v", k, v))
+		parts = append(parts, fmt.Sprintf("%s: %s", k, formatParamValue(v)))
 	}
 	if len(parts) == 0 {
 		return "-"
 	}
 	sort.Strings(parts)
-	return strings.Join(parts, ", ")
+	return strings.Join(parts, " | ")
+}
+
+func formatParamValue(value interface{}) string {
+	if value, ok := value.(string); ok {
+		return value
+	}
+
+	formatted, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	return string(formatted)
 }

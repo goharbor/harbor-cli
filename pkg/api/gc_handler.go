@@ -14,6 +14,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/gc"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -32,7 +34,7 @@ func ListGCHistory(opts ListFlags) ([]*models.GCHistory, error) {
 		Sort:     &opts.Sort,
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.New(utils.ParseHarborErrorMsg(err))
 	}
 
 	return response.Payload, nil
