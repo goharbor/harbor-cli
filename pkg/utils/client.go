@@ -174,6 +174,7 @@ func refreshOIDCCredential(credential Credential) (string, error) {
 func oidcTokenNeedsRefresh(credential Credential, idToken string) bool {
 	expiresAt, err := oidcTokenExpiryUnix(idToken)
 	if err != nil {
+		log.Debugf("failed to parse OIDC token expiry from JWT, falling back to stored expires_at: %v", err)
 		expiresAt = credential.ExpiresAt
 	}
 	if expiresAt <= 0 {

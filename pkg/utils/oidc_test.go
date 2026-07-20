@@ -45,6 +45,24 @@ func TestInitiateOIDCLogin(t *testing.T) {
 	assert.Equal(t, "poll-token-1", resp.PollToken)
 }
 
+func TestInitiateOIDCLoginPreservesBasePath(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/harbor/c/oidc/login", r.URL.Path)
+		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
+		_ = json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
+			RedirectURL: "https://idp.example/authorize",
+			PollToken:   "poll-token-1",
+		})
+	}))
+	defer server.Close()
+
+	resp, err := utils.InitiateOIDCLogin(server.URL + "/harbor")
+
+	require.NoError(t, err)
+	assert.Equal(t, "https://idp.example/authorize", resp.RedirectURL)
+	assert.Equal(t, "poll-token-1", resp.PollToken)
+}
+
 func TestPollForOIDCTokenReady(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
