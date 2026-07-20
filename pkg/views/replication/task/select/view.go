@@ -23,8 +23,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-var ErrUserAborted = errors.New("user aborted selection")
-
 func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64, errChan chan<- error) {
 	itemsList := make([]list.Item, len(tasks))
 	for i, p := range tasks {
@@ -43,7 +41,7 @@ func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64, 
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Choice == "" {
-			errChan <- ErrUserAborted
+			errChan <- selection.ErrUserAborted
 			return
 		}
 		// Extract the ID from model.Choice

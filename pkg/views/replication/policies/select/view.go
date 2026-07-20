@@ -23,8 +23,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-var ErrUserAborted = errors.New("user aborted selection")
-
 func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<- int64, errChan chan<- error) {
 	policyNameIDsMap := make(map[string]int64, len(policies))
 	for _, p := range policies {
@@ -46,7 +44,7 @@ func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<-
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Choice == "" {
-			errChan <- ErrUserAborted
+			errChan <- selection.ErrUserAborted
 			return
 		}
 		id, found := policyNameIDsMap[model.Choice]

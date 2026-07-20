@@ -23,14 +23,14 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-var ErrUserAborted = errors.New("user aborted selection")
-
 func ReplicationExecutionList(executions []*models.ReplicationExecution, choice chan<- int64, errChan chan<- error) {
 	itemsList := make([]list.Item, len(executions))
+	executionIDs := make(map[string]int64, len(executions))
 	for i, p := range executions {
 		displayName := fmt.Sprintf("ID: %d, Status: %s, Trigger: %s, Start Time: %s, Succeed: %d, Total: %d",
 			p.ID, p.Status, p.Trigger, p.StartTime.String(), p.Succeed, p.Total)
 		itemsList[i] = selection.Item(displayName)
+		executionIDs[displayName] = p.ID
 	}
 
 	m := selection.NewModel(itemsList, "Select a Replication Execution")
@@ -43,14 +43,12 @@ func ReplicationExecutionList(executions []*models.ReplicationExecution, choice 
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Choice == "" {
-			errChan <- ErrUserAborted
+			errChan <- selection.ErrUserAborted
 			return
 		}
-		// Extract the ID from model.Choice
-		var execID int64
-		_, err = fmt.Sscanf(model.Choice, "ID: %d", &execID)
-		if err != nil {
-			errChan <- fmt.Errorf("error parsing execution ID: %w", err)
+		execID, ok := executionIDs[model.Choice]
+		if !ok {
+			errChan <- fmt.Errorf("selected execution %q not found in execution list", model.Choice)
 			return
 		}
 		choice <- execID
