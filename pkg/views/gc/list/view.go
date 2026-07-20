@@ -39,14 +39,18 @@ var columns = []table.Column{
 func ListGCHistory(history []*models.GCHistory) {
 	var rows []table.Row
 	for _, run := range history {
-		creationTimestamp := run.CreationTime.String()
+		createdTime, err := utils.FormatCreatedTime(run.CreationTime.String())
+		if err != nil {
+			fmt.Println("Error formatting created time:", err)
+			os.Exit(1)
+		}
 		rows = append(rows, table.Row{
 			fmt.Sprintf("%d", run.ID),
 			run.JobName,
 			run.JobStatus,
 			run.JobKind,
 			formatParams(run.JobParameters),
-			formatCreationTime(creationTimestamp),
+			createdTime,
 		})
 	}
 
@@ -56,14 +60,6 @@ func ListGCHistory(history []*models.GCHistory) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-}
-
-func formatCreationTime(timestamp string) string {
-	createdTime, err := utils.FormatCreatedTime(timestamp)
-	if err != nil {
-		return timestamp
-	}
-	return createdTime
 }
 
 func formatParams(paramsStr string) string {

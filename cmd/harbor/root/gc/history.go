@@ -45,7 +45,7 @@ func HistoryGCOperation() *cobra.Command {
 
 			history, err := api.ListGCHistory(opts)
 			if err != nil {
-				return fmt.Errorf("failed to list GC history: %w", err)
+				return fmt.Errorf("failed to list GC history: %v", utils.ParseHarborErrorMsg(err))
 			}
 
 			if len(history) == 0 {

@@ -25,13 +25,6 @@ func TestHistoryIDColumnWidth(t *testing.T) {
 	}
 }
 
-func TestFormatCreationTimeFallsBackToOriginalTimestamp(t *testing.T) {
-	timestamp := "not-a-timestamp"
-	if got := formatCreationTime(timestamp); got != timestamp {
-		t.Fatalf("formatCreationTime() = %q, want original timestamp %q", got, timestamp)
-	}
-}
-
 func TestFormatParams(t *testing.T) {
 	tests := []struct {
 		name   string
