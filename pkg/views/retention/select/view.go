@@ -24,8 +24,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-var ErrUserAborted = errors.New("user aborted selection")
-
 func RetentionList(rules []*models.RetentionRule) (int64, error) {
 	itemsList := make([]list.Item, len(rules))
 	items := map[string]int64{}
@@ -57,7 +55,7 @@ func RetentionList(rules []*models.RetentionRule) (int64, error) {
 			rule.Template,
 		)
 
-		items[display] = int64(i)
+		items[display] = rule.ID
 		itemsList[i] = selection.Item(display)
 	}
 
@@ -70,9 +68,13 @@ func RetentionList(rules []*models.RetentionRule) (int64, error) {
 
 	if model, ok := p.(selection.Model); ok {
 		if model.Choice == "" {
-			return 0, ErrUserAborted
+			return 0, selection.ErrUserAborted
 		}
-		return items[model.Choice], nil
+		ruleID, ok := items[model.Choice]
+		if !ok {
+			return 0, fmt.Errorf("selected retention rule %q not found in rule list", model.Choice)
+		}
+		return ruleID, nil
 	}
 
 	return 0, errors.New("unexpected program result")

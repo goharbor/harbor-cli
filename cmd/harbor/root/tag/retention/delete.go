@@ -80,15 +80,15 @@ Examples:
 					return fmt.Errorf("error retrieving retention policy ID: %w", err)
 				}
 			}
-			retentionIndex, err := getRetentionTagRule(retentionID)
+			retentionPolicy, retentionRuleID, err := getRetentionTagRule(retentionID)
 			if err != nil {
 				return err
 			}
-			if retentionIndex < 0 {
+			if retentionRuleID < 0 {
 				fmt.Println("No retention rules found")
 				return nil
 			}
-			err = deleteRetention(retentionID, int(retentionIndex))
+			err = deleteRetention(retentionPolicy, retentionRuleID)
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}

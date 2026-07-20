@@ -18,6 +18,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,8 +79,8 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 		getRetentionId = func(projectNameorID string, isName bool) (string, error) {
 			return "42", nil
 		}
-		getRetentionTagRule = func(retentionID string) (int64, error) {
-			return 0, errors.New("selection aborted")
+		getRetentionTagRule = func(retentionID string) (*models.RetentionPolicy, int64, error) {
+			return nil, 0, errors.New("selection aborted")
 		}
 
 		cmd := DeleteRetentionRuleCommand()
@@ -97,8 +98,13 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 		getRetentionId = func(projectNameorID string, isName bool) (string, error) {
 			return "42", nil
 		}
-		getRetentionTagRule = func(retentionID string) (int64, error) {
-			return -1, nil
+		getRetentionTagRule = func(retentionID string) (*models.RetentionPolicy, int64, error) {
+			return &models.RetentionPolicy{ID: 42}, -1, nil
+		}
+		deleteCalled := false
+		deleteRetention = func(existingPolicy *models.RetentionPolicy, ruleID int64) error {
+			deleteCalled = true
+			return nil
 		}
 
 		cmd := DeleteRetentionRuleCommand()
@@ -109,16 +115,18 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 
 		err := cmd.Execute()
 		assert.NoError(t, err)
+		assert.False(t, deleteCalled)
 	})
 
 	t.Run("DeleteRetention error - returns error", func(t *testing.T) {
 		getRetentionId = func(projectNameorID string, isName bool) (string, error) {
 			return "42", nil
 		}
-		getRetentionTagRule = func(retentionID string) (int64, error) {
-			return 0, nil
+		policy := &models.RetentionPolicy{ID: 42}
+		getRetentionTagRule = func(retentionID string) (*models.RetentionPolicy, int64, error) {
+			return policy, 17, nil
 		}
-		deleteRetention = func(retentionID string, ruleIndex int) error {
+		deleteRetention = func(existingPolicy *models.RetentionPolicy, ruleID int64) error {
 			return errors.New("delete failed")
 		}
 
@@ -137,14 +145,15 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 		getRetentionId = func(projectNameorID string, isName bool) (string, error) {
 			return "42", nil
 		}
-		getRetentionTagRule = func(retentionID string) (int64, error) {
-			return 0, nil
+		policy := &models.RetentionPolicy{ID: 42}
+		getRetentionTagRule = func(retentionID string) (*models.RetentionPolicy, int64, error) {
+			return policy, 17, nil
 		}
-		var calledRetentionID string
-		var calledIndex int
-		deleteRetention = func(retentionID string, ruleIndex int) error {
-			calledRetentionID = retentionID
-			calledIndex = ruleIndex
+		var calledPolicy *models.RetentionPolicy
+		var calledRuleID int64
+		deleteRetention = func(existingPolicy *models.RetentionPolicy, ruleID int64) error {
+			calledPolicy = existingPolicy
+			calledRuleID = ruleID
 			return nil
 		}
 
@@ -156,7 +165,7 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 
 		err := cmd.Execute()
 		assert.NoError(t, err)
-		assert.Equal(t, "42", calledRetentionID)
-		assert.Equal(t, 0, calledIndex)
+		assert.Same(t, policy, calledPolicy)
+		assert.Equal(t, int64(17), calledRuleID)
 	})
 }

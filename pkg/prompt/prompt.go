@@ -462,15 +462,16 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func GetRetentionTagRule(retentionID string) (int64, error) {
+func GetRetentionTagRule(retentionID string) (*models.RetentionPolicy, int64, error) {
 	response, err := api.ListRetention(retentionID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to list retention rules for retention policy %s: %w", retentionID, err)
+		return nil, 0, fmt.Errorf("failed to list retention rules for retention policy %s: %w", retentionID, err)
 	}
 	if response.Payload == nil || len(response.Payload.Rules) == 0 {
-		return -1, nil
+		return response.Payload, -1, nil
 	}
-	return retview.RetentionList(response.Payload.Rules)
+	ruleID, err := retview.RetentionList(response.Payload.Rules)
+	return response.Payload, ruleID, err
 }
 
 func GetPreheatPolicyNameFromUser(projectName string) (string, error) {

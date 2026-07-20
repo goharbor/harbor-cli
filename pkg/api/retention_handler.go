@@ -121,40 +121,49 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	return retentionid, nil
 }
 
-func DeleteRetention(retentionID string, ruleIndex int) error {
+func DeleteRetention(existingPolicy *models.RetentionPolicy, ruleID int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
 
-	retentionResp, err := ListRetention(retentionID)
-	if err != nil {
+	if existingPolicy == nil {
+		return fmt.Errorf("retention policy payload is empty while deleting rule ID %d", ruleID)
+	}
+
+	if err := removeRetentionRule(existingPolicy, ruleID); err != nil {
 		return err
 	}
 
-	existingPolicy := retentionResp.Payload
-	if existingPolicy == nil {
-		return fmt.Errorf("retention policy payload is empty for retention ID %s", retentionID)
-	}
-
-	if ruleIndex < 0 || ruleIndex >= len(existingPolicy.Rules) {
-		return fmt.Errorf("invalid rule index")
-	}
-
-	copy(existingPolicy.Rules[ruleIndex:], existingPolicy.Rules[ruleIndex+1:])
-	existingPolicy.Rules[len(existingPolicy.Rules)-1] = nil
-	existingPolicy.Rules = existingPolicy.Rules[:len(existingPolicy.Rules)-1]
-
 	_, err = client.Retention.UpdateRetention(ctx, &retention.UpdateRetentionParams{
-		ID:     int64(retentionResp.Payload.ID),
+		ID:     existingPolicy.ID,
 		Policy: existingPolicy,
 	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Deleted rule at index %d from retention policy\n", ruleIndex)
+	fmt.Printf("Deleted rule with ID %d from retention policy\n", ruleID)
 	return nil
+}
+
+func removeRetentionRule(existingPolicy *models.RetentionPolicy, ruleID int64) error {
+	if existingPolicy == nil {
+		return fmt.Errorf("retention policy payload is empty while deleting rule ID %d", ruleID)
+	}
+
+	for i, rule := range existingPolicy.Rules {
+		if rule == nil || rule.ID != ruleID {
+			continue
+		}
+
+		copy(existingPolicy.Rules[i:], existingPolicy.Rules[i+1:])
+		existingPolicy.Rules[len(existingPolicy.Rules)-1] = nil
+		existingPolicy.Rules = existingPolicy.Rules[:len(existingPolicy.Rules)-1]
+		return nil
+	}
+
+	return fmt.Errorf("retention rule with ID %d not found", ruleID)
 }
 
 func UpdateRetention(retentionIDStr string, newRule *models.RetentionRule) error {
