@@ -173,14 +173,22 @@ func UpdateUserProfile(userID int64, email, realname, comment string) error {
 
 // GetUserByIDOrName retrieves a user by either their ID or their Username.
 func GetUserByIDOrName(arg string) (*models.UserResp, error) {
-	if id, err := strconv.ParseInt(arg, 10, 64); err == nil {
-		if user, err := getUserByIDFunc(id); err == nil {
-			return user, nil
+	if id, parseErr := strconv.ParseInt(arg, 10, 64); parseErr == nil {
+		u, err := getUserByIDFunc(id)
+		if err == nil {
+			return u, nil
+		}
+		// Only fall back to username lookup if the ID truly doesn't exist.
+		if err.Error() != fmt.Sprintf("user with ID %d not found", id) {
+			return nil, err
 		}
 	}
 
 	id, err := getUsersIdByNameFunc(arg)
 	if err != nil {
+		return nil, err
+	}
+	if id == 0 {
 		return nil, fmt.Errorf("user %q not found", arg)
 	}
 

@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/user/update"
 	"github.com/spf13/cobra"
 )
@@ -95,12 +96,15 @@ func UserUpdateCmd() *cobra.Command {
 					comment = opts.Comment
 				}
 
-				// Validate email format if it changed
-				if email != "" && email != existingUser.Email {
+				// Validate fields explicitly provided via flags
+				if emailFlagSelected {
 					addr, err := mail.ParseAddress(email)
 					if err != nil || addr.Address != email {
 						return fmt.Errorf("invalid email format: %q", email)
 					}
+				}
+				if realnameFlagSelected && realname == "" {
+					return fmt.Errorf("realname cannot be empty")
 				}
 
 				err = updateUserProfileFunc(userID, email, realname, comment)
@@ -118,7 +122,7 @@ func UserUpdateCmd() *cobra.Command {
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to update user: %v", err)
+				return fmt.Errorf("failed to update user: %v", utils.ParseHarborErrorMsg(err))
 			}
 			return nil
 		},
