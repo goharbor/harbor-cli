@@ -53,6 +53,9 @@ func UserUpdateCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if existingUser == nil {
+					return fmt.Errorf("user %q not found", args[0])
+				}
 				userID = existingUser.UserID
 			} else {
 				// Interactive mode: select user from list
@@ -63,6 +66,9 @@ func UserUpdateCmd() *cobra.Command {
 				existingUser, err = getUserByIDFunc(userID)
 				if err != nil {
 					return err
+				}
+				if existingUser == nil {
+					return fmt.Errorf("user with ID %d not found", userID)
 				}
 			}
 
