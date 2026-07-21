@@ -14,9 +14,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
+	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -149,6 +151,11 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 	return nil
 }
 
+var updateUserProfileAPIFunc = func(ctx context.Context, client *v2client.HarborAPI, params *user.UpdateUserProfileParams) error {
+	_, err := client.User.UpdateUserProfile(ctx, params)
+	return err
+}
+
 // UpdateUserProfile updates the email, realname, and comment of the user profile.
 func UpdateUserProfile(userID int64, email, realname, comment string) error {
 	ctx, client, err := contextWithClientFunc()
@@ -156,7 +163,7 @@ func UpdateUserProfile(userID int64, email, realname, comment string) error {
 		return err
 	}
 
-	_, err = client.User.UpdateUserProfile(ctx, &user.UpdateUserProfileParams{
+	err = updateUserProfileAPIFunc(ctx, client, &user.UpdateUserProfileParams{
 		Profile: &models.UserProfile{
 			Email:    email,
 			Realname: realname,

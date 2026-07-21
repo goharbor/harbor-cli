@@ -38,6 +38,51 @@ func TestUpdateUserProfile(t *testing.T) {
 	assert.Contains(t, err.Error(), "mocked error")
 }
 
+func TestUpdateUserProfile_Success(t *testing.T) {
+	origContextWithClient := contextWithClientFunc
+	origUpdateUserProfileAPI := updateUserProfileAPIFunc
+	defer func() {
+		contextWithClientFunc = origContextWithClient
+		updateUserProfileAPIFunc = origUpdateUserProfileAPI
+	}()
+
+	contextWithClientFunc = func() (context.Context, *v2client.HarborAPI, error) {
+		return context.Background(), &v2client.HarborAPI{}, nil
+	}
+
+	updateUserProfileAPIFunc = func(ctx context.Context, client *v2client.HarborAPI, params *user.UpdateUserProfileParams) error {
+		assert.Equal(t, int64(1), params.UserID)
+		assert.Equal(t, "test@example.com", params.Profile.Email)
+		assert.Equal(t, "Test User", params.Profile.Realname)
+		assert.Equal(t, "Test Comment", params.Profile.Comment)
+		return nil
+	}
+
+	err := UpdateUserProfile(1, "test@example.com", "Test User", "Test Comment")
+	assert.NoError(t, err)
+}
+
+func TestUpdateUserProfile_APIError(t *testing.T) {
+	origContextWithClient := contextWithClientFunc
+	origUpdateUserProfileAPI := updateUserProfileAPIFunc
+	defer func() {
+		contextWithClientFunc = origContextWithClient
+		updateUserProfileAPIFunc = origUpdateUserProfileAPI
+	}()
+
+	contextWithClientFunc = func() (context.Context, *v2client.HarborAPI, error) {
+		return context.Background(), &v2client.HarborAPI{}, nil
+	}
+
+	updateUserProfileAPIFunc = func(ctx context.Context, client *v2client.HarborAPI, params *user.UpdateUserProfileParams) error {
+		return errors.New("api error")
+	}
+
+	err := UpdateUserProfile(1, "test@example.com", "Test User", "Test Comment")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "api error")
+}
+
 func TestGetUserByIDOrName(t *testing.T) {
 	origContextWithClient := contextWithClientFunc
 	defer func() { contextWithClientFunc = origContextWithClient }()
@@ -81,6 +126,45 @@ func TestGetUserByID_Success(t *testing.T) {
 	assert.Equal(t, "admin", u.Username)
 }
 
+func TestGetUserByID_NotFound(t *testing.T) {
+	origListUsersFunc := listUsersFunc
+	defer func() { listUsersFunc = origListUsersFunc }()
+	listUsersFunc = func(opts ...ListFlags) (*user.ListUsersOK, error) {
+		return &user.ListUsersOK{
+			Payload: []*models.UserResp{},
+		}, nil
+	}
+
+	_, err := GetUserByID(999)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "user with ID 999 not found")
+}
+
+func TestGetUserByID_SecondPage(t *testing.T) {
+	origListUsersFunc := listUsersFunc
+	defer func() { listUsersFunc = origListUsersFunc }()
+	listUsersFunc = func(opts ...ListFlags) (*user.ListUsersOK, error) {
+		if opts[0].Page == 1 {
+			// Return 100 dummy users to simulate full page
+			payload := make([]*models.UserResp, 100)
+			for i := 0; i < 100; i++ {
+				payload[i] = &models.UserResp{UserID: int64(i + 10)}
+			}
+			return &user.ListUsersOK{Payload: payload}, nil
+		}
+		return &user.ListUsersOK{
+			Payload: []*models.UserResp{
+				{UserID: 2, Username: "target"},
+			},
+		}, nil
+	}
+
+	u, err := GetUserByID(2)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), u.UserID)
+	assert.Equal(t, "target", u.Username)
+}
+
 func TestGetUserByIDOrName_SuccessByName(t *testing.T) {
 	origGetUsersIdByNameFunc := getUsersIdByNameFunc
 	origGetUserByIDFunc := getUserByIDFunc
@@ -107,6 +191,43 @@ func TestGetUserByIDOrName_SuccessByName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(2), u.UserID)
 	assert.Equal(t, "testuser", u.Username)
+}
+
+func TestGetUserByIDOrName_IDLookupError(t *testing.T) {
+	origGetUserByIDFunc := getUserByIDFunc
+	defer func() { getUserByIDFunc = origGetUserByIDFunc }()
+	getUserByIDFunc = func(userID int64) (*models.UserResp, error) {
+		return nil, errors.New("some API error")
+	}
+
+	_, err := GetUserByIDOrName("123")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "some API error")
+}
+
+func TestGetUserByIDOrName_IDZero(t *testing.T) {
+	origGetUsersIdByNameFunc := getUsersIdByNameFunc
+	defer func() { getUsersIdByNameFunc = origGetUsersIdByNameFunc }()
+	getUsersIdByNameFunc = func(userName string) (int64, error) {
+		return 0, nil
+	}
+
+	_, err := GetUserByIDOrName("notfounduser")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "user \"notfounduser\" not found")
+}
+
+func TestGetUserByIDOrName_SuccessByID(t *testing.T) {
+	origGetUserByIDFunc := getUserByIDFunc
+	defer func() { getUserByIDFunc = origGetUserByIDFunc }()
+	getUserByIDFunc = func(userID int64) (*models.UserResp, error) {
+		return &models.UserResp{UserID: 123, Username: "byid"}, nil
+	}
+
+	u, err := GetUserByIDOrName("123")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(123), u.UserID)
+	assert.Equal(t, "byid", u.Username)
 }
 
 func TestGetUserByIDOrName_FallbackToNameWhenIDNotFound(t *testing.T) {
