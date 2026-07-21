@@ -24,8 +24,10 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 )
 
+var contextWithClientFunc = utils.ContextWithClient
+
 func CreateUser(opts create.CreateView) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -51,7 +53,7 @@ func CreateUser(opts create.CreateView) error {
 }
 
 func DeleteUser(userId int64) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func DeleteUser(userId int64) error {
 }
 
 func ElevateUser(userId int64) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -82,7 +84,7 @@ func ElevateUser(userId int64) error {
 }
 
 func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +124,7 @@ func GetUsersIdByName(userName string) (int64, error) {
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -143,7 +145,7 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 }
 
 func UpdateUserProfile(userID int64, email, realname, comment string) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}

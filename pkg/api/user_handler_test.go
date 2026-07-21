@@ -14,25 +14,49 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"testing"
 
+	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateUserProfile(t *testing.T) {
+	origContextWithClient := contextWithClientFunc
+	defer func() { contextWithClientFunc = origContextWithClient }()
+	contextWithClientFunc = func() (context.Context, *v2client.HarborAPI, error) {
+		return nil, nil, errors.New("mocked error")
+	}
+
 	// Without a valid client context, this should return an error
 	err := UpdateUserProfile(1, "test@example.com", "Test User", "Test Comment")
 	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "mocked error")
 }
 
 func TestGetUserByIDOrName(t *testing.T) {
+	origContextWithClient := contextWithClientFunc
+	defer func() { contextWithClientFunc = origContextWithClient }()
+	contextWithClientFunc = func() (context.Context, *v2client.HarborAPI, error) {
+		return nil, nil, errors.New("mocked error")
+	}
+
 	// Without a valid client context, this should return an error
 	_, err := GetUserByIDOrName("admin")
 	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "mocked error")
 }
 
 func TestGetUserByID(t *testing.T) {
+	origContextWithClient := contextWithClientFunc
+	defer func() { contextWithClientFunc = origContextWithClient }()
+	contextWithClientFunc = func() (context.Context, *v2client.HarborAPI, error) {
+		return nil, nil, errors.New("mocked error")
+	}
+
 	// Without a valid client context, this should return an error
 	_, err := GetUserByID(1)
 	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "mocked error")
 }
