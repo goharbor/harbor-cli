@@ -7,25 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestIsPhase2SupportedCommandPath(t *testing.T) {
-	tests := []struct {
-		path string
-		want bool
-	}{
-		{path: "harbor artifact list", want: true},
-		{path: "harbor project view", want: true},
-		{path: "harbor artifact tags create", want: false},
-		{path: "harbor ldap search", want: false},
-	}
-
-	for _, tt := range tests {
-		got := isPhase2SupportedCommandPath(tt.path)
-		if got != tt.want {
-			t.Fatalf("isPhase2SupportedCommandPath(%q) = %v, want %v", tt.path, got, tt.want)
-		}
-	}
-}
-
 func TestCommandArgsFromPath(t *testing.T) {
 	tests := []struct {
 		path string

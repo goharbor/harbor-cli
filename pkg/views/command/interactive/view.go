@@ -233,7 +233,7 @@ func renderSelectionSummary(cmd *cobra.Command) string {
 	}
 
 	sections = append(sections, "")
-	sections = append(sections, views.YellowStyle.Render("v1 preview: interactive mode currently browses the command tree and shows the selected leaf command."))
+	sections = append(sections, views.YellowStyle.Render("Interactive mode currently browses the command tree and shows the selected leaf command."))
 
 	return "\n" + strings.Join(sections, "\n") + "\n"
 }

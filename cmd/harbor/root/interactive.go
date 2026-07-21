@@ -14,7 +14,6 @@
 package root
 
 import (
-	"fmt"
 	"strings"
 
 	commandinteractive "github.com/goharbor/harbor-cli/pkg/views/command/interactive"
@@ -45,38 +44,12 @@ leaf commands, and review the exact command path before running anything manuall
 	return cmd
 }
 
-var phase2SupportedCommandPaths = map[string]struct{}{
-	"harbor artifact list":         {},
-	"harbor artifact view":         {},
-	"harbor project list":          {},
-	"harbor project view":          {},
-	"harbor repo list":             {},
-	"harbor repo view":             {},
-	"harbor scanner view":          {},
-	"harbor webhook list":          {},
-	"harbor info":                  {},
-	"harbor version":               {},
-	"harbor vulnerability list":    {},
-	"harbor vulnerability summary": {},
-}
-
 func executeInteractiveSelection(sourceRoot, selected *cobra.Command) error {
 	commandPath := strings.TrimSpace(selected.CommandPath())
-	if !isPhase2SupportedCommandPath(commandPath) {
-		fmt.Printf("Interactive execution is not available yet for %q.\n", commandPath)
-		fmt.Printf("Please run `%s` manually and provide the required arguments or flags.\n", commandPath)
-		return nil
-	}
-
 	execRoot := RootCmd()
 	execRoot.SetArgs(append(changedRootFlags(sourceRoot), commandArgsFromPath(commandPath)...))
 
 	return execRoot.Execute()
-}
-
-func isPhase2SupportedCommandPath(commandPath string) bool {
-	_, ok := phase2SupportedCommandPaths[strings.TrimSpace(commandPath)]
-	return ok
 }
 
 func commandArgsFromPath(commandPath string) []string {
