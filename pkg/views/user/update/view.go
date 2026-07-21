@@ -19,16 +19,17 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
+// UpdateView holds the data for the user profile update view.
 type UpdateView struct {
 	Email    string
 	Realname string
 	Comment  string
 }
 
-func UpdateUserView(updateView *UpdateView) {
+// UpdateUserView launches the interactive form to update the user profile.
+func UpdateUserView(updateView *UpdateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -65,6 +66,7 @@ func UpdateUserView(updateView *UpdateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

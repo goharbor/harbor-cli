@@ -111,7 +111,10 @@ func UserUpdateCmd() *cobra.Command {
 					Realname: existingUser.Realname,
 					Comment:  existingUser.Comment,
 				}
-				err = updateUserView(userID, updateView)
+				err = runUpdateUserViewFunc(updateView)
+				if err == nil {
+					err = updateUserProfileFunc(userID, updateView.Email, updateView.Realname, updateView.Comment)
+				}
 			}
 
 			if err != nil {
@@ -129,7 +132,3 @@ func UserUpdateCmd() *cobra.Command {
 	return cmd
 }
 
-func updateUserView(userID int64, updateView *update.UpdateView) error {
-	runUpdateUserViewFunc(updateView)
-	return updateUserProfileFunc(userID, updateView.Email, updateView.Realname, updateView.Comment)
-}

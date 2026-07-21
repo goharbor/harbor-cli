@@ -1,6 +1,6 @@
 ---
 title: harbor scanner create
-weight: 95
+weight: 75
 ---
 ## harbor scanner create
 

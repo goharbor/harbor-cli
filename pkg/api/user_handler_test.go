@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +47,7 @@ func TestGetUserByIDOrName(t *testing.T) {
 	// Without a valid client context, this should return an error
 	_, err := GetUserByIDOrName("admin")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "mocked error")
+	assert.Contains(t, err.Error(), "not found")
 }
 
 func TestGetUserByID(t *testing.T) {
@@ -59,4 +61,49 @@ func TestGetUserByID(t *testing.T) {
 	_, err := GetUserByID(1)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "mocked error")
+}
+
+func TestGetUserByID_Success(t *testing.T) {
+	origListUsersFunc := listUsersFunc
+	defer func() { listUsersFunc = origListUsersFunc }()
+	listUsersFunc = func(opts ...ListFlags) (*user.ListUsersOK, error) {
+		return &user.ListUsersOK{
+			Payload: []*models.UserResp{
+				{UserID: 1, Username: "admin"},
+			},
+		}, nil
+	}
+
+	u, err := GetUserByID(1)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), u.UserID)
+	assert.Equal(t, "admin", u.Username)
+}
+
+func TestGetUserByIDOrName_SuccessByName(t *testing.T) {
+	origGetUsersIdByNameFunc := getUsersIdByNameFunc
+	origGetUserByIDFunc := getUserByIDFunc
+	defer func() {
+		getUsersIdByNameFunc = origGetUsersIdByNameFunc
+		getUserByIDFunc = origGetUserByIDFunc
+	}()
+
+	getUsersIdByNameFunc = func(userName string) (int64, error) {
+		if userName == "testuser" {
+			return 2, nil
+		}
+		return 0, errors.New("not found")
+	}
+
+	getUserByIDFunc = func(userID int64) (*models.UserResp, error) {
+		if userID == 2 {
+			return &models.UserResp{UserID: 2, Username: "testuser"}, nil
+		}
+		return nil, errors.New("not found")
+	}
+
+	u, err := GetUserByIDOrName("testuser")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), u.UserID)
+	assert.Equal(t, "testuser", u.Username)
 }

@@ -2,20 +2,32 @@
 .TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
 
 .SH NAME
-harbor-user - Manage users
+harbor-user-update - update user profile
 
 
 .SH SYNOPSIS
-\fBharbor user [flags]\fP
+\fBharbor user update [USER_NAME_OR_ID] [flags]\fP
 
 
 .SH DESCRIPTION
-Manage users in Harbor
+The 'update' command allows sysadmins to modify an existing user's profile information, such as their email, realname, or comment.
 
 
 .SH OPTIONS
+\fB--comment\fP=""
+	Comment
+
+.PP
+\fB--email\fP=""
+	Email
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
-	help for user
+	help for update
+
+.PP
+\fB--realname\fP=""
+	Realname
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -33,9 +45,9 @@ Manage users in Harbor
 
 .SH EXAMPLE
 .EX
-  harbor user list
+  harbor user update admin --email newadmin@example.com --realname "System Admin"
 .EE
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP, \fBharbor-user-create(1)\fP, \fBharbor-user-delete(1)\fP, \fBharbor-user-elevate(1)\fP, \fBharbor-user-list(1)\fP, \fBharbor-user-password(1)\fP, \fBharbor-user-update(1)\fP
+\fBharbor-user(1)\fP

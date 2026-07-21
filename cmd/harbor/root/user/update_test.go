@@ -29,7 +29,7 @@ func mockSetup(
 	mockGetUserByID func(userID int64) (*models.UserResp, error),
 	mockGetCLIInfo func() (*api.CLIInfo, error),
 	mockUpdateUserProfile func(userID int64, email, realname, comment string) error,
-	mockRunUpdateUserView func(updateView *update.UpdateView),
+	mockRunUpdateUserView func(updateView *update.UpdateView) error,
 ) func() {
 	origGetUserByIDOrName := getUserByIDOrNameFunc
 	origGetUserIdFromUser := getUserIdFromUserFunc
@@ -95,7 +95,34 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 						}
 						return nil
 					},
-					func(updateView *update.UpdateView) {},
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "",
+		},
+		{
+			name: "non-interactive with realname and comment flags only",
+			args: []string{"testuser"},
+			flags: map[string]string{
+				"realname": "New Name Only",
+				"comment":  "New Comment Only",
+			},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return defaultUser, nil },
+					func() (int64, error) { return 0, nil },
+					func(userID int64) (*models.UserResp, error) { return defaultUser, nil },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error {
+						if realname != "New Name Only" {
+							return fmt.Errorf("wrong realname")
+						}
+						if email != "test@example.com" { // should be existing user's email
+							return fmt.Errorf("email should be unchanged")
+						}
+						return nil
+					},
+					func(updateView *update.UpdateView) error { return nil },
 				)
 			},
 			expectedErr: "",
@@ -111,8 +138,9 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 					func(userID int64) (*models.UserResp, error) { return defaultUser, nil },
 					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
 					func(userID int64, email, realname, comment string) error { return nil },
-					func(updateView *update.UpdateView) {
+					func(updateView *update.UpdateView) error {
 						updateView.Email = "interactive@example.com"
+						return nil
 					},
 				)
 			},
@@ -131,7 +159,7 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 					func(userID int64) (*models.UserResp, error) { return defaultUser, nil },
 					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
 					func(userID int64, email, realname, comment string) error { return nil },
-					func(updateView *update.UpdateView) {},
+					func(updateView *update.UpdateView) error { return nil },
 				)
 			},
 			expectedErr: "invalid email format",
@@ -151,7 +179,7 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 						return &api.CLIInfo{IsSysAdmin: false, Username: "otheruser"}, nil
 					},
 					func(userID int64, email, realname, comment string) error { return nil },
-					func(updateView *update.UpdateView) {},
+					func(updateView *update.UpdateView) error { return nil },
 				)
 			},
 			expectedErr: "permission denied",
@@ -171,7 +199,7 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 						return &api.CLIInfo{IsSysAdmin: false, Username: "testuser"}, nil
 					},
 					func(userID int64, email, realname, comment string) error { return nil },
-					func(updateView *update.UpdateView) {},
+					func(updateView *update.UpdateView) error { return nil },
 				)
 			},
 			expectedErr: "",
@@ -187,7 +215,7 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 					func(userID int64) (*models.UserResp, error) { return nil, nil },
 					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
 					func(userID int64, email, realname, comment string) error { return nil },
-					func(updateView *update.UpdateView) {},
+					func(updateView *update.UpdateView) error { return nil },
 				)
 			},
 			expectedErr: "user not found",

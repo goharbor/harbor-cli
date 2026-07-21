@@ -24,8 +24,12 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 )
 
-var contextWithClientFunc = utils.ContextWithClient
-
+var (
+	contextWithClientFunc = utils.ContextWithClient
+	listUsersFunc         = ListUsers
+	getUsersIdByNameFunc  = GetUsersIdByName
+	getUserByIDFunc       = GetUserByID
+)
 func CreateUser(opts create.CreateView) error {
 	ctx, client, err := contextWithClientFunc()
 	if err != nil {
@@ -109,7 +113,7 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 func GetUsersIdByName(userName string) (int64, error) {
 	var opts ListFlags
 
-	u, err := ListUsers(opts)
+	u, err := listUsersFunc(opts)
 	if err != nil {
 		return 0, err
 	}
@@ -120,7 +124,7 @@ func GetUsersIdByName(userName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("user %q not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
@@ -144,6 +148,7 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 	return nil
 }
 
+// UpdateUserProfile updates the email, realname, and comment of the user profile.
 func UpdateUserProfile(userID int64, email, realname, comment string) error {
 	ctx, client, err := contextWithClientFunc()
 	if err != nil {
@@ -169,24 +174,25 @@ func UpdateUserProfile(userID int64, email, realname, comment string) error {
 // GetUserByIDOrName retrieves a user by either their ID or their Username.
 func GetUserByIDOrName(arg string) (*models.UserResp, error) {
 	if id, err := strconv.ParseInt(arg, 10, 64); err == nil {
-		if user, err := GetUserByID(id); err == nil {
+		if user, err := getUserByIDFunc(id); err == nil {
 			return user, nil
 		}
 	}
 
-	id, err := GetUsersIdByName(arg)
+	id, err := getUsersIdByNameFunc(arg)
 	if err != nil {
 		return nil, fmt.Errorf("user %q not found", arg)
 	}
 
-	return GetUserByID(id)
+	return getUserByIDFunc(id)
 }
 
+// GetUserByID retrieves a user by their user ID.
 func GetUserByID(userID int64) (*models.UserResp, error) {
 	opts := ListFlags{Page: 1, PageSize: 100}
 
 	for {
-		u, err := ListUsers(opts)
+		u, err := listUsersFunc(opts)
 		if err != nil {
 			return nil, err
 		}
