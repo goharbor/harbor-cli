@@ -16,6 +16,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
