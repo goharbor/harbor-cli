@@ -220,6 +220,38 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 			},
 			expectedErr: "user not found",
 		},
+		{
+			name:  "user resolution returns nil without error",
+			args:  []string{"testuser"},
+			flags: map[string]string{},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return nil, nil }, // returns nil, nil
+					func() (int64, error) { return 0, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, nil },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "user \"testuser\" not found",
+		},
+		{
+			name:  "interactive mode user returns nil without error",
+			args:  []string{},
+			flags: map[string]string{},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return nil, nil },
+					func() (int64, error) { return 999, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, nil }, // returns nil, nil
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "user with ID 999 not found",
+		},
 	}
 
 	for _, tt := range tests {

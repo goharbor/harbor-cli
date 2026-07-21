@@ -107,3 +107,38 @@ func TestGetUserByIDOrName_SuccessByName(t *testing.T) {
 	assert.Equal(t, int64(2), u.UserID)
 	assert.Equal(t, "testuser", u.Username)
 }
+
+func TestGetUserByIDOrName_FallbackToNameWhenIDNotFound(t *testing.T) {
+	origGetUsersIdByNameFunc := getUsersIdByNameFunc
+	origGetUserByIDFunc := getUserByIDFunc
+	defer func() {
+		getUsersIdByNameFunc = origGetUsersIdByNameFunc
+		getUserByIDFunc = origGetUserByIDFunc
+	}()
+
+	getUsersIdByNameFunc = func(userName string) (int64, error) {
+		if userName == "2" {
+			return 2, nil
+		}
+		return 0, errors.New("not found")
+	}
+
+	callCount := 0
+	getUserByIDFunc = func(userID int64) (*models.UserResp, error) {
+		callCount++
+		// First call from strconv.ParseInt fails
+		if callCount == 1 {
+			return nil, fmt.Errorf("user with ID %d not found", userID)
+		}
+		// Second call after name lookup fallback succeeds
+		if userID == 2 {
+			return &models.UserResp{UserID: 2, Username: "2"}, nil
+		}
+		return nil, fmt.Errorf("user with ID %d not found", userID)
+	}
+
+	u, err := GetUserByIDOrName("2")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), u.UserID)
+	assert.Equal(t, "2", u.Username)
+}
