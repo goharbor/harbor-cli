@@ -141,4 +141,3 @@ func UserUpdateCmd() *cobra.Command {
 
 	return cmd
 }
-

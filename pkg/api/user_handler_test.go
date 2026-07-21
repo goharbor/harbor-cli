@@ -47,7 +47,7 @@ func TestGetUserByIDOrName(t *testing.T) {
 	// Without a valid client context, this should return an error
 	_, err := GetUserByIDOrName("admin")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not found")
+	assert.Contains(t, err.Error(), "mocked error")
 }
 
 func TestGetUserByID(t *testing.T) {

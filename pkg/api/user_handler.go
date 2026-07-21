@@ -30,6 +30,7 @@ var (
 	getUsersIdByNameFunc  = GetUsersIdByName
 	getUserByIDFunc       = GetUserByID
 )
+
 func CreateUser(opts create.CreateView) error {
 	ctx, client, err := contextWithClientFunc()
 	if err != nil {
