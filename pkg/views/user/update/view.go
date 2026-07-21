@@ -28,43 +28,52 @@ type UpdateView struct {
 	Comment  string
 }
 
+var runForm = func(f *huh.Form) error {
+	return f.Run()
+}
+
+func ValidateEmail(str string) error {
+	if strings.TrimSpace(str) == "" {
+		return errors.New("email cannot be empty or only spaces")
+	}
+	if isValid := utils.ValidateEmail(str); !isValid {
+		return errors.New("please enter correct email format")
+	}
+	return nil
+}
+
+func ValidateRealname(str string) error {
+	if strings.TrimSpace(str) == "" {
+		return errors.New("real name cannot be empty")
+	}
+	if isValid := utils.ValidateFL(str); !isValid {
+		return errors.New("please enter correct first and last name format, like `Bob Dylan`")
+	}
+	return nil
+}
+
 // UpdateUserView launches the interactive form to update the user profile.
 func UpdateUserView(updateView *UpdateView) error {
 	theme := huh.ThemeCharm()
-	err := huh.NewForm(
+	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Email").
 				Value(&updateView.Email).
-				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("email cannot be empty or only spaces")
-					}
-					if isValid := utils.ValidateEmail(str); !isValid {
-						return errors.New("please enter correct email format")
-					}
-					return nil
-				}),
+				Validate(ValidateEmail),
 
 			huh.NewInput().
 				Title("First and Last Name").
 				Value(&updateView.Realname).
-				Validate(func(str string) error {
-					if strings.TrimSpace(str) == "" {
-						return errors.New("real name cannot be empty")
-					}
-					if isValid := utils.ValidateFL(str); !isValid {
-						return errors.New("please enter correct first and last name format, like `Bob Dylan`")
-					}
-					return nil
-				}),
+				Validate(ValidateRealname),
 
 			huh.NewInput().
 				Title("Comment (optional)").
 				Value(&updateView.Comment),
 		),
-	).WithTheme(theme).Run()
+	).WithTheme(theme)
 
+	err := runForm(form)
 	if err != nil {
 		return err
 	}
