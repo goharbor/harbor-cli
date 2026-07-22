@@ -18,10 +18,10 @@ import (
 	"os"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/harbor-cli/pkg/views"
-	"github.com/goharbor/harbor-cli/pkg/views/base/tablegrid"
 	"golang.org/x/term"
 )
 
@@ -34,21 +34,57 @@ const (
 )
 
 type gridLoadedMsg struct {
-	config tablegrid.Config
+	config Config
 }
 
 type gridLoadFailedMsg struct {
 	err error
 }
 
-type Loader func() (tablegrid.Config, error)
+type CellStatus bool
+
+type Styles struct {
+	Selected   lipgloss.Style
+	Unselected lipgloss.Style
+	Disabled   lipgloss.Style
+	Header     lipgloss.Style
+	Cursor     string
+}
+
+type Icons struct {
+	Selected   string
+	Unselected string
+	Empty      string
+}
+
+type Config struct {
+	RowLabels    []string
+	ColLabels    []string
+	Data         [][]CellStatus
+	Disabled     map[int]map[int]bool
+	ColumnWidths []int
+	Styles       *Styles
+	Icons        *Icons
+	Footer       string
+}
+
+type Loader func() (Config, error)
 
 type Model struct {
-	Grid        *tablegrid.TableGrid
+	Table       table.Model
+	Data        [][]CellStatus
+	RowLabels   []string
+	ColLabels   []string
+	Disabled    map[int]map[int]bool
+	SelectedCol int
+	Styles      Styles
+	Icons       Icons
+	Footer      string
 	Load        Loader
 	Spinner     spinner.Model
 	Err         error
 	LoadingText string
+	done        bool
 	animate     bool
 	state       state
 }
@@ -89,7 +125,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Spinner, cmd = m.Spinner.Update(msg)
 		return m, cmd
 	case gridLoadedMsg:
-		m.Grid = tablegrid.New(msg.config)
+		m.applyConfig(msg.config)
 		m.state = stateReady
 		return m, nil
 	case gridLoadFailedMsg:
@@ -98,14 +134,157 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	if m.Grid == nil {
-		return m, nil
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+a":
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						if m.Disabled[rowIdx][colIdx] {
+							continue
+						}
+						m.Data[rowIdx][colIdx-1] = true
+					}
+				} else {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						m.Data[rowIdx][colIdx-1] = true
+					}
+				}
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+		case "ctrl+d":
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						if m.Disabled[rowIdx][colIdx] {
+							continue
+						}
+						m.Data[rowIdx][colIdx-1] = false
+					}
+				} else {
+					for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+						m.Data[rowIdx][colIdx-1] = false
+					}
+				}
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+		case "ctrl+j":
+			if m.Table.Cursor() < 0 || m.Table.Cursor() >= len(m.RowLabels) {
+				return m, nil
+			}
+			rowIdx := m.Table.Cursor()
+			for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = true
+			}
+			m.refreshTable(rowIdx, m.SelectedCol)
+			return m, nil
+		case "ctrl+k":
+			if m.Table.Cursor() < 0 || m.Table.Cursor() >= len(m.RowLabels) {
+				return m, nil
+			}
+			rowIdx := m.Table.Cursor()
+			for colIdx := 1; colIdx < len(m.ColLabels); colIdx++ {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = false
+			}
+			m.refreshTable(rowIdx, m.SelectedCol)
+			return m, nil
+		case "ctrl+h":
+			if m.SelectedCol < 1 || m.SelectedCol >= len(m.ColLabels) {
+				return m, nil
+			}
+			colIdx := m.SelectedCol
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = true
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+		case "ctrl+l":
+			if m.SelectedCol < 1 || m.SelectedCol >= len(m.ColLabels) {
+				return m, nil
+			}
+			colIdx := m.SelectedCol
+			for rowIdx := range m.RowLabels {
+				if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+					continue
+				}
+				m.Data[rowIdx][colIdx-1] = false
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, nil
+		case "ctrl+s":
+			m.done = true
+			return m, tea.Quit
+		case "left", "h":
+			curRow := m.Table.Cursor()
+			for next := m.SelectedCol - 1; next >= 1; next-- {
+				if m.Disabled == nil || m.Disabled[curRow] == nil || !m.Disabled[curRow][next] {
+					m.SelectedCol = next
+					m.refreshTable(curRow, m.SelectedCol)
+					break
+				}
+			}
+			return m, nil
+		case "right", "l":
+			curRow := m.Table.Cursor()
+			for next := m.SelectedCol + 1; next < len(m.ColLabels); next++ {
+				if m.Disabled == nil || m.Disabled[curRow] == nil || !m.Disabled[curRow][next] {
+					m.SelectedCol = next
+					m.refreshTable(curRow, m.SelectedCol)
+					break
+				}
+			}
+			return m, nil
+		case "up", "k":
+			m.Table, cmd = m.Table.Update(msg)
+			for {
+				r := m.Table.Cursor()
+				if r <= 0 || m.Disabled == nil || m.Disabled[r] == nil || !m.Disabled[r][m.SelectedCol] {
+					break
+				}
+				m.Table, _ = m.Table.Update(msg)
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, cmd
+		case "down", "j":
+			m.Table, cmd = m.Table.Update(msg)
+			for {
+				r := m.Table.Cursor()
+				if r >= len(m.RowLabels)-1 || m.Disabled == nil || m.Disabled[r] == nil || !m.Disabled[r][m.SelectedCol] {
+					break
+				}
+				m.Table, _ = m.Table.Update(msg)
+			}
+			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
+			return m, cmd
+		case "enter", " ":
+			rowIdx := m.Table.Cursor()
+			colIdx := m.SelectedCol
+			if m.Disabled != nil && m.Disabled[rowIdx] != nil && m.Disabled[rowIdx][colIdx] {
+				return m, nil
+			}
+			m.Data[rowIdx][colIdx-1] = !m.Data[rowIdx][colIdx-1]
+			m.refreshTable(rowIdx, colIdx)
+			return m, nil
+		case "q", "ctrl+c":
+			m.done = true
+			return m, tea.Quit
+		}
 	}
 
-	gridModel, cmd := m.Grid.Update(msg)
-	if grid, ok := gridModel.(*tablegrid.TableGrid); ok {
-		m.Grid = grid
-	}
+	m.Table, cmd = m.Table.Update(msg)
 	return m, cmd
 }
 
@@ -119,10 +298,12 @@ func (m Model) View() string {
 	case stateError:
 		return views.BaseStyle.Render(errorStyle().Render(m.Err.Error())) + "\n"
 	default:
-		if m.Grid == nil {
-			return views.BaseStyle.Render("")
+		if m.done {
+			return ""
 		}
-		return m.Grid.View()
+		cursor := m.Table.Cursor()
+		m.refreshTable(cursor, m.SelectedCol)
+		return m.Table.View() + m.footerText()
 	}
 }
 
@@ -140,4 +321,119 @@ func errorStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("9")).
 		Bold(true)
+}
+
+func DefaultStyles() Styles {
+	return Styles{
+		Selected:   lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
+		Unselected: lipgloss.NewStyle().Foreground(lipgloss.Color("9")),
+		Disabled:   lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+		Header:     lipgloss.NewStyle().Bold(true),
+		Cursor:     "▶",
+	}
+}
+
+func DefaultIcons() Icons {
+	return Icons{
+		Selected:   "✅",
+		Unselected: "❌",
+		Empty:      " ",
+	}
+}
+
+func (m *Model) applyConfig(config Config) {
+	styles := DefaultStyles()
+	if config.Styles != nil {
+		styles = *config.Styles
+	}
+
+	icons := DefaultIcons()
+	if config.Icons != nil {
+		icons = *config.Icons
+	}
+
+	colWidths := config.ColumnWidths
+	if colWidths == nil {
+		colWidths = make([]int, len(config.ColLabels))
+		for i := range colWidths {
+			colWidths[i] = 16
+			if i == 0 {
+				colWidths[i] = 20
+			}
+		}
+	}
+
+	columns := make([]table.Column, len(config.ColLabels))
+	for i, label := range config.ColLabels {
+		columns[i] = table.Column{Title: label, Width: colWidths[i]}
+	}
+
+	data := config.Data
+	if data == nil {
+		data = make([][]CellStatus, len(config.RowLabels))
+		for i := range data {
+			data[i] = make([]CellStatus, len(config.ColLabels)-1)
+		}
+	}
+
+	rows := buildRows(config.RowLabels, data, -1, -1, config.Disabled, styles, icons)
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(len(rows)+1),
+	)
+	tableStyles := table.DefaultStyles()
+	tableStyles.Header = tableStyles.Header.Inherit(styles.Header)
+	t.SetStyles(tableStyles)
+
+	m.Table = t
+	m.Data = data
+	m.RowLabels = config.RowLabels
+	m.ColLabels = config.ColLabels
+	m.Disabled = config.Disabled
+	m.SelectedCol = 1
+	m.Styles = styles
+	m.Icons = icons
+	m.Footer = config.Footer
+}
+
+func buildRows(labels []string, data [][]CellStatus, highlightRow, highlightCol int, disabled map[int]map[int]bool, styles Styles, icons Icons) []table.Row {
+	rows := make([]table.Row, len(labels))
+	for i, label := range labels {
+		cells := make([]string, len(data[i])+1)
+		cells[0] = label
+		for j := 0; j < len(data[i]); j++ {
+			colIdx := j + 1
+			if disabled != nil && disabled[i] != nil && disabled[i][colIdx] {
+				cells[colIdx] = styles.Disabled.Render(icons.Empty)
+				continue
+			}
+			var icon string
+			if data[i][j] {
+				icon = styles.Selected.Render(icons.Selected)
+			} else {
+				icon = styles.Unselected.Render(icons.Unselected)
+			}
+			if i == highlightRow && colIdx == highlightCol {
+				cells[colIdx] = fmt.Sprintf("%s %s", styles.Cursor, icon)
+			} else {
+				cells[colIdx] = icon
+			}
+		}
+		rows[i] = table.Row(cells)
+	}
+	return rows
+}
+
+func (m *Model) refreshTable(highlightRow, highlightCol int) {
+	m.Table.SetRows(buildRows(m.RowLabels, m.Data, highlightRow, highlightCol, m.Disabled, m.Styles, m.Icons))
+}
+
+func (m Model) footerText() string {
+	if m.Footer != "" {
+		return m.Footer
+	}
+	return "\n ↑/↓ move row • ⌃J toggle row on  • ⌃H toggle col on  • ^A toggle table on  • space/enter to toggle\n" +
+		" ←/→ move col • ⌃K toggle row off • ⌃L toggle col off • ^D toggle table off • ^S submit • q to cancel \n"
 }

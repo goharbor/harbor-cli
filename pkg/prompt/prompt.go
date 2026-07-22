@@ -28,7 +28,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
-	baseSelection "github.com/goharbor/harbor-cli/pkg/views/base/selection"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selectionv2"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
 	instview "github.com/goharbor/harbor-cli/pkg/views/instance/select"
@@ -111,7 +110,7 @@ func GetProjectNameFromUser() (string, error) {
 
 		items := make([]listpkg.Item, len(response.Payload))
 		for i, project := range response.Payload {
-			items[i] = baseSelection.Item(project.Name)
+			items[i] = selectionv2.Item(project.Name)
 		}
 		return items, nil
 	})
@@ -162,7 +161,7 @@ func GetRepoNameFromUser(projectName string) string {
 		items := make([]listpkg.Item, len(response.Payload))
 		for i, repository := range response.Payload {
 			split := strings.Split(repository.Name, "/")
-			items[i] = baseSelection.Item(strings.Join(split[1:], "/"))
+			items[i] = selectionv2.Item(strings.Join(split[1:], "/"))
 		}
 		return items, nil
 	})
@@ -199,7 +198,7 @@ func GetReferenceFromUser(repositoryName string, projectName string) string {
 
 		items := make([]listpkg.Item, len(response.Payload))
 		for i, artifact := range response.Payload {
-			items[i] = baseSelection.Item(artifact.Digest)
+			items[i] = selectionv2.Item(artifact.Digest)
 		}
 		return items, nil
 	})
@@ -395,19 +394,7 @@ func GetActiveContextFromUser() (string, error) {
 }
 
 func GetRobotPermissionsFromUser(kind string) ([]models.Permission, error) {
-	permissions := make(chan robotView.PermissionSelectResult)
-	go func() {
-		response, err := api.GetPermissions()
-		if err != nil {
-			permissions <- robotView.PermissionSelectResult{
-				Permissions: nil,
-				Err:         err,
-			}
-			return
-		}
-		robotView.ListPermissions(response.Payload, kind, permissions)
-	}()
-	result := <-permissions
+	result := robotView.ListPermissions(kind)
 	return result.Permissions, result.Err
 }
 

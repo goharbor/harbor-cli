@@ -15,14 +15,15 @@ package selectionv2
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/goharbor/harbor-cli/pkg/views"
-	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 	"golang.org/x/term"
 )
 
@@ -42,6 +43,33 @@ type itemsLoadFailedMsg struct {
 	err error
 }
 
+type Item string
+
+func (i Item) FilterValue() string { return string(i) }
+
+type ItemDelegate struct{}
+
+func (d ItemDelegate) Height() int                             { return 1 }
+func (d ItemDelegate) Spacing() int                            { return 0 }
+func (d ItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	item, ok := listItem.(Item)
+	if !ok {
+		return
+	}
+
+	str := fmt.Sprintf("%d. %s", index+1, item)
+
+	fn := views.ItemStyle.Render
+	if index == m.Index() {
+		fn = func(s ...string) string {
+			return views.SelectedItemStyle.Render("> " + strings.Join(s, " "))
+		}
+	}
+
+	fmt.Fprint(w, fn(str))
+}
+
 type Loader func() ([]list.Item, error)
 
 type Model struct {
@@ -50,6 +78,7 @@ type Model struct {
 	Spinner     spinner.Model
 	Choice      string
 	Aborted     bool
+	done        bool
 	Err         error
 	Construct   string
 	LoadingText string
@@ -94,8 +123,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Spinner, cmd = m.Spinner.Update(msg)
 		return m, cmd
 	case itemsLoadedMsg:
-		baseModel := selection.NewModel(msg.items, m.Construct)
-		m.List = baseModel.List
+		const defaultWidth = 20
+		m.List = list.New(msg.items, ItemDelegate{}, defaultWidth, 14)
+		m.List.Title = "Select a " + m.Construct
+		m.List.SetShowStatusBar(false)
+		m.List.SetFilteringEnabled(true)
+		m.List.Styles.Title = views.TitleStyle
+		m.List.Styles.PaginationStyle = views.PaginationStyle
+		m.List.Styles.HelpStyle = views.HelpStyle
 		m.state = stateReady
 		return m, nil
 	case itemsLoadFailedMsg:
@@ -115,12 +150,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch keypress := msg.String(); keypress {
 		case "q", "esc", "ctrl+c":
 			m.Aborted = true
+			m.done = true
 			return m, tea.Quit
 		case "enter":
 			if m.List.FilterState() != list.Filtering {
-				item, ok := m.List.SelectedItem().(selection.Item)
+				item, ok := m.List.SelectedItem().(Item)
 				if ok {
 					m.Choice = string(item)
+					m.done = true
 					return m, tea.Quit
 				}
 			}
@@ -146,7 +183,7 @@ func (m Model) View() string {
 	case stateError:
 		return views.BaseStyle.Render(errorStyle().Render(m.Err.Error())) + "\n"
 	default:
-		if m.Choice != "" {
+		if m.done || m.Choice != "" {
 			return ""
 		}
 		return "\n" + m.List.View()
