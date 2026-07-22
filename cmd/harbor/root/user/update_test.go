@@ -252,6 +252,90 @@ func TestUserUpdateCmd_RunE(t *testing.T) {
 			},
 			expectedErr: "user with ID 999 not found",
 		},
+		{
+			name:  "interactive mode getUserIdFromUserFunc error",
+			args:  []string{},
+			flags: map[string]string{},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return nil, nil },
+					func() (int64, error) { return 0, fmt.Errorf("prompt error") },
+					func(userID int64) (*models.UserResp, error) { return nil, nil },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "failed to get user id",
+		},
+		{
+			name:  "interactive mode getUserByIDFunc error",
+			args:  []string{},
+			flags: map[string]string{},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return nil, nil },
+					func() (int64, error) { return 1, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, fmt.Errorf("api error") },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "api error",
+		},
+		{
+			name:  "getCLIInfoFunc error",
+			args:  []string{"testuser"},
+			flags: map[string]string{},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return defaultUser, nil },
+					func() (int64, error) { return 0, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, nil },
+					func() (*api.CLIInfo, error) { return nil, fmt.Errorf("cli info error") },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "cli info error",
+		},
+		{
+			name: "realname flag empty",
+			args: []string{"testuser"},
+			flags: map[string]string{
+				"realname": "",
+			},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return defaultUser, nil },
+					func() (int64, error) { return 0, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, nil },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return nil },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "realname cannot be empty",
+		},
+		{
+			name: "updateUserProfileFunc error",
+			args: []string{"testuser"},
+			flags: map[string]string{
+				"comment": "New Comment",
+			},
+			setupMocks: func() func() {
+				return mockSetup(
+					func(arg string) (*models.UserResp, error) { return defaultUser, nil },
+					func() (int64, error) { return 0, nil },
+					func(userID int64) (*models.UserResp, error) { return nil, nil },
+					func() (*api.CLIInfo, error) { return defaultCLIInfo, nil },
+					func(userID int64, email, realname, comment string) error { return fmt.Errorf("update error") },
+					func(updateView *update.UpdateView) error { return nil },
+				)
+			},
+			expectedErr: "failed to update user: update error",
+		},
 	}
 
 	for _, tt := range tests {
