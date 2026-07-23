@@ -27,6 +27,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
+	presenterrobot "github.com/goharbor/harbor-cli/pkg/presenter/robot"
 	tview "github.com/goharbor/harbor-cli/pkg/views/artifact/tags/select"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selectionv2"
 	immview "github.com/goharbor/harbor-cli/pkg/views/immutable/select"
@@ -394,8 +395,7 @@ func GetActiveContextFromUser() (string, error) {
 }
 
 func GetRobotPermissionsFromUser(kind string) ([]models.Permission, error) {
-	result := robotView.ListPermissions(kind)
-	return result.Permissions, result.Err
+	return presenterrobot.SelectPermissions(kind)
 }
 
 func GetRobotIDFromUser(projectID int64) (int64, error) {
