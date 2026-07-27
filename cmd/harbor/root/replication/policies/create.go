@@ -66,7 +66,7 @@ func CreateCommand() *cobra.Command {
 			}
 
 			if registry == nil {
-				return fmt.Errorf("Registery with ID %d not found",registryID)
+				return fmt.Errorf("registry with ID %d not found", registryID)
 			}
 
 			policy := ConvertToPolicy(opts, registry)
