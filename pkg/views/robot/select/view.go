@@ -21,18 +21,12 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	presenterrobot "github.com/goharbor/harbor-cli/pkg/presenter/robot"
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
 type PermissionSelectResult struct {
 	Permissions []models.Permission
 	Err         error
-}
-
-func ListPermissions(kind string) PermissionSelectResult {
-	permissions, err := presenterrobot.SelectPermissions(kind)
-	return PermissionSelectResult{Permissions: permissions, Err: err}
 }
 
 func ListRobot(robots []*models.Robot, choice chan<- int64) {
