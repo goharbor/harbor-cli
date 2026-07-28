@@ -46,6 +46,7 @@ harbor help
 * [harbor label](harbor-label.md)	 - Manage labels in Harbor
 * [harbor ldap](harbor-ldap.md)	 - Manage ldap users and groups
 * [harbor login](harbor-login.md)	 - Log in to Harbor registry
+* [harbor logout](harbor-logout.md)	 - Log out from Harbor registry
 * [harbor logs](harbor-logs.md)	 - Get recent logs of the projects which the user is a member of
 * [harbor password](harbor-password.md)	 - Change your password
 * [harbor project](harbor-project.md)	 - Manage projects and assign resources to them
