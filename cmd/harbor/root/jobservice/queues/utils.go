@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
+	"charm.land/bubbles/v2/key"
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"

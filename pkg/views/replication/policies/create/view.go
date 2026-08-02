@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	log "github.com/sirupsen/logrus"
 )
 
