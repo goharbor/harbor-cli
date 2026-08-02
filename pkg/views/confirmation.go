@@ -14,7 +14,7 @@
 package views
 
 import (
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	log "github.com/sirupsen/logrus"
 )
 

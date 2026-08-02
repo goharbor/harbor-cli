@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
+	"charm.land/huh/v2"
 	"github.com/atotto/clipboard"
-	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
@@ -412,7 +412,7 @@ func getMultipleProjectsFromUser() ([]string, error) {
 				Options(projectOptions...).
 				Value(&selectedProjects),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(80).Run()
 
 	return selectedProjects, err
 }
@@ -433,7 +433,7 @@ func promptMoreProjects() (bool, error) {
 				).
 				Value(&addMore),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return addMore, err
 }
@@ -455,7 +455,7 @@ func promptPermissionMode() (string, error) {
 				).
 				Value(&permissionMode),
 		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
+	).WithTheme(huh.ThemeFunc(huh.ThemeCharm)).WithWidth(60).WithHeight(10).Run()
 
 	return permissionMode, err
 }

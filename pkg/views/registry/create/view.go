@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -55,7 +55,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 		)
 	}
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

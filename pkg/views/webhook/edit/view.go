@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -46,7 +46,7 @@ func isSelected(selected []string, option string) bool {
 }
 
 func WebhookEditView(editView *EditView) {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	var verifyCert string
 	var enable string
 	err := huh.NewForm(

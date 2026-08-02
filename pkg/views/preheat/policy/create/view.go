@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	log "github.com/sirupsen/logrus"
@@ -48,7 +48,7 @@ func CreatePreheatPolicyView(createView *CreateView, providers []*models.Provide
 		createView.TriggerType = "manual"
 	}
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	if len(providers) == 0 {
 		log.Fatal("No P2P provider instances available for this project. Please create a provider instance first.")

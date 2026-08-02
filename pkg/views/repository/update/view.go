@@ -15,7 +15,7 @@
 package update
 
 import (
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 )
 
@@ -26,7 +26,7 @@ func UpdateRepositoryView(repo *models.Repository) (string, error) {
 		description = repo.Description
 	}
 
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	form := huh.NewForm(
 		huh.NewGroup(

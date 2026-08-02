@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"charm.land/bubbles/v2/key"
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	jobserviceutils "github.com/goharbor/harbor-cli/pkg/utils/jobservice"
 )
@@ -145,7 +145,7 @@ func selectQueueTypes(action string) ([]string, error) {
 	}
 
 	var selected []string
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	keymap := huh.NewDefaultKeyMap()
 	keymap.Quit = key.NewBinding(
 		key.WithKeys("ctrl+c", "q"),
