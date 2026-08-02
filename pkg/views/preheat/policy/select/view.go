@@ -33,8 +33,9 @@ func PreheatPolicyList(policies []*models.PreheatPolicy) (string, error) {
 	}
 
 	m := selection.NewModel(items, "Preheat Policy")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

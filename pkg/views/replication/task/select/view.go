@@ -32,8 +32,9 @@ func ReplicationTasksList(tasks []*models.ReplicationTask, choice chan<- int64) 
 	}
 
 	m := selection.NewModel(itemsList, "Select a Replication Task")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

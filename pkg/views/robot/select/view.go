@@ -117,6 +117,7 @@ func NewRobotPermissionsGrid(kind string) (*tablegrid.TableGrid, error) {
 		Icons:        icons,
 		Footer:       "\n ↑/↓ move row • ←/→ move col • space/enter to toggle • ⌃A toggle row • q to cancel\n",
 	})
+	grid.AltScreen = true
 	return grid, nil
 }
 
@@ -130,7 +131,7 @@ func ListPermissions(perms *models.Permissions, kind string, ch chan<- Permissio
 		}
 		return
 	}
-	_, err = tea.NewProgram(grid, tea.WithAltScreen()).Run()
+	_, err = tea.NewProgram(grid).Run()
 	if err != nil {
 		fmt.Println("error creating permissions grid:", err)
 		ch <- PermissionSelectResult{
@@ -169,7 +170,8 @@ func ListRobot(robots []*models.Robot, choice chan<- int64) {
 		itemsList[i] = selection.Item(r.Name)
 	}
 	m := selection.NewModel(itemsList, "Robot")
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	m.AltScreen = true
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

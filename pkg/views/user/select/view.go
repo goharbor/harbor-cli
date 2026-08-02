@@ -37,8 +37,9 @@ func UserList(users []*models.UserResp) (int64, error) {
 	}
 
 	m := selection.NewModel(itemList, "User")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		return 0, err

@@ -34,8 +34,9 @@ func PreheatExecutionList(executions []*models.Execution) (int64, error) {
 	}
 
 	m := selection.NewModel(items, "Preheat Execution")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

@@ -31,8 +31,9 @@ func ListArtifacts(artifacts []*models.Artifact, choice chan<- string) {
 	}
 
 	m := selection.NewModel(itemsList, "Artifact")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

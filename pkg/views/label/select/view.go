@@ -34,8 +34,9 @@ func LabelList(label []*models.Label) (int64, error) {
 	}
 
 	m := selection.NewModel(itemsList, "Label")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		fmt.Println("Error running program:", err)
