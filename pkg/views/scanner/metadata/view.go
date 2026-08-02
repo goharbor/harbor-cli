@@ -28,15 +28,15 @@ func DisplayScannerMetadata(md *models.ScannerAdapterMetadata) {
 	propTable := buildPropertyTable(md)
 
 	fmt.Println("[Scanner Info]")
-	fmt.Println(infoTable.View())
+	fmt.Println(infoTable.View().Content)
 
 	fmt.Println("[Capabilities]")
 	for _, capTable := range capabilityTables {
-		fmt.Println(capTable.View())
+		fmt.Println(capTable.View().Content)
 	}
 
 	fmt.Println("[Properties]")
-	fmt.Println(propTable.View())
+	fmt.Println(propTable.View().Content)
 }
 
 func buildInfoTable(md *models.ScannerAdapterMetadata) tablelist.Model {

@@ -35,11 +35,18 @@ type Model struct {
 }
 
 func NewModel(columns []table.Column, rows []table.Row, height int) Model {
+	tableWidth := 0
+	for _, col := range columns {
+		// Each cell style adds one space of padding on both sides.
+		tableWidth += col.Width + 2
+	}
+
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(height+1),
+		table.WithWidth(tableWidth),
 	)
 
 	// Set the styles for the table
