@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	log "github.com/sirupsen/logrus"
 )
