@@ -48,8 +48,9 @@ func ImmutableList(immutablerule []*models.ImmutableRule, choice chan<- int64) {
 	}
 
 	m := selection.NewModel(itemsList, "Immutable Rule")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		fmt.Println("Error running program:", err)

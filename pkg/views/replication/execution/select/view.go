@@ -32,8 +32,9 @@ func ReplicationExecutionList(executions []*models.ReplicationExecution, choice 
 	}
 
 	m := selection.NewModel(itemsList, "Select a Replication Execution")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

@@ -35,8 +35,9 @@ func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<-
 	}
 
 	m := selection.NewModel(itemsList, "Replication Policy")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

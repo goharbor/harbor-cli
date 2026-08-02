@@ -34,8 +34,9 @@ func ScannerList(scanners []*models.ScannerRegistration, choice chan<- string) {
 	}
 
 	m := selection.NewModel(itemsList, "Scanner")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 
 	if err != nil {
 		fmt.Println("Error running program:", err)

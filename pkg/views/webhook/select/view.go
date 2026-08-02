@@ -32,8 +32,9 @@ func WebhookList(webhooks []*models.WebhookPolicy) (models.WebhookPolicy, error)
 	}
 
 	m := selection.NewModel(items, "Webhook")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return models.WebhookPolicy{}, fmt.Errorf("error running selection program: %w", err)
 	}

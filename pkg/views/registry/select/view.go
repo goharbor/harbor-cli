@@ -34,8 +34,9 @@ func RegistryList(registry []*models.Registry, choice chan<- int64) {
 	}
 
 	m := selection.NewModel(itemsList, "Registry")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

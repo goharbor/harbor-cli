@@ -60,8 +60,9 @@ func RetentionList(rules []*models.RetentionRule, choice chan<- int64) {
 	}
 
 	m := selection.NewModel(itemsList, "Select a Retention Rule")
+	m.AltScreen = true
 
-	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
+	p, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("Error running selection UI:", err)
 		os.Exit(1)
