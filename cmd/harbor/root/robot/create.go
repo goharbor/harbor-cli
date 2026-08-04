@@ -181,7 +181,7 @@ func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]mo
 	}
 
 	// Get project permissions
-	return getProjectPermissions(opts, projectPermissionsMap)
+	return getProjectPermissions(opts, projectPermissionsMap, all)
 }
 
 func getSystemPermissions(all bool, permissions *[]models.Permission) error {
@@ -209,7 +209,34 @@ func getSystemPermissions(all bool, permissions *[]models.Permission) error {
 	return nil
 }
 
-func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[string][]models.Permission) error {
+func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[string][]models.Permission, all bool) error {
+	if opts.ProjectName != "" {
+		if all {
+			perms, err := api.GetPermissions()
+			if err != nil {
+				return fmt.Errorf("failed to get project permissions: %v", utils.ParseHarborErrorMsg(err))
+			}
+			var choices []models.Permission
+			for _, perm := range perms.Payload.Project {
+				choices = append(choices, *perm)
+			}
+			projectPermissionsMap[opts.ProjectName] = choices
+			return nil
+		} else {
+			projectPermissions, err := prompt.GetRobotPermissionsFromUser("project")
+			if err != nil {
+				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+			}
+			projectPermissionsMap[opts.ProjectName] = projectPermissions
+			return nil
+		}
+	}
+
+	if all {
+		// If --all-permission is set, but no project is specified, we assume only system-level permissions
+		return nil
+	}
+
 	permissionMode, err := promptPermissionMode()
 	if err != nil {
 		return fmt.Errorf("error selecting permission mode: %v", err)
