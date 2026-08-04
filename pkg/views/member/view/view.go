@@ -16,7 +16,6 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -36,43 +35,52 @@ var columns = []table.Column{
 	{Title: "Project ID", Width: 12},
 }
 
-func ViewMember(member *models.ProjectMemberEntity, wide bool) {
-	var rows []table.Row
+func memberColumns(wide bool) []table.Column {
+	if wide {
+		return columns
+	}
+	colsToRemove := []string{"Role ID", "Project ID"}
+	return utils.RemoveColumns(columns, colsToRemove)
+}
+
+func memberRow(member *models.ProjectMemberEntity, wide bool) table.Row {
 	memberID := strconv.FormatInt(member.ID, 10)
-	projectID := strconv.FormatInt(member.ProjectID, 10)
 	roleName := utils.CamelCaseToHR(member.RoleName)
 
 	memberType := member.EntityType
-	if memberType == "u" {
+	switch memberType {
+	case "u":
 		memberType = "User"
-	} else if memberType == "g" {
+	case "g":
 		memberType = "Group"
 	}
 
 	if wide {
 		roleID := strconv.FormatInt(member.RoleID, 10)
+		projectID := strconv.FormatInt(member.ProjectID, 10)
 
-		rows = append(rows, table.Row{
+		return table.Row{
 			memberID,
 			member.EntityName,
 			memberType,
 			roleName,
 			roleID,
 			projectID,
-		})
-	} else {
-		colsToRemove := []string{"Role ID", "Project ID"}
-		columns = utils.RemoveColumns(columns, colsToRemove)
-		log.Println(columns)
-		rows = append(rows, table.Row{
-			memberID, // Member Name
-			member.EntityName,
-			memberType,
-			roleName,
-		})
+		}
 	}
 
-	m := tablelist.NewModel(columns, rows, len(rows))
+	return table.Row{
+		memberID,
+		member.EntityName,
+		memberType,
+		roleName,
+	}
+}
+
+func ViewMember(member *models.ProjectMemberEntity, wide bool) {
+	rows := []table.Row{memberRow(member, wide)}
+
+	m := tablelist.NewModel(memberColumns(wide), rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
