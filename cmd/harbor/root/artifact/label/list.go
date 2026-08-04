@@ -70,7 +70,7 @@ Supports output formatting such as JSON or YAML using the --output (-o) flag.`,
 				if len(args) > 0 {
 					return fmt.Errorf("Invalid artifact reference format: %s", args[0])
 				} else {
-					return fmt.Errorf("Invalid artifact reference format: no arguments provided")
+					return fmt.Errorf("invalid artifact reference format: no arguments provided")
 				}
 			}
 

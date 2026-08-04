@@ -57,7 +57,7 @@ func ListProjectCommand() *cobra.Command {
 			}
 
 			if private && public {
-				return fmt.Errorf("Cannot specify both --private and --public flags")
+				return fmt.Errorf("cannot specify both --private and --public flags")
 			}
 
 			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
