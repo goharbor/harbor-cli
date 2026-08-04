@@ -9,9 +9,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout bucket repository
-      uses: actions/checkout@v4
-
     - name: Clone Scoop
       shell: bash
       run: |

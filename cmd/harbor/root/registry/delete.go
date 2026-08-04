@@ -33,7 +33,12 @@ func DeleteRegistryCommand() *cobra.Command {
 			errChan := make(chan error, len(args))
 			if len(args) > 0 {
 				for _, arg := range args {
-					registryID, _ := api.GetRegistryIdByName(arg)
+					registryID, err := api.GetRegistryIdByName(arg)
+					if err != nil {
+						errChan <- fmt.Errorf("failed to get registry id for %q: %w", arg, err)
+						continue
+					}
+
 					wg.Add(1)
 					go func(registryID int64) {
 						defer wg.Done()

@@ -43,10 +43,10 @@ func (m *HarborCli) PublishImageAndSign(
 		// Generate SBOM (SPDX JSON) for the published image
 		sbom := m.GenerateSBOM(
 			ctx,
-			addr, 
-			registryUsername, 
+			addr,
+			registryUsername,
 			registryPassword,
-		);
+		)
 
 		// Attest SBOM to the image using Cosign in-toto attestation
 		if _, err := m.AttestSBOM(
@@ -253,29 +253,29 @@ func (m *HarborCli) Sign(ctx context.Context,
 	registryPassword *dagger.Secret,
 	imageAddr string,
 ) (string, error) {
-	registryPasswordPlain, _ := registryPassword.Plaintext(ctx)
+	cosignCtr := dag.Container().
+		From("cgr.dev/chainguard/cosign").
+		WithSecretVariable("REGISTRY_PASSWORD", registryPassword)
 
-	cosing_ctr := dag.Container().From("cgr.dev/chainguard/cosign")
-
-	// If githubToken is provided, use it to sign the image
+	// If githubToken is provided, configure OIDC for keyless signing
 	if githubToken != nil {
 		if actionsIdTokenRequestUrl == nil || actionsIdTokenRequestToken == nil {
-			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%s) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl, actionsIdTokenRequestToken != nil)
+			return "", fmt.Errorf("actionsIdTokenRequestUrl (exist=%v) and actionsIdTokenRequestToken (exist=%t) must be provided when githubToken is provided", actionsIdTokenRequestUrl != nil, actionsIdTokenRequestToken != nil)
 		}
-		fmt.Printf("Setting the ENV Vars GITHUB_TOKEN, ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_TOKEN to sign with GitHub Token")
-		cosing_ctr = cosing_ctr.WithSecretVariable("GITHUB_TOKEN", githubToken).
+		cosignCtr = cosignCtr.
+			WithSecretVariable("GITHUB_TOKEN", githubToken).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_URL", actionsIdTokenRequestUrl).
 			WithSecretVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", actionsIdTokenRequestToken)
 	}
 
-	return cosing_ctr.WithSecretVariable("REGISTRY_PASSWORD", registryPassword).
+	return cosignCtr.
 		WithExec([]string{"cosign", "env"}).
 		WithExec([]string{
-			"cosign", "sign", "--yes", "--recursive",
-			"--registry-username", registryUsername,
-			"--registry-password", registryPasswordPlain,
-			imageAddr,
-			"--timeout", "1m",
+			"sh", "-c",
+			cosignWithRetry(fmt.Sprintf(
+				"cosign sign --yes --recursive --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 2m",
+				shellQuote(registryUsername), shellQuote(imageAddr),
+			)),
 		}).Stdout(ctx)
 }
 
@@ -340,9 +340,52 @@ func (m *HarborCli) AttestSBOM(
 	// The registry password is already available as REGISTRY_PASSWORD env var
 	return cosignCtr.WithExec([]string{
 		"sh", "-c",
-		fmt.Sprintf(
-			"cosign attest --yes --type spdxjson --predicate /sbom.spdx.json --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 1m",
-			registryUsername, imageAddr,
-		),
+		cosignWithRetry(fmt.Sprintf(
+			"cosign attest --yes --type spdxjson --predicate /sbom.spdx.json --registry-username %s --registry-password $REGISTRY_PASSWORD %s --timeout 2m",
+			shellQuote(registryUsername), shellQuote(imageAddr),
+		)),
 	}).Stdout(ctx)
+}
+
+func cosignWithRetry(command string) string {
+	return fmt.Sprintf(`
+set +e
+attempt=1
+max_attempts=3
+
+while [ "$attempt" -le "$max_attempts" ]; do
+	output=$(%s 2>&1)
+	status=$?
+	printf '%%s\n' "$output"
+
+	if [ "$status" -eq 0 ]; then
+		exit 0
+	fi
+
+	case "$output" in
+		*createLogEntryConflict*|*"equivalent entry already exists"*)
+			printf 'cosign transparency log entry already exists; treating as success\n'
+			exit 0
+			;;
+	esac
+
+	if [ "$attempt" -eq "$max_attempts" ]; then
+		exit "$status"
+	fi
+
+	case "$output" in
+		*INTERNAL_ERROR*|*"stream error"*|*timeout*|*"connection reset"*|*"temporary failure"*)
+			sleep $((attempt * 10))
+			attempt=$((attempt + 1))
+			;;
+		*)
+			exit "$status"
+			;;
+	esac
+done
+`, command)
+}
+
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

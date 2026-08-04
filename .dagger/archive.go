@@ -59,7 +59,7 @@ func (m *HarborCli) Archive(ctx context.Context,
 					WithMountedDirectory("/input", archiveDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
-					WithExec([]string{"zip", "-j", "/out/" + archiveFile, "/input/harbor-cli", "/input/LICENSE", "/input/README.md"})
+					WithExec([]string{"zip", "-j", "/out/" + archiveFile, "/input/harbor-cli.exe", "/input/LICENSE", "/input/README.md"})
 			} else {
 				archiveFile = archiveName + ".tar.gz"
 				container = dag.Container().
