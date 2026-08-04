@@ -15,7 +15,8 @@ harbor replication policies update [policy-id] [flags]
 ### Options
 
 ```sh
-  -h, --help   help for update
+  -h, --help                        help for update
+  -f, --policy-config-file string   YAML/JSON file with replication policy configuration
 ```
 
 ### Options inherited from parent commands
