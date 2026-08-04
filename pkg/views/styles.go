@@ -14,18 +14,21 @@
 package views
 
 import (
+	"os"
 	"strings"
 
 	"charm.land/bubbles/v2/list"
 	"charm.land/lipgloss/v2"
 )
 
+var isDark = lipgloss.HasDarkBackground(os.Stdin, os.Stdout)
+
 var (
 	TitleStyle        = lipgloss.NewStyle().MarginLeft(2)
 	ItemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	SelectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	PaginationStyle   = list.DefaultStyles(false).PaginationStyle.PaddingLeft(4)
-	HelpStyle         = list.DefaultStyles(false).HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	PaginationStyle   = list.DefaultStyles(isDark).PaginationStyle.PaddingLeft(4)
+	HelpStyle         = list.DefaultStyles(isDark).HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	GreenStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("2")) // ANSI 32
 	RedStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("1")) // ANSI 31
 	BoldStyle         = lipgloss.NewStyle().Bold(true)                      // ANSI 1

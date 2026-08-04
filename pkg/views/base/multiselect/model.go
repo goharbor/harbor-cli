@@ -120,7 +120,11 @@ func (m Model) View() tea.View {
 	if !m.ready {
 		return tea.NewView("\n  Initializing...")
 	}
-	return tea.NewView(fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView()))
+	return tea.NewView(
+		m.headerView() + "\n" +
+			m.viewport.View() + "\n" +
+			m.footerView(),
+	)
 }
 
 func (m Model) headerView() string {
