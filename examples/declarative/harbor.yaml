@@ -1,0 +1,42 @@
+apiVersion: goharbor.io/v1alpha1
+kind: HarborConfiguration
+spec:
+  system:
+    project_creation_restriction: adminonly
+    self_registration: false
+
+  registries:
+    - name: docker-hub
+      type: docker-hub
+      url: https://hub.docker.com
+      insecure: false
+
+  projects:
+    - name: development
+      public: false
+      metadata:
+        autoScan: true
+        autoSBOMGeneration: true
+        severity: high
+      quota:
+        storage: 536870912000
+      webhooks:
+        - name: deployment
+          enabled: true
+          events:
+            - PUSH_ARTIFACT
+          targets:
+            - notifyType: http
+              endpoint: https://example.com/hooks/harbor
+              payloadFormat: Default
+              verifyRemoteCertificate: true
+
+  replicationPolicies:
+    - name: mirror-production
+      mode: push
+      registry: docker-hub
+      enabled: true
+      override: true
+      trigger:
+        type: scheduled
+        cron: "0 0 * * * *"

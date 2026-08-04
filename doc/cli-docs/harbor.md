@@ -35,10 +35,12 @@ harbor help
 
 ### SEE ALSO
 
+* [harbor apply](harbor-apply.md)	 - Reconcile Harbor with a declarative configuration
 * [harbor artifact](harbor-artifact.md)	 - Manage artifacts
 * [harbor config](harbor-config.md)	 - Manage system configurations
 * [harbor context](harbor-context.md)	 - Manage locally available contexts
 * [harbor cve-allowlist](harbor-cve-allowlist.md)	 - Manage system CVE allowlist
+* [harbor export](harbor-export.md)	 - Export Harbor API-managed configuration
 * [harbor health](harbor-health.md)	 - Get the health status of Harbor components
 * [harbor info](harbor-info.md)	 - Display detailed Harbor system, statistics, and CLI environment information
 * [harbor instance](harbor-instance.md)	 - Manage preheat provider instances in Harbor
