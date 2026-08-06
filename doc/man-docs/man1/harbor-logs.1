@@ -14,12 +14,30 @@ Get recent logs of the projects which the user is a member of.
 This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
 
 .PP
+When --page and/or --page-size are explicitly provided, a pagination summary (for example: "Showing 6-10 of 14") is shown in default table output.
+
+.PP
+Convenience filter flags are available to build query expressions:
+- --operation (operation type, e.g., create, delete, pull, login, logout, update)
+- --resource-type (resource type, e.g., user, artifact, project, repository)
+- --resource (resource name)
+- --username (username)
+- --from-time and optional --to-time (for op_time range)
+
+.PP
+IMPORTANT: Event types from 'harbor logs events' are compound strings (e.g., 'create_user', 'delete_artifact').
+These must be split into separate flags:
+  create_user       → --operation create --resource-type user
+  delete_artifact   → --operation delete --resource-type artifact
+  pull_repository   → --operation pull --resource-type repository
+  login_user        → --operation login --resource-type user
+
+.PP
+Examples:
+harbor-cli logs --operation create --resource-type user
+harbor-cli logs --operation delete --resource-type artifact --resource library/nginx
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
-
-.PP
 harbor-cli logs --follow --refresh-interval 2s
-
-.PP
 harbor-cli logs --output-format json
 
 
@@ -28,8 +46,16 @@ harbor-cli logs --output-format json
 	Follow log output (tail -f behavior)
 
 .PP
+\fB--from-time\fP=""
+	Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Required when using --to-time
+
+.PP
 \fB-h\fP, \fB--help\fP[=false]
 	help for logs
+
+.PP
+\fB--operation\fP=""
+	Filter by operation (e.g. create, delete, pull, login, logout, update). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.
 
 .PP
 \fB--page\fP=1
@@ -48,8 +74,24 @@ harbor-cli logs --output-format json
 	Interval to refresh logs when following (default: 5s)
 
 .PP
+\fB--resource\fP=""
+	Filter by resource name
+
+.PP
+\fB--resource-type\fP=""
+	Filter by resource type (e.g. user, artifact, project, repository). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.
+
+.PP
 \fB--sort\fP=""
 	Sort the resource list in ascending or descending order
+
+.PP
+\fB--to-time\fP=""
+	End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Optional when --from-time is set; defaults to current time
+
+.PP
+\fB--username\fP=""
+	Filter by username
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
@@ -66,4 +108,4 @@ harbor-cli logs --output-format json
 
 
 .SH SEE ALSO
-\fBharbor(1)\fP
+\fBharbor(1)\fP, \fBharbor-logs-events(1)\fP
