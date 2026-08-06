@@ -19,7 +19,9 @@ harbor user password [flags]
 ### Options
 
 ```sh
-  -h, --help   help for password
+  -h, --help             help for password
+      --password-stdin   Take the password from stdin
+      --user-id int      User ID for non-interactive mode
 ```
 
 ### Options inherited from parent commands
