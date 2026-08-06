@@ -213,3 +213,21 @@ func LogsProject(projectName string, opts ...ListFlags) (*project.GetLogExtsOK, 
 
 	return response, nil
 }
+
+func GetProjectSummary(projectNameOrID string, useProjectID bool) (*project.GetProjectSummaryOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+	useResourceName := !useProjectID
+
+	response, err := client.Project.GetProjectSummary(ctx, &project.GetProjectSummaryParams{
+		ProjectNameOrID: projectNameOrID,
+		XIsResourceName: &useResourceName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
