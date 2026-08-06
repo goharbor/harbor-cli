@@ -42,22 +42,30 @@ func withDefaultTransport(t *testing.T, transport http.RoundTripper) {
 	})
 }
 
-func TestInitiateOIDCLogin(t *testing.T) {
-	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-		assert.Equal(t, "/c/oidc/login", r.URL.Path)
+func loginResponseTransport(t *testing.T, expectedPath string) http.RoundTripper {
+	t.Helper()
+
+	return roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		assert.Equal(t, expectedPath, r.URL.Path)
 		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
+
 		body, err := json.Marshal(utils.OIDCLoginResponse{
 			RedirectURL: "https://idp.example/authorize",
 			PollToken:   "poll-token-1",
 		})
 		require.NoError(t, err)
+
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Header:     http.Header{"Content-Type": []string{"application/json"}},
 			Body:       io.NopCloser(strings.NewReader(string(body))),
 			Request:    r,
 		}, nil
-	}))
+	})
+}
+
+func TestInitiateOIDCLogin(t *testing.T) {
+	withDefaultTransport(t, loginResponseTransport(t, "/c/oidc/login"))
 
 	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com")
 
@@ -67,21 +75,7 @@ func TestInitiateOIDCLogin(t *testing.T) {
 }
 
 func TestInitiateOIDCLoginPreservesBasePath(t *testing.T) {
-	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-		assert.Equal(t, "/harbor/c/oidc/login", r.URL.Path)
-		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
-		body, err := json.Marshal(utils.OIDCLoginResponse{
-			RedirectURL: "https://idp.example/authorize",
-			PollToken:   "poll-token-1",
-		})
-		require.NoError(t, err)
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Header:     http.Header{"Content-Type": []string{"application/json"}},
-			Body:       io.NopCloser(strings.NewReader(string(body))),
-			Request:    r,
-		}, nil
-	}))
+	withDefaultTransport(t, loginResponseTransport(t, "/harbor/c/oidc/login"))
 
 	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com/harbor")
 
