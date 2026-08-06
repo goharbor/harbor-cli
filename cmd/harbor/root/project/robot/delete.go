@@ -80,7 +80,7 @@ Examples:
 				robotName := args[0]
 				robot, err := api.GetRobotByName(robotName, ProjectName)
 				if err != nil {
-					fmt.Print(utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
 				}
 				robotID = robot.ID
 			} else if ProjectName != "" {
