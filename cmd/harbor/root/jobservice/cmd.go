@@ -14,7 +14,10 @@
 package jobservice
 
 import (
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/jobs"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/pools"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/queues"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/jobservice/workers"
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +29,20 @@ func JobService() *cobra.Command {
 		Long: `Manage Harbor job service components including worker pools, job queues, schedules, and job logs.
 This requires system admin privileges.
 
-Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.`,
+Use "harbor jobservice [command] --help" for detailed examples and flags per subcommand.
+
+Examples:
+  harbor jobservice pools list
+  harbor jobservice workers list
+  harbor jobservice jobs list
+  harbor jobservice jobs list --page 1 --page-size 10`,
 	}
 
 	cmd.AddCommand(
 		queues.QueuesCommand(),
+		pools.PoolsCommand(),
+		workers.WorkersCommand(),
+		jobs.JobsCommand(),
 	)
 
 	return cmd
