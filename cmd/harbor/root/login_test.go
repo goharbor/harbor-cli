@@ -127,24 +127,113 @@ func Test_Login_Failure_MutuallyExclusiveFlags(t *testing.T) {
 	assert.Error(t, err, "Expected error when both --password and --password-stdin are set")
 }
 
-func Test_Login_Failure_OIDCMutuallyExclusiveFlags(t *testing.T) {
+func Test_Login_Failure_InvalidAuthModeForOIDCHarbor(t *testing.T) {
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
-	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2.0/systeminfo":
+			assert.NoError(t, json.NewEncoder(w).Encode(map[string]string{
+				"auth_mode": "oidc_auth",
+			}))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
 
-	assert.NoError(t, cmd.Flags().Set("oidc", "true"))
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{server.URL})
+
+	assert.NoError(t, cmd.Flags().Set("auth-mode", "ldap"))
 	assert.NoError(t, cmd.Flags().Set("username", "admin"))
+	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
 	err := cmd.Execute()
-	assert.Error(t, err, "Expected error when --oidc and --username are set")
+	assert.ErrorContains(t, err, "LDAP login is not available because Harbor auth_mode is oidc_auth")
 }
 
 func Test_RunOIDCLogin_Failure_MissingServer(t *testing.T) {
 	err := root.RunOIDCLogin("")
 	assert.Error(t, err)
+}
+
+func Test_Login_AutoDetectsOIDCAuthMode(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2.0/systeminfo":
+			assert.NoError(t, json.NewEncoder(w).Encode(map[string]string{
+				"auth_mode": "oidc_auth",
+			}))
+		case "/c/oidc/login":
+			assert.Equal(t, "cli", r.URL.Query().Get("mode"))
+			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
+				RedirectURL: "https://idp.example/authorize",
+				PollToken:   "poll-token-1",
+			}))
+		case "/c/oidc/cli-token":
+			assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
+			assert.NoError(t, json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+				Status:   "ready",
+				IDToken:  "id-token",
+				Username: "alice",
+			}))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{server.URL})
+
+	err := cmd.Execute()
+	assert.NoError(t, err)
+
+	cred, err := utils.GetCredentials(utils.DefaultCredentialName("alice", server.URL))
+	assert.NoError(t, err)
+	assert.Equal(t, utils.AuthTypeOIDC, cred.AuthType)
+}
+
+func Test_Login_AllowsDBAuthModeWhenHarborUsesOIDC(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2.0/systeminfo":
+			assert.NoError(t, json.NewEncoder(w).Encode(map[string]string{
+				"auth_mode": "oidc_auth",
+			}))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	cmd := root.LoginCommand()
+	cmd.SetArgs([]string{server.URL})
+
+	assert.NoError(t, cmd.Flags().Set("auth-mode", "db"))
+	assert.NoError(t, cmd.Flags().Set("username", "alice"))
+	assert.NoError(t, cmd.Flags().Set("password", "cli-secret"))
+	assert.NoError(t, cmd.Flags().Set("skip-verify-client", "true"))
+
+	err := cmd.Execute()
+	assert.NoError(t, err)
+
+	cred, err := utils.GetCredentials(utils.DefaultCredentialName("alice", server.URL))
+	assert.NoError(t, err)
+	assert.Equal(t, "alice", cred.Username)
+	assert.Empty(t, cred.AuthType)
 }
 
 func Test_RunOIDCLogin_Success(t *testing.T) {

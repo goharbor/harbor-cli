@@ -38,7 +38,7 @@ var (
 	ClientErr      error
 )
 
-const oidcRefreshFailureMessage = "Unable to refresh OIDC session. Please try again or run 'harbor login <server> --oidc'."
+const oidcRefreshFailureMessage = "Unable to refresh OIDC session. Please try again or run 'harbor login <server> --auth-mode oidc'."
 
 const oidcRetryHeader = "X-Harbor-CLI-OIDC-Retry"
 

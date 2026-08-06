@@ -63,6 +63,33 @@ func TestInitiateOIDCLoginPreservesBasePath(t *testing.T) {
 	assert.Equal(t, "poll-token-1", resp.PollToken)
 }
 
+func TestInitiateOIDCLoginRejectsBrowserRedirectResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://accounts.example.com/authorize", http.StatusFound)
+	}))
+	defer server.Close()
+
+	resp, err := utils.InitiateOIDCLogin(server.URL)
+
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "may not support CLI OIDC login yet")
+}
+
+func TestInitiateOIDCLoginRejectsHTMLResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, writeErr := w.Write([]byte(`<a href="https://accounts.example.com/authorize">Found</a>.`))
+		require.NoError(t, writeErr)
+	}))
+	defer server.Close()
+
+	resp, err := utils.InitiateOIDCLogin(server.URL)
+
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "may not support CLI OIDC login yet")
+	assert.ErrorContains(t, err, "text/html")
+}
+
 func TestPollForOIDCTokenReady(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)

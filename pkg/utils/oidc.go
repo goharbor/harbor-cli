@@ -20,7 +20,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -71,25 +74,51 @@ func InitiateOIDCLogin(serverAddress string) (*OIDCLoginResponse, error) {
 	q := u.Query()
 	q.Set("mode", "cli")
 	u.RawQuery = q.Encode()
+	log.Debugf("initiating Harbor CLI OIDC login against %s", u.String())
 
-	resp, err := (&http.Client{Timeout: 30 * time.Second}).Get(u.String()) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Get(u.String()) //nolint:gosec // endpoint is user-provided Harbor server URL for login.
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate OIDC login: %w", err)
 	}
 	defer resp.Body.Close()
+	log.Debugf("received OIDC login response status %d from %s", resp.StatusCode, u.String())
+
+	if resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode < http.StatusBadRequest {
+		location := resp.Header.Get("Location")
+		if location != "" {
+			log.Debugf("Harbor returned browser redirect for CLI OIDC login: %s", location)
+			return nil, fmt.Errorf("This Harbor instance may not support CLI OIDC login yet")
+		}
+		log.Debug("Harbor returned an HTTP redirect instead of a CLI OIDC JSON response")
+		return nil, fmt.Errorf("Harbor did not return a CLI OIDC login response and issued an HTTP redirect instead. This Harbor instance may not support CLI OIDC login yet")
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		return nil, fmt.Errorf("failed to initiate OIDC login: status %d: %s", resp.StatusCode, string(body))
 	}
 
+	if contentType := resp.Header.Get("Content-Type"); contentType != "" && !strings.Contains(strings.ToLower(contentType), "application/json") {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		log.Debugf("Harbor returned non-JSON OIDC login response with content-type %q", contentType)
+		return nil, fmt.Errorf("Harbor did not return a CLI OIDC login JSON response (content-type %q). This Harbor instance may not support CLI OIDC login yet: %s", contentType, string(body))
+	}
+
 	var loginResp OIDCLoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
-		return nil, fmt.Errorf("failed to decode OIDC login response: %w", err)
+		return nil, fmt.Errorf("failed to decode OIDC login response: %w. This Harbor instance may not support CLI OIDC login yet", err)
 	}
 	if loginResp.RedirectURL == "" || loginResp.PollToken == "" {
 		return nil, fmt.Errorf("invalid OIDC login response: missing redirect_url or poll_token")
 	}
+	log.Debug("received Harbor CLI OIDC login payload successfully")
 	return &loginResp, nil
 }
 
@@ -113,6 +142,7 @@ func PollForOIDCToken(serverAddress, pollToken string, timeout time.Duration) (*
 	q := u.Query()
 	q.Set("poll_token", pollToken)
 	u.RawQuery = q.Encode()
+	log.Debugf("starting Harbor CLI OIDC polling against %s with timeout %s", u.String(), timeout)
 
 	deadline := time.Now().Add(timeout)
 	ticker := time.NewTicker(3 * time.Second)
@@ -124,9 +154,11 @@ func PollForOIDCToken(serverAddress, pollToken string, timeout time.Duration) (*
 			return nil, err
 		}
 		if ready {
+			log.Debug("Harbor CLI OIDC polling completed with ready token response")
 			return result, nil
 		}
 		if time.Now().After(deadline) {
+			log.Debug("Harbor CLI OIDC polling timed out while waiting for authentication")
 			return nil, fmt.Errorf("timed out waiting for OIDC authentication")
 		}
 		remaining := time.Until(deadline)
@@ -135,7 +167,9 @@ func PollForOIDCToken(serverAddress, pollToken string, timeout time.Duration) (*
 		}
 		select {
 		case <-ticker.C:
+			log.Debug("Harbor CLI OIDC token still pending; retrying poll")
 		case <-time.After(remaining):
+			log.Debug("Harbor CLI OIDC polling deadline reached while waiting for next retry")
 			return nil, fmt.Errorf("timed out waiting for OIDC authentication")
 		}
 	}
@@ -151,6 +185,7 @@ func pollOIDCTokenOnce(endpoint string) (*OIDCPollResponse, bool, error) {
 	var pollResp OIDCPollResponse
 	switch resp.StatusCode {
 	case http.StatusAccepted:
+		log.Debug("Harbor CLI OIDC poll returned pending status")
 		return &OIDCPollResponse{Status: "pending"}, false, nil
 	case http.StatusOK:
 		if err := json.NewDecoder(resp.Body).Decode(&pollResp); err != nil {
@@ -162,22 +197,27 @@ func pollOIDCTokenOnce(endpoint string) (*OIDCPollResponse, bool, error) {
 		if pollResp.IDToken == "" || pollResp.Username == "" {
 			return nil, false, fmt.Errorf("invalid OIDC token response: missing id_token or username")
 		}
+		log.Debugf("Harbor CLI OIDC poll returned ready status for user %s", pollResp.Username)
 		return &pollResp, true, nil
 	case http.StatusBadRequest:
 		if err := json.NewDecoder(resp.Body).Decode(&pollResp); err != nil {
 			return nil, false, fmt.Errorf("OIDC authentication failed")
 		}
 		if pollResp.Error != "" {
+			log.Debugf("Harbor CLI OIDC poll returned failed status: %s", pollResp.Error)
 			return nil, false, fmt.Errorf("OIDC authentication failed: %s", pollResp.Error)
 		}
+		log.Debug("Harbor CLI OIDC poll returned failed status without detailed error")
 		return nil, false, fmt.Errorf("OIDC authentication failed")
 	case http.StatusGone:
 		if err := json.NewDecoder(resp.Body).Decode(&pollResp); err != nil {
 			return nil, false, fmt.Errorf("OIDC login expired before token retrieval")
 		}
+		log.Debug("Harbor CLI OIDC poll returned expired status")
 		return nil, false, fmt.Errorf("OIDC login expired before token retrieval")
 	default:
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		log.Debugf("Harbor CLI OIDC poll returned unexpected status %d", resp.StatusCode)
 		return nil, false, fmt.Errorf("failed to poll OIDC token: status %d: %s", resp.StatusCode, string(body))
 	}
 }
