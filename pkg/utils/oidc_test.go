@@ -17,7 +17,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -27,18 +27,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func withDefaultTransport(t *testing.T, transport http.RoundTripper) {
+	t.Helper()
+	original := http.DefaultTransport
+	http.DefaultTransport = transport
+	t.Cleanup(func() {
+		http.DefaultTransport = original
+	})
+}
+
 func TestInitiateOIDCLogin(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		assert.Equal(t, "/c/oidc/login", r.URL.Path)
 		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
-		_ = json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
+		body, err := json.Marshal(utils.OIDCLoginResponse{
 			RedirectURL: "https://idp.example/authorize",
 			PollToken:   "poll-token-1",
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(body))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.InitiateOIDCLogin(server.URL)
+	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com")
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://idp.example/authorize", resp.RedirectURL)
@@ -46,17 +67,23 @@ func TestInitiateOIDCLogin(t *testing.T) {
 }
 
 func TestInitiateOIDCLoginPreservesBasePath(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		assert.Equal(t, "/harbor/c/oidc/login", r.URL.Path)
 		assert.Equal(t, "cli", r.URL.Query().Get("mode"))
-		_ = json.NewEncoder(w).Encode(utils.OIDCLoginResponse{
+		body, err := json.Marshal(utils.OIDCLoginResponse{
 			RedirectURL: "https://idp.example/authorize",
 			PollToken:   "poll-token-1",
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(body))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.InitiateOIDCLogin(server.URL + "/harbor")
+	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com/harbor")
 
 	require.NoError(t, err)
 	assert.Equal(t, "https://idp.example/authorize", resp.RedirectURL)
@@ -64,26 +91,32 @@ func TestInitiateOIDCLoginPreservesBasePath(t *testing.T) {
 }
 
 func TestInitiateOIDCLoginRejectsBrowserRedirectResponse(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "https://accounts.example.com/authorize", http.StatusFound)
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusFound,
+			Header:     http.Header{"Location": []string{"https://accounts.example.com/authorize"}},
+			Body:       io.NopCloser(strings.NewReader("")),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.InitiateOIDCLogin(server.URL)
+	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com")
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "may not support CLI OIDC login yet")
 }
 
 func TestInitiateOIDCLoginRejectsHTMLResponse(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, writeErr := w.Write([]byte(`<a href="https://accounts.example.com/authorize">Found</a>.`))
-		require.NoError(t, writeErr)
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"text/html; charset=utf-8"}},
+			Body:       io.NopCloser(strings.NewReader(`<a href="https://accounts.example.com/authorize">Found</a>.`)),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.InitiateOIDCLogin(server.URL)
+	resp, err := utils.InitiateOIDCLogin("https://harbor.example.com")
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "may not support CLI OIDC login yet")
@@ -91,18 +124,24 @@ func TestInitiateOIDCLoginRejectsHTMLResponse(t *testing.T) {
 }
 
 func TestPollForOIDCTokenReady(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
 		assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
-		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+		body, err := json.Marshal(utils.OIDCPollResponse{
 			Status:   "ready",
 			IDToken:  "id-token",
 			Username: "alice",
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(body))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
+	resp, err := utils.PollForOIDCToken("https://harbor.example.com", "poll-token-1", time.Second)
 
 	require.NoError(t, err)
 	assert.Equal(t, "ready", resp.Status)
@@ -111,31 +150,41 @@ func TestPollForOIDCTokenReady(t *testing.T) {
 }
 
 func TestPollForOIDCTokenFailed(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := json.Marshal(utils.OIDCPollResponse{
 			Status: "failed",
 			Error:  "state expired",
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(body))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
+	resp, err := utils.PollForOIDCToken("https://harbor.example.com", "poll-token-1", time.Second)
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "state expired")
 }
 
 func TestPollForOIDCTokenExpired(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusGone)
-		_ = json.NewEncoder(w).Encode(utils.OIDCPollResponse{
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := json.Marshal(utils.OIDCPollResponse{
 			Status: "expired",
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusGone,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(body))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", time.Second)
+	resp, err := utils.PollForOIDCToken("https://harbor.example.com", "poll-token-1", time.Second)
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "expired before token retrieval")
@@ -143,15 +192,19 @@ func TestPollForOIDCTokenExpired(t *testing.T) {
 
 func TestPollForOIDCTokenTimeoutWhilePending(t *testing.T) {
 	var requests int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		atomic.AddInt32(&requests, 1)
 		assert.Equal(t, "/c/oidc/cli-token", r.URL.Path)
 		assert.Equal(t, "poll-token-1", r.URL.Query().Get("poll_token"))
-		w.WriteHeader(http.StatusAccepted)
+		return &http.Response{
+			StatusCode: http.StatusAccepted,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("")),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.PollForOIDCToken(server.URL, "poll-token-1", 100*time.Millisecond)
+	resp, err := utils.PollForOIDCToken("https://harbor.example.com", "poll-token-1", 100*time.Millisecond)
 
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "timed out waiting for OIDC authentication")
@@ -159,7 +212,7 @@ func TestPollForOIDCTokenTimeoutWhilePending(t *testing.T) {
 }
 
 func TestRefreshOIDCToken(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	withDefaultTransport(t, roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "/c/oidc/refresh", r.URL.Path)
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
@@ -171,15 +224,21 @@ func TestRefreshOIDCToken(t *testing.T) {
 		require.NoError(t, json.Unmarshal(body, &req))
 		assert.Equal(t, "refresh-token-1", req.RefreshToken)
 
-		_ = json.NewEncoder(w).Encode(utils.OIDCRefreshResponse{
+		respBody, err := json.Marshal(utils.OIDCRefreshResponse{
 			IDToken:      "id-token-2",
 			RefreshToken: "refresh-token-2",
 			ExpiresAt:    1234567890,
 		})
+		require.NoError(t, err)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(string(respBody))),
+			Request:    r,
+		}, nil
 	}))
-	defer server.Close()
 
-	resp, err := utils.RefreshOIDCToken(server.URL, "refresh-token-1")
+	resp, err := utils.RefreshOIDCToken("https://harbor.example.com", "refresh-token-1")
 
 	require.NoError(t, err)
 	assert.Equal(t, "id-token-2", resp.IDToken)

@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -26,6 +25,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
 
 func TestOIDCTokenExpiryUnix(t *testing.T) {
 	token := testJWTWithExp(time.Now().Add(10 * time.Minute).Unix())
@@ -61,18 +66,22 @@ func testJWTWithExp(exp int64) string {
 
 func TestOIDCRetryTransportRefreshesAndRetriesOnUnauthorized(t *testing.T) {
 	requests := 0
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	baseTransport := roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		requests++
+		resp := &http.Response{
+			StatusCode: http.StatusForbidden,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("")),
+			Request:    r,
+		}
 		switch r.Header.Get("Authorization") {
 		case "Bearer stale-token":
-			w.WriteHeader(http.StatusUnauthorized)
+			resp.StatusCode = http.StatusUnauthorized
 		case "Bearer fresh-token":
-			w.WriteHeader(http.StatusOK)
-		default:
-			w.WriteHeader(http.StatusForbidden)
+			resp.StatusCode = http.StatusOK
 		}
-	}))
-	defer server.Close()
+		return resp, nil
+	})
 
 	tokenManager := &oidcTokenManager{
 		token: "stale-token",
@@ -82,11 +91,11 @@ func TestOIDCRetryTransportRefreshesAndRetriesOnUnauthorized(t *testing.T) {
 	}
 
 	transport := &oidcRetryTransport{
-		base:         server.Client().Transport,
+		base:         baseTransport,
 		tokenManager: tokenManager,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, "https://harbor.example.com/api/v2.0/projects", nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+tokenManager.Token())
 
