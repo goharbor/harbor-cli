@@ -19,6 +19,7 @@ harbor login [server] [flags]
 ### Options
 
 ```sh
+      --auth-mode string      Authentication mode (db, ldap, oidc)
   -n, --context-name string   Login context name (optional)
   -h, --help                  help for login
   -p, --password string       Password (not recommended, use --password-stdin for better security)
