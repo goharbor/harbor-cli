@@ -1,0 +1,53 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-user-update - update user profile
+
+
+.SH SYNOPSIS
+\fBharbor user update [USER_NAME_OR_ID] [flags]\fP
+
+
+.SH DESCRIPTION
+The 'update' command allows sysadmins to modify an existing user's profile information, such as their email, realname, or comment.
+
+
+.SH OPTIONS
+\fB--comment\fP=""
+	Comment
+
+.PP
+\fB--email\fP=""
+	Email
+
+.PP
+\fB-h\fP, \fB--help\fP[=false]
+	help for update
+
+.PP
+\fB--realname\fP=""
+	Realname
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+  harbor user update admin --email newadmin@example.com --realname "System Admin"
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-user(1)\fP

@@ -1,6 +1,6 @@
 ---
 title: harbor user
-weight: 165
+weight: 70
 ---
 ## harbor user
 
@@ -40,4 +40,5 @@ Manage users in Harbor
 * [harbor user elevate](harbor-user-elevate.md)	 - elevate user
 * [harbor user list](harbor-user-list.md)	 - List users
 * [harbor user password](harbor-user-password.md)	 - Reset user password by name or id
+* [harbor user update](harbor-user-update.md)	 - update user profile
 

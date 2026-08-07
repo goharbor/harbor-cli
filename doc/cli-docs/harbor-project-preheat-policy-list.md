@@ -1,6 +1,6 @@
 ---
 title: harbor project preheat policy list
-weight: 20
+weight: 65
 ---
 ## harbor project preheat policy list
 
