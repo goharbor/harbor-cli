@@ -24,7 +24,7 @@ import (
 
 func SwitchContextCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "switch <none|context>",
+		Use:     "switch <context>",
 		Short:   "Switch to a new context",
 		Example: `harbor context switch harbor-cli@https-demo-goharbor-io`,
 		Args:    cobra.MaximumNArgs(1),
