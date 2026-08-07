@@ -17,7 +17,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -34,7 +34,7 @@ type CreateView struct {
 
 func CreateInstanceView(createView *CreateView) error {
 	var username, password, token string
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	err := huh.NewForm(
 		huh.NewGroup(

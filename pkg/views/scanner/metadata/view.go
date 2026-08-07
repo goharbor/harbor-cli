@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/charmbracelet/bubbles/table"
+	"charm.land/bubbles/v2/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
@@ -28,15 +28,15 @@ func DisplayScannerMetadata(md *models.ScannerAdapterMetadata) {
 	propTable := buildPropertyTable(md)
 
 	fmt.Println("[Scanner Info]")
-	fmt.Println(infoTable.View())
+	fmt.Println(infoTable.View().Content)
 
 	fmt.Println("[Capabilities]")
 	for _, capTable := range capabilityTables {
-		fmt.Println(capTable.View())
+		fmt.Println(capTable.View().Content)
 	}
 
 	fmt.Println("[Properties]")
-	fmt.Println(propTable.View())
+	fmt.Println(propTable.View().Content)
 }
 
 func buildInfoTable(md *models.ScannerAdapterMetadata) tablelist.Model {

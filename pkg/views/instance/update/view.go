@@ -17,14 +17,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/huh/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
 func UpdateInstanceView(instance *models.Instance) error {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 
 	authUsername := ""
 	authPassword := ""
