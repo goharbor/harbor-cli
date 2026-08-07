@@ -13,7 +13,7 @@ weight: 10
 Get the logs of a specific replication execution and task by their IDs. If no IDs are provided, it will prompt the user to select them interactively.
 
 ```sh
-harbor replication log [EXECUTION_ID] [TASK_ID] [flags]
+harbor replication log [flags]
 ```
 
 ### Examples
