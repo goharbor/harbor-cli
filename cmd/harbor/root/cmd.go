@@ -150,6 +150,10 @@ harbor help
 	cmd.GroupID = "core"
 	root.AddCommand(cmd)
 
+	cmd = InteractiveCommand(root)
+	cmd.GroupID = "core"
+	root.AddCommand(cmd)
+
 	// Access
 	cmd = LoginCommand()
 	cmd.GroupID = "access"
