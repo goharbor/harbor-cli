@@ -177,6 +177,26 @@ func ValidateRegistryName(rn string) bool {
 	return re.MatchString(rn)
 }
 
+// MaxPageSize is the maximum supported value for the page size parameter.
+const MaxPageSize int64 = 100
+
+// ValidatePagination validates page and page size parameters.
+func ValidatePagination(page, pageSize int64) error {
+	if page < 1 {
+		return fmt.Errorf("page number must be greater than or equal to 1")
+	}
+
+	if pageSize < 0 {
+		return fmt.Errorf("page size must be greater than or equal to 0")
+	}
+
+	if pageSize > MaxPageSize {
+		return fmt.Errorf("page size should be less than or equal to %d", MaxPageSize)
+	}
+
+	return nil
+}
+
 // ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
 // Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
 func ValidateURL(rawURL string) error {
@@ -232,28 +252,32 @@ func EmptyStringValidator(variable string) func(string) error {
 	}
 }
 
-// This function covert camelCase to Human Readable form
+// CamelCaseToHR converts camelCase to Human Readable form.
 func CamelCaseToHR(s string) string {
 	var result []string
 	var word []rune
+	runes := []rune(s)
 
-	for i, r := range s {
+	for i, r := range runes {
 		if unicode.IsUpper(r) && i > 0 {
-			result = append(result, string(word))
-			word = []rune{r}
-		} else {
-			word = append(word, r)
+			prev := runes[i-1]
+			nextIsLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+			if prev != ' ' && (!unicode.IsUpper(prev) || nextIsLower) {
+				result = append(result, string(word))
+				word = []rune{r}
+				continue
+			}
 		}
+		word = append(word, r)
 	}
-
 	result = append(result, string(word))
 
 	// Capitalize the first letter of each word
-	for i, word := range result {
-		if len(word) > 0 {
-			runes := []rune(word)
-			runes[0] = unicode.ToUpper(runes[0])
-			result[i] = string(runes)
+	for i, wordStr := range result {
+		if len(wordStr) > 0 {
+			wRunes := []rune(wordStr)
+			wRunes[0] = unicode.ToUpper(wRunes[0])
+			result[i] = string(wRunes)
 		}
 	}
 

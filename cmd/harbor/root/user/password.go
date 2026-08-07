@@ -16,16 +16,20 @@ package user
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 func UserPasswordChangeCmd() *cobra.Command {
-	var opts reset.PasswordChangeView
+	var passwordStdin bool
+	var userID int64
 
 	cmd := &cobra.Command{
 		Use:   "password",
@@ -36,12 +40,11 @@ func UserPasswordChangeCmd() *cobra.Command {
 			var userId int64
 			var err error
 			log.SetOutput(cmd.OutOrStderr())
-			resetView := &reset.PasswordChangeView{
-				NewPassword:     opts.NewPassword,
-				ConfirmPassword: opts.ConfirmPassword,
-			}
 
-			if len(args) > 0 {
+			// Resolve user ID: flag > positional arg > interactive prompt
+			if userID != 0 {
+				userId = userID
+			} else if len(args) > 0 {
 				userId, err = api.GetUsersIdByName(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
@@ -56,18 +59,46 @@ func UserPasswordChangeCmd() *cobra.Command {
 				}
 			}
 
-			reset.ChangePasswordView(resetView)
+			var opts reset.PasswordChangeView
 
-			err = api.ResetPassword(userId, *resetView)
+			if passwordStdin {
+				fmt.Println("New Password: ")
+				passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
+				if err != nil {
+					return fmt.Errorf("failed to read password from stdin: %v", err)
+				}
+				fmt.Println("Confirm Password: ")
+				confirmBytes, err := term.ReadPassword(int(os.Stdin.Fd())) // #nosec G115 - fd fits in int on all supported platforms
+				if err != nil {
+					return fmt.Errorf("failed to read confirmation password from stdin: %v", err)
+				}
+				if string(passwordBytes) != string(confirmBytes) {
+					return fmt.Errorf("passwords do not match")
+				}
+				opts.NewPassword = string(passwordBytes)
+				if err := utils.ValidatePassword(opts.NewPassword); err != nil {
+					return err
+				}
+			} else {
+				resetView := &reset.PasswordChangeView{}
+				reset.ChangePasswordView(resetView)
+				opts = *resetView
+			}
+
+			err = api.ResetPassword(userId, opts)
 			if err != nil {
 				if isUnauthorizedError(err) {
 					return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to reset user password: %v", err)
 				}
+				return fmt.Errorf("failed to reset user password: %v", err)
 			}
 			return nil
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.Int64Var(&userID, "user-id", 0, "User ID for non-interactive mode")
+
 	return cmd
 }
