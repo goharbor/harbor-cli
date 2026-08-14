@@ -238,6 +238,31 @@ jobs:
           verb: call
           args: build-dev --source=. --platform linux/amd64 export --path=./harbor-dev
 
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Start Harbor
+        run: ./test/harbor/harbor.sh up
+
+      - name: Run e2e tests
+        run: go test -tags e2e -v ./test/e2e/...
+
+      - name: Dump Harbor logs
+        if: failure()
+        run: docker compose -f test/harbor/docker-compose.yaml logs --tail=200
+
+      - name: Stop Harbor
+        if: always()
+        run: ./test/harbor/harbor.sh reset
+
   push-latest-images:
     needs:
       - lint
