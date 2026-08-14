@@ -146,11 +146,26 @@ A good PR includes:
 
 ## 🧪 Running Tests
 
-> ✅ Note: Add your CLI or unit tests to the `test/` directory.
+Unit tests need nothing but a Go toolchain — they never reach the network:
 
 ```bash
 go test ./...
 ```
+
+End-to-end tests in `test/e2e/` drive the CLI against a real Harbor. Start a
+throwaway one first; it runs entirely on your machine from the upstream
+`goharbor/*` images, under Docker or Podman:
+
+```bash
+./test/harbor/harbor.sh up
+go test -tags e2e ./test/e2e/...
+./test/harbor/harbor.sh reset
+```
+
+See [`test/harbor/README.md`](test/harbor/README.md) for how to point the tests
+at an existing Harbor instead.
+
+> ✅ Note: Add your CLI or unit tests to the `test/` directory.
 
 ## 🧹 Code Guidelines
 

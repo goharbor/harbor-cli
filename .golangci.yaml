@@ -1,4 +1,8 @@
 version: "2"
+run:
+  # Keep the tests in test/e2e in scope; they only build with this tag.
+  build-tags:
+    - e2e
 linters:
   enable:
     - bodyclose
