@@ -1,0 +1,25 @@
+---
+protocol: "http"
+port: 8080
+
+worker_pool:
+  workers: 10
+  backend: "redis"
+  redis_pool:
+    redis_url: redis://redis:6379/2
+    namespace: "harbor_job_service_namespace"
+    idle_timeout_second: 3600
+
+job_loggers:
+  - name: "STD_OUTPUT"
+    level: "INFO"
+
+loggers:
+  - name: "STD_OUTPUT"
+    level: "INFO"
+
+reaper:
+  max_update_hours: 24
+  max_dangling_hours: 168
+
+max_retrieve_size_mb: 10
