@@ -15,9 +15,18 @@ package utils
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	log "github.com/sirupsen/logrus"
@@ -28,6 +37,22 @@ var (
 	ClientOnce     sync.Once
 	ClientErr      error
 )
+
+const oidcRefreshFailureMessage = "Unable to refresh OIDC session. Please try again or run 'harbor login <server> --auth-mode oidc'."
+
+const oidcRetryHeader = "X-Harbor-CLI-OIDC-Retry"
+
+type oidcTokenManager struct {
+	mu         sync.RWMutex
+	credential Credential
+	token      string
+	refreshFn  func(Credential) (string, error)
+}
+
+type oidcRetryTransport struct {
+	base         http.RoundTripper
+	tokenManager *oidcTokenManager
+}
 
 func GetClient() (*v2client.HarborAPI, error) {
 	ClientOnce.Do(func() {
@@ -75,6 +100,9 @@ func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to get credential %s: %w", credentialName, err)
 	}
+	if credential.AuthType == AuthTypeOIDC {
+		return getOIDCClient(credential)
+	}
 
 	// Get encryption key
 	key, err := GetEncryptionKey()
@@ -94,4 +122,209 @@ func GetClientByCredentialName(credentialName string) (*v2client.HarborAPI, erro
 		Password: decryptedPassword,
 	}
 	return GetClientByConfig(clientConfig), nil
+}
+
+func getOIDCClient(credential Credential) (*v2client.HarborAPI, error) {
+	idToken, err := GetDecryptedIDToken(credential.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if oidcTokenNeedsRefresh(credential, idToken) {
+		idToken, err = refreshOIDCCredential(credential)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buildOIDCClient(credential, idToken)
+}
+
+func refreshOIDCCredential(credential Credential) (string, error) {
+	refreshToken, err := GetDecryptedRefreshToken(credential.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to load OIDC refresh token: %w", err)
+	}
+	if refreshToken == "" {
+		return "", fmt.Errorf(oidcRefreshFailureMessage)
+	}
+
+	refreshResp, err := RefreshOIDCToken(credential.ServerAddress, refreshToken)
+	if err != nil {
+		log.WithError(err).Warn("failed to refresh OIDC token")
+		return "", fmt.Errorf(oidcRefreshFailureMessage)
+	}
+
+	nextRefreshToken := refreshResp.RefreshToken
+	if nextRefreshToken == "" {
+		nextRefreshToken = refreshToken
+	}
+
+	harborData, err := GetCurrentHarborData()
+	if err != nil {
+		return "", fmt.Errorf("failed to get current Harbor data: %w", err)
+	}
+	if err := UpdateOIDCTokens(credential.Name, refreshResp.IDToken, nextRefreshToken, refreshResp.ExpiresAt, harborData.ConfigPath); err != nil {
+		return "", fmt.Errorf("failed to persist refreshed OIDC tokens: %w", err)
+	}
+
+	return refreshResp.IDToken, nil
+}
+
+func oidcTokenNeedsRefresh(credential Credential, idToken string) bool {
+	expiresAt, err := oidcTokenExpiryUnix(idToken)
+	if err != nil {
+		log.Debugf("failed to parse OIDC token expiry from JWT, falling back to stored expires_at: %v", err)
+		expiresAt = credential.ExpiresAt
+	}
+	if expiresAt <= 0 {
+		return false
+	}
+	return time.Now().Unix() >= expiresAt-60
+}
+
+func oidcTokenExpiryUnix(idToken string) (int64, error) {
+	parts := strings.Split(idToken, ".")
+	if len(parts) != 3 {
+		return 0, fmt.Errorf("invalid JWT format")
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return 0, fmt.Errorf("failed to decode JWT payload: %w", err)
+	}
+
+	var claims struct {
+		Exp int64 `json:"exp"`
+	}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return 0, fmt.Errorf("failed to unmarshal JWT payload: %w", err)
+	}
+	if claims.Exp <= 0 {
+		return 0, fmt.Errorf("JWT exp claim is missing")
+	}
+	return claims.Exp, nil
+}
+
+func buildOIDCClient(credential Credential, idToken string) (*v2client.HarborAPI, error) {
+	tokenManager := &oidcTokenManager{
+		credential: credential,
+		token:      idToken,
+		refreshFn:  refreshOIDCCredential,
+	}
+
+	return buildClientWithAuth(credential.ServerAddress, tokenManager, &oidcRetryTransport{
+		base:         http.DefaultTransport,
+		tokenManager: tokenManager,
+	})
+}
+
+func buildClientWithAuth(serverAddress string, tokenManager *oidcTokenManager, transport http.RoundTripper) (*v2client.HarborAPI, error) {
+	u, err := url.Parse(serverAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse server URL: %w", err)
+	}
+	if u.Scheme == "" || u.Host == "" {
+		return nil, fmt.Errorf("invalid server URL: %s", serverAddress)
+	}
+
+	cfg := &harbor.Config{
+		URL:       u,
+		Transport: transport,
+		AuthInfo: runtime.ClientAuthInfoWriterFunc(func(req runtime.ClientRequest, _ strfmt.Registry) error {
+			return req.SetHeaderParam("Authorization", "Bearer "+tokenManager.Token())
+		}),
+	}
+
+	return v2client.New(cfg.ToV2Config()), nil
+}
+
+func (m *oidcTokenManager) Token() string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.token
+}
+
+func (m *oidcTokenManager) Refresh() (string, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	refreshFn := m.refreshFn
+	if refreshFn == nil {
+		refreshFn = refreshOIDCCredential
+	}
+
+	token, err := refreshFn(m.credential)
+	if err != nil {
+		return "", err
+	}
+	m.token = token
+	return token, nil
+}
+
+func (t *oidcRetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	base := t.base
+	if base == nil {
+		base = http.DefaultTransport
+	}
+
+	resp, err := base.RoundTrip(req)
+	if err != nil || resp == nil || resp.StatusCode != http.StatusUnauthorized {
+		return resp, err
+	}
+	if req.Header.Get(oidcRetryHeader) == "1" || !canRetryOIDCRequest(req) {
+		return resp, nil
+	}
+
+	if _, err := t.tokenManager.Refresh(); err != nil {
+		drainAndCloseResponse(resp)
+		return nil, err
+	}
+
+	drainAndCloseResponse(resp)
+
+	retryReq, err := cloneRequestForRetry(req)
+	if err != nil {
+		return nil, err
+	}
+	retryReq.Header.Set("Authorization", "Bearer "+t.tokenManager.Token())
+	retryReq.Header.Set(oidcRetryHeader, "1")
+
+	return base.RoundTrip(retryReq)
+}
+
+func canRetryOIDCRequest(req *http.Request) bool {
+	if req == nil {
+		return false
+	}
+	if req.Body == nil || req.Body == http.NoBody {
+		return true
+	}
+	return req.GetBody != nil
+}
+
+func cloneRequestForRetry(req *http.Request) (*http.Request, error) {
+	retryReq := req.Clone(req.Context())
+	if req.Body != nil && req.Body != http.NoBody {
+		if req.GetBody == nil {
+			return nil, fmt.Errorf("request body cannot be retried")
+		}
+		body, err := req.GetBody()
+		if err != nil {
+			return nil, fmt.Errorf("failed to reset request body: %w", err)
+		}
+		retryReq.Body = body
+	} else {
+		retryReq.Body = http.NoBody
+	}
+	retryReq.Header = req.Header.Clone()
+	return retryReq, nil
+}
+
+func drainAndCloseResponse(resp *http.Response) {
+	if resp == nil || resp.Body == nil {
+		return
+	}
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1024))
+	_ = resp.Body.Close()
 }
