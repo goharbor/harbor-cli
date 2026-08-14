@@ -1,0 +1,45 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-project-summary - Get summary of a project
+
+
+.SH SYNOPSIS
+\fBharbor project summary [NAME|ID] [flags]\fP
+
+
+.SH DESCRIPTION
+Get summary of a project by name or ID. If no arguments are provided, it will prompt for the project name. Use --id to specify the project ID instead of the name.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for summary
+
+.PP
+\fB--id\fP[=false]
+	Get project by id
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor project summary my-project or harbor project summary 1 --id
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-project(1)\fP
