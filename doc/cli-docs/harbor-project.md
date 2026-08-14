@@ -28,6 +28,7 @@ Manage projects in Harbor
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+  -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
@@ -44,5 +45,6 @@ Manage projects in Harbor
 * [harbor project preheat](harbor-project-preheat.md)	 - Manage project preheat resources
 * [harbor project robot](harbor-project-robot.md)	 - Manage robot accounts
 * [harbor project search](harbor-project-search.md)	 - search project based on their names
+* [harbor project summary](harbor-project-summary.md)	 - Get summary of a project
 * [harbor project view](harbor-project-view.md)	 - get project by name or id
 

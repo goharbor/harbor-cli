@@ -55,9 +55,15 @@ func TestFormatUrl(t *testing.T) {
 }
 
 func TestFormatSize(t *testing.T) {
-	// 1048576 bytes == 1 MiB
 	assert.Equal(t, "1.00MiB", utils.FormatSize(1024*1024))
 	assert.Equal(t, "0B", utils.FormatSize(0))
+	assert.Equal(t, "Unlimited", utils.FormatSize(-1))
+}
+
+func TestFormatCount(t *testing.T) {
+	assert.Equal(t, "100", utils.FormatCount(100))
+	assert.Equal(t, "0", utils.FormatCount(0))
+	assert.Equal(t, "Unlimited", utils.FormatCount(-1))
 }
 
 func TestValidateUserName(t *testing.T) {
@@ -127,6 +133,34 @@ func TestValidateStorageLimit(t *testing.T) {
 func TestValidateRegistryName(t *testing.T) {
 	assert.True(t, utils.ValidateRegistryName("registry01"))
 	assert.False(t, utils.ValidateRegistryName("-bad"))
+}
+
+func TestValidatePagination(t *testing.T) {
+	tests := []struct {
+		name      string
+		page      int64
+		pageSize  int64
+		expectErr bool
+		errMsg    string
+	}{
+		{"valid page and size", 1, 10, false, ""},
+		{"page less than 1", 0, 10, true, "page number must be greater than or equal to 1"},
+		{"page size negative", 1, -1, true, "page size must be greater than or equal to 0"},
+		{"page size greater than 100", 1, 101, true, "page size should be less than or equal to 100"},
+		{"page size zero", 1, 0, false, ""},
+		{"page size 100", 1, 100, false, ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := utils.ValidatePagination(tc.page, tc.pageSize)
+			if tc.expectErr {
+				assert.EqualError(t, err, tc.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestValidateURL(t *testing.T) {
@@ -219,4 +253,33 @@ func TestPrintFormat(t *testing.T) {
 	// unsupported
 	err = utils.PrintFormat(obj, "xml")
 	assert.Error(t, err)
+}
+
+func TestCamelCaseToHR(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"basic camelCase", "camelCase", "Camel Case"},
+		{"basic PascalCase", "PascalCase", "Pascal Case"},
+		{"single word", "simple", "Simple"},
+		{"existing spaces", "already Human Readable", "Already Human Readable"},
+		{"uppercase acronym", "ID", "ID"},
+		{"prefixed acronym", "UserID", "User ID"},
+		{"complex acronym", "JSONData", "JSON Data"},
+		{"all caps", "ALLCAPS", "ALLCAPS"},
+		{"all lower", "alllower", "Alllower"},
+		{"mixed case", "MixedUPPERAndLower", "Mixed UPPER And Lower"},
+		{"lowercase prefix", "httpError", "Http Error"},
+		{"uppercase acronym", "HTTPError", "HTTP Error"},
+		{"empty string", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.CamelCaseToHR(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
