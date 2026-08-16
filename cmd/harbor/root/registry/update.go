@@ -67,37 +67,14 @@ func UpdateRegistryCommand() *cobra.Command {
 				},
 			}
 
-			flags := cmd.Flags()
-			if flags.Changed("name") {
-				updateView.Name = opts.Name
-			}
-			if flags.Changed("type") {
-				updateView.Type = opts.Type
-			}
-			if flags.Changed("description") {
-				updateView.Description = opts.Description
-			}
-			if flags.Changed("url") {
-				formattedUrl := utils.FormatUrl(opts.URL)
-				if err := utils.ValidateURL(formattedUrl); err != nil {
+			if hasUpdateFlagChanges(cmd) {
+				err = applyUpdateFlags(cmd, updateView, opts)
+				if err != nil {
 					return err
 				}
-				updateView.URL = formattedUrl
+			} else {
+				update.UpdateRegistryView(updateView)
 			}
-			if flags.Changed("insecure") {
-				updateView.Insecure = opts.Insecure
-			}
-			if flags.Changed("credential-access-key") {
-				updateView.Credential.AccessKey = opts.Credential.AccessKey
-			}
-			if flags.Changed("credential-access-secret") {
-				updateView.Credential.AccessSecret = opts.Credential.AccessSecret
-			}
-			if flags.Changed("credential-type") {
-				updateView.Credential.Type = opts.Credential.Type
-			}
-
-			update.UpdateRegistryView(updateView)
 			err = api.UpdateRegistry(updateView, registryId)
 			if err != nil {
 				return fmt.Errorf("failed to update registry: %v", err)
@@ -117,4 +94,49 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
 
 	return cmd
+}
+
+func hasUpdateFlagChanges(cmd *cobra.Command) bool {
+	flags := cmd.Flags()
+	return flags.Changed("name") ||
+		flags.Changed("type") ||
+		flags.Changed("url") ||
+		flags.Changed("description") ||
+		flags.Changed("insecure") ||
+		flags.Changed("credential-access-key") ||
+		flags.Changed("credential-access-secret") ||
+		flags.Changed("credential-type")
+}
+
+func applyUpdateFlags(cmd *cobra.Command, updateView *models.Registry, opts *models.Registry) error {
+	flags := cmd.Flags()
+	if flags.Changed("name") {
+		updateView.Name = opts.Name
+	}
+	if flags.Changed("type") {
+		updateView.Type = opts.Type
+	}
+	if flags.Changed("description") {
+		updateView.Description = opts.Description
+	}
+	if flags.Changed("url") {
+		formattedUrl := utils.FormatUrl(opts.URL)
+		if err := utils.ValidateURL(formattedUrl); err != nil {
+			return err
+		}
+		updateView.URL = formattedUrl
+	}
+	if flags.Changed("insecure") {
+		updateView.Insecure = opts.Insecure
+	}
+	if flags.Changed("credential-access-key") {
+		updateView.Credential.AccessKey = opts.Credential.AccessKey
+	}
+	if flags.Changed("credential-access-secret") {
+		updateView.Credential.AccessSecret = opts.Credential.AccessSecret
+	}
+	if flags.Changed("credential-type") {
+		updateView.Credential.Type = opts.Credential.Type
+	}
+	return nil
 }
