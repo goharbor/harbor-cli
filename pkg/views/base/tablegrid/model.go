@@ -113,11 +113,13 @@ func New(config Config) *TableGrid {
 
 	// Create columns
 	columns := make([]table.Column, len(config.ColLabels))
+	tableWidth := 0
 	for i, label := range config.ColLabels {
 		columns[i] = table.Column{
 			Title: label,
 			Width: colWidths[i],
 		}
+		tableWidth += colWidths[i] + 2
 	}
 
 	// Initialize data grid if not provided
@@ -138,6 +140,7 @@ func New(config Config) *TableGrid {
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(len(rows)+1),
+		table.WithWidth(tableWidth),
 	)
 
 	// Apply table styles

@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -108,10 +107,7 @@ func ViewRobot(robot *models.Robot) {
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Print(m.View().Content)
 
 	fmt.Printf("\n%s\n\n", views.BoldStyle.Render("Robot Permissions:"))
 
@@ -190,10 +186,7 @@ func ViewRobot(robot *models.Robot) {
 
 	if systemLevel && len(robot.Permissions) > 1 {
 		t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
-		if _, err := tea.NewProgram(t).Run(); err != nil {
-			fmt.Println("Error running program:", err)
-			os.Exit(1)
-		}
+		fmt.Print(t.View().Content)
 
 		fmt.Printf("\n%s\n\n", views.BoldStyle.Render("Project-specific Permissions:"))
 
@@ -202,18 +195,12 @@ func ViewRobot(robot *models.Robot) {
 				fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("Project: %s", perm.Namespace)))
 				projectRows := createProjectPermissionRows(perm, perms.Project)
 				pt := tablelist.NewModel(projectPermissionsColumns, projectRows, len(projectRows))
-				if _, err := tea.NewProgram(pt).Run(); err != nil {
-					fmt.Println("Error running program:", err)
-					os.Exit(1)
-				}
+				fmt.Print(pt.View().Content)
 			}
 		}
 	} else {
 		t := tablelist.NewModel(permissionsColumns, permissionRows, len(permissionRows))
-		if _, err := tea.NewProgram(t).Run(); err != nil {
-			fmt.Println("Error running program:", err)
-			os.Exit(1)
-		}
+		fmt.Print(t.View().Content)
 	}
 }
 

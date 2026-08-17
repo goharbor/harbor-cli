@@ -15,12 +15,10 @@ package list
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
 	"charm.land/bubbles/v2/table"
-	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
 
@@ -46,10 +44,7 @@ func ListConfig(configMap map[string]string) {
 
 	m := tablelist.NewModel(configColumns, rows, len(rows))
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running table view:", err)
-		os.Exit(1)
-	}
+	fmt.Print(m.View().Content)
 }
 
 func formatKey(key string) string {
