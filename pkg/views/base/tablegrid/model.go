@@ -35,6 +35,7 @@ type TableGrid struct {
 	Styles      Styles               // Custom styles
 	Icons       Icons                // Custom icons
 	Footer      string               // Custom footer text
+	Cancelled   bool
 }
 
 // Styles contains customizable styles for the table grid
@@ -376,6 +377,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "q", "ctrl+c":
+			m.Cancelled = true
 			return m, tea.Quit
 		}
 	}
