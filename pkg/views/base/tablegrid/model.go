@@ -16,9 +16,9 @@ package tablegrid
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 // CellStatus represents a cell's toggle state
@@ -35,6 +35,7 @@ type TableGrid struct {
 	Styles      Styles               // Custom styles
 	Icons       Icons                // Custom icons
 	Footer      string               // Custom footer text
+	AltScreen   bool                 // Whether to render in alt-screen mode
 }
 
 // Styles contains customizable styles for the table grid
@@ -112,11 +113,13 @@ func New(config Config) *TableGrid {
 
 	// Create columns
 	columns := make([]table.Column, len(config.ColLabels))
+	tableWidth := 0
 	for i, label := range config.ColLabels {
 		columns[i] = table.Column{
 			Title: label,
 			Width: colWidths[i],
 		}
+		tableWidth += colWidths[i] + 2
 	}
 
 	// Initialize data grid if not provided
@@ -137,6 +140,7 @@ func New(config Config) *TableGrid {
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(len(rows)+1),
+		table.WithWidth(tableWidth),
 	)
 
 	// Apply table styles
@@ -213,7 +217,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+a":
 			// Turn all cells on
@@ -364,7 +368,7 @@ func (m *TableGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.refreshTable(m.Table.Cursor(), m.SelectedCol)
 			return m, cmd
 
-		case "enter", " ":
+		case "enter", "space":
 			// Toggle cell
 			rowIdx := m.Table.Cursor()
 			colIdx := m.SelectedCol
@@ -391,7 +395,7 @@ func (m *TableGrid) refreshTable(highlightRow, highlightCol int) {
 }
 
 // View renders the component
-func (m *TableGrid) View() string {
+func (m *TableGrid) View() tea.View {
 	cursor := m.Table.Cursor()
 	m.refreshTable(cursor, m.SelectedCol)
 	out := m.Table.View()
@@ -399,7 +403,9 @@ func (m *TableGrid) View() string {
 	footer := "\n ↑/↓ move row • ⌃J toggle row on  • ⌃H toggle col on  • ^A toggle table on  • space/enter to toggle\n" +
 		" ←/→ move col • ⌃K toggle row off • ⌃L toggle col off • ^D toggle table off • ^S submit • q to cancel \n"
 
-	return out + footer
+	v := tea.NewView(out + footer)
+	v.AltScreen = m.AltScreen
+	return v
 }
 
 // GetData returns the current selection state

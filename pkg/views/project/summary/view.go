@@ -17,8 +17,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
@@ -88,9 +87,6 @@ func ViewProjectSummary(project *models.Project, summary *models.ProjectSummary)
 	}
 
 	m := tablelist.NewModel(columns, rows, len(rows))
-
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		return fmt.Errorf("error running program: %v", err)
-	}
+	fmt.Print(m.View().Content)
 	return nil
 }

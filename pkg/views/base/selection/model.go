@@ -18,8 +18,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 
@@ -53,9 +53,10 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type Model struct {
-	List    list.Model
-	Choice  string
-	Aborted bool
+	List      list.Model
+	Choice    string
+	Aborted   bool
+	AltScreen bool
 }
 
 func NewModel(items []list.Item, construct string) Model {
@@ -81,7 +82,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.List.SetWidth(msg.Width)
 		return m, nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch keypress := msg.String(); keypress {
 		case "enter":
 			if m.List.FilterState() != list.Filtering {
@@ -99,9 +100,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
+	var content string
 	if m.Choice != "" {
-		return ""
+		content = ""
+	} else {
+		content = "\n" + m.List.View()
 	}
-	return "\n" + m.List.View()
+
+	v := tea.NewView(content)
+	v.AltScreen = m.AltScreen
+	return v
 }

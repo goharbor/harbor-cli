@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss/tree"
+	"charm.land/lipgloss/v2/tree"
 	"github.com/goharbor/harbor-cli/pkg/views"
 )
 

@@ -16,7 +16,7 @@ package create
 import (
 	"errors"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 )
 
 type CreateView struct {
@@ -47,7 +47,7 @@ type RetentionPolicyScope struct {
 }
 
 func CreateRetentionView(createView *CreateView) error {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().

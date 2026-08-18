@@ -15,12 +15,10 @@ package list
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
@@ -68,9 +66,5 @@ func ListArtifacts(artifacts []*models.Artifact) {
 	}
 
 	m := tablelist.NewModel(columns, rows, len(rows))
-
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	fmt.Print(m.View().Content)
 }

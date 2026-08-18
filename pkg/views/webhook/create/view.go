@@ -16,7 +16,7 @@ package create
 import (
 	"errors"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
@@ -33,7 +33,7 @@ type CreateView struct {
 }
 
 func WebhookCreateView(createView *CreateView) error {
-	theme := huh.ThemeCharm()
+	theme := huh.ThemeFunc(huh.ThemeCharm)
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
