@@ -114,7 +114,7 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	}
 
 	if response.Payload.Metadata == nil || response.Payload.Metadata.RetentionID == nil {
-		return "", errors.New("No retention policy exists for this project")
+		return "", errors.New("no retention policy exists for this project")
 	}
 	retentionid := *response.Payload.Metadata.RetentionID
 
