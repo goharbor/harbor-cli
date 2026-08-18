@@ -1,6 +1,6 @@
 ---
 title: harbor project preheat execution list
-weight: 70
+weight: 60
 ---
 ## harbor project preheat execution list
 

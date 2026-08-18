@@ -1,6 +1,6 @@
 ---
 title: harbor tag retention
-weight: 95
+weight: 85
 ---
 ## harbor tag retention
 
