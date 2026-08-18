@@ -37,6 +37,7 @@ harbor help
 ### SEE ALSO
 
 * [harbor artifact](harbor-artifact.md)	 - Manage artifacts
+* [harbor auditlog](harbor-auditlog.md)	 - Manage and view audit logs
 * [harbor config](harbor-config.md)	 - Manage system configurations
 * [harbor context](harbor-context.md)	 - Manage locally available contexts
 * [harbor cve-allowlist](harbor-cve-allowlist.md)	 - Manage system CVE allowlist
