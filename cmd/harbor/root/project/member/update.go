@@ -16,7 +16,6 @@ package member
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -43,7 +42,7 @@ func UpdateMemberCommand() *cobra.Command {
 				opts.ProjectNameOrID = args[0]
 			} else if len(args) == 2 {
 				opts.ProjectNameOrID = args[0]
-				opts.ID, _ = strconv.ParseInt(args[1], 0, 64)
+				memberName = args[1]
 			}
 
 			if opts.ProjectNameOrID == "" {
