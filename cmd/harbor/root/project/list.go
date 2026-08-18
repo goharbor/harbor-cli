@@ -120,6 +120,9 @@ func ListProjectCommand() *cobra.Command {
 func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, error), opts api.ListFlags) ([]*models.Project, error) {
 	var allProjects []*models.Project
 	if opts.PageSize == 0 {
+		if opts.Page != 1 {
+			log.Warn("--page is ignored when --page-size is 0 (fetching all pages)")
+		}
 		log.Debug("Page size is 0, will fetch all pages")
 		opts.PageSize = 100
 		opts.Page = 1
