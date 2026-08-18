@@ -41,7 +41,7 @@ The project's first goal is to reach WebUI parity.
 ✅ Scanner       scanner commands CRUD
 ✅ schedule      Schedule jobs in Harbor
 
-❌ Vulnerability Dashboard
+✅ vulnerability List and view vulnerability summary from Harbor Security Hub
 
 ❌ Distribution
 
