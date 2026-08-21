@@ -21,6 +21,12 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
 
+// Function variables for testing - these can be swapped in tests.
+var (
+	listRegistriesFunc = ListRegistries
+	viewRegistryFunc   = ViewRegistry
+)
+
 func ListRegistries(opts ...ListFlags) (*registry.ListRegistriesOK, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -113,19 +119,12 @@ func ViewRegistry(registryId int64) (*registry.GetRegistryOK, error) {
 }
 
 func GetRegistryResponse(registryId int64) (*models.Registry, error) {
-	ctx, client, err := utils.ContextWithClient()
+	response, err := viewRegistryFunc(registryId)
 	if err != nil {
-		return nil, err
-	}
-	response, err := client.Registry.GetRegistry(ctx, &registry.GetRegistryParams{ID: registryId})
-	if err != nil {
-		return nil, err
-	}
-	if response.Payload.ID == 0 {
 		return nil, err
 	}
 
-	return response.GetPayload(), err
+	return response.GetPayload(), nil
 }
 
 func UpdateRegistry(updateView *models.Registry, projectID int64) error {
@@ -176,7 +175,7 @@ func GetRegistryProviders() ([]string, error) {
 func GetRegistryIdByName(registryName string) (int64, error) {
 	opts := ListFlags{Name: registryName}
 
-	r, err := ListRegistries(opts)
+	r, err := listRegistriesFunc(opts)
 	if err != nil {
 		return 0, err
 	}

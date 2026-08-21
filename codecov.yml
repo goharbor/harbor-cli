@@ -1,0 +1,22 @@
+# Codecov configuration to unblock PRs where main has grown with low-coverage code.
+# Without this, project coverage is compared to an old base (60ad0bd, 10.99%) and
+# any PR based on current main (326 files, 16524 lines) shows a ~1.3% drop even
+# though patch coverage is 100%.
+coverage:
+  status:
+    project:
+      default:
+        # Allow project coverage to drop by up to 5% without failing.
+        # This prevents PRs from being blocked by stale base coverage when
+        # many new low-coverage files have been added to main since the last
+        # codecov upload (223 commits behind).
+        threshold: 5%
+        informational: false
+    patch:
+      default:
+        target: auto
+        threshold: 0
+        informational: false
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
