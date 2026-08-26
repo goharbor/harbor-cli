@@ -11,10 +11,10 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/sahilm/fuzzy v0.1.3
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	github.com/zalando/go-keyring v0.2.8
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/term v0.45.0
@@ -48,7 +48,6 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
