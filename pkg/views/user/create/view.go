@@ -19,7 +19,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -31,7 +30,7 @@ type CreateView struct {
 	ConfirmPassword string
 }
 
-func CreateUserView(createView *CreateView) {
+func CreateUserView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -105,6 +104,8 @@ func CreateUserView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

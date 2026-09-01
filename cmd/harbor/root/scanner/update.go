@@ -109,7 +109,9 @@ Only the fields passed through flags will be updated; other fields will retain t
 				updateView.UseInternalAddr = &opts.UseInternalAddr
 			}
 
-			update.UpdateScannerView(updateView)
+			if err := update.UpdateScannerView(updateView); err != nil {
+				return err
+			}
 
 			err = api.UpdateScanner(registrationID, *updateView)
 			if err != nil {

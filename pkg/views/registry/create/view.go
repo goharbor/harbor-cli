@@ -21,7 +21,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // struct to hold registry options
@@ -30,8 +29,11 @@ type RegistryOption struct {
 	Name string
 }
 
-func CreateRegistryView(createView *api.CreateRegView) {
-	registries, _ := api.GetRegistryProviders()
+func CreateRegistryView(createView *api.CreateRegView) error {
+	registries, err := api.GetRegistryProviders()
+	if err != nil {
+		return err
+	}
 
 	// Initialize a slice to hold registry options
 	var registryOptions []RegistryOption
@@ -56,7 +58,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 	}
 
 	theme := huh.ThemeCharm()
-	err := huh.NewForm(
+	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Select a Registry Provider").
@@ -113,6 +115,7 @@ func CreateRegistryView(createView *api.CreateRegView) {
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

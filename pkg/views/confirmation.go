@@ -15,7 +15,6 @@ package views
 
 import (
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
 )
 
 func ConfirmElevation() (bool, error) {
@@ -27,7 +26,7 @@ func ConfirmElevation() (bool, error) {
 		Negative("No").
 		Value(&confirm).Run()
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	return confirm, nil

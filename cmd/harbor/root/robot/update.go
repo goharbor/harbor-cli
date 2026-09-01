@@ -15,6 +15,7 @@ package robot
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/charmbracelet/huh"
@@ -24,7 +25,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -144,8 +144,8 @@ Examples:
 				}
 			}
 
-			logrus.Debugf("Loaded robot with %d system permissions and %d project-specific permissions",
-				len(permissions), len(projectPermissionsMap))
+			slog.Debug(fmt.Sprintf("Loaded robot with %d system permissions and %d project-specific permissions",
+				len(permissions), len(projectPermissionsMap)))
 
 			// Handle configuration from file or interactive input
 			if configFile != "" {
@@ -187,7 +187,7 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		return fmt.Errorf("failed to load robot config from file: %v", err)
 	}
 
-	logrus.Debug("Successfully loaded robot configuration")
+	slog.Debug("Successfully loaded robot configuration")
 
 	// Only update fields that should be updated from the config file
 	// IMPORTANT: Do not update name or level as the Harbor API doesn't allow this
@@ -230,15 +230,17 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		}
 	}
 
-	logrus.Debugf("Loaded robot update with %d system permissions and %d project-specific permissions",
-		len(*permissions), len(projectPermissionsMap))
+	slog.Debug(fmt.Sprintf("Loaded robot update with %d system permissions and %d project-specific permissions",
+		len(*permissions), len(projectPermissionsMap)))
 
 	return nil
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	// Show interactive form for updating basic details
-	update.UpdateRobotView(opts)
+	if err := update.UpdateRobotView(opts); err != nil {
+		return err
+	}
 
 	// Validate duration
 	if opts.Duration == 0 {
@@ -264,7 +266,7 @@ func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissi
 	}
 
 	if !updatePerms {
-		logrus.Debug("Keeping existing permissions")
+		slog.Debug("Keeping existing permissions")
 		return nil
 	}
 
@@ -296,7 +298,7 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 	}
 
 	if !updateSystem {
-		logrus.Debug("Keeping existing system permissions")
+		slog.Debug("Keeping existing system permissions")
 		return nil
 	}
 
@@ -328,10 +330,10 @@ func getProjectPermissionsForUpdate(opts *update.UpdateView, projectPermissionsM
 
 	switch permissionMode {
 	case "keep":
-		logrus.Debug("Keeping existing project permissions")
+		slog.Debug("Keeping existing project permissions")
 		return nil
 	case "clear":
-		logrus.Debug("Clearing all project permissions")
+		slog.Debug("Clearing all project permissions")
 		// Clear the map to remove all project permissions
 		for k := range projectPermissionsMap {
 			delete(projectPermissionsMap, k)
@@ -538,7 +540,7 @@ func validateProjectPermissions(permissions []models.Permission) ([]models.Permi
 
 	// Warn about invalid permissions
 	if len(invalidPerms) > 0 {
-		logrus.Warnf("Removed %d invalid project permissions: %v", len(invalidPerms), invalidPerms)
+		slog.Warn(fmt.Sprintf("Removed %d invalid project permissions: %v", len(invalidPerms), invalidPerms))
 	}
 
 	return validPerms, nil

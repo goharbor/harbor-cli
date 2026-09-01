@@ -16,12 +16,12 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
 )
@@ -64,44 +64,49 @@ var (
 
 var ConfigInitialization = &Once{}
 
-func InitConfig(cfgFile string, userSpecifiedConfig bool) {
+func InitConfig(cfgFile string, userSpecifiedConfig bool) error {
 	ConfigInitialization.Do(func() {
-		harborDataPath, harborDataDir := GetDataPaths()
+		configInitError = nil
+		harborDataPath, harborDataDir, err := GetDataPaths()
+		if err != nil {
+			configInitError = err
+			return
+		}
 		harborConfigPath, err := DetermineConfigPath(cfgFile, userSpecifiedConfig)
 		if err != nil {
 			configInitError = err
-			log.Fatalf("%v", err)
+			return
 		}
 
 		// Ensure data directory exists
 		if err := os.MkdirAll(harborDataDir, os.ModePerm); err != nil {
 			configInitError = fmt.Errorf("failed to create data directory: %w", err)
-			log.Fatalf("%v", configInitError)
+			return
 		}
 
 		// Update or create data file
 		if err := ApplyDataFile(harborDataPath, harborConfigPath); err != nil {
 			configInitError = err
-			log.Fatalf("%v", err)
+			return
 		}
 
 		// Ensure config file exists
 		if err := EnsureConfigFileExists(harborConfigPath); err != nil {
 			configInitError = err
-			log.Fatalf("%v", err)
+			return
 		}
 
 		// Read and unmarshal the config file
 		err = ReadConfig(harborConfigPath)
 		if err != nil {
 			configInitError = err
-			log.Fatalf("%v", err)
+			return
 		}
 
 		var harborConfig HarborConfig
 		if err := viper.Unmarshal(&harborConfig); err != nil {
 			configInitError = fmt.Errorf("failed to unmarshal config file: %w", err)
-			log.Fatalf("%v", configInitError)
+			return
 		}
 
 		configMutex.Lock()
@@ -109,21 +114,22 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 		CurrentHarborConfig = &harborConfig
 		CurrentHarborData = &HarborData{ConfigPath: harborConfigPath}
 	})
+	return configInitError
 }
 
 // Helper function to get data paths
-func GetDataPaths() (harborDataPath string, harborDataDir string) {
+func GetDataPaths() (harborDataPath string, harborDataDir string, err error) {
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
 	if xdgDataHome == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatalf("Unable to determine user home directory: %v", err)
+			return "", "", fmt.Errorf("unable to determine user home directory: %v", err)
 		}
 		xdgDataHome = filepath.Join(home, ".local", "share")
 	}
 	harborDataDir = filepath.Join(xdgDataHome, "harbor-cli")
 	harborDataPath = filepath.Join(harborDataDir, "data.yaml")
-	return
+	return harborDataPath, harborDataDir, nil
 }
 
 // Helper function to determine the config path
@@ -284,12 +290,12 @@ func CreateDataFile(dataFilePath string, initialConfigPath string) error {
 	if _, err := os.Stat(dataFilePath); os.IsNotExist(err) {
 		dataDir := filepath.Dir(dataFilePath)
 		if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
-			log.Fatalf("Failed to create data directory: %v", err)
+			return fmt.Errorf("failed to create data directory: %v", err)
 		}
 
 		absConfigPath, err := filepath.Abs(initialConfigPath)
 		if err != nil {
-			log.Fatalf("Failed to resolve absolute path for config file: %v", err)
+			return fmt.Errorf("failed to resolve absolute path for config file: %v", err)
 		}
 
 		dataFile := HarborData{
@@ -301,12 +307,12 @@ func CreateDataFile(dataFilePath string, initialConfigPath string) error {
 		v.Set("configPath", dataFile.ConfigPath)
 
 		if err := v.WriteConfigAs(dataFilePath); err != nil {
-			log.Fatalf("Failed to write data file: %v", err)
+			return fmt.Errorf("failed to write data file: %v", err)
 		}
 
 		fmt.Printf("Data file created at %s with configPath: %s\n", dataFilePath, dataFile.ConfigPath)
 	} else if err != nil {
-		log.Fatalf("Error checking data file: %v", err)
+		return fmt.Errorf("error checking data file: %v", err)
 	}
 
 	return nil
@@ -341,7 +347,7 @@ func ApplyDataFile(harborDataPath, harborConfigPath string) error {
 				return fmt.Errorf("failed to create data file: %w", err)
 			}
 		} else {
-			log.Debugf("Data file already exists with the same config path: %s", harborConfigPath)
+			slog.Debug(fmt.Sprintf("Data file already exists with the same config path: %s", harborConfigPath))
 		}
 	} else {
 		// Data file does not exist, create it
@@ -354,14 +360,14 @@ func ApplyDataFile(harborDataPath, harborConfigPath string) error {
 
 func UpdateDataFile(dataFilePath string, newConfigPath string) error {
 	if _, err := os.Stat(dataFilePath); os.IsNotExist(err) {
-		log.Fatalf("data file does not exist at %s", dataFilePath)
+		return fmt.Errorf("data file does not exist at %s", dataFilePath)
 	} else if err != nil {
-		log.Fatalf("error checking data file: %v", err)
+		return fmt.Errorf("error checking data file: %v", err)
 	}
 
 	absConfigPath, err := filepath.Abs(newConfigPath)
 	if err != nil {
-		log.Fatalf("failed to resolve absolute path for new config file: %v", err)
+		return fmt.Errorf("failed to resolve absolute path for new config file: %v", err)
 	}
 
 	v := viper.New()
@@ -369,13 +375,13 @@ func UpdateDataFile(dataFilePath string, newConfigPath string) error {
 	v.SetConfigFile(dataFilePath)
 
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("failed to read existing data file: %v", err)
+		return fmt.Errorf("failed to read existing data file: %v", err)
 	}
 
 	v.Set("configPath", absConfigPath)
 
 	if err := v.WriteConfig(); err != nil {
-		log.Fatalf("failed to write updated data file: %v", err)
+		return fmt.Errorf("failed to write updated data file: %v", err)
 	}
 
 	fmt.Printf("Data file at %s updated with new configPath: %s\n", dataFilePath, absConfigPath)
@@ -386,7 +392,7 @@ func CreateConfigFile(configPath string) error {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		configDir := filepath.Dir(configPath)
 		if err := os.MkdirAll(configDir, os.ModePerm); err != nil {
-			log.Fatalf("failed to create config directory: %v", err)
+			return fmt.Errorf("failed to create config directory: %v", err)
 		}
 
 		v := viper.New()
@@ -402,12 +408,12 @@ func CreateConfigFile(configPath string) error {
 		v.Set("credentials", defaultConfig.Credentials)
 
 		if err := v.WriteConfigAs(configPath); err != nil {
-			log.Fatalf("failed to write config file: %v", err)
+			return fmt.Errorf("failed to write config file: %v", err)
 		}
 
 		fmt.Printf("Config file created at %s", configPath)
 	} else if err != nil {
-		log.Fatalf("error checking config file: %v", err)
+		return fmt.Errorf("error checking config file: %v", err)
 	}
 
 	return nil

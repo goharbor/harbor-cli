@@ -57,6 +57,8 @@ func updatecveView(updateView *update.UpdateView) error {
 		updateView = &update.UpdateView{}
 	}
 
-	update.UpdateCveView(updateView)
+	if err := update.UpdateCveView(updateView); err != nil {
+		return err
+	}
 	return api.UpdateSystemCve(*updateView)
 }

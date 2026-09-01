@@ -32,7 +32,9 @@ func CreateScannerCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Name == "" || opts.Auth == "" || opts.URL == "" {
-				create.CreateScannerView(&opts)
+				if err := create.CreateScannerView(&opts); err != nil {
+					return err
+				}
 			} else {
 				// Validate URL when provided via flags
 				formattedUrl := utils.FormatUrl(opts.URL)

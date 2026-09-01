@@ -14,10 +14,12 @@
 package scan_all
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/scan-all/view-schedule"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,10 +52,10 @@ You can use this command to verify changes after updating the schedule with the 
 		Args:    cobra.MaximumNArgs(0),
 		Aliases: []string{"vs"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Debug("Retrieving scan all schedule configuration")
+			slog.Debug("Retrieving scan all schedule configuration")
 			schedule, err := api.GetScanAllSchedule()
 			if err != nil {
-				logrus.Errorf("Failed to retrieve scan all schedule: %v", utils.ParseHarborErrorMsg(err))
+				slog.Error(fmt.Sprintf("Failed to retrieve scan all schedule: %v", utils.ParseHarborErrorMsg(err)))
 				return err
 			}
 

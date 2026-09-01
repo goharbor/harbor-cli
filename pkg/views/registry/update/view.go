@@ -20,10 +20,9 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
-func UpdateRegistryView(updateView *models.Registry) {
+func UpdateRegistryView(updateView *models.Registry) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -79,6 +78,7 @@ func UpdateRegistryView(updateView *models.Registry) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

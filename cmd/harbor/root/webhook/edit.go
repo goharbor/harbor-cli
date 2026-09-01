@@ -150,6 +150,8 @@ func editWebhookView(view *edit.EditView) error {
 		view.VerifyRemoteCertificate = !selectedWebhook.Targets[0].SkipCertVerify
 		view.NotifyType = selectedWebhook.Targets[0].Type
 	}
-	edit.WebhookEditView(view)
+	if err := edit.WebhookEditView(view); err != nil {
+		return err
+	}
 	return updateWebhook(view)
 }

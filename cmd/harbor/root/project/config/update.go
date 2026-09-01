@@ -129,7 +129,9 @@ Supported flag values:
 				flagsUsed = true
 			}
 			if !flagsUsed {
-				update.UpdateProjectMetadataView(conf)
+				if err := update.UpdateProjectMetadataView(conf); err != nil {
+					return err
+				}
 			}
 
 			err = api.UpdateConfig(isID, projectIDOrName, *conf)

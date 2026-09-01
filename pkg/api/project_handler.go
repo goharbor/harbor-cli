@@ -15,6 +15,7 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -23,7 +24,6 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateProject(opts create.CreateView) error {
@@ -93,39 +93,39 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 
 		project, err := GetProject(projectNameOrID, useProjectID)
 		if err != nil {
-			log.Errorf("failed to get project name: %v", err)
+			slog.Error("failed to get project name", "error", err)
 			return err
 		}
 		projectName := project.Payload.Name
 
 		immutables, err := ListImmutable(projectName)
 		if err != nil {
-			log.Errorf("failed to list immutables for project: %v", err)
+			slog.Error("failed to list immutables for project", "error", err)
 			return err
 		}
 		for _, rule := range immutables.Payload {
 			err = DeleteImmutable(projectName, rule.ID)
 			if err != nil {
-				log.Errorf("failed to delete tag immutable rule: %v", err)
+				slog.Error("failed to delete tag immutable rule", "error", err)
 				return err
 			}
 		}
 
 		resp, err = ListRepository(projectNameOrID, useProjectID)
 		if err != nil {
-			log.Errorf("failed to list repositories: %v", err)
+			slog.Error("failed to list repositories", "error", err)
 			return err
 		}
 
 		for _, repo := range resp.Payload {
 			_, repoName, err := utils.ParseProjectRepo(repo.Name)
 			if err != nil {
-				log.Errorf("failed to parse project/repo: %v", err)
+				slog.Error("failed to parse project/repo", "error", err)
 				return err
 			}
 			err = RepoDelete(projectNameOrID, repoName, useProjectID)
 			if err != nil {
-				log.Errorf("failed to delete repository: %v", err)
+				slog.Error("failed to delete repository", "error", err)
 				return err
 			}
 		}

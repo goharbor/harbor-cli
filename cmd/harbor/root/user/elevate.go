@@ -16,11 +16,11 @@ package user
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -38,30 +38,30 @@ func ElevateUser(args []string) error {
 		userId, err = getUsersIDByName(args[0])
 		if err != nil {
 			err = fmt.Errorf("failed to get user id for '%s': %v", args[0], err)
-			log.Error(err.Error())
+			slog.Error(err.Error())
 			return err
 		}
 		if userId == 0 {
 			err = fmt.Errorf("User with name '%s' not found", args[0])
-			log.Error(err.Error())
+			slog.Error(err.Error())
 			return err
 		}
 	} else {
 		userId, err = getUserIDFromUser()
 		if err != nil {
-			log.Errorf("failed to get user id: %v", err)
+			slog.Error("failed to get user id", "error", err)
 			return err
 		}
 	}
 	confirm, err := confirmElevation()
 	if err != nil {
 		err = fmt.Errorf("failed to confirm elevation: %v", err)
-		log.Error(err.Error())
+		slog.Error(err.Error())
 		return err
 	}
 	if !confirm {
 		err = errors.New("User did not confirm elevation. Aborting command.")
-		log.Error(err.Error())
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -72,7 +72,7 @@ func ElevateUser(args []string) error {
 		} else {
 			err = fmt.Errorf("failed to elevate user: %v", err)
 		}
-		log.Error(err.Error())
+		slog.Error(err.Error())
 		return err
 	}
 	return nil

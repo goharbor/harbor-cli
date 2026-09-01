@@ -20,7 +20,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
 )
 
 type UpdateView struct {
@@ -50,7 +49,7 @@ type Access struct {
 	Resource string `json:"resource,omitempty"`
 }
 
-func UpdateRobotView(updateView *UpdateView) {
+func UpdateRobotView(updateView *UpdateView) error {
 	duration := strconv.FormatInt(updateView.Duration, 10)
 
 	theme := huh.ThemeCharm()
@@ -81,6 +80,7 @@ func UpdateRobotView(updateView *UpdateView) {
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

@@ -19,10 +19,9 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
-func CreateTagView(tagName *string) {
+func CreateTagView(tagName *string) error {
 	theme := huh.ThemeCharm()
 
 	err := huh.NewForm(
@@ -43,6 +42,8 @@ func CreateTagView(tagName *string) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

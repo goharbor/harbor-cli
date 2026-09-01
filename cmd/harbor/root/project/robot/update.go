@@ -196,6 +196,8 @@ func updateRobotView(updateView *update.UpdateView) error {
 		updateView = &update.UpdateView{}
 	}
 
-	update.UpdateRobotView(updateView)
+	if err := update.UpdateRobotView(updateView); err != nil {
+		return err
+	}
 	return api.UpdateRobot(updateView)
 }

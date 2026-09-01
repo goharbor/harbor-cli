@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -83,7 +82,7 @@ Examples:
 			} else {
 				robotID, err = prompt.GetRobotIDFromUser(-1)
 				if err != nil {
-					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
@@ -94,24 +93,28 @@ Examples:
 				}
 			}
 			if secretStdin {
-				secret = getSecret()
+				secret, err = getSecret()
+				if err != nil {
+					return err
+				}
 			}
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
 				errorCode := utils.ParseHarborErrorCode(err)
 				if errorCode == "403" {
-					log.Fatalf("Permission denied: (Project) Admin privileges are required to execute this command.\n")
-				} else {
-					log.Fatalf("failed to refresh robot secret: %v\n", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.\n")
 				}
+				return fmt.Errorf("failed to refresh robot secret: %v\n", utils.ParseHarborErrorMsg(err))
 			}
 
 			fmt.Println("Secret updated successfully.")
 
 			if response.Payload.Secret != "" {
 				secret = response.Payload.Secret
-				create.CreateRobotSecretView("", secret)
+				if err := create.CreateRobotSecretView("", secret); err != nil {
+					return err
+				}
 
 				err = clipboard.WriteAll(response.Payload.Secret)
 				if err != nil {
@@ -131,14 +134,14 @@ Examples:
 }
 
 // getSecret from commandline
-func getSecret() string {
+func getSecret() (string, error) {
 	secret, err := utils.GetSecretStdin("Enter your secret: ")
 	if err != nil {
-		log.Fatalf("Error reading secret: %v\n", err)
+		return "", fmt.Errorf("Error reading secret: %v\n", err)
 	}
 
 	if err := utils.ValidatePassword(secret); err != nil {
-		log.Fatalf("Invalid secret: %v\n", err)
+		return "", fmt.Errorf("Invalid secret: %v\n", err)
 	}
-	return secret
+	return secret, nil
 }

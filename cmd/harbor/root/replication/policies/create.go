@@ -15,6 +15,7 @@ package policies
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -25,7 +26,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -39,10 +39,10 @@ func CreateCommand() *cobra.Command {
 		Short: "create replication policies",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting replications create command")
+			slog.Debug("Starting replications create command")
 
 			if configFile != "" {
-				log.Debugf("Loading replication policy configuration from file: %s", configFile)
+				slog.Debug(fmt.Sprintf("Loading replication policy configuration from file: %s", configFile))
 				opts, err = config.LoadConfigFromFile(configFile)
 				if err != nil {
 					return fmt.Errorf("failed to load replication policy configuration: %v", err)
@@ -56,7 +56,9 @@ func CreateCommand() *cobra.Command {
 				}
 			} else {
 				opts = &create.CreateView{}
-				create.CreateRPolicyView(opts, false)
+				if err := create.CreateRPolicyView(opts, false); err != nil {
+					return err
+				}
 				registryID = prompt.GetRegistryNameFromUser()
 			}
 

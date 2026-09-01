@@ -15,6 +15,7 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
@@ -22,7 +23,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/create"
 	"github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {
@@ -80,7 +80,7 @@ func CreateWebhook(opts *create.CreateView) error {
 func DeleteWebhook(projectName string, webhookId int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("%s", err)
+		slog.Error(err.Error())
 		return err
 	}
 	response, err := client.Webhook.DeleteWebhookPolicyOfProject(ctx, &webhook.DeleteWebhookPolicyOfProjectParams{
@@ -99,7 +99,7 @@ func DeleteWebhook(projectName string, webhookId int64) error {
 func UpdateWebhook(opts *edit.EditView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("%s", err)
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -134,7 +134,7 @@ func UpdateWebhook(opts *edit.EditView) error {
 func GetWebhookID(projectName string, WebhookName string) (int64, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("%s", err)
+		slog.Error(err.Error())
 		return 0, err
 	}
 	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
@@ -157,7 +157,7 @@ func GetWebhookID(projectName string, WebhookName string) (int64, error) {
 func GetWebhook(projectName string, webhookId int64) (models.WebhookPolicy, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("%s", err)
+		slog.Error(err.Error())
 		return models.WebhookPolicy{}, err
 	}
 	IsResourceName := true

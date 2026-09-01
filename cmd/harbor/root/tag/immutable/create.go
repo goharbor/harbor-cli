@@ -76,6 +76,8 @@ func createImmutableView(createView *create.CreateView, projectName string) erro
 		createView = &create.CreateView{}
 	}
 
-	create.CreateImmutableView(createView)
+	if err := create.CreateImmutableView(createView); err != nil {
+		return err
+	}
 	return api.CreateImmutable(*createView, projectName)
 }

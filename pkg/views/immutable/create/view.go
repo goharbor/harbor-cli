@@ -17,7 +17,6 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -30,7 +29,7 @@ type ImmutableSelector struct {
 	Pattern    string `json:"pattern,omitempty"`
 }
 
-func CreateImmutableView(createView *CreateView) {
+func CreateImmutableView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -82,6 +81,8 @@ func CreateImmutableView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

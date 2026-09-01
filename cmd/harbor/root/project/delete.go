@@ -15,13 +15,13 @@ package project
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +53,7 @@ func DeleteProjectCommand() *cobra.Command {
 			}
 
 			if projectID != "" {
-				log.Debugf("Deleting project with ID: %s", projectID)
+				slog.Debug(fmt.Sprintf("Deleting project with ID: %s", projectID))
 				wg.Add(1)
 				go func(id string) {
 					defer wg.Done()
@@ -69,14 +69,14 @@ func DeleteProjectCommand() *cobra.Command {
 				}(projectID)
 			} else if len(args) > 0 {
 				// Delete by project name from args
-				log.Debugf("Deleting %d projects from args...", len(args))
+				slog.Debug(fmt.Sprintf("Deleting %d projects from args...", len(args)))
 				for _, projectName := range args {
 					pn := projectName
-					log.Debugf("Initiating delete for project: %s", pn)
+					slog.Debug(fmt.Sprintf("Initiating delete for project: %s", pn))
 					wg.Add(1)
 					go func(projectName string) {
 						defer wg.Done()
-						log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
+						slog.Debug(fmt.Sprintf("Deleting project '%s' with force=%v", projectName, forceDelete))
 						if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
 							mu.Lock()
 							failedDeletes[projectName] = utils.ParseHarborErrorMsg(err)
@@ -90,13 +90,13 @@ func DeleteProjectCommand() *cobra.Command {
 				}
 			} else {
 				// If no arguments provided, prompt user for project name
-				log.Debug("No arguments provided. Prompting user for project name.")
+				slog.Debug("No arguments provided. Prompting user for project name.")
 				projectName, err := prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
-				log.Debugf("User input project: %s", projectName)
-				log.Debugf("Deleting project '%s' with force=%v", projectName, forceDelete)
+				slog.Debug(fmt.Sprintf("User input project: %s", projectName))
+				slog.Debug(fmt.Sprintf("Deleting project '%s' with force=%v", projectName, forceDelete))
 				if err := api.DeleteProject(projectName, forceDelete, false); err != nil {
 					return fmt.Errorf("failed to delete project: %v", utils.ParseHarborErrorMsg(err))
 				}
@@ -121,7 +121,7 @@ func DeleteProjectCommand() *cobra.Command {
 				return fmt.Errorf("failed to delete %d project(s)", len(failedDeletes))
 			}
 
-			log.Debug("All requested projects deleted successfully.")
+			slog.Debug("All requested projects deleted successfully.")
 			return nil
 		},
 	}

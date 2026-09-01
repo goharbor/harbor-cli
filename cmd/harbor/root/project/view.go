@@ -15,13 +15,13 @@ package project
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/view"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,17 +38,17 @@ func ViewCommand() *cobra.Command {
 			var project *project.GetProjectOK
 
 			if len(args) > 0 {
-				log.Debugf("Project name provided: %s", args[0])
+				slog.Debug(fmt.Sprintf("Project name provided: %s", args[0]))
 				projectName = args[0]
 			} else {
-				log.Debug("No project name provided, prompting user")
+				slog.Debug("No project name provided, prompting user")
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
-			log.Debugf("Fetching project: %s", projectName)
+			slog.Debug(fmt.Sprintf("Fetching project: %s", projectName))
 			project, err = api.GetProject(projectName, isID)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {

@@ -16,11 +16,11 @@ package utils
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/goharbor/go-client/pkg/harbor"
 	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -44,7 +44,7 @@ func GetClient() (*v2client.HarborAPI, error) {
 
 		ClientInstance, ClientErr = GetClientByCredentialName(credentialName)
 		if ClientErr != nil {
-			log.Errorf("failed to initialize client: %v", ClientErr)
+			slog.Error("failed to initialize client", "error", ClientErr)
 			return
 		}
 	})

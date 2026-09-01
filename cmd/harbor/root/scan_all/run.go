@@ -15,12 +15,12 @@ package scan_all
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +54,7 @@ The scan progress and results can be monitored through the metrics command
 or through the Harbor web interface.`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Debug("Initiating manual scan of all artifacts")
+			slog.Debug("Initiating manual scan of all artifacts")
 			// Random cron expression and random time need to be passed to the API, even though they are not used, otherwise it returns bad request
 			randomCron := "0 * * * * *"
 			randomTime := strfmt.DateTime{}

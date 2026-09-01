@@ -17,7 +17,6 @@ import (
 	"errors"
 
 	"github.com/charmbracelet/huh"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -28,7 +27,7 @@ type CreateView struct {
 	ProjectID   int64
 }
 
-func CreateLabelView(createView *CreateView) {
+func CreateLabelView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -103,6 +102,8 @@ func CreateLabelView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

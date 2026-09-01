@@ -15,12 +15,12 @@ package execution
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/preheat/execution/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,10 +51,10 @@ func ListExecutionCommand() *cobra.Command {
 			}
 
 			if len(args) >= 1 {
-				log.Debugf("Project name provided: %s", args[0])
+				slog.Debug(fmt.Sprintf("Project name provided: %s", args[0]))
 				projectName = args[0]
 			} else {
-				log.Debug("No project name provided, prompting user")
+				slog.Debug("No project name provided, prompting user")
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
@@ -70,17 +70,17 @@ func ListExecutionCommand() *cobra.Command {
 			}
 
 			if len(args) >= 2 {
-				log.Debugf("Policy name provided: %s", args[1])
+				slog.Debug(fmt.Sprintf("Policy name provided: %s", args[1]))
 				policyName = args[1]
 			} else {
-				log.Debug("No policy name provided, prompting user")
+				slog.Debug("No policy name provided, prompting user")
 				policyName, err = prompt.GetPreheatPolicyNameFromUser(projectName)
 				if err != nil {
 					return fmt.Errorf("failed to get policy name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
-			log.Debug("Fetching preheat policy executions...")
+			slog.Debug("Fetching preheat policy executions...")
 			resp, err := api.ListPreheatExecutions(projectName, policyName, opts)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {

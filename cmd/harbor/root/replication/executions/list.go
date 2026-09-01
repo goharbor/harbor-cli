@@ -15,13 +15,13 @@ package executions
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/execution/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,7 +36,7 @@ func ListCommand() *cobra.Command {
   harbor replication executions list`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting replication executions list command")
+			slog.Debug("Starting replication executions list command")
 			if opts.Page < 1 {
 				return fmt.Errorf("page number must be greater than or equal to 1")
 			}
@@ -57,16 +57,20 @@ func ListCommand() *cobra.Command {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
 			} else {
-				rpolicyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				rpolicyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
-			log.Debug("Fetching executions...")
+			slog.Debug("Fetching executions...")
 			executions, err := api.ListReplicationExecutions(rpolicyID, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.WithField("count", len(executions.Payload)).Debug("Number of executions fetched")
+			slog.Debug("Number of executions fetched", "count", len(executions.Payload))
 			if len(executions.Payload) == 0 {
 				fmt.Println("No executions found")
 				return nil
@@ -74,13 +78,13 @@ func ListCommand() *cobra.Command {
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				slog.Debug("Output format selected", "output_format", formatFlag)
 				err = utils.PrintFormat(executions.Payload, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				log.Debug("Listing projects using default view")
+				slog.Debug("Listing projects using default view")
 				list.ListExecutions(executions.Payload)
 			}
 			return nil

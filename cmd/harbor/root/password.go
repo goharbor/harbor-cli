@@ -31,7 +31,9 @@ func PasswordCommand() *cobra.Command {
 		Short: "Change your password",
 		Args:  cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			change.ChangePasswordView(&opts)
+			if err := change.ChangePasswordView(&opts); err != nil {
+				return err
+			}
 
 			err := UpdatePassword(&opts)
 			if err != nil {

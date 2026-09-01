@@ -52,7 +52,10 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %w", err)
 				}
-				repoName = prompt.GetRepoNameFromUser(projectName)
+				repoName, err = prompt.GetRepoNameFromUser(projectName)
+				if err != nil {
+					return fmt.Errorf("failed to get repository name: %w", err)
+				}
 			}
 
 			existingRepo, err := api.RepoView(projectName, repoName)

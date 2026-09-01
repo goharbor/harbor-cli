@@ -14,10 +14,12 @@
 package scan_all
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	view "github.com/goharbor/harbor-cli/pkg/views/scan-all/metrics"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,10 +56,10 @@ Examples:
   harbor-cli scan-all metrics --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logrus.Debug("Retrieving scan all metrics")
+			slog.Debug("Retrieving scan all metrics")
 			metrics, err := api.GetScanAllMetrics(scheduled)
 			if err != nil {
-				logrus.Errorf("Failed to retrieve scan all metrics: %v", utils.ParseHarborErrorMsg(err))
+				slog.Error(fmt.Sprintf("Failed to retrieve scan all metrics: %v", utils.ParseHarborErrorMsg(err)))
 				return err
 			}
 

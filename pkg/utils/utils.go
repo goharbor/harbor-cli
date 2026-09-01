@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"regexp"
 	"strconv"
@@ -28,7 +29,6 @@ import (
 	"github.com/gocarina/gocsv"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	uview "github.com/goharbor/harbor-cli/pkg/views/user/select"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.yaml.in/yaml/v4"
 	"golang.org/x/term"
@@ -84,7 +84,7 @@ func ParseProjectRepo(projectRepo string) (project, repo string, err error) {
 }
 
 func ParseProjectRepoReference(projectRepoReference string) (project, repo, reference string, err error) {
-	log.Debugf("Parsing input: %s", projectRepoReference)
+	slog.Debug(fmt.Sprintf("Parsing input: %s", projectRepoReference))
 
 	var ref string
 	var repoPath string
@@ -209,22 +209,22 @@ func FromKebabCase(s string) string {
 }
 
 // GetUserIdFromUser retrieves the user ID from the current user context using viper and the Harbor client.
-func GetUserIdFromUser() int64 {
+func GetUserIdFromUser() (int64, error) {
 	credentialName := viper.GetString("current-credential-name")
 	client, err := GetClientByCredentialName(credentialName)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	ctx := context.Background()
 	response, err := client.User.ListUsers(ctx, &user.ListUsersParams{})
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	userId, err := uview.UserList(response.Payload)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
-	return userId
+	return userId, nil
 }
 
 // RemoveColumns removes columns with specified titles from the given columns array.

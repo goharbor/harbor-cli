@@ -16,6 +16,7 @@ package robot
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/atotto/clipboard"
@@ -26,7 +27,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -129,7 +129,7 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		return fmt.Errorf("failed to load robot config from file: %v", err)
 	}
 
-	logrus.Debug("Successfully loaded robot configuration")
+	slog.Debug("Successfully loaded robot configuration")
 	*opts = *loadedOpts
 
 	if opts.Level != "system" {
@@ -158,8 +158,8 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 		}
 	}
 
-	logrus.Debugf("Loaded system robot with %d system permissions and %d project-specific permissions",
-		len(*permissions), len(projectPermissionsMap))
+	slog.Debug(fmt.Sprintf("Loaded system robot with %d system permissions and %d project-specific permissions",
+		len(*permissions), len(projectPermissionsMap)))
 
 	return nil
 }
@@ -167,7 +167,9 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	// Show interactive form if needed
 	if opts.Name == "" || opts.Duration == 0 {
-		create.CreateRobotView(opts)
+		if err := create.CreateRobotView(opts); err != nil {
+			return err
+		}
 	}
 
 	// Validate duration
@@ -375,9 +377,11 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 		return nil
 	}
 
-	create.CreateRobotSecretView(name, secret)
+	if err := create.CreateRobotSecretView(name, secret); err != nil {
+		return err
+	}
 	if err := clipboard.WriteAll(secret); err != nil {
-		logrus.Errorf("failed to write to clipboard")
+		slog.Error("failed to write to clipboard")
 	} else {
 		fmt.Println("secret copied to clipboard.")
 	}
@@ -407,12 +411,12 @@ func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
 	filename := fmt.Sprintf("%s-secret.json", name)
 	jsonData, err := json.MarshalIndent(secretJson, "", "  ")
 	if err != nil {
-		logrus.Errorf("Failed to marshal secret to JSON: %v", err)
+		slog.Error("Failed to marshal secret to JSON", "error", err)
 		return
 	}
 
 	if err := os.WriteFile(filename, jsonData, 0600); err != nil {
-		logrus.Errorf("Failed to write secret to file: %v", err)
+		slog.Error("Failed to write secret to file", "error", err)
 		return
 	}
 

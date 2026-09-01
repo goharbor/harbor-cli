@@ -30,9 +30,10 @@ func Test_Config_EnvVar(t *testing.T) {
 	tempDir := t.TempDir()
 	helpers.SafeSetEnv("HARBOR_CLI_CONFIG", filepath.Join(tempDir, "config.yaml"))
 	helpers.SafeSetEnv("XDG_DATA_HOME", filepath.Join(tempDir, ".data"))
-	utils.InitConfig("", false)
+	err := utils.InitConfig("", false)
+	assert.NoError(t, err, "Expected no error for config initialization")
 	cds := root.RootCmd()
-	err := cds.Execute()
+	err = cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
 	assert.NoError(t, err, "Expected no error for Root command execution")
 
@@ -51,9 +52,10 @@ func Test_Config_EnvVar(t *testing.T) {
 func Test_Config_Vanilla(t *testing.T) {
 	utils.ConfigInitialization.Reset() // Reset sync.Once for the test
 	helpers.SetMockKeyring(t)
-	utils.InitConfig("", false)
+	err := utils.InitConfig("", false)
+	assert.NoError(t, err, "Expected no error for config initialization")
 	cds := root.RootCmd()
-	err := cds.Execute()
+	err = cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
 	assert.NoError(t, err, "Expected no error for Root command execution")
 	currentData, err := utils.GetCurrentHarborData()
@@ -75,9 +77,10 @@ func Test_Config_Xdg(t *testing.T) {
 	helpers.SafeSetEnv("HARBOR_CLI_CONFIG", filepath.Join(tempDir, "config.yaml"))
 	helpers.SafeSetEnv("XDG_CONFIG_HOME", filepath.Join(tempDir, ".config"))
 	helpers.SafeSetEnv("XDG_DATA_HOME", filepath.Join(tempDir, ".data"))
-	utils.InitConfig("", false)
+	err := utils.InitConfig("", false)
+	assert.NoError(t, err, "Expected no error for config initialization")
 	cds := root.RootCmd()
-	err := cds.Execute()
+	err = cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
 	assert.NoError(t, err, "Expected no error for Root command execution")
 
@@ -99,7 +102,8 @@ func Test_Config_Flag(t *testing.T) {
 	defer helpers.ConfigCleanup(t, data)
 
 	testConfigFile := filepath.Join(tempDir, "config.yaml")
-	utils.InitConfig(testConfigFile, true)
+	err := utils.InitConfig(testConfigFile, true)
+	assert.NoError(t, err, "Expected no error for config initialization")
 	currentConfig, err := utils.GetCurrentHarborConfig()
 	assert.NoError(t, err, "Expected no error when fetching HarborConfig")
 	assert.NotNil(t, currentConfig, "Configuration should not be nil")

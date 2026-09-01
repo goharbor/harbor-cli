@@ -22,7 +22,8 @@ import (
 func Setup(verbose bool, format string) {
 	outp := io.Discard
 	if verbose {
-		outp = os.Stdout
+		// Logs go to stderr so command payloads on stdout stay parsable
+		outp = os.Stderr
 	}
 
 	var handler slog.Handler

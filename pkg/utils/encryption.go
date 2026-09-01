@@ -20,12 +20,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/sirupsen/logrus"
 	"github.com/zalando/go-keyring"
 )
 
@@ -127,7 +127,7 @@ func GetKeyringProvider() KeyringProvider {
 	// Priority 1: Check for environment variable configuration
 	envKeyName := "HARBOR_ENCRYPTION_KEY"
 	if envKey := os.Getenv(envKeyName); envKey != "" {
-		logrus.Debug("Using environment-based encryption key")
+		slog.Debug("Using environment-based encryption key")
 		return &EnvironmentKeyring{
 			EnvVarName: envKeyName,
 		}
@@ -138,9 +138,9 @@ func GetKeyringProvider() KeyringProvider {
 		// Clean up the test entry
 		err = keyring.Delete("harbor-cli-test", "test-user")
 		if err != nil {
-			logrus.Warnf("Failed to delete test entry from system keyring: %v", err)
+			slog.Warn("Failed to delete test entry from system keyring", "error", err)
 		}
-		logrus.Debug("Using system keyring")
+		slog.Debug("Using system keyring")
 		return &SystemKeyring{}
 	}
 
@@ -153,7 +153,7 @@ func GetKeyringProvider() KeyringProvider {
 		BaseDir: filepath.Join(homeDir, ".harbor", "keyring"),
 	}
 
-	logrus.Warn("System keyring not available, using file-based keyring")
+	slog.Warn("System keyring not available, using file-based keyring")
 	return fileKeyring
 }
 

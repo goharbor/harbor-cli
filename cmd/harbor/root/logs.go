@@ -15,6 +15,7 @@ package root
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -23,12 +24,11 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/logs"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var logsLogger = log.New()
+var logsLogger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 func Logs() *cobra.Command {
 	var opts api.ListFlags
@@ -84,7 +84,7 @@ harbor-cli logs --output-format json`,
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				slog.Debug("Output format selected", "output_format", formatFlag)
 				err = utils.PrintFormat(logs.Payload, formatFlag)
 				if err != nil {
 					return err
@@ -117,20 +117,12 @@ harbor-cli logs --output-format json`,
 func followLogs(opts api.ListFlags, interval time.Duration) {
 	var lastLogTime *time.Time
 
-	logsLogger.SetFormatter(&log.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-		DisableColors:   false,
-	})
-	logsLogger.SetLevel(log.InfoLevel)
-	logsLogger.SetOutput(os.Stdout)
-
 	fmt.Println("Following Harbor audit logs... (Press Ctrl+C to stop)")
 
 	for {
 		logs, err := api.AuditLogs(opts)
 		if err != nil {
-			log.Errorf("failed to retrieve audit logs: %v", err)
+			slog.Error("failed to retrieve audit logs", "error", err)
 			time.Sleep(interval)
 			continue
 		}
@@ -178,15 +170,13 @@ func printLogsAsStream(logs []*models.AuditLogExt) {
 			resource,
 			resultIcon)
 
-		entry := logsLogger.WithTime(logTime)
-
 		switch level {
 		case "error":
-			entry.Error(message)
+			logsLogger.Error(message, "time", logTime)
 		case "info":
-			entry.Info(message)
+			logsLogger.Info(message, "time", logTime)
 		default:
-			entry.Debug(message)
+			logsLogger.Debug(message, "time", logTime)
 		}
 	}
 }

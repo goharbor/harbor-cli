@@ -15,12 +15,12 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/artifact"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scan"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // DeleteArtifact handles the deletion of an artifact.
@@ -36,7 +36,7 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to delete artifact: %v", err)
+		slog.Error("Failed to delete artifact", "error", err)
 		return err
 	}
 
@@ -105,7 +105,7 @@ func StartScanArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to start scan: %v", err)
+		slog.Error("Failed to start scan", "error", err)
 		return err
 	}
 
@@ -126,7 +126,7 @@ func StopScanArtifact(projectName, repoName, reference string) error {
 		Reference:      reference,
 	})
 	if err != nil {
-		log.Errorf("Failed to stop scan: %v", err)
+		slog.Error("Failed to stop scan", "error", err)
 		return err
 	}
 
@@ -148,7 +148,7 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 		TagName:        tag,
 	})
 	if err != nil {
-		log.Errorf("Failed to delete tag: %v", err)
+		slog.Error("Failed to delete tag", "error", err)
 		return err
 	}
 
@@ -170,7 +170,7 @@ func ListTags(projectName, repoName, reference string) (*artifact.ListTagsOK, er
 	})
 
 	if err != nil {
-		log.Errorf("Failed to list tags: %v", err)
+		slog.Error("Failed to list tags", "error", err)
 		return &artifact.ListTagsOK{}, err
 	}
 
@@ -192,7 +192,7 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 		},
 	})
 	if err != nil {
-		log.Errorf("Failed to create tag: %v", err)
+		slog.Error("Failed to create tag", "error", err)
 		return err
 	}
 	fmt.Printf("Tag created successfully: %s/%s@%s:%s\n", projectName, repoName, reference, tagName)
@@ -215,7 +215,7 @@ func AddLabelArtifact(projectName, repoName, reference string, label *models.Lab
 	})
 
 	if err != nil {
-		log.Errorf("Failed to set label on artifact: %v", err)
+		slog.Error("Failed to set label on artifact", "error", err)
 		return response, err
 	}
 
@@ -238,7 +238,7 @@ func RemoveLabelArtifact(projectName, repoName, reference string, labelID int64)
 	})
 
 	if err != nil {
-		log.Errorf("Failed to remove label on artifact: %v", err)
+		slog.Error("Failed to remove label on artifact", "error", err)
 		return response, err
 	}
 

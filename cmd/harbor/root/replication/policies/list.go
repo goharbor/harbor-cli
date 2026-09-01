@@ -15,11 +15,11 @@ package policies
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ func ListCommand() *cobra.Command {
 		Short: "List replication policies",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting replications list command")
+			slog.Debug("Starting replications list command")
 			if opts.Page < 1 {
 				return fmt.Errorf("page number must be greater than or equal to 1")
 			}
@@ -44,13 +44,13 @@ func ListCommand() *cobra.Command {
 				return fmt.Errorf("page size should be less than or equal to 100")
 			}
 
-			log.Debug("Fetching policies...")
+			slog.Debug("Fetching policies...")
 			allPolicies, err := api.ListReplicationPolicies(opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.WithField("count", len(allPolicies.Payload)).Debug("Number of policies fetched")
+			slog.Debug("Number of policies fetched", "count", len(allPolicies.Payload))
 			if len(allPolicies.Payload) == 0 {
 				fmt.Println("No policies found")
 				return nil
@@ -58,13 +58,13 @@ func ListCommand() *cobra.Command {
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				slog.Debug("Output format selected", "output_format", formatFlag)
 				err = utils.PrintFormat(allPolicies.Payload, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				log.Debug("Listing projects using default view")
+				slog.Debug("Listing projects using default view")
 				list.ListPolicies(allPolicies.Payload)
 			}
 			return nil

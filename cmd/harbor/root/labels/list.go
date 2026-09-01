@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -80,14 +79,14 @@ func ListLabelCommand() *cobra.Command {
 
 			label, err := api.ListLabel(opts)
 			if err != nil {
-				log.Fatalf("failed to get label list: %v", err)
+				return fmt.Errorf("failed to get label list: %v", err)
 			}
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
 				err = utils.PrintFormat(label, formatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListLabels(label.Payload)

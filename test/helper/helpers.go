@@ -66,9 +66,10 @@ func Initialize(t *testing.T, tempDir string) *utils.HarborData {
 
 	// this will create both the data.yaml and the empty config.yaml underneath
 	// and return you a *utils.HarborData with the path to config.yaml
-	utils.InitConfig(filepath.Join(cfgDir, "config.yaml"), true)
+	err := utils.InitConfig(filepath.Join(cfgDir, "config.yaml"), true)
+	assert.NoError(t, err, "Expected no error for config initialization")
 	cds := root.RootCmd()
-	err := cds.Execute()
+	err = cds.Execute()
 	assert.NoError(t, err, "Expected no error for Root command")
 	assert.NoError(t, err, "Expected no error for Root command execution")
 

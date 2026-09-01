@@ -47,7 +47,10 @@ func ListTagsCmd() *cobra.Command {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
 
-				repoName = prompt.GetRepoNameFromUser(projectName)
+				repoName, err = prompt.GetRepoNameFromUser(projectName)
+				if err != nil {
+					return fmt.Errorf("failed to get repository name: %v", utils.ParseHarborErrorMsg(err))
+				}
 				if repoName == "" {
 					return fmt.Errorf("invalid repository name provided")
 				}

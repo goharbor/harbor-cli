@@ -80,7 +80,9 @@ func createLabelView(createView *create.CreateView, flags *pflag.FlagSet) error 
 		createView = &create.CreateView{}
 	}
 
-	create.CreateLabelView(createView)
+	if err := create.CreateLabelView(createView); err != nil {
+		return err
+	}
 
 	if createView.Scope == "p" && !flags.Changed("project") {
 		projectID, err := prompt.GetProjectIDFromUser()

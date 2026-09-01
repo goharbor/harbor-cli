@@ -106,6 +106,8 @@ func createRegistryView(createView *api.CreateRegView) error {
 		createView = &api.CreateRegView{}
 	}
 
-	create.CreateRegistryView(createView)
+	if err := create.CreateRegistryView(createView); err != nil {
+		return err
+	}
 	return api.CreateRegistry(*createView)
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/password/reset"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -39,7 +38,6 @@ func UserPasswordChangeCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var userId int64
 			var err error
-			log.SetOutput(cmd.OutOrStderr())
 
 			// Resolve user ID: flag > positional arg > interactive prompt
 			if userID != 0 {
@@ -81,7 +79,9 @@ func UserPasswordChangeCmd() *cobra.Command {
 				}
 			} else {
 				resetView := &reset.PasswordChangeView{}
-				reset.ChangePasswordView(resetView)
+				if err := reset.ChangePasswordView(resetView); err != nil {
+					return err
+				}
 				opts = *resetView
 			}
 

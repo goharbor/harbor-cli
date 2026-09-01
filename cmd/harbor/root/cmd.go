@@ -66,17 +66,19 @@ harbor
 harbor help
 `,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// Determine if --config was explicitly set
-			userSpecifiedConfig := cmd.Flags().Changed("config")
-			// Initialize configuration
-			utils.InitConfig(cfgFile, userSpecifiedConfig)
-
 			if logFormat != "json" && logFormat != "text" {
 				return fmt.Errorf("invalid log-format: %s, log-format can be one of: json|text", logFormat)
 			}
 
-			// Sets up logging
+			// Sets up logging before anything else logs
 			logger.Setup(verbose, logFormat)
+
+			// Determine if --config was explicitly set
+			userSpecifiedConfig := cmd.Flags().Changed("config")
+			// Initialize configuration
+			if err := utils.InitConfig(cfgFile, userSpecifiedConfig); err != nil {
+				return err
+			}
 
 			// Logging Flags
 			arr := make([]any, 0) // slog requires any since the slog.Debug takes in (string, ...any)

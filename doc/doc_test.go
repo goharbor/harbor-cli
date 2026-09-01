@@ -16,6 +16,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,6 @@ import (
 
 	"regexp"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
 )
@@ -227,9 +227,9 @@ weight: [20]
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			originalLogOutput := log.StandardLogger().Out
-			log.SetOutput(buf)
-			defer log.SetOutput(originalLogOutput)
+			originalLogger := slog.Default()
+			slog.SetDefault(slog.New(slog.NewTextHandler(buf, nil)))
+			defer slog.SetDefault(originalLogger)
 
 			filename := tt.setup(t)
 			got := getWeight(filename)

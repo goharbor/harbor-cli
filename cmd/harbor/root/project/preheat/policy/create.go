@@ -16,6 +16,7 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -23,7 +24,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/preheat/policy/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -42,14 +42,14 @@ func CreatePolicyCommand() *cobra.Command {
   harbor project preheat policy create -f [CONFIG_FILE]`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting preheat policy create command")
+			slog.Debug("Starting preheat policy create command")
 
 			if configFile != "" {
 				if len(args) > 0 {
 					return fmt.Errorf("arguments are not supported with --policy-config-file")
 				}
 
-				log.Debugf("Loading preheat policy configuration from file: %s", configFile)
+				slog.Debug(fmt.Sprintf("Loading preheat policy configuration from file: %s", configFile))
 				opts, err = config.LoadConfigFromFile(configFile)
 				if err != nil {
 					return fmt.Errorf("failed to load preheat policy configuration: %v", err)
@@ -64,10 +64,10 @@ func CreatePolicyCommand() *cobra.Command {
 				}
 
 				if len(args) > 0 {
-					log.Debugf("Project name provided: %s", args[0])
+					slog.Debug(fmt.Sprintf("Project name provided: %s", args[0]))
 					opts.ProjectName = args[0]
 				} else {
-					log.Debug("No project name provided, prompting user")
+					slog.Debug("No project name provided, prompting user")
 					opts.ProjectName, err = prompt.GetProjectNameFromUser()
 					if err != nil {
 						return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
@@ -94,7 +94,7 @@ func CreatePolicyCommand() *cobra.Command {
 				return fmt.Errorf("failed to verify project: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.Debug("Fetching available providers...")
+			slog.Debug("Fetching available providers...")
 			providers, err := api.ListProvidersUnderProject(opts.ProjectName)
 			if err != nil {
 				return fmt.Errorf("failed to list providers: %v", utils.ParseHarborErrorMsg(err))
@@ -105,7 +105,9 @@ func CreatePolicyCommand() *cobra.Command {
 			}
 
 			if configFile == "" {
-				create.CreatePreheatPolicyView(opts, providers)
+				if err := create.CreatePreheatPolicyView(opts, providers); err != nil {
+					return err
+				}
 			}
 
 			providerID, err := resolveProviderID(providers, opts.ProviderName, opts.ProjectName)
@@ -118,7 +120,7 @@ func CreatePolicyCommand() *cobra.Command {
 				return err
 			}
 
-			log.Debug("Creating preheat policy...")
+			slog.Debug("Creating preheat policy...")
 			response, err := api.CreatePreheatPolicy(opts.ProjectName, policy)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "409" {

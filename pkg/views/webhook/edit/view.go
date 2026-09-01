@@ -19,7 +19,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type EditView struct {
@@ -45,7 +44,7 @@ func isSelected(selected []string, option string) bool {
 	return false
 }
 
-func WebhookEditView(editView *EditView) {
+func WebhookEditView(editView *EditView) error {
 	theme := huh.ThemeCharm()
 	var verifyCert string
 	var enable string
@@ -79,7 +78,7 @@ func WebhookEditView(editView *EditView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if editView.NotifyType == "http" {
@@ -96,7 +95,7 @@ func WebhookEditView(editView *EditView) {
 		).WithTheme(theme).Run()
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
@@ -170,6 +169,7 @@ func WebhookEditView(editView *EditView) {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

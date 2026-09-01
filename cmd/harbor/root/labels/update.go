@@ -94,7 +94,9 @@ func UpdateLableCommand() *cobra.Command {
 				updateView.Scope = opts.Scope
 			}
 
-			update.UpdateLabelView(updateView)
+			if err := update.UpdateLabelView(updateView); err != nil {
+				return err
+			}
 			err = api.UpdateLabel(updateView, labelId)
 			if err != nil {
 				return fmt.Errorf("failed to update label: %v", err)

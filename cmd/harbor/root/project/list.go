@@ -15,13 +15,13 @@ package project
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	list "github.com/goharbor/harbor-cli/pkg/views/project/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -43,7 +43,7 @@ func ListProjectCommand() *cobra.Command {
 		Short: "List projects",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Starting project list command")
+			slog.Debug("Starting project list command")
 			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
 				return err
 			}
@@ -54,15 +54,15 @@ func ListProjectCommand() *cobra.Command {
 
 			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)
 			if private {
-				log.Debug("Using private project list function")
+				slog.Debug("Using private project list function")
 				opts.Public = false
 				listFunc = api.ListProject
 			} else if public {
-				log.Debug("Using public project list function")
+				slog.Debug("Using public project list function")
 				opts.Public = true
 				listFunc = api.ListProject
 			} else {
-				log.Debug("Using list all projects function")
+				slog.Debug("Using list all projects function")
 				listFunc = api.ListAllProjects
 			}
 
@@ -77,26 +77,26 @@ func ListProjectCommand() *cobra.Command {
 				opts.Q = q
 			}
 
-			log.Debug("Fetching projects...")
+			slog.Debug("Fetching projects...")
 			allProjects, err = fetchProjects(listFunc, opts)
 			if err != nil {
 				return fmt.Errorf("failed to get projects list: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			log.WithField("count", len(allProjects)).Debug("Number of projects fetched")
+			slog.Debug("Number of projects fetched", "count", len(allProjects))
 			if len(allProjects) == 0 {
 				fmt.Println("No projects found")
 				return nil
 			}
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				log.WithField("output_format", formatFlag).Debug("Output format selected")
+				slog.Debug("Output format selected", "output_format", formatFlag)
 				err = utils.PrintFormat(allProjects, formatFlag)
 				if err != nil {
 					return err
 				}
 			} else {
-				log.Debug("Listing projects using default view")
+				slog.Debug("Listing projects using default view")
 				list.ListProjects(allProjects)
 			}
 			return nil
@@ -120,36 +120,30 @@ func ListProjectCommand() *cobra.Command {
 func fetchProjects(listFunc func(...api.ListFlags) (project.ListProjectsOK, error), opts api.ListFlags) ([]*models.Project, error) {
 	var allProjects []*models.Project
 	if opts.PageSize == 0 {
-		log.Debug("Page size is 0, will fetch all pages")
+		slog.Debug("Page size is 0, will fetch all pages")
 		opts.PageSize = 100
 		opts.Page = 1
 
 		for {
-			log.WithFields(log.Fields{
-				"page":      opts.Page,
-				"page_size": opts.PageSize,
-			}).Debug("Fetching next page of projects")
+			slog.Debug("Fetching next page of projects", "page", opts.Page, "page_size", opts.PageSize)
 
 			projects, err := listFunc(opts)
 			if err != nil {
 				return nil, err
 			}
 
-			log.WithField("fetched_count", len(projects.Payload)).Debug("Fetched projects from current page")
+			slog.Debug("Fetched projects from current page", "fetched_count", len(projects.Payload))
 			allProjects = append(allProjects, projects.Payload...)
 
 			if len(projects.Payload) < int(opts.PageSize) {
-				log.Debug("Last page reached, stopping pagination")
+				slog.Debug("Last page reached, stopping pagination")
 				break
 			}
 
 			opts.Page++
 		}
 	} else {
-		log.WithFields(log.Fields{
-			"page":      opts.Page,
-			"page_size": opts.PageSize,
-		}).Debug("Fetching projects with user-defined pagination")
+		slog.Debug("Fetching projects with user-defined pagination", "page", opts.Page, "page_size", opts.PageSize)
 
 		projects, err := listFunc(opts)
 		if err != nil {

@@ -17,12 +17,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/registry"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -38,7 +38,7 @@ func getRegistryList() (*registry.ListRegistriesOK, error) {
 	credentialName := viper.GetString("current-credential-name")
 	client, err := utils.GetClientByCredentialName(credentialName)
 	if err != nil {
-		log.Errorf("failed to initialize client: %v", err)
+		slog.Error("failed to initialize client", "error", err)
 		return nil, err
 	}
 	ctx := context.Background()

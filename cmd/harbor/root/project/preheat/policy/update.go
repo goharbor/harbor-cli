@@ -16,13 +16,13 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/preheat/policy/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -45,10 +45,10 @@ func UpdatePolicyCommand() *cobra.Command {
 			}
 
 			if len(args) >= 1 {
-				log.Debugf("Project name provided: %s", args[0])
+				slog.Debug(fmt.Sprintf("Project name provided: %s", args[0]))
 				projectName = args[0]
 			} else {
-				log.Debug("No project name provided, prompting user")
+				slog.Debug("No project name provided, prompting user")
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
@@ -64,17 +64,17 @@ func UpdatePolicyCommand() *cobra.Command {
 			}
 
 			if len(args) >= 2 {
-				log.Debugf("Policy name provided: %s", args[1])
+				slog.Debug(fmt.Sprintf("Policy name provided: %s", args[1]))
 				policyName = args[1]
 			} else {
-				log.Debug("No policy name provided, prompting user")
+				slog.Debug("No policy name provided, prompting user")
 				policyName, err = prompt.GetPreheatPolicyNameFromUser(projectName)
 				if err != nil {
 					return fmt.Errorf("failed to get policy name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
-			log.Debug("Fetching preheat policy...")
+			slog.Debug("Fetching preheat policy...")
 			existingPolicy, err := api.GetPreheatPolicy(projectName, policyName)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {
@@ -87,7 +87,7 @@ func UpdatePolicyCommand() *cobra.Command {
 				return fmt.Errorf("preheat policy %s payload is empty", policyName)
 			}
 
-			log.Debug("Fetching available providers...")
+			slog.Debug("Fetching available providers...")
 			providers, err := api.ListProvidersUnderProject(projectName)
 			if err != nil {
 				return fmt.Errorf("failed to list providers: %v", utils.ParseHarborErrorMsg(err))
@@ -98,7 +98,9 @@ func UpdatePolicyCommand() *cobra.Command {
 			}
 
 			opts := policyToCreateView(existingPolicy.Payload, providers)
-			create.CreatePreheatPolicyView(opts, providers)
+			if err := create.CreatePreheatPolicyView(opts, providers); err != nil {
+				return err
+			}
 
 			providerID, err := resolveProviderID(providers, opts.ProviderName, projectName)
 			if err != nil {
@@ -114,7 +116,7 @@ func UpdatePolicyCommand() *cobra.Command {
 			policy.CreationTime = existingPolicy.Payload.CreationTime
 			policy.ExtraAttrs = existingPolicy.Payload.ExtraAttrs
 
-			log.Debug("Updating preheat policy...")
+			slog.Debug("Updating preheat policy...")
 			_, err = api.UpdatePreheatPolicy(projectName, policyName, policy)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "409" {

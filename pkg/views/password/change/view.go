@@ -19,7 +19,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type PasswordChangeView struct {
@@ -28,7 +27,7 @@ type PasswordChangeView struct {
 	ConfirmPassword string
 }
 
-func ChangePasswordView(view *PasswordChangeView) {
+func ChangePasswordView(view *PasswordChangeView) error {
 	theme := huh.ThemeCharm()
 
 	err := huh.NewForm(
@@ -73,6 +72,8 @@ func ChangePasswordView(view *PasswordChangeView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

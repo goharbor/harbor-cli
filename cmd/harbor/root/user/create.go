@@ -78,7 +78,9 @@ func UserCreateCmd() *cobra.Command {
 }
 
 func createUserView(createView *create.CreateView) error {
-	create.CreateUserView(createView)
+	if err := create.CreateUserView(createView); err != nil {
+		return err
+	}
 	return api.CreateUser(*createView)
 }
 

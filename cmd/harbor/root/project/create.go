@@ -15,11 +15,11 @@ package project
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -47,11 +47,11 @@ func CreateProjectCommand() *cobra.Command {
 			}
 
 			if opts.ProjectName != "" && opts.StorageLimit != "" {
-				log.Debug("Attempting to create project using flags...")
+				slog.Debug("Attempting to create project using flags...")
 				err = api.CreateProject(opts)
 				ProjectName = opts.ProjectName
 			} else {
-				log.Debug("Switching to interactive view...")
+				slog.Debug("Switching to interactive view...")
 				createView := &create.CreateView{
 					ProjectName:  opts.ProjectName,
 					Public:       opts.Public,

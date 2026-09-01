@@ -15,6 +15,7 @@ package policies
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/views/replication/policies/create"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -99,7 +99,11 @@ explicitly provided flags (partial update).`,
 				return fmt.Errorf("policy-id is required when update flags are provided. Usage: harbor replication policies update <policy-id> --flag=value")
 			} else {
 				// In interactive mode, prompt for policy ID
-				policyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				policyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %w", err)
+				}
 			}
 
 			existingPolicy, err := api.GetReplicationPolicy(policyID)
@@ -189,7 +193,7 @@ explicitly provided flags (partial update).`,
 				}
 			}
 
-			log.Debugf("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
+			slog.Debug(fmt.Sprintf("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID))
 
 			// Branch: non-interactive if any update flag was explicitly provided.
 			if isNonInteractiveMode {
@@ -198,7 +202,9 @@ explicitly provided flags (partial update).`,
 				}
 			} else {
 				// Preserve the existing interactive TUI workflow.
-				create.CreateRPolicyView(createView, true)
+				if err := create.CreateRPolicyView(createView, true); err != nil {
+					return err
+				}
 			}
 
 			var updatedPolicy *models.ReplicationPolicy

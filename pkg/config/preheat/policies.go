@@ -16,12 +16,12 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	policycreate "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/create"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -76,7 +76,7 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.C
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
 	}
-	log.Debug("Preheat policy config file read successfully")
+	slog.Debug("Preheat policy config file read successfully")
 
 	var config PolicyConfig
 	switch fileType {
@@ -84,13 +84,13 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.C
 		if err := yaml.Unmarshal(data, &config); err != nil {
 			return nil, fmt.Errorf("failed to parse YAML: %v", err)
 		}
-		log.Debugf("Parsed %s configuration successfully", fileType)
+		slog.Debug(fmt.Sprintf("Parsed %s configuration successfully", fileType))
 
 	case "json":
 		if err := json.Unmarshal(data, &config); err != nil {
 			return nil, fmt.Errorf("failed to parse JSON: %v", err)
 		}
-		log.Debugf("Parsed %s configuration successfully", fileType)
+		slog.Debug(fmt.Sprintf("Parsed %s configuration successfully", fileType))
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s, expected 'yaml' or 'json'", fileType)
 	}
@@ -98,7 +98,7 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*policycreate.C
 	if err := validateConfig(&config); err != nil {
 		return nil, fmt.Errorf("configuration validation failed: %v", err)
 	}
-	log.Debug("Preheat policy configuration validated successfully")
+	slog.Debug("Preheat policy configuration validated successfully")
 
 	triggerType := "manual"
 	cronString := ""

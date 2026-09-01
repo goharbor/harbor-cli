@@ -33,7 +33,7 @@ var (
 )
 
 type PrettyHandler struct {
-	mu       sync.Mutex
+	mu       *sync.Mutex // shared across derived handlers writing to the same out
 	out      io.Writer
 	level    slog.Leveler
 	preAttrs []slog.Attr // retained from WithAttrs calls
@@ -42,6 +42,7 @@ type PrettyHandler struct {
 
 func NewPrettyHandler(out io.Writer, level slog.Leveler) *PrettyHandler {
 	return &PrettyHandler{
+		mu:    &sync.Mutex{},
 		out:   out,
 		level: level,
 	}
@@ -114,6 +115,9 @@ func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	copy(newPreAttrs[len(h.preAttrs):], attrs)
 
 	return &PrettyHandler{
+		mu:       h.mu,
+		out:      h.out,
+		level:    h.level,
 		preAttrs: newPreAttrs,
 		groups:   h.groups,
 	}
@@ -128,6 +132,9 @@ func (h *PrettyHandler) WithGroup(name string) slog.Handler {
 	newGroups[len(h.groups)] = name
 
 	return &PrettyHandler{
+		mu:       h.mu,
+		out:      h.out,
+		level:    h.level,
 		preAttrs: h.preAttrs,
 		groups:   newGroups,
 	}

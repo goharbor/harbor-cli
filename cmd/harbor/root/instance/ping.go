@@ -15,11 +15,11 @@ package instance
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -45,17 +45,17 @@ an instance from a list of available instances.`,
 			}
 
 			if len(args) > 0 {
-				log.Debugf("Instance name provided: %s", args[0])
+				slog.Debug(fmt.Sprintf("Instance name provided: %s", args[0]))
 				instanceName = args[0]
 			} else {
-				log.Debug("No instance name provided, prompting user")
+				slog.Debug("No instance name provided, prompting user")
 				instanceName, err = prompt.GetInstanceNameFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get instance name: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
-			log.Debugf("Pinging instance: %s", instanceName)
+			slog.Debug(fmt.Sprintf("Pinging instance: %s", instanceName))
 			response, err := api.PingInstance(instanceName, useInstanceID)
 			if err != nil {
 				if utils.ParseHarborErrorCode(err) == "404" {

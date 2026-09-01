@@ -15,12 +15,12 @@ package replication
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ func StopCommand() *cobra.Command {
 		Short: "stop replication",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Debug("Stopping replication")
+			slog.Debug("Stopping replication")
 
 			var rpolicyID int64
 			var executionID int64
@@ -41,10 +41,20 @@ func StopCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("invalid replication policy ID: %s, %v", args[0], err)
 				}
-				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				executionID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %v", utils.ParseHarborErrorMsg(err))
+				}
 			} else {
-				rpolicyID = prompt.GetReplicationPolicyFromUser()
-				executionID = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				var err error
+				rpolicyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get replication policy: %v", utils.ParseHarborErrorMsg(err))
+				}
+				executionID, err = prompt.GetReplicationExecutionIDFromUser(rpolicyID)
+				if err != nil {
+					return fmt.Errorf("failed to get replication execution: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 
 			execution, err := api.GetReplicationExecution(executionID)

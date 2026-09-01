@@ -23,7 +23,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/views/quota/list"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -31,7 +30,7 @@ type CreateView struct {
 	Value       int64
 }
 
-func UpdateQuotaView(quta *models.Quota) string {
+func UpdateQuotaView(quta *models.Quota) (string, error) {
 	var (
 		value      string
 		createView CreateView
@@ -91,8 +90,8 @@ func UpdateQuotaView(quta *models.Quota) string {
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return fmt.Sprintf("%v%v", createView.Value, createView.StorageUnit)
+	return fmt.Sprintf("%v%v", createView.Value, createView.StorageUnit), nil
 }

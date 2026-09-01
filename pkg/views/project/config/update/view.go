@@ -16,7 +16,6 @@ package update
 import (
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
 )
 
 func validateValue(value *string) *string {
@@ -27,7 +26,7 @@ func validateValue(value *string) *string {
 	return value
 }
 
-func UpdateProjectMetadataView(config *models.ProjectMetadata) {
+func UpdateProjectMetadataView(config *models.ProjectMetadata) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -74,6 +73,8 @@ func UpdateProjectMetadataView(config *models.ProjectMetadata) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

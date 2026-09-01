@@ -15,11 +15,11 @@ package user
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func UserDeleteCmd() *cobra.Command {
 					// Retrieve user ID by name.
 					userID, err := api.GetUsersIdByName(arg)
 					if err != nil {
-						log.Errorf("failed to get user id for '%s': %v", arg, err)
+						slog.Error(fmt.Sprintf("failed to get user id for '%s'", arg), "error", err)
 						continue
 					}
 					wg.Add(1)

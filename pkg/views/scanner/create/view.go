@@ -19,7 +19,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type CreateView struct {
@@ -33,7 +32,7 @@ type CreateView struct {
 	UseInternalAddr  bool
 }
 
-func CreateScannerView(createView *CreateView) {
+func CreateScannerView(createView *CreateView) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -57,7 +56,7 @@ func CreateScannerView(createView *CreateView) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if createView.Auth == "Basic" {
@@ -86,7 +85,7 @@ func CreateScannerView(createView *CreateView) {
 			),
 		).WithTheme(theme).Run()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		createView.AccessCredential = username + ":" + password
 	} else if createView.Auth == "Bearer" || createView.Auth == "X-ScannerAdapter-API-Key" {
@@ -99,7 +98,7 @@ func CreateScannerView(createView *CreateView) {
 			),
 		).WithTheme(theme).Run()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if createView.Auth == "Bearer" {
 			createView.AccessCredential = "Bearer: " + createView.AccessCredential
@@ -148,7 +147,8 @@ func CreateScannerView(createView *CreateView) {
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	createView.URL = utils.FormatUrl(createView.URL)
+	return nil
 }

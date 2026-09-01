@@ -15,6 +15,7 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/permissions"
@@ -25,7 +26,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListRobot(opts ListFlags) (*robot.ListRobotOK, error) {
@@ -199,7 +199,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 func UpdateRobot(opts *update.UpdateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("Error: %v", err)
+		slog.Error("Error", "error", err)
 		return err
 	}
 
@@ -233,7 +233,7 @@ func UpdateRobot(opts *update.UpdateView) error {
 		},
 	)
 	if err != nil {
-		log.Errorf("Error in updating Robot: %v", err)
+		slog.Error("Error in updating Robot", "error", err)
 		return err
 	}
 

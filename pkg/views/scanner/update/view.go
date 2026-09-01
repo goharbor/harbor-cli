@@ -21,10 +21,9 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
-func UpdateScannerView(scanner *models.ScannerRegistration) {
+func UpdateScannerView(scanner *models.ScannerRegistration) error {
 	theme := huh.ThemeCharm()
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -48,7 +47,7 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 	).WithTheme(theme).Run()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	switch scanner.Auth {
@@ -78,7 +77,7 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 			),
 		).WithTheme(theme).Run()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		scanner.AccessCredential = username + ":" + password
 	case "Bearer", "X-ScannerAdapter-API-Key":
@@ -91,7 +90,7 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 			),
 		).WithTheme(theme).Run()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if scanner.Auth == "Bearer" {
 			scanner.AccessCredential = "Bearer: " + scanner.AccessCredential
@@ -140,7 +139,8 @@ func UpdateScannerView(scanner *models.ScannerRegistration) {
 		),
 	).WithTheme(theme).Run()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	scanner.URL = strfmt.URI(utils.FormatUrl(url))
+	return nil
 }

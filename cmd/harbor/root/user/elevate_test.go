@@ -16,10 +16,10 @@ package user
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -176,9 +176,9 @@ func TestElevateUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			originalLogOutput := log.StandardLogger().Out
-			log.SetOutput(&buf)
-			defer log.SetOutput(originalLogOutput)
+			originalLogger := slog.Default()
+			slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+			defer slog.SetDefault(originalLogger)
 
 			m := tt.setup()
 
