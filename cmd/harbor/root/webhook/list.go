@@ -70,8 +70,9 @@ Use the '--output-format' flag for raw JSON output.`,
 				if err != nil {
 					return fmt.Errorf("failed to print in %s format: %v", FormatFlag, err)
 				}
+			} else {
+				webhookViews.ListWebhooks(resp.Payload)
 			}
-			webhookViews.ListWebhooks(resp.Payload)
 			return nil
 		},
 	}
