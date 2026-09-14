@@ -17,10 +17,10 @@ import (
 	"bytes"
 	"testing"
 
-	webhookcreate "github.com/goharbor/harbor-cli/pkg/views/webhook/create"
-	webhookedit "github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	webhookcreate "github.com/goharbor/harbor-cli/pkg/views/webhook/create"
+	webhookedit "github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
