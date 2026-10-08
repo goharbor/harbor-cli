@@ -15,12 +15,20 @@ package api
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
+
+// encodeRepoName prepares a repository name for the repository_name path
+// parameter. Harbor expects a slash in it to be encoded twice
+// (a/b -> a%2Fb -> a%252Fb) and the client only encodes path parameters once.
+func encodeRepoName(repoName string) string {
+	return url.PathEscape(repoName)
+}
 
 func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
 	ctx, client, err := utils.ContextWithClient()
@@ -36,7 +44,7 @@ func RepoDelete(projectNameOrID, repoName string, useProjectID bool) error {
 		}
 		projectName = project.Payload.Name
 	}
-	_, err = client.Repository.DeleteRepository(ctx, &repository.DeleteRepositoryParams{ProjectName: projectName, RepositoryName: repoName})
+	_, err = client.Repository.DeleteRepository(ctx, &repository.DeleteRepositoryParams{ProjectName: projectName, RepositoryName: encodeRepoName(repoName)})
 
 	if err != nil {
 		return err
@@ -53,7 +61,7 @@ func RepoView(projectName, repoName string) (*repository.GetRepositoryOK, error)
 		return response, err
 	}
 
-	response, err = client.Repository.GetRepository(ctx, &repository.GetRepositoryParams{ProjectName: projectName, RepositoryName: repoName})
+	response, err = client.Repository.GetRepository(ctx, &repository.GetRepositoryParams{ProjectName: projectName, RepositoryName: encodeRepoName(repoName)})
 
 	if err != nil {
 		return response, err
@@ -129,7 +137,7 @@ func UpdateRepository(projectName, repoName string, description string, existing
 
 	_, err = client.Repository.UpdateRepository(ctx, &repository.UpdateRepositoryParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Repository:     repo,
 	})
 	if err != nil {
