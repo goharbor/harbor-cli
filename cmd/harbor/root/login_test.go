@@ -14,10 +14,14 @@
 package root_test
 
 import (
+	"bytes"
+	"os"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	helpers "github.com/goharbor/harbor-cli/test/helper"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,6 +45,42 @@ func Test_Login_Failure_UnreachableServer(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.Error(t, err, "Expected error for unreachable server")
+}
+
+func Test_Login_ExistingCredentials(t *testing.T) {
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+	helpers.SetMockKeyring(t)
+
+	var logs bytes.Buffer
+	log.SetOutput(&logs)
+	defer log.SetOutput(os.Stderr)
+
+	// Each login runs in a fresh process in real use, so reload the config
+	// written by the previous login.
+	login := func(password string) {
+		utils.ConfigInitialization = &utils.Once{}
+		utils.CurrentHarborConfig = nil
+		utils.InitConfig(data.ConfigPath, true)
+
+		cmd := root.LoginCommand()
+		cmd.SetArgs([]string{unreachable})
+		assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
+		assert.NoError(t, cmd.Flags().Set("password", password))
+		assert.NoError(t, cmd.Flags().Set("skip-verify-client", "true"))
+		assert.NoError(t, cmd.Execute())
+	}
+
+	login("Harbor12345")
+
+	logs.Reset()
+	login("Harbor12345")
+	assert.Contains(t, logs.String(), "They were not added again")
+
+	logs.Reset()
+	login("Harbor67890")
+	assert.Contains(t, logs.String(), "the password is different")
 }
 
 // Keep this last: --password-stdin is bound to a package level variable that

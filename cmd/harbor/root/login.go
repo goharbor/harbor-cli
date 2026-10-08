@@ -178,7 +178,9 @@ func RunLogin(opts login.LoginView) error {
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
-			if existingCred.Password == encryptedPassword {
+			// Encrypt uses a random nonce, so compare the decrypted password, not the ciphertext.
+			existingPassword, decryptErr := utils.Decrypt(key, existingCred.Password)
+			if decryptErr == nil && existingPassword == opts.Password {
 				log.Warn("Credentials already exist in the config file. They were not added again.")
 				fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 				return nil
