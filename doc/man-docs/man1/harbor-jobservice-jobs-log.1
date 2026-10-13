@@ -1,0 +1,56 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-jobs-log - View a job log (--job-id required)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice jobs log [flags]\fP
+
+
+.SH DESCRIPTION
+Display the log for a specific job by job ID.
+
+.PP
+Job logs contain detailed execution information including status updates, error messages, and processing details.
+The --job-id flag is required to specify which job's log to retrieve.
+
+.PP
+Job IDs can be obtained from the 'harbor jobservice jobs list' command.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for log
+
+.PP
+\fB--job-id\fP=""
+	Job ID to fetch log for (required)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+View a specific job log:
+  harbor jobservice jobs log --job-id abc123def456
+
+View log with verbose output:
+  harbor jobservice jobs log --job-id abc123def456 -v
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-jobs(1)\fP

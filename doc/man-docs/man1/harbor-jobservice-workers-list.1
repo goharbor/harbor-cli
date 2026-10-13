@@ -1,0 +1,58 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-workers-list - List workers (supports --page and --page-size)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice workers list [flags]\fP
+
+
+.SH DESCRIPTION
+List job service workers.
+
+.PP
+Pagination:
+	- --page selects the 1-based page number
+	- --page-size controls how many workers are shown per page
+
+.PP
+Examples:
+  harbor jobservice workers list
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list --page 2 --page-size 20
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+.PP
+\fB--page\fP=1
+	Page number
+
+.PP
+\fB--page-size\fP=20
+	Number of workers per page
+
+.PP
+\fB--pool\fP="all"
+	Worker pool ID to list workers from (default: all)
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-workers(1)\fP
