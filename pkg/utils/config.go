@@ -304,7 +304,9 @@ func CreateDataFile(dataFilePath string, initialConfigPath string) error {
 			log.Fatalf("Failed to write data file: %v", err)
 		}
 
-		fmt.Printf("Data file created at %s with configPath: %s\n", dataFilePath, dataFile.ConfigPath)
+		// Informational notice: write to stderr so it never pollutes command
+		// output captured from stdout (e.g. generated shell completion scripts, #1053).
+		fmt.Fprintf(os.Stderr, "Data file created at %s with configPath: %s\n", dataFilePath, dataFile.ConfigPath)
 	} else if err != nil {
 		log.Fatalf("Error checking data file: %v", err)
 	}
@@ -378,7 +380,7 @@ func UpdateDataFile(dataFilePath string, newConfigPath string) error {
 		log.Fatalf("failed to write updated data file: %v", err)
 	}
 
-	fmt.Printf("Data file at %s updated with new configPath: %s\n", dataFilePath, absConfigPath)
+	fmt.Fprintf(os.Stderr, "Data file at %s updated with new configPath: %s\n", dataFilePath, absConfigPath)
 	return nil
 }
 
@@ -405,7 +407,9 @@ func CreateConfigFile(configPath string) error {
 			log.Fatalf("failed to write config file: %v", err)
 		}
 
-		fmt.Printf("Config file created at %s", configPath)
+		// Informational notice: write to stderr so it never pollutes command
+		// output captured from stdout (e.g. generated shell completion scripts, #1053).
+		fmt.Fprintf(os.Stderr, "Config file created at %s\n", configPath)
 	} else if err != nil {
 		log.Fatalf("error checking config file: %v", err)
 	}
