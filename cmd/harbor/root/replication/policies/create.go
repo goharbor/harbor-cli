@@ -65,6 +65,10 @@ func CreateCommand() *cobra.Command {
 				return fmt.Errorf("failed to get registry with ID %d: %v", registryID, err)
 			}
 
+			if err := validateCreateView(opts); err != nil {
+				return fmt.Errorf("invalid replication policy configuration: %w", err)
+			}
+
 			policy := ConvertToPolicy(opts, registry)
 			response, err := api.CreateReplicationPolicy(&replication.CreateReplicationPolicyParams{
 				Policy: policy,
@@ -83,6 +87,16 @@ func CreateCommand() *cobra.Command {
 	return cmd
 }
 
+// validateCreateView validates the CreateView before converting to policy.
+func validateCreateView(view *create.CreateView) error {
+	// Validate DestNamespaceReplaceCount is within valid range
+	if view.DestNamespaceReplaceCount < -1 || view.DestNamespaceReplaceCount > 3 {
+		return fmt.Errorf("dest_namespace_replace_count must be between -1 and 3, got %d", view.DestNamespaceReplaceCount)
+	}
+
+	return nil
+}
+
 func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models.ReplicationPolicy {
 	policy := &models.ReplicationPolicy{
 		Name:        view.Name,
@@ -92,10 +106,13 @@ func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models
 		// ReplicateDeletion is the favored field to use for deletion replication
 		// Deletion is deprecated and will be removed in future versions
 		// However, for updating from false to true, we need to set both fields
-		ReplicateDeletion: view.ReplicateDeletion,
-		Deletion:          view.ReplicateDeletion,
-		CopyByChunk:       &view.CopyByChunk,
-		Filters:           []*models.ReplicationFilter{},
+		ReplicateDeletion:         view.ReplicateDeletion,
+		Deletion:                  view.ReplicateDeletion,
+		DestNamespace:             view.DestNamespace,
+		DestNamespaceReplaceCount: &view.DestNamespaceReplaceCount,
+		CopyByChunk:               &view.CopyByChunk,
+
+		Filters: []*models.ReplicationFilter{},
 	}
 
 	if view.Speed != "" {
