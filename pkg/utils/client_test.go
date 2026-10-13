@@ -14,6 +14,7 @@
 package utils_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/harbor"
@@ -101,4 +102,94 @@ func TestGetClientByCredentialName_Failure(t *testing.T) {
 	client, clientErr := utils.GetClientByCredentialName("non-existent-credential")
 	assert.Nil(t, client)
 	assert.Error(t, clientErr)
+}
+
+func TestGetClient_EmptyCredentialName(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	// Set config with empty credential name
+	testConfig := &utils.HarborConfig{
+		Credentials:           []utils.Credential{},
+		CurrentCredentialName: "",
+	}
+	err := utils.SetCurrentHarborConfig(testConfig)
+	assert.NoError(t, err)
+
+	// Reset ClientOnce to allow re-initialization
+	utils.ClientOnce = sync.Once{}
+	utils.ClientInstance = nil
+	utils.ClientErr = nil
+
+	client, getErr := utils.GetClient()
+	assert.Nil(t, client)
+	assert.Error(t, getErr)
+	assert.Contains(t, getErr.Error(), "current-credential-name is not set in config file")
+}
+
+func TestGetClient_InvalidCredentialName(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	err := utils.GenerateEncryptionKey()
+	assert.NoError(t, err)
+
+	// Set config with invalid credential name
+	testConfig := &utils.HarborConfig{
+		Credentials: []utils.Credential{
+			{
+				Name:          "valid-credential",
+				Username:      "test-user",
+				Password:      "encrypted-pass",
+				ServerAddress: "https://test-endpoint",
+			},
+		},
+		CurrentCredentialName: "invalid-credential",
+	}
+	err = utils.SetCurrentHarborConfig(testConfig)
+	assert.NoError(t, err)
+
+	// Reset ClientOnce to allow re-initialization
+	utils.ClientOnce = sync.Once{}
+	utils.ClientInstance = nil
+	utils.ClientErr = nil
+
+	client, getErr := utils.GetClient()
+	assert.Nil(t, client)
+	assert.Error(t, getErr)
+	assert.Contains(t, getErr.Error(), "failed to get credential")
+}
+
+func TestGetClientByCredentialName_DecryptionError(t *testing.T) {
+	tempDir := t.TempDir()
+	helpers.SetMockKeyring(t)
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	err := utils.GenerateEncryptionKey()
+	assert.NoError(t, err)
+
+	// Create credential with invalid encrypted password
+	testConfig := &utils.HarborConfig{
+		Credentials: []utils.Credential{
+			{
+				Name:          "test-credential",
+				Username:      "test-user",
+				Password:      "invalid-encrypted-data",
+				ServerAddress: "https://test-endpoint",
+			},
+		},
+		CurrentCredentialName: "test-credential",
+	}
+	err = utils.SetCurrentHarborConfig(testConfig)
+	assert.NoError(t, err)
+
+	client, clientErr := utils.GetClientByCredentialName("test-credential")
+	assert.Nil(t, client)
+	assert.Error(t, clientErr)
+	assert.Contains(t, clientErr.Error(), "failed to decrypt password")
 }
