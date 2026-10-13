@@ -16,6 +16,7 @@ package root_test
 import (
 	"bytes"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
@@ -59,27 +60,35 @@ func Test_Login_ExistingCredentials(t *testing.T) {
 
 	// Each login runs in a fresh process in real use, so reload the config
 	// written by the previous login.
-	login := func(password string) {
+	reloadConfig := func() {
 		utils.ConfigInitialization = &utils.Once{}
 		utils.CurrentHarborConfig = nil
 		utils.InitConfig(data.ConfigPath, true)
-
+	}
+	login := func(username, password string) {
+		reloadConfig()
 		cmd := root.LoginCommand()
 		cmd.SetArgs([]string{unreachable})
-		assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
+		assert.NoError(t, cmd.Flags().Set("username", username))
 		assert.NoError(t, cmd.Flags().Set("password", password))
 		assert.NoError(t, cmd.Flags().Set("skip-verify-client", "true"))
 		assert.NoError(t, cmd.Execute())
 	}
 
-	login("Harbor12345")
+	login("harbor-cli", "Harbor12345")
+	login("other-user", "Harbor12345")
 
+	// The same credentials are not stored again, but their context becomes current
 	logs.Reset()
-	login("Harbor12345")
+	login("harbor-cli", "Harbor12345")
 	assert.Contains(t, logs.String(), "They were not added again")
+	reloadConfig()
+	config, err := utils.GetCurrentHarborConfig()
+	assert.NoError(t, err)
+	assert.True(t, strings.HasPrefix(config.CurrentCredentialName, "harbor-cli@"), config.CurrentCredentialName)
 
 	logs.Reset()
-	login("Harbor67890")
+	login("harbor-cli", "Harbor67890")
 	assert.Contains(t, logs.String(), "the password is different")
 }
 

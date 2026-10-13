@@ -182,10 +182,17 @@ func RunLogin(opts login.LoginView) error {
 			existingPassword, decryptErr := utils.Decrypt(key, existingCred.Password)
 			if decryptErr == nil && existingPassword == opts.Password {
 				log.Warn("Credentials already exist in the config file. They were not added again.")
+				if err = setCurrentCredential(opts.Name); err != nil {
+					return fmt.Errorf("failed to switch to context %s: %w", opts.Name, err)
+				}
 				fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 				return nil
 			} else {
-				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				if decryptErr != nil {
+					log.Warnf("Could not decrypt the stored password: %v. Replacing it.", decryptErr)
+				} else {
+					log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				}
 				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 					log.Fatalf("failed to update the credential: %s", err)
 				}
@@ -208,6 +215,18 @@ func RunLogin(opts login.LoginView) error {
 	log.Debugf("Credentials successfully added to the config file.")
 	fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 	return nil
+}
+
+func setCurrentCredential(name string) error {
+	config, err := utils.GetCurrentHarborConfig()
+	if err != nil {
+		return err
+	}
+	if config.CurrentCredentialName == name {
+		return nil
+	}
+	config.CurrentCredentialName = name
+	return utils.UpdateConfigFile(config)
 }
 
 func validateClientConnection(client *client.HarborAPI) error {
