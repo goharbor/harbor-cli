@@ -25,13 +25,17 @@ import (
 )
 
 // useTestServer points the shared Harbor client at a local server that
-// records the escaped request path and answers with the given body.
-func useTestServer(t *testing.T, body string) *string {
+// records the escaped request path and answers with the given body. The
+// returned function reads the last recorded path.
+func useTestServer(t *testing.T, body string) func() string {
 	t.Helper()
 
+	var mu sync.Mutex
 	var gotPath string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
 		gotPath = r.URL.EscapedPath()
+		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(body))
 	}))
@@ -48,7 +52,11 @@ func useTestServer(t *testing.T, body string) *string {
 		utils.ClientErr = nil
 	})
 
-	return &gotPath
+	return func() string {
+		mu.Lock()
+		defer mu.Unlock()
+		return gotPath
+	}
 }
 
 // Harbor expects a slash in repository_name to be encoded twice
@@ -113,7 +121,7 @@ func TestRepositoryNameIsEncodedInPath(t *testing.T) {
 			gotPath := useTestServer(t, tt.body)
 
 			assert.NoError(t, tt.call())
-			assert.Equal(t, tt.wantPath, *gotPath)
+			assert.Equal(t, tt.wantPath, gotPath())
 		})
 	}
 }
