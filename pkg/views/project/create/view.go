@@ -68,8 +68,8 @@ func CreateProjectView(createView *CreateView) error {
 	for id, name := range registryOptions {
 		registrySelectOptions = append(registrySelectOptions, huh.NewOption(name, id))
 	}
-
-	err = huh.NewForm(
+	var groups []*huh.Group
+	groups = append(groups,
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Project Name").
@@ -108,23 +108,28 @@ func CreateProjectView(createView *CreateView) error {
 				Affirmative("yes").
 				Negative("no"),
 		),
-		huh.NewGroup(
-			huh.NewSelect[string]().
-				Validate(func(str string) error {
-					if createView.ProxyCache && str == "" {
-						return errors.New("registry ID cannot be empty")
-					}
-					return nil
-				}).
-				Description("Select a registry to reference when creating the proxy cache project").
-				Title("Registry ID").
-				Value(&createView.RegistryID).
-				Options(registrySelectOptions...),
-		).WithHideFunc(func() bool {
-			return !createView.ProxyCache || len(registryOptions) == 0
-		}),
-	).WithTheme(theme).Run()
-
+	)
+if createView.ProxyCache &&
+	createView.RegistryID == "" &&
+	len(registryOptions) > 0 {
+		groups = append(groups,
+			huh.NewGroup(
+				huh.NewSelect[string]().
+					Validate(func(str string) error {
+						if str == "" {
+							return errors.New("registry ID cannot be empty")
+						}
+						return nil
+					}).
+					Description("Select a registry to reference when creating the proxy cache project").
+					Title("Registry ID").
+					Value(&createView.RegistryID).
+					Options(registrySelectOptions...),
+			),
+		)
+	}
+	form := huh.NewForm(groups...)
+	err = form.WithTheme(theme).Run()
 	if err != nil {
 		return err
 	}
