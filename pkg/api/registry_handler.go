@@ -122,7 +122,7 @@ func GetRegistryResponse(registryId int64) (*models.Registry, error) {
 		return nil, err
 	}
 	if response.Payload.ID == 0 {
-		return nil, err
+		return nil, fmt.Errorf("registry with ID %d not found", registryId)
 	}
 
 	return response.GetPayload(), err
