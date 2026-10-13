@@ -28,6 +28,12 @@ func CreateTagsCmd() *cobra.Command {
 		Use:     "create",
 		Short:   "Create a tag of an artifact",
 		Example: `harbor artifact tags create <project>/<repository>/<reference> <tag>`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 || len(args) == 2 {
+				return nil
+			}
+			return fmt.Errorf("requires either 0 arguments(interactive mode) or 2 arguments(<project>/<repository>/<reference> <tag>), got %d", len(args))
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var projectName, repoName, reference string
