@@ -1,6 +1,6 @@
 ---
 title: harbor replication executions view
-weight: 65
+weight: 25
 ---
 ## harbor replication executions view
 

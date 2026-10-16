@@ -1,6 +1,6 @@
 ---
 title: harbor project preheat policy create
-weight: 50
+weight: 90
 ---
 ## harbor project preheat policy create
 

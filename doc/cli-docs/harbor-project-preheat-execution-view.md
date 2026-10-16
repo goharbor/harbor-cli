@@ -1,6 +1,6 @@
 ---
 title: harbor project preheat execution view
-weight: 50
+weight: 25
 ---
 ## harbor project preheat execution view
 

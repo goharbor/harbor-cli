@@ -1,6 +1,6 @@
 ---
 title: harbor tag retention create
-weight: 95
+weight: 10
 ---
 ## harbor tag retention create
 

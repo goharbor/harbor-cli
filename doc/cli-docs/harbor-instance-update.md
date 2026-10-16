@@ -1,6 +1,6 @@
 ---
 title: harbor instance update
-weight: 20
+weight: 25
 ---
 ## harbor instance update
 

@@ -1,6 +1,6 @@
 ---
 title: harbor jobservice queues resume
-weight: 90
+weight: 75
 ---
 ## harbor jobservice queues resume
 

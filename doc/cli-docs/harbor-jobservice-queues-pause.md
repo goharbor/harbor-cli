@@ -1,6 +1,6 @@
 ---
 title: harbor jobservice queues pause
-weight: 80
+weight: 35
 ---
 ## harbor jobservice queues pause
 

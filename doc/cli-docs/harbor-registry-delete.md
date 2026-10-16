@@ -1,6 +1,6 @@
 ---
 title: harbor registry delete
-weight: 140
+weight: 15
 ---
 ## harbor registry delete
 
