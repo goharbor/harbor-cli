@@ -99,3 +99,13 @@ func TestCreateRows_FormatsStorageSizes(t *testing.T) {
 	}, rows)
 	assert.NotEqual(t, "2147483648", rows[0][1])
 }
+func TestCreateRows_StorageSizeAboveMaxInt64(t *testing.T) {
+	const maxInt64 = int64(^uint64(0) >> 1)
+
+	var rows []table.Row
+	createRows(&Volumes{Free: ^uint64(0), Total: 1024}, &rows)
+
+	assert.NotEqual(t, "Unlimited", rows[0][1])
+	assert.Equal(t, utils.FormatSize(maxInt64), rows[0][1])
+	assert.Equal(t, utils.FormatSize(1024), rows[1][1])
+}
