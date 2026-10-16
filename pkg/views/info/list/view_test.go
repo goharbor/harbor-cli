@@ -16,8 +16,10 @@ package list
 import (
 	"testing"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,4 +65,47 @@ func TestCreateSystemInfo_NilVolumes(t *testing.T) {
 	assert.NotNil(t, result.VolumeInfo)
 	assert.Equal(t, uint64(0), result.VolumeInfo.Free)
 	assert.Equal(t, uint64(0), result.VolumeInfo.Total)
+}
+
+func TestCreateRows_NilPointerRendersEmpty(t *testing.T) {
+	type sample struct {
+		Name    string
+		Count   *int64
+		Storage *Volumes
+	}
+
+	var rows []table.Row
+	createRows(sample{Name: "harbor"}, &rows)
+
+	assert.Equal(t, []table.Row{
+		{"Name", "harbor"},
+		{"Count", ""},
+		{"Storage", ""},
+	}, rows)
+	for _, row := range rows {
+		assert.NotContains(t, row[1], "<nil>")
+	}
+}
+
+func TestCreateRows_FormatsStorageSizes(t *testing.T) {
+	const twoGiB = 2 * 1024 * 1024 * 1024
+
+	var rows []table.Row
+	createRows(&Volumes{Free: twoGiB, Total: 0}, &rows)
+
+	assert.Equal(t, []table.Row{
+		{"Free", utils.FormatSize(twoGiB)},
+		{"Total", utils.FormatSize(0)},
+	}, rows)
+	assert.NotEqual(t, "2147483648", rows[0][1])
+}
+func TestCreateRows_StorageSizeAboveMaxInt64(t *testing.T) {
+	const maxInt64 = int64(^uint64(0) >> 1)
+
+	var rows []table.Row
+	createRows(&Volumes{Free: ^uint64(0), Total: 1024}, &rows)
+
+	assert.NotEqual(t, "Unlimited", rows[0][1])
+	assert.Equal(t, utils.FormatSize(maxInt64), rows[0][1])
+	assert.Equal(t, utils.FormatSize(1024), rows[1][1])
 }
