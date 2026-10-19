@@ -34,6 +34,12 @@ func Logs() *cobra.Command {
 	var opts api.ListFlags
 	var follow bool
 	var refreshInterval string
+	var operationFilter string
+	var resourceTypeFilter string
+	var resourceFilter string
+	var usernameFilter string
+	var fromTimeFilter string
+	var toTimeFilter string
 
 	cmd := &cobra.Command{
 		Use:   "logs",
@@ -42,10 +48,27 @@ func Logs() *cobra.Command {
 		Long: `Get recent logs of the projects which the user is a member of.
 This command retrieves the audit logs for the projects the user is a member of. It supports pagination, sorting, and filtering through query parameters. The logs can be followed in real-time with the --follow flag, and the output can be formatted as JSON with the --output-format flag.
 
+When --page and/or --page-size are explicitly provided, a pagination summary (for example: "Showing 6-10 of 14") is shown in default table output.
+
+Convenience filter flags are available to build query expressions:
+- --operation (operation type, e.g., create, delete, pull, login, logout, update)
+- --resource-type (resource type, e.g., user, artifact, project, repository)
+- --resource (resource name)
+- --username (username)
+- --from-time and optional --to-time (for op_time range)
+
+IMPORTANT: Event types from 'harbor logs events' are compound strings (e.g., 'create_user', 'delete_artifact').
+These must be split into separate flags:
+  create_user       → --operation create --resource-type user
+  delete_artifact   → --operation delete --resource-type artifact
+  pull_repository   → --operation pull --resource-type repository
+  login_user        → --operation login --resource-type user
+
+Examples:
+harbor-cli logs --operation create --resource-type user
+harbor-cli logs --operation delete --resource-type artifact --resource library/nginx
 harbor-cli logs --page 1 --page-size 10 --query "operation=push" --sort "op_time:desc"
-
 harbor-cli logs --follow --refresh-interval 2s
-
 harbor-cli logs --output-format json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Page < 1 {
@@ -61,9 +84,22 @@ harbor-cli logs --output-format json`,
 				fmt.Println("The --refresh-interval flag is only applicable when using --follow. It will be ignored.")
 			}
 
+			query, err := buildAuditLogQuery(
+				opts.Q,
+				operationFilter,
+				resourceTypeFilter,
+				resourceFilter,
+				usernameFilter,
+				fromTimeFilter,
+				toTimeFilter,
+			)
+			if err != nil {
+				return err
+			}
+			opts.Q = query
+
 			if follow {
 				var interval time.Duration = 5 * time.Second
-				var err error
 				if refreshInterval != "" {
 					interval, err = time.ParseDuration(refreshInterval)
 					if err != nil {
@@ -91,6 +127,9 @@ harbor-cli logs --output-format json`,
 				}
 			} else {
 				list.ListLogs(logs.Payload)
+				if shouldShowPaginationSummary(cmd, "page", "page-size") {
+					printPaginationSummary(opts.Page, opts.PageSize, int64(len(logs.Payload)), logs.XTotalCount)
+				}
 			}
 			return nil
 		},
@@ -110,8 +149,216 @@ harbor-cli logs --output-format json`,
 	flags.BoolVarP(&follow, "follow", "f", false, "Follow log output (tail -f behavior)")
 	flags.StringVarP(&refreshInterval, "refresh-interval", "n", "",
 		"Interval to refresh logs when following (default: 5s)")
+	flags.StringVar(&operationFilter, "operation", "", "Filter by operation (e.g. create, delete, pull, login, logout, update). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.")
+	flags.StringVar(&resourceTypeFilter, "resource-type", "", "Filter by resource type (e.g. user, artifact, project, repository). Event types from 'harbor logs events' must be split: use --operation and --resource-type separately.")
+	flags.StringVar(&resourceFilter, "resource", "", "Filter by resource name")
+	flags.StringVar(&usernameFilter, "username", "", "Filter by username")
+	flags.StringVar(&fromTimeFilter, "from-time", "", "Start timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Required when using --to-time")
+	flags.StringVar(&toTimeFilter, "to-time", "", "End timestamp for op_time range (RFC3339 or 'YYYY-MM-DD HH:MM:SS'). Optional when --from-time is set; defaults to current time")
+
+	cmd.AddCommand(LogsEventTypesCommand())
 
 	return cmd
+}
+
+func LogsEventTypesCommand() *cobra.Command {
+	var page int64
+	var pageSize int64
+
+	cmd := &cobra.Command{
+		Use:   "events",
+		Short: "List supported Harbor audit log event types",
+		Long: `List supported Harbor audit log event types.
+
+By default, all event types are shown.
+Use --page and --page-size to paginate the result.
+
+NOTE: Each event type shown maps to two separate filter flags:
+  create_user        → --operation create --resource-type user
+  create_artifact    → --operation create --resource-type artifact
+  delete_artifact    → --operation delete --resource-type artifact
+  delete_project     → --operation delete --resource-type project
+  login_user         → --operation login --resource-type user
+  logout_user        → --operation logout --resource-type user
+  pull_repository    → --operation pull --resource-type repository
+  push_artifact      → --operation push --resource-type artifact
+  update_artifact    → --operation update --resource-type artifact
+
+When filtering logs with 'harbor logs', use both --operation and --resource-type flags separately.
+
+Examples:
+  harbor-cli logs events
+  harbor-cli logs events --page 2 --page-size 5
+  harbor-cli logs events --output-format json --page 2 --page-size 5
+  harbor-cli logs --operation create --resource-type user
+  harbor-cli logs --operation delete --resource-type artifact`,
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			showPaginationSummary := shouldShowPaginationSummary(cmd, "page", "page-size")
+			if showPaginationSummary {
+				if page < 1 {
+					return fmt.Errorf("page number must be greater than or equal to 1")
+				}
+				if pageSize < 1 {
+					return fmt.Errorf("page size must be greater than or equal to 1")
+				}
+				if pageSize > 100 {
+					return fmt.Errorf("page size should be less than or equal to 100")
+				}
+			}
+
+			response, err := api.AuditLogEventTypes()
+			if err != nil {
+				return fmt.Errorf("failed to retrieve audit log event types: %w", err)
+			}
+
+			pagedPayload := response.Payload
+			if showPaginationSummary {
+				pagedPayload, err = paginateAuditLogEventTypes(response.Payload, page, pageSize)
+				if err != nil {
+					return err
+				}
+			}
+
+			formatFlag := viper.GetString("output-format")
+			if formatFlag != "" {
+				return utils.PrintFormat(pagedPayload, formatFlag)
+			}
+
+			list.ListAuditLogEventTypes(pagedPayload, page, pageSize, len(response.Payload), showPaginationSummary)
+			return nil
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.Int64VarP(&page, "page", "", 1, "Page number")
+	flags.Int64VarP(&pageSize, "page-size", "", 10, "Size of per page")
+
+	return cmd
+}
+
+func paginateAuditLogEventTypes(eventTypes []*models.AuditLogEventType, page, pageSize int64) ([]*models.AuditLogEventType, error) {
+	if page < 1 {
+		return nil, fmt.Errorf("page number must be greater than or equal to 1")
+	}
+	if pageSize < 1 {
+		return nil, fmt.Errorf("page size must be greater than or equal to 1")
+	}
+
+	start := (page - 1) * pageSize
+	if start >= int64(len(eventTypes)) {
+		return []*models.AuditLogEventType{}, nil
+	}
+
+	end := start + pageSize
+	if end > int64(len(eventTypes)) {
+		end = int64(len(eventTypes))
+	}
+
+	return eventTypes[start:end], nil
+}
+
+func shouldShowPaginationSummary(cmd *cobra.Command, pageFlagName, pageSizeFlagName string) bool {
+	return cmd.Flags().Changed(pageFlagName) || cmd.Flags().Changed(pageSizeFlagName)
+}
+
+func printPaginationSummary(page, pageSize, currentCount, totalCount int64) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = currentCount
+	}
+
+	if totalCount < currentCount {
+		totalCount = currentCount
+	}
+
+	if currentCount == 0 {
+		fmt.Printf("\nShowing 0-0 of %d\n", totalCount)
+		return
+	}
+
+	start := (page-1)*pageSize + 1
+	end := start + currentCount - 1
+	if totalCount > 0 && end > totalCount {
+		end = totalCount
+	}
+
+	fmt.Printf("\nShowing %d-%d of %d\n", start, end, totalCount)
+}
+
+func buildAuditLogQuery(baseQuery, operation, resourceType, resource, username, fromTime, toTime string) (string, error) {
+	parts := []string{}
+
+	baseQuery = strings.TrimSpace(baseQuery)
+	if baseQuery != "" {
+		parts = append(parts, baseQuery)
+	}
+
+	op := strings.TrimSpace(operation)
+	rt := strings.TrimSpace(resourceType)
+	res := strings.TrimSpace(resource)
+	user := strings.TrimSpace(username)
+	if op != "" {
+		parts = append(parts, fmt.Sprintf("operation=%s", op))
+	}
+	if rt != "" {
+		parts = append(parts, fmt.Sprintf("resource_type=%s", rt))
+	}
+	if res != "" {
+		parts = append(parts, fmt.Sprintf("resource=%s", res))
+	}
+	if user != "" {
+		parts = append(parts, fmt.Sprintf("username=%s", user))
+	}
+
+	from := strings.TrimSpace(fromTime)
+	to := strings.TrimSpace(toTime)
+
+	// --to-time alone is not allowed; if provided, --from-time must also be present
+	if from == "" && to != "" {
+		return "", fmt.Errorf("--to-time cannot be used without --from-time")
+	}
+
+	// If --from-time is present, use it with either provided --to-time or default to current time
+	if from != "" {
+		normalizedFrom, err := normalizeAuditTime(from)
+		if err != nil {
+			return "", fmt.Errorf("invalid --from-time: %w", err)
+		}
+
+		var normalizedTo string
+		if to == "" {
+			normalizedTo = time.Now().Format("2006-01-02 15:04:05")
+		} else {
+			var err error
+			normalizedTo, err = normalizeAuditTime(to)
+			if err != nil {
+				return "", fmt.Errorf("invalid --to-time: %w", err)
+			}
+		}
+
+		parts = append(parts, fmt.Sprintf("op_time=[%s~%s]", normalizedFrom, normalizedTo))
+	}
+
+	return strings.Join(parts, ","), nil
+}
+
+func normalizeAuditTime(input string) (string, error) {
+	layouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+	}
+
+	for _, layout := range layouts {
+		if parsed, err := time.Parse(layout, input); err == nil {
+			return parsed.Format("2006-01-02 15:04:05"), nil
+		}
+	}
+
+	return "", fmt.Errorf("expected RFC3339 or 'YYYY-MM-DD HH:MM:SS'")
 }
 
 func followLogs(opts api.ListFlags, interval time.Duration) {
