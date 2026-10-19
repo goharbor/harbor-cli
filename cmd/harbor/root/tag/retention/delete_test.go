@@ -32,6 +32,11 @@ func TestDeleteRetentionRuleCommand_Errors(t *testing.T) {
 			flags:       []string{"--project-id", "1", "--project-name", "test"},
 			expectError: true,
 		},
+		{
+			name:        "too many args exceeds MaximumNArgs(1)",
+			flags:       []string{"--project-name", "test", "extra-arg-1", "extra-arg-2"},
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -59,5 +64,10 @@ func TestDeleteRetentionRuleCommand_Flags(t *testing.T) {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("flag %s not found", flag)
 		}
+	}
+
+	// Verify Args is MaximumNArgs(1)
+	if cmd.Args == nil {
+		t.Errorf("expected Args to be set for delete command")
 	}
 }
