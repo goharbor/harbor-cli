@@ -120,7 +120,7 @@ func TestFormatScopeSelectors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := formatScopeSelectors(tt.input)
-			if tt.expected != "" {
+			if tt.expected != "" || tt.expectedContains == nil {
 				if result != tt.expected {
 					t.Errorf("formatScopeSelectors() = %q, want %q", result, tt.expected)
 				}

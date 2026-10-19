@@ -16,6 +16,7 @@ package retention
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -73,9 +74,17 @@ func RetentionList(rules []*models.RetentionRule, choice chan<- int64) {
 }
 
 func formatParams(params map[string]interface{}) string {
-	parts := []string{}
-	for k, v := range params {
-		parts = append(parts, fmt.Sprintf("%s: %v", k, v))
+	if len(params) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%s: %v", k, params[k]))
 	}
 	return strings.Join(parts, ", ")
 }
