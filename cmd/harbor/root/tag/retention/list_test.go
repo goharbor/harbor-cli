@@ -32,6 +32,11 @@ func TestListRetentionRulesCommand_Errors(t *testing.T) {
 			flags:       []string{"--project-id", "1", "--project-name", "test"},
 			expectError: true,
 		},
+		{
+			name:        "no args allowed - rejects any positional args",
+			flags:       []string{"--project-name", "test", "unexpected-arg"},
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -59,5 +64,10 @@ func TestListRetentionRulesCommand_Flags(t *testing.T) {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("flag %s not found", flag)
 		}
+	}
+
+	// Verify Args is NoArgs
+	if cmd.Args == nil {
+		t.Errorf("expected Args to be set for list command")
 	}
 }
