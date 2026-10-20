@@ -33,7 +33,12 @@ func ListLabelCommand() *cobra.Command {
 		fuzzy  []string
 		match  []string
 		ranges []string
+		all    []string
+		any    []string
+
+		validKeys = []string{"name", "id", "label_id", "creation_time", "owner_id", "color", "description"}
 	)
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list labels",
@@ -68,9 +73,7 @@ func ListLabelCommand() *cobra.Command {
 			}
 
 			if len(fuzzy) != 0 || len(match) != 0 || len(ranges) != 0 { // Only Building Query if a param exists
-				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges,
-					[]string{"name", "id", "label_id", "creation_time", "owner_id", "color", "description"},
-				)
+				q, qErr := utils.BuildQueryParam(fuzzy, match, ranges, all, any, validKeys)
 				if qErr != nil {
 					return qErr
 				}
@@ -97,6 +100,15 @@ func ListLabelCommand() *cobra.Command {
 		},
 	}
 
+	// Adding Query Description
+	var qDesc string
+	if cmd.Long != "" {
+		qDesc = "\n\n" + utils.GenerateQueryDocs(validKeys)
+	} else {
+		qDesc = utils.GenerateQueryDocs(validKeys)
+	}
+	cmd.Long += qDesc
+
 	flags := cmd.Flags()
 	flags.Int64VarP(&opts.Page, "page", "", 1, "Page number")
 	flags.Int64VarP(&opts.PageSize, "page-size", "", 20, "Size of per page")
@@ -105,9 +117,7 @@ func ListLabelCommand() *cobra.Command {
 	flags.Int64VarP(&opts.ProjectID, "project-id", "i", 0, "project ID when query project labels")
 	flags.BoolVarP(&isGlobal, "global", "", false, "whether to list global or project scope labels. (default scope is global)")
 	flags.StringVarP(&opts.Sort, "sort", "", "", "Sort the label list in ascending or descending order")
-	flags.StringSliceVar(&fuzzy, "fuzzy", nil, "Fuzzy match filter (key=value)")
-	flags.StringSliceVar(&match, "match", nil, "exact match filter (key=value)")
-	flags.StringSliceVar(&ranges, "range", nil, "range filter (key=min~max)")
+	utils.SetQueryFlags(flags, &match, &fuzzy, &ranges, &all, &any)
 
 	return cmd
 }
