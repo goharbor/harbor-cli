@@ -32,7 +32,7 @@ func DeleteArtifact(projectName, repoName, reference string) error {
 
 	_, err = client.Artifact.DeleteArtifact(ctx, &artifact.DeleteArtifactParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func ViewArtifact(projectName, repoName, reference string, withLabels bool) (*ar
 
 	response, err = client.Artifact.GetArtifact(ctx, &artifact.GetArtifactParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 		WithLabel:      &withLabels,
 	})
@@ -79,7 +79,7 @@ func ListArtifact(projectName, repoName string, opts ...ListFlags) (artifact.Lis
 	}
 	response, err := client.Artifact.ListArtifacts(ctx, &artifact.ListArtifactsParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Page:           &listFlags.Page,
 		PageSize:       &listFlags.PageSize,
 		Q:              &listFlags.Q,
@@ -101,7 +101,7 @@ func StartScanArtifact(projectName, repoName, reference string) error {
 
 	_, err = client.Scan.ScanArtifact(ctx, &scan.ScanArtifactParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 	})
 	if err != nil {
@@ -122,7 +122,7 @@ func StopScanArtifact(projectName, repoName, reference string) error {
 
 	_, err = client.Scan.StopScanArtifact(ctx, &scan.StopScanArtifactParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 	})
 	if err != nil {
@@ -143,7 +143,7 @@ func DeleteTag(projectName, repoName, reference, tag string) error {
 
 	_, err = client.Artifact.DeleteTag(ctx, &artifact.DeleteTagParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 		TagName:        tag,
 	})
@@ -165,7 +165,7 @@ func ListTags(projectName, repoName, reference string) (*artifact.ListTagsOK, er
 
 	resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 	})
 
@@ -185,7 +185,7 @@ func CreateTag(projectName, repoName, reference, tagName string) error {
 	}
 	_, err = client.Artifact.CreateTag(ctx, &artifact.CreateTagParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 		Tag: &models.Tag{
 			Name: tagName,
@@ -209,7 +209,7 @@ func AddLabelArtifact(projectName, repoName, reference string, label *models.Lab
 
 	response, err = client.Artifact.AddLabel(ctx, &artifact.AddLabelParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 		Label:          label,
 	})
@@ -232,7 +232,7 @@ func RemoveLabelArtifact(projectName, repoName, reference string, labelID int64)
 
 	response, err = client.Artifact.RemoveLabel(ctx, &artifact.RemoveLabelParams{
 		ProjectName:    projectName,
-		RepositoryName: repoName,
+		RepositoryName: encodeRepoName(repoName),
 		Reference:      reference,
 		LabelID:        labelID,
 	})
