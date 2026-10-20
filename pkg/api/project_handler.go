@@ -21,24 +21,37 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/repository"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/search"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/project/create"
-	log "github.com/sirupsen/logrus"
 )
 
+// CreateProject creates a new Harbor project based on the provided view options.
 func CreateProject(opts create.CreateView) error {
+	var registryID *int64
+	if opts.ProxyCache {
+		if opts.RegistryID == "" {
+			return fmt.Errorf("proxy cache selected but no registry ID provided")
+		}
+		id, err := strconv.ParseInt(opts.RegistryID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid registry ID %q: must be a numeric value", opts.RegistryID)
+		}
+		registryID = &id
+	} else if opts.RegistryID != "" {
+		return fmt.Errorf("registry ID should only be provided when proxy-cache is enabled")
+	}
+
+	storageLimit, err := strconv.ParseInt(opts.StorageLimit, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid storage format: %v", err)
+	}
+
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
 	}
-	registryID := new(int64)
-	*registryID, _ = strconv.ParseInt(opts.RegistryID, 10, 64)
-
-	if !opts.ProxyCache {
-		registryID = nil
-	}
-
-	storageLimit, _ := strconv.ParseInt(opts.StorageLimit, 10, 64)
 
 	public := strconv.FormatBool(opts.Public)
 

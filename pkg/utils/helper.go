@@ -179,14 +179,6 @@ func ValidateStorageLimit(sl string) error {
 	return nil
 }
 
-func ValidateRegistryName(rn string) bool {
-	pattern := `^[\w][\w.-]{0,63}$`
-
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(rn)
-}
-
 // MaxPageSize is the maximum supported value for the page size parameter.
 const MaxPageSize int64 = 100
 
@@ -207,10 +199,20 @@ func ValidatePagination(page, pageSize int64) error {
 	return nil
 }
 
-// ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
-// Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
+func ValidateRegistryName(rn string) bool {
+	pattern := `^[\w][\w.-]{0,63}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(rn)
+}
+
+// ValidateURL checks that the URL has a valid format and a non-empty host.
+// The host may be an IP address, "localhost", or a valid hostname,
+// including single-label hostnames.
 func ValidateURL(rawURL string) error {
-	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+	pattern := `(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`
+	domainNameRegex := regexp.MustCompile(pattern)
 
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
@@ -231,7 +233,7 @@ func ValidateURL(rawURL string) error {
 	}
 
 	if !domainNameRegex.MatchString(host) {
-		return fmt.Errorf("invalid host: must be a valid IP address or domain name")
+		return fmt.Errorf("invalid host: must be a valid IP address or hostname")
 	}
 
 	return nil
