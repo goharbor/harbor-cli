@@ -1,0 +1,201 @@
+# A throwaway Harbor instance for harbor-cli end-to-end tests.
+#
+# Every credential below is fixed and well-known on purpose: the stack is
+# disposable and meant to be reachable only from localhost. Do not reuse this
+# compose file for anything you care about. See README.md.
+
+name: harbor-cli-test
+
+services:
+  # Generates the token-service RSA key that core needs. Runs to completion
+  # before core starts, so `docker compose up` works from a clean checkout
+  # without any host tooling.
+  init:
+    image: goharbor/harbor-core:${HARBOR_VERSION:-v2.15.2}
+    user: "0"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ ! -s /secret/private_key.pem ]; then
+          openssl genrsa -out /secret/private_key.pem 4096
+        fi
+        chmod 644 /secret/private_key.pem
+    volumes:
+      - secret:/secret
+    restart: "no"
+
+  postgresql:
+    image: goharbor/harbor-db:${HARBOR_VERSION:-v2.15.2}
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root123}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: goharbor/valkey-photon:${HARBOR_VERSION:-v2.15.2}
+    volumes:
+      - redis-data:/var/lib/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  registry:
+    image: goharbor/registry-photon:${HARBOR_VERSION:-v2.15.2}
+    volumes:
+      - registry-data:/storage
+      - ./config/registry/config.yml:/etc/registry/config.yml:ro,z
+      - ./config/registry/passwd:/etc/registry/passwd:ro,z
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5001/debug/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  registryctl:
+    image: goharbor/harbor-registryctl:${HARBOR_VERSION:-v2.15.2}
+    environment:
+      CORE_SECRET: ${CORE_SECRET:-harbor-cli-test-core-secret}
+      JOBSERVICE_SECRET: ${JOBSERVICE_SECRET:-harbor-cli-test-jobsvc-secret}
+    volumes:
+      - registry-data:/storage
+      - ./config/registry/config.yml:/etc/registry/config.yml:ro,z
+      - ./config/registryctl/config.yml:/etc/registryctl/config.yml:ro,z
+    depends_on:
+      registry:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  core:
+    image: goharbor/harbor-core:${HARBOR_VERSION:-v2.15.2}
+    environment:
+      CONFIG_PATH: /etc/core/app.conf
+      TOKEN_PRIVATE_KEY_PATH: /etc/core/secret/private_key.pem
+      PORT: "8080"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Database
+      DATABASE_TYPE: postgresql
+      POSTGRESQL_HOST: postgresql
+      POSTGRESQL_PORT: "5432"
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: ${DB_PASSWORD:-root123}
+      POSTGRESQL_DATABASE: registry
+      POSTGRESQL_SSLMODE: disable
+      POSTGRESQL_MAX_IDLE_CONNS: "100"
+      POSTGRESQL_MAX_OPEN_CONNS: "900"
+      # Redis — DB indexes follow upstream: core=0, registry=1, jobservice=2
+      _REDIS_URL_CORE: redis://redis:6379/0
+      _REDIS_URL_REG: redis://redis:6379/1
+      # Endpoints
+      EXT_ENDPOINT: ${HARBOR_URL:-http://localhost:8080}
+      CORE_URL: http://core:8080
+      CORE_LOCAL_URL: http://127.0.0.1:8080
+      PORTAL_URL: http://portal:8080
+      JOBSERVICE_URL: http://jobservice:8080
+      TOKEN_SERVICE_URL: http://core:8080/service/token
+      REGISTRY_URL: http://registry:5000
+      REGISTRY_CONTROLLER_URL: http://registryctl:8080
+      REGISTRY_STORAGE_PROVIDER_NAME: filesystem
+      REGISTRY_CREDENTIAL_USERNAME: harbor_registry_user
+      REGISTRY_CREDENTIAL_PASSWORD: Harbor12345  # must match config/registry/passwd
+      # Secrets — fixed on purpose, this instance is disposable
+      HARBOR_ADMIN_PASSWORD: ${HARBOR_PASSWORD:-Harbor12345}
+      CORE_SECRET: ${CORE_SECRET:-harbor-cli-test-core-secret}
+      JOBSERVICE_SECRET: ${JOBSERVICE_SECRET:-harbor-cli-test-jobsvc-secret}
+      CSRF_KEY: harbor-cli-test-csrf-key-0123456
+      # Feature toggles
+      WITH_TRIVY: "false"
+      READ_ONLY: "false"
+      MAX_JOB_WORKERS: "10"
+      PERMITTED_REGISTRY_TYPES_FOR_PROXY_CACHE: docker-hub,harbor,azure-acr,ali-acr,aws-ecr,google-gcr,docker-registry,github-ghcr,jfrog-artifactory
+      REPLICATION_ADAPTER_WHITELIST: ali-acr,aws-ecr,azure-acr,docker-hub,docker-registry,github-ghcr,google-gcr,harbor,huawei-SWR,jfrog-artifactory,tencent-tcr,volcengine-cr
+    volumes:
+      - core-data:/data
+      - secret:/etc/core/secret:ro
+      - ./config/core/app.conf:/etc/core/app.conf:ro,z
+      - ./config/core/key:/etc/core/key:ro,z
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      registry:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/v2.0/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 20s
+    restart: unless-stopped
+
+  jobservice:
+    image: goharbor/harbor-jobservice:${HARBOR_VERSION:-v2.15.2}
+    environment:
+      CORE_URL: http://core:8080
+      CORE_SECRET: ${CORE_SECRET:-harbor-cli-test-core-secret}
+      JOBSERVICE_SECRET: ${JOBSERVICE_SECRET:-harbor-cli-test-jobsvc-secret}
+      REGISTRY_URL: http://registry:5000
+      REGISTRY_CONTROLLER_URL: http://registryctl:8080
+      REGISTRY_CREDENTIAL_USERNAME: harbor_registry_user
+      REGISTRY_CREDENTIAL_PASSWORD: Harbor12345  # must match config/registry/passwd
+      JOBSERVICE_WEBHOOK_JOB_MAX_RETRY: "3"
+      JOBSERVICE_WEBHOOK_JOB_HTTP_CLIENT_TIMEOUT: "3"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./config/jobservice/config.yml:/etc/jobservice/config.yml:ro,z
+    depends_on:
+      core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/v1/stats"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  portal:
+    image: goharbor/harbor-portal:${HARBOR_VERSION:-v2.15.2}
+    volumes:
+      - ./config/portal/nginx.conf:/etc/nginx/nginx.conf:ro,z
+    restart: unless-stopped
+
+  proxy:
+    image: goharbor/nginx-photon:${HARBOR_VERSION:-v2.15.2}
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z
+    ports:
+      - "${HARBOR_PORT:-8080}:8080"
+    depends_on:
+      core:
+        condition: service_healthy
+      portal:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  redis-data:
+  registry-data:
+  core-data:
+  secret:

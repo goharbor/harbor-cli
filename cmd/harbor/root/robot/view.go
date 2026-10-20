@@ -80,7 +80,7 @@ Examples:
 			if err != nil {
 				errorCode := utils.ParseHarborErrorCode(err)
 				if errorCode == "403" {
-					return fmt.Errorf("Permission denied: (Project) Admin privileges are required to execute this command.")
+					return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command.")
 				} else {
 					return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
 				}

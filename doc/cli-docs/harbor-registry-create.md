@@ -26,7 +26,7 @@ harbor registry create
       --credential-type string            Credential type, such as 'basic', 'oauth' (default "basic")
       --description string                Description of the registry
   -h, --help                              help for create
-      --insecure                          Whether Harbor will verify the server certificate (default true)
+      --insecure                          Whether Harbor will verify the server certificate
       --name string                       Name of the registry
       --type string                       Type of the registry
       --url string                        Registry endpoint URL
@@ -36,6 +36,7 @@ harbor registry create
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+  -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```

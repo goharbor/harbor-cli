@@ -21,99 +21,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Login_Success(t *testing.T) {
-	tempDir := t.TempDir()
-	data := helpers.Initialize(t, tempDir)
-	defer helpers.ConfigCleanup(t, data)
-	cmd := root.LoginCommand()
-	validServerAddresses := []string{
-		"http://demo.goharbor.io:80",
-		"https://demo.goharbor.io:443",
-		"http://demo.goharbor.io",
-		"https://demo.goharbor.io",
-	}
+// Logins against a real Harbor live in test/e2e; these cover only what can be
+// decided without a server.
 
-	for _, serverAddress := range validServerAddresses {
-		t.Run("ValidServer_"+serverAddress, func(t *testing.T) {
-			args := []string{serverAddress}
-			cmd.SetArgs(args)
+// unreachable is a port nothing listens on, so dialing it fails immediately
+// without leaving the machine.
+const unreachable = "http://127.0.0.1:1"
 
-			assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
-			assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
-
-			err := cmd.Execute()
-			assert.NoError(t, err, "Expected no error for server: %s", serverAddress)
-		})
-	}
-}
-
-func Test_Login_Failure_WrongServer(t *testing.T) {
+func Test_Login_Failure_UnreachableServer(t *testing.T) {
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"wrongserver"})
+	cmd.SetArgs([]string{unreachable})
 
 	assert.NoError(t, cmd.Flags().Set("username", "harbor-cli"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
 
 	err := cmd.Execute()
-	assert.Error(t, err, "Expected error for invalid server")
+	assert.Error(t, err, "Expected error for unreachable server")
 }
 
-func Test_Login_Failure_WrongUsername(t *testing.T) {
-	tempDir := t.TempDir()
-	data := helpers.Initialize(t, tempDir)
-	defer helpers.ConfigCleanup(t, data)
-
-	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
-
-	assert.NoError(t, cmd.Flags().Set("username", "does-not-exist"))
-	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
-
-	err := cmd.Execute()
-	assert.Error(t, err, "Expected error for wrong username")
-}
-
-func Test_Login_Failure_WrongPassword(t *testing.T) {
-	tempDir := t.TempDir()
-	data := helpers.Initialize(t, tempDir)
-	defer helpers.ConfigCleanup(t, data)
-
-	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
-
-	assert.NoError(t, cmd.Flags().Set("username", "admin"))
-	assert.NoError(t, cmd.Flags().Set("password", "wrong"))
-
-	err := cmd.Execute()
-	assert.Error(t, err, "Expected error for wrong password")
-}
-
-func Test_Login_Success_RobotAccount(t *testing.T) {
-	tempDir := t.TempDir()
-	data := helpers.Initialize(t, tempDir)
-	defer helpers.ConfigCleanup(t, data)
-
-	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"https://demo.goharbor.io"})
-
-	assert.NoError(t, cmd.Flags().Set("username", "robot_harbor-cli"))
-	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))
-
-	err := cmd.Execute()
-	assert.NoError(t, err, "Expected no error for robot account login")
-}
-
+// Keep this last: --password-stdin is bound to a package level variable that
+// stays set for the rest of the process once a test flips it.
 func Test_Login_Failure_MutuallyExclusiveFlags(t *testing.T) {
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
 
 	cmd := root.LoginCommand()
-	cmd.SetArgs([]string{"http://demo.goharbor.io"})
+	cmd.SetArgs([]string{unreachable})
 
 	assert.NoError(t, cmd.Flags().Set("username", "admin"))
 	assert.NoError(t, cmd.Flags().Set("password", "Harbor12345"))

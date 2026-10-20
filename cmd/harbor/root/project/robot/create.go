@@ -202,7 +202,10 @@ Examples:
 			FormatFlag := viper.GetString("output-format")
 			if FormatFlag != "" {
 				name := response.Payload.Name
-				res, _ := api.GetRobot(response.Payload.ID)
+				res, err := api.GetRobot(response.Payload.ID)
+				if err != nil {
+					return fmt.Errorf("failed to get robot details: %v", utils.ParseHarborErrorMsg(err))
+				}
 				utils.SavePayloadJSON(name, res.Payload)
 				return nil
 			}

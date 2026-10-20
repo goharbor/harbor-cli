@@ -65,6 +65,9 @@ func FormatUrl(url string) string {
 }
 
 func FormatSize(size int64) string {
+	if size < 0 {
+		return "Unlimited"
+	}
 	const (
 		_         = iota
 		KiB int64 = 1 << (10 * iota)
@@ -85,6 +88,13 @@ func FormatSize(size int64) string {
 	default:
 		return fmt.Sprintf("%dB", size)
 	}
+}
+
+func FormatCount(count int64) string {
+	if count < 0 {
+		return "Unlimited"
+	}
+	return strconv.FormatInt(count, 10)
 }
 
 // ValidateUserName checks if the username is valid by length and allowed characters.
@@ -175,6 +185,26 @@ func ValidateRegistryName(rn string) bool {
 	re := regexp.MustCompile(pattern)
 
 	return re.MatchString(rn)
+}
+
+// MaxPageSize is the maximum supported value for the page size parameter.
+const MaxPageSize int64 = 100
+
+// ValidatePagination validates page and page size parameters.
+func ValidatePagination(page, pageSize int64) error {
+	if page < 1 {
+		return fmt.Errorf("page number must be greater than or equal to 1")
+	}
+
+	if pageSize < 0 {
+		return fmt.Errorf("page size must be greater than or equal to 0")
+	}
+
+	if pageSize > MaxPageSize {
+		return fmt.Errorf("page size should be less than or equal to %d", MaxPageSize)
+	}
+
+	return nil
 }
 
 // ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
