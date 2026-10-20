@@ -26,18 +26,20 @@ import (
 )
 
 type PolicyConfig struct {
-	Name              string               `yaml:"name" json:"name"`
-	Description       string               `yaml:"description" json:"description"`
-	ReplicationMode   string               `yaml:"replication_mode,omitempty" json:"replication_mode,omitempty"`
-	Filter            []*ReplicationFilter `yaml:"replication_filter,omitempty" json:"replication_filter,omitempty"`
-	TargetRegistry    string               `yaml:"target_registry,omitempty" json:"target_registry,omitempty"`
-	TriggerMode       string               `yaml:"trigger_mode,omitempty" json:"trigger_mode,omitempty"`
-	BandWidthLimit    string               `yaml:"bandwidth_limit,omitempty" json:"bandwidth_limit,omitempty"`
-	CronString        string               `yaml:"cron_string,omitempty" json:"cron_string,omitempty"`
-	Override          bool                 `yaml:"override,omitempty" json:"override,omitempty"`
-	ReplicateDeletion bool                 `yaml:"replicate_deletion,omitempty" json:"replicate_deletion,omitempty"`
-	CopyByChunk       bool                 `yaml:"copy_by_chunk,omitempty" json:"copy_by_chunk,omitempty"`
-	Enabled           bool                 `yaml:"enabled,omitempty" json:"enabled,omitempty"`
+	Name                      string               `yaml:"name" json:"name"`
+	Description               string               `yaml:"description" json:"description"`
+	DestNamespace             string               `yaml:"dest_namespace,omitempty" json:"dest_namespace,omitempty"`
+	DestNamespaceReplaceCount *int8                `yaml:"dest_namespace_replace_count,omitempty" json:"dest_namespace_replace_count,omitempty"`
+	ReplicationMode           string               `yaml:"replication_mode,omitempty" json:"replication_mode,omitempty"`
+	Filter                    []*ReplicationFilter `yaml:"replication_filter,omitempty" json:"replication_filter,omitempty"`
+	TargetRegistry            string               `yaml:"target_registry,omitempty" json:"target_registry,omitempty"`
+	TriggerMode               string               `yaml:"trigger_mode,omitempty" json:"trigger_mode,omitempty"`
+	BandWidthLimit            string               `yaml:"bandwidth_limit,omitempty" json:"bandwidth_limit,omitempty"`
+	CronString                string               `yaml:"cron_string,omitempty" json:"cron_string,omitempty"`
+	Override                  bool                 `yaml:"override,omitempty" json:"override,omitempty"`
+	ReplicateDeletion         bool                 `yaml:"replicate_deletion,omitempty" json:"replicate_deletion,omitempty"`
+	CopyByChunk               bool                 `yaml:"copy_by_chunk,omitempty" json:"copy_by_chunk,omitempty"`
+	Enabled                   bool                 `yaml:"enabled,omitempty" json:"enabled,omitempty"`
 }
 
 type ReplicationFilter struct {
@@ -96,18 +98,26 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 	}
 	log.Debug("Replication policy configuration validated successfully")
 
+	var destNamespaceReplaceCount int8
+	if config.DestNamespaceReplaceCount == nil {
+		destNamespaceReplaceCount = -1
+	} else {
+		destNamespaceReplaceCount = *config.DestNamespaceReplaceCount
+	}
 	opts := &create.CreateView{
-		Name:              config.Name,
-		Description:       config.Description,
-		ReplicationMode:   normalizeReplicationMode(config.ReplicationMode),
-		TriggerType:       normalizeTriggerMode(config.TriggerMode),
-		TargetRegistry:    config.TargetRegistry,
-		CronString:        config.CronString,
-		Override:          config.Override,
-		CopyByChunk:       config.CopyByChunk,
-		ReplicateDeletion: config.ReplicateDeletion,
-		Speed:             config.BandWidthLimit,
-		Enabled:           config.Enabled,
+		Name:                      config.Name,
+		Description:               config.Description,
+		DestNamespace:             config.DestNamespace,
+		DestNamespaceReplaceCount: destNamespaceReplaceCount,
+		ReplicationMode:           normalizeReplicationMode(config.ReplicationMode),
+		TriggerType:               normalizeTriggerMode(config.TriggerMode),
+		TargetRegistry:            config.TargetRegistry,
+		CronString:                config.CronString,
+		Override:                  config.Override,
+		CopyByChunk:               config.CopyByChunk,
+		ReplicateDeletion:         config.ReplicateDeletion,
+		Speed:                     config.BandWidthLimit,
+		Enabled:                   config.Enabled,
 	}
 
 	if err := processFilters(&config, opts); err != nil {
@@ -120,6 +130,12 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 func validateConfig(config *PolicyConfig) error {
 	if config.Name == "" {
 		return fmt.Errorf("name is required")
+	}
+
+	if config.DestNamespaceReplaceCount != nil {
+		if *config.DestNamespaceReplaceCount < -1 || *config.DestNamespaceReplaceCount > 3 {
+			return fmt.Errorf("dest_namespace_replace_count cannot be less than -1 or greater than 3")
+		}
 	}
 
 	if config.ReplicationMode != "" {
