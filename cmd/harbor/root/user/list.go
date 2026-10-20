@@ -35,16 +35,8 @@ func UserListCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
+				return err
 			}
 
 			if opts.PageSize == 0 {
@@ -55,7 +47,7 @@ func UserListCmd() *cobra.Command {
 					response, err := api.ListUsers(opts)
 					if err != nil {
 						if isUnauthorizedError(err) {
-							return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+							return fmt.Errorf("permission denied: Admin privileges are required to execute this command.")
 						}
 						return fmt.Errorf("failed to list users: %v", err)
 					}
@@ -71,7 +63,7 @@ func UserListCmd() *cobra.Command {
 				response, err := api.ListUsers(opts)
 				if err != nil {
 					if isUnauthorizedError(err) {
-						return fmt.Errorf("Permission denied: Admin privileges are required to execute this command.")
+						return fmt.Errorf("permission denied: Admin privileges are required to execute this command.")
 					}
 					return fmt.Errorf("failed to list users: %v", err)
 				}

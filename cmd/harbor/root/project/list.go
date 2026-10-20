@@ -44,20 +44,12 @@ func ListProjectCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Debug("Starting project list command")
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
+				return err
 			}
 
 			if private && public {
-				return fmt.Errorf("Cannot specify both --private and --public flags")
+				return fmt.Errorf("cannot specify both --private and --public flags")
 			}
 
 			var listFunc func(...api.ListFlags) (project.ListProjectsOK, error)

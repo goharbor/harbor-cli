@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/update"
 	"github.com/spf13/cobra"
 )
@@ -68,9 +69,9 @@ func UpdateLableCommand() *cobra.Command {
 				return fmt.Errorf("failed to parse label id: %v", err)
 			}
 
-			existingLabel := api.GetLabel(labelId)
-			if existingLabel == nil {
-				return fmt.Errorf("label is not found")
+			existingLabel, err := api.GetLabel(labelId)
+			if err != nil {
+				return fmt.Errorf("failed to get label: %v", utils.ParseHarborErrorMsg(err))
 			}
 			updateView := &models.Label{
 				Name:        existingLabel.Name,

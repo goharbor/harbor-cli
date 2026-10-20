@@ -34,12 +34,20 @@ source ~/.zshrc # or restart your terminal
 
 ### Build from Source
 
-Make sure [Go](https://go.dev/) is installed (≥ v1.24).
+Make sure [Go](https://go.dev/) is installed (≥ v1.26.3), matching the version declared in `go.mod`.
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli
 go build -o harbor-cli cmd/harbor/main.go
 ./harbor-cli --help
+```
+
+On Windows, use PowerShell commands and build the executable with the `.exe` suffix:
+
+```powershell
+git clone https://github.com/goharbor/harbor-cli.git; cd harbor-cli
+go build -o bin/harbor-cli.exe cmd/harbor/main.go
+.\bin\harbor-cli.exe --help
 ```
 
 Alternatively, use [Dagger](https://docs.dagger.io/) for isolated builds:
@@ -138,11 +146,26 @@ A good PR includes:
 
 ## 🧪 Running Tests
 
-> ✅ Note: Add your CLI or unit tests to the `test/` directory.
+Unit tests need nothing but a Go toolchain — they never reach the network:
 
 ```bash
 go test ./...
 ```
+
+End-to-end tests in `test/e2e/` drive the CLI against a real Harbor. Start a
+throwaway one first; it runs entirely on your machine from the upstream
+`goharbor/*` images, under Docker or Podman:
+
+```bash
+./test/harbor/harbor.sh up
+go test -tags e2e ./test/e2e/...
+./test/harbor/harbor.sh reset
+```
+
+See [`test/harbor/README.md`](test/harbor/README.md) for how to point the tests
+at an existing Harbor instead.
+
+> ✅ Note: Add your CLI or unit tests to the `test/` directory.
 
 ## 🧹 Code Guidelines
 
