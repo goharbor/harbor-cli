@@ -35,34 +35,61 @@ var columns = []table.Column{
 	{Title: "Creation Time", Width: 20},
 }
 
+// placeholder is shown whenever a webhook policy does not carry the target
+// details Harbor optionally omits from the response.
+const placeholder = "--"
+
 func ListWebhooks(webhooks []*models.WebhookPolicy) {
-	var rows []table.Row
-	for _, webhook := range webhooks {
-		var webhookEnabled string
-		if webhook.Enabled {
-			webhookEnabled = "True"
-		} else {
-			webhookEnabled = "False"
-		}
-		payloadFormat := "--"
-		if len(webhook.Targets[0].PayloadFormat) != 0 {
-			payloadFormat = string(webhook.Targets[0].PayloadFormat)
-		}
-		creationTime, _ := utils.FormatCreatedTime(webhook.CreationTime.String())
-		rows = append(rows, table.Row{
-			strconv.FormatInt(webhook.ID, 10),
-			webhook.Name,
-			webhookEnabled,
-			webhook.Targets[0].Address,
-			webhook.Targets[0].Type,
-			payloadFormat,
-			creationTime,
-		})
-	}
+	rows := webhookRows(webhooks)
 	m := tablelist.NewModel(columns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+// webhookRows renders the table rows for the given policies. Targets are
+// optional in the Harbor API model, so a policy without any target still
+// yields a row with placeholders instead of panicking.
+func webhookRows(webhooks []*models.WebhookPolicy) []table.Row {
+	var rows []table.Row
+	for _, webhook := range webhooks {
+		if webhook == nil {
+			continue
+		}
+
+		webhookEnabled := "False"
+		if webhook.Enabled {
+			webhookEnabled = "True"
+		}
+
+		endpointURL, notifyType := placeholder, placeholder
+		payloadFormat := placeholder
+		if len(webhook.Targets) > 0 && webhook.Targets[0] != nil {
+			target := webhook.Targets[0]
+			if target.Address != "" {
+				endpointURL = target.Address
+			}
+			if target.Type != "" {
+				notifyType = target.Type
+			}
+			if target.PayloadFormat != "" {
+				payloadFormat = string(target.PayloadFormat)
+			}
+		}
+
+		creationTime, _ := utils.FormatCreatedTime(webhook.CreationTime.String())
+		rows = append(rows, table.Row{
+			strconv.FormatInt(webhook.ID, 10),
+			webhook.Name,
+			webhookEnabled,
+			endpointURL,
+			notifyType,
+			payloadFormat,
+			creationTime,
+		})
+	}
+
+	return rows
 }
