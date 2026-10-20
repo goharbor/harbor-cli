@@ -17,8 +17,11 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	webhookcreate "github.com/goharbor/harbor-cli/pkg/views/webhook/create"
 	webhookedit "github.com/goharbor/harbor-cli/pkg/views/webhook/edit"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -96,4 +99,41 @@ func TestEditWebhookCmd_InvalidEndpointURLReturnsValidationError(t *testing.T) {
 	err := cmd.Execute()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "URL must contain a valid host")
+}
+
+func TestListWebhookCmd_OutputFormatSkipsTableView(t *testing.T) {
+	originalListWebhooks := listWebhooks
+	originalListWebhooksView := listWebhooksView
+	t.Cleanup(func() {
+		listWebhooks = originalListWebhooks
+		listWebhooksView = originalListWebhooksView
+	})
+
+	listWebhooks = func(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {
+		return webhook.ListWebhookPoliciesOfProjectOK{
+			Payload: []*models.WebhookPolicy{
+				{ID: 1, Name: "test-webhook"},
+			},
+		}, nil
+	}
+
+	viewCalled := false
+	listWebhooksView = func(policies []*models.WebhookPolicy) {
+		viewCalled = true
+	}
+
+	viper.Set("output-format", "json")
+	t.Cleanup(func() {
+		viper.Set("output-format", "")
+	})
+
+	cmd := ListWebhookCommand()
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{"my-project"})
+
+	err := cmd.Execute()
+	require.NoError(t, err)
+	assert.False(t, viewCalled, "ListWebhooks view should not be called when output-format is specified")
 }
