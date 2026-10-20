@@ -32,7 +32,7 @@ func CreateTagsCmd() *cobra.Command {
 			if len(args) == 0 || len(args) == 2 {
 				return nil
 			}
-			return fmt.Errorf("requires either 0 arguments(interactive mode) or 2 arguments(<project>/<repository>/<reference> <tag>), got %d", len(args))
+			return fmt.Errorf("requires either 0 arguments (interactive mode) or 2 arguments (<project>/<repository>/<reference> <tag>), got %d", len(args))
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
