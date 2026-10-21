@@ -23,7 +23,7 @@ harbor webhook delete [webhook-name] [flags]
 
 ```sh
   # Delete by project and webhook ID
-  harbor-cli webhook delete --project my-project --webhook 5
+  harbor-cli webhook delete --project my-project --webhook-id 5
 
   # Delete by project and webhook name
   harbor-cli webhook delete my-webhook --project my-project
