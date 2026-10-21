@@ -52,7 +52,7 @@ func Test_Login_ExistingCredentials(t *testing.T) {
 	tempDir := t.TempDir()
 	data := helpers.Initialize(t, tempDir)
 	defer helpers.ConfigCleanup(t, data)
-	helpers.SetMockKeyring(t)
+	keyring := helpers.SetMockKeyring(t)
 
 	var logs bytes.Buffer
 	log.SetOutput(&logs)
@@ -90,6 +90,10 @@ func Test_Login_ExistingCredentials(t *testing.T) {
 	logs.Reset()
 	login("harbor-cli", "Harbor67890")
 	assert.Contains(t, logs.String(), "the password is different")
+
+	// The key must come from the mock, not the host keyring
+	_, err = keyring.Get(utils.KeyringService, utils.KeyringUser)
+	assert.NoError(t, err)
 }
 
 // Keep this last: --password-stdin is bound to a package level variable that

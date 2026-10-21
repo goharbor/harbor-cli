@@ -157,7 +157,10 @@ func GetKeyringProvider() KeyringProvider {
 	return fileKeyring
 }
 
+// SetKeyringProvider overrides the provider. It also marks the lazy selection as done,
+// so the first key lookup does not replace it with the detected provider.
 func SetKeyringProvider(provider KeyringProvider) {
+	keyringProviderOnce.Do(func() {})
 	keyringProvider = provider
 }
 
