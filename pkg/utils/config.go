@@ -78,18 +78,19 @@ func InitConfig(cfgFile string, userSpecifiedConfig bool) {
 			configInitError = fmt.Errorf("failed to create data directory: %w", err)
 			log.Fatalf("%v", configInitError)
 		}
-
+		
+		// Ensure config file exists
+		if err := EnsureConfigFileExists(harborConfigPath); err != nil {
+			configInitError = err
+			log.Fatalf("%v", err)
+		}
+		
 		// Update or create data file
 		if err := ApplyDataFile(harborDataPath, harborConfigPath); err != nil {
 			configInitError = err
 			log.Fatalf("%v", err)
 		}
 
-		// Ensure config file exists
-		if err := EnsureConfigFileExists(harborConfigPath); err != nil {
-			configInitError = err
-			log.Fatalf("%v", err)
-		}
 
 		// Read and unmarshal the config file
 		err = ReadConfig(harborConfigPath)
@@ -126,6 +127,26 @@ func GetDataPaths() (harborDataPath string, harborDataDir string) {
 	return
 }
 
+// resolveConfigFilePath returns the absolute form of a config path given by the user.
+// It rejects a path that already exists as a directory, so a folder is never stored as
+// the config file location. source names the setting the path came from (for example
+// "--config"), so the error tells the user which setting to fix.
+func resolveConfigFilePath(path string, source string) (string, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path for config file from %s: %w", source, err)
+	}
+
+	if info, err := os.Stat(absPath); err == nil && info.IsDir() {
+		return "", fmt.Errorf(
+			"%s points to a directory (%s); please set it to the config file itself, e.g. %s",
+			source, absPath, filepath.Join(absPath, "config.yaml"))
+	}
+
+	return absPath, nil
+}
+
+// Helper function to determine the config path
 // Helper function to determine the config path
 func DetermineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, error) {
 	var harborConfigPath string
@@ -133,20 +154,12 @@ func DetermineConfigPath(cfgFile string, userSpecifiedConfig bool) (string, erro
 
 	// 1. Check if user specified --config
 	if userSpecifiedConfig && cfgFile != "" {
-		harborConfigPath, err = filepath.Abs(cfgFile)
-		if err != nil {
-			return "", fmt.Errorf("failed to resolve absolute path for config file: %w", err)
-		}
-		return harborConfigPath, nil
+		return resolveConfigFilePath(cfgFile, "--config")
 	}
 	// 2. Check HARBOR_CLI_CONFIG environment variable
 	harborEnvVar := os.Getenv("HARBOR_CLI_CONFIG")
 	if harborEnvVar != "" {
-		harborConfigPath, err = filepath.Abs(harborEnvVar)
-		if err != nil {
-			return "", fmt.Errorf("failed to resolve absolute path for config file from HARBOR_CLI_CONFIG: %w", err)
-		}
-		return harborConfigPath, nil
+		return resolveConfigFilePath(harborEnvVar, "HARBOR_CLI_CONFIG")
 	}
 
 	// 3. Use default XDG config path
