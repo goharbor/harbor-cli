@@ -14,6 +14,7 @@
 package utils_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -106,4 +107,34 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.CurrentCredentialName, "CurrentCredentialName should not be nil")
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
+}
+
+func Test_Config_Flag_Directory_Rejected(t *testing.T) {
+	configDir := filepath.Join(t.TempDir(), "harbor-cli")
+	assert.NoError(t, os.MkdirAll(configDir, os.ModePerm))
+
+	_, err := utils.DetermineConfigPath(configDir, true)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "points to a directory")
+	}
+}
+
+func Test_Config_EnvVar_Directory_Rejected(t *testing.T) {
+	configDir := filepath.Join(t.TempDir(), "harbor-cli")
+	assert.NoError(t, os.MkdirAll(configDir, os.ModePerm))
+	t.Setenv("HARBOR_CLI_CONFIG", configDir)
+
+	_, err := utils.DetermineConfigPath("", false)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "points to a directory")
+	}
+}
+
+func Test_Config_Flag_ExistingFile_Accepted(t *testing.T) {
+	configFile := filepath.Join(t.TempDir(), "config.yaml")
+	assert.NoError(t, os.WriteFile(configFile, []byte{}, 0o600))
+
+	path, err := utils.DetermineConfigPath(configFile, true)
+	assert.NoError(t, err)
+	assert.Equal(t, configFile, path)
 }
