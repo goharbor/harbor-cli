@@ -34,6 +34,38 @@ func ListJobQueues() (*jobservice.ListJobQueuesOK, error) {
 	return response, nil
 }
 
+// GetWorkerPools retrieves all worker pools
+func GetWorkerPools() (*jobservice.GetWorkerPoolsOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Jobservice.GetWorkerPools(ctx, &jobservice.GetWorkerPoolsParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// GetWorkers retrieves workers for a given pool
+func GetWorkers(poolID string) (*jobservice.GetWorkersOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Jobservice.GetWorkers(ctx, &jobservice.GetWorkersParams{
+		PoolID: poolID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 // ActionJobQueue performs an action on a job queue (stop/pause/resume)
 func ActionJobQueue(jobType, action string) error {
 	ctx, client, err := utils.ContextWithClient()
