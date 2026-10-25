@@ -65,6 +65,10 @@ func CreateCommand() *cobra.Command {
 				return fmt.Errorf("failed to get registry with ID %d: %v", registryID, err)
 			}
 
+			if registry == nil {
+				return fmt.Errorf("registry with ID %d not found", registryID)
+			}
+
 			policy := ConvertToPolicy(opts, registry)
 			response, err := api.CreateReplicationPolicy(&replication.CreateReplicationPolicyParams{
 				Policy: policy,
