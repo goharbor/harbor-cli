@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/sirupsen/logrus"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -26,6 +25,12 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/spf13/cobra"
+)
+
+var (
+	createMemberAPI  = api.CreateMember
+	getProjectAPI    = api.GetProject
+	getSystemInfoAPI = api.GetSystemInfo
 )
 
 func CreateMemberCommand() *cobra.Command {
@@ -44,7 +49,7 @@ func CreateMemberCommand() *cobra.Command {
 			var err error
 
 			if len(args) > 0 {
-				_, checkErr := api.GetProject(args[0], isID)
+				_, checkErr := getProjectAPI(args[0], isID)
 				if checkErr != nil {
 					if utils.ParseHarborErrorCode(checkErr) == "404" {
 						return fmt.Errorf("project %s does not exist", args[0])
@@ -59,9 +64,9 @@ func CreateMemberCommand() *cobra.Command {
 				}
 			}
 
-			sysInfo, err := api.GetSystemInfo()
+			sysInfo, err := getSystemInfoAPI()
 			if err != nil {
-				fmt.Println("could not access server info")
+				return fmt.Errorf("could not access server info: %v", err)
 			}
 
 			createView := &create.CreateView{
@@ -83,13 +88,13 @@ func CreateMemberCommand() *cobra.Command {
 
 			// check if role and member is valid
 			if opts.RoleID != 0 && opts.MemberUser.Username != "" {
-				err = api.CreateMember(*createView)
+				err = createMemberAPI(*createView)
 			} else {
 				err = createMemberView(createView)
 			}
 
 			if err != nil {
-				logrus.Errorf("failed to create user: %v", err)
+				return fmt.Errorf("failed to create member: %v", err)
 			}
 
 			fmt.Printf("successfully added user %s to project %s\n", createView.MemberUser.Username, opts.ProjectName)
@@ -113,5 +118,5 @@ func CreateMemberCommand() *cobra.Command {
 
 func createMemberView(createView *create.CreateView) error {
 	create.CreateMemberView(createView)
-	return api.CreateMember(*createView)
+	return createMemberAPI(*createView)
 }
