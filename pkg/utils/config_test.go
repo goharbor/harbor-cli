@@ -161,6 +161,9 @@ func Test_Config_EnvVar_TrailingSeparator_Directory_Rejected(t *testing.T) {
 
 func Test_InitConfig_Directory_DoesNotCreateOrModifyDataFile(t *testing.T) {
 	utils.ConfigInitialization.Reset()
+	t.Cleanup(func() {
+		utils.ConfigInitialization.Reset()
+	})
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "harbor-cli")
 	assert.NoError(t, os.MkdirAll(configDir, os.ModePerm))

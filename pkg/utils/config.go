@@ -54,6 +54,7 @@ func (o *Once) Do(f func()) {
 
 func (o *Once) Reset() {
 	o.once = sync.Once{}
+	configInitError = nil
 }
 
 var (
