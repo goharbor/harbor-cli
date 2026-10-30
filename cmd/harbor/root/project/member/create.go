@@ -16,14 +16,12 @@ package member
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/sirupsen/logrus"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/spf13/cobra"
 )
@@ -59,6 +57,12 @@ func CreateMemberCommand() *cobra.Command {
 				}
 			}
 
+			finalRoleID, err := resolveRole(opts.RoleName, opts.RoleID)
+			if err != nil {
+				return err
+			}
+			opts.RoleID = finalRoleID
+
 			sysInfo, err := api.GetSystemInfo()
 			if err != nil {
 				fmt.Println("could not access server info")
@@ -89,7 +93,7 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				logrus.Errorf("failed to create user: %v", err)
+				return fmt.Errorf("failed to create project member: %w", err)
 			}
 
 			fmt.Printf("successfully added user %s to project %s\n", createView.MemberUser.Username, opts.ProjectName)
@@ -114,4 +118,39 @@ func CreateMemberCommand() *cobra.Command {
 func createMemberView(createView *create.CreateView) error {
 	create.CreateMemberView(createView)
 	return api.CreateMember(*createView)
+}
+
+func resolveRole(roleName string, roleID int) (int, error) {
+	var resolvedIDFromName int
+	if roleName != "" {
+		normalized := strings.ToLower(strings.TrimSpace(roleName))
+		normalized = strings.ReplaceAll(normalized, "_", "")
+		normalized = strings.ReplaceAll(normalized, " ", "")
+		switch normalized {
+		case "admin", "projectadmin":
+			resolvedIDFromName = 1
+		case "developer":
+			resolvedIDFromName = 2
+		case "guest":
+			resolvedIDFromName = 3
+		case "maintainer":
+			resolvedIDFromName = 4
+		case "limitedguest":
+			resolvedIDFromName = 5
+		default:
+			return 0, fmt.Errorf("invalid role name %q: allowed values are Project_Admin, Developer, Guest, Maintainer, Limited_Guest", roleName)
+		}
+	}
+
+	if roleID != 0 {
+		if roleID < 1 || roleID > 5 {
+			return 0, fmt.Errorf("invalid role ID %d: allowed values are 1 (Project Admin), 2 (Developer), 3 (Guest), 4 (Maintainer), 5 (Limited Guest)", roleID)
+		}
+		if resolvedIDFromName != 0 && roleID != resolvedIDFromName {
+			return 0, fmt.Errorf("conflicting role flags: --role %q (ID %d) and --roleid %d", roleName, resolvedIDFromName, roleID)
+		}
+		return roleID, nil
+	}
+
+	return resolvedIDFromName, nil
 }
