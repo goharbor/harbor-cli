@@ -16,7 +16,9 @@ package create
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -45,21 +47,80 @@ type CreateView struct {
 	MemberGroup   *models.UserGroup
 }
 
-// map role names to role ids
+type Role struct {
+	ID      int
+	Name    string
+	Aliases []string
+}
+
+// Roles is the single source of truth for project member roles in Harbor.
+var Roles = []Role{
+	{ID: 1, Name: "Project Admin", Aliases: []string{"admin", "projectadmin", "project_admin"}},
+	{ID: 2, Name: "Developer", Aliases: []string{"developer"}},
+	{ID: 3, Name: "Guest", Aliases: []string{"guest"}},
+	{ID: 4, Name: "Maintainer", Aliases: []string{"maintainer"}},
+	{ID: 5, Name: "Limited Guest", Aliases: []string{"limitedguest", "limited_guest"}},
+}
+
+// RoleOptions maps role names to role ids for backward compatibility.
 var RoleOptions = map[string]int{
-	"Admin":        1,
-	"Developer":    2,
-	"Guest":        3,
-	"Maintainer":   4,
-	"LimitedGuest": 5,
+	"Admin":         1,
+	"Project Admin": 1,
+	"Developer":     2,
+	"Guest":         3,
+	"Maintainer":    4,
+	"LimitedGuest":  5,
+	"Limited Guest": 5,
+}
+
+// RoleSelectOptions builds interactive options for huh select components.
+func RoleSelectOptions() []huh.Option[int] {
+	roleSelectOptions := make([]huh.Option[int], 0, len(Roles))
+	for _, role := range Roles {
+		roleSelectOptions = append(roleSelectOptions, huh.NewOption(role.Name, role.ID))
+	}
+	return roleSelectOptions
+}
+
+// ResolveRoleName maps a role name or alias to its 1-based Role ID.
+func ResolveRoleName(roleName string) (int, error) {
+	normalized := strings.ToLower(strings.TrimSpace(roleName))
+	normalized = strings.ReplaceAll(normalized, "_", "")
+	normalized = strings.ReplaceAll(normalized, " ", "")
+
+	for _, role := range Roles {
+		for _, alias := range role.Aliases {
+			aliasNorm := strings.ReplaceAll(alias, "_", "")
+			if normalized == aliasNorm {
+				return role.ID, nil
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("invalid role name %q: allowed values are Project_Admin, Developer, Guest, Maintainer, Limited_Guest", roleName)
+}
+
+// IsValidRoleID reports whether the given role ID exists in Roles.
+func IsValidRoleID(roleID int) bool {
+	for _, role := range Roles {
+		if role.ID == roleID {
+			return true
+		}
+	}
+	return false
+}
+
+// AllowedRolesString returns a formatted string of all allowed role IDs and names.
+func AllowedRolesString() string {
+	parts := make([]string, 0, len(Roles))
+	for _, role := range Roles {
+		parts = append(parts, fmt.Sprintf("%d (%s)", role.ID, role.Name))
+	}
+	return strings.Join(parts, ", ")
 }
 
 func CreateMemberView(createView *CreateView) {
-	roleOptions := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
-	var roleSelectOptions []huh.Option[int]
-	for id, name := range roleOptions {
-		roleSelectOptions = append(roleSelectOptions, huh.NewOption(name, id))
-	}
+	roleSelectOptions := RoleSelectOptions()
 
 	groupOptions := []string{"None", "LDAP group", "HTTP group", "OIDC group"}
 	var groupSelectOptions []huh.Option[int]
