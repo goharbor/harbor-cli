@@ -16,7 +16,6 @@ package member
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -121,29 +120,17 @@ func createMemberView(createView *create.CreateView) error {
 
 func resolveRole(roleName string, roleID int, roleIDProvided bool) (int, error) {
 	var resolvedIDFromName int
+	var err error
 	if roleName != "" {
-		normalized := strings.ToLower(strings.TrimSpace(roleName))
-		normalized = strings.ReplaceAll(normalized, "_", "")
-		normalized = strings.ReplaceAll(normalized, " ", "")
-		switch normalized {
-		case "admin", "projectadmin":
-			resolvedIDFromName = 1
-		case "developer":
-			resolvedIDFromName = 2
-		case "guest":
-			resolvedIDFromName = 3
-		case "maintainer":
-			resolvedIDFromName = 4
-		case "limitedguest":
-			resolvedIDFromName = 5
-		default:
-			return 0, fmt.Errorf("invalid role name %q: allowed values are Project_Admin, Developer, Guest, Maintainer, Limited_Guest", roleName)
+		resolvedIDFromName, err = create.ResolveRoleName(roleName)
+		if err != nil {
+			return 0, err
 		}
 	}
 
 	if roleIDProvided {
-		if roleID < 1 || roleID > 5 {
-			return 0, fmt.Errorf("invalid role ID %d: allowed values are 1 (Project Admin), 2 (Developer), 3 (Guest), 4 (Maintainer), 5 (Limited Guest)", roleID)
+		if !create.IsValidRoleID(roleID) {
+			return 0, fmt.Errorf("invalid role ID %d: allowed values are %s", roleID, create.AllowedRolesString())
 		}
 		if resolvedIDFromName != 0 && roleID != resolvedIDFromName {
 			return 0, fmt.Errorf("conflicting role flags: --role %q (ID %d) and --roleid %d", roleName, resolvedIDFromName, roleID)
