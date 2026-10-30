@@ -58,7 +58,7 @@ func CreateMemberView(createView *CreateView) {
 	roleOptions := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
 	var roleSelectOptions []huh.Option[int]
 	for id, name := range roleOptions {
-		roleSelectOptions = append(roleSelectOptions, huh.NewOption(name, id))
+		roleSelectOptions = append(roleSelectOptions, huh.NewOption(name, id+1))
 	}
 
 	groupOptions := []string{"None", "LDAP group", "HTTP group", "OIDC group"}
