@@ -39,7 +39,12 @@ func CreateMemberCommand() *cobra.Command {
 		Example: "  harbor project member create my-project --username user --role Developer",
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
+			roleIDProvided := cmd.Flags().Changed("roleid")
+			finalRoleID, err := resolveRole(opts.RoleName, opts.RoleID, roleIDProvided)
+			if err != nil {
+				return err
+			}
+			opts.RoleID = finalRoleID
 
 			if len(args) > 0 {
 				_, checkErr := api.GetProject(args[0], isID)
@@ -56,12 +61,6 @@ func CreateMemberCommand() *cobra.Command {
 					return fmt.Errorf("failed to get project name: %v", err)
 				}
 			}
-
-			finalRoleID, err := resolveRole(opts.RoleName, opts.RoleID)
-			if err != nil {
-				return err
-			}
-			opts.RoleID = finalRoleID
 
 			sysInfo, err := api.GetSystemInfo()
 			if err != nil {
@@ -120,7 +119,7 @@ func createMemberView(createView *create.CreateView) error {
 	return api.CreateMember(*createView)
 }
 
-func resolveRole(roleName string, roleID int) (int, error) {
+func resolveRole(roleName string, roleID int, roleIDProvided bool) (int, error) {
 	var resolvedIDFromName int
 	if roleName != "" {
 		normalized := strings.ToLower(strings.TrimSpace(roleName))
@@ -142,7 +141,7 @@ func resolveRole(roleName string, roleID int) (int, error) {
 		}
 	}
 
-	if roleID != 0 {
+	if roleIDProvided {
 		if roleID < 1 || roleID > 5 {
 			return 0, fmt.Errorf("invalid role ID %d: allowed values are 1 (Project Admin), 2 (Developer), 3 (Guest), 4 (Maintainer), 5 (Limited Guest)", roleID)
 		}

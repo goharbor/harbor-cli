@@ -45,7 +45,7 @@ func TestResolveRole_ValidRoleNames(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.roleName, func(t *testing.T) {
-			got, err := resolveRole(tt.roleName, 0)
+			got, err := resolveRole(tt.roleName, 0, false)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantID, got)
 		})
@@ -54,7 +54,7 @@ func TestResolveRole_ValidRoleNames(t *testing.T) {
 
 func TestResolveRole_ValidRoleIDs(t *testing.T) {
 	for id := 1; id <= 5; id++ {
-		got, err := resolveRole("", id)
+		got, err := resolveRole("", id, true)
 		assert.NoError(t, err)
 		assert.Equal(t, id, got)
 	}
@@ -64,7 +64,7 @@ func TestResolveRole_InvalidRoleName(t *testing.T) {
 	invalidRoles := []string{"SuperAdmin", "root", "viewer", "Owner", "unknown"}
 	for _, role := range invalidRoles {
 		t.Run(role, func(t *testing.T) {
-			_, err := resolveRole(role, 0)
+			_, err := resolveRole(role, 0, false)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid role name")
 		})
@@ -72,9 +72,9 @@ func TestResolveRole_InvalidRoleName(t *testing.T) {
 }
 
 func TestResolveRole_InvalidRoleID(t *testing.T) {
-	invalidIDs := []int{-1, 6, 10, 99}
+	invalidIDs := []int{0, -1, 6, 10, 99}
 	for _, id := range invalidIDs {
-		_, err := resolveRole("", id)
+		_, err := resolveRole("", id, true)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid role ID")
 	}
@@ -93,7 +93,7 @@ func TestResolveRole_MatchingFlags(t *testing.T) {
 		{"Limited Guest", 5, 5},
 	}
 	for _, tt := range tests {
-		got, err := resolveRole(tt.roleName, tt.roleID)
+		got, err := resolveRole(tt.roleName, tt.roleID, true)
 		assert.NoError(t, err)
 		assert.Equal(t, tt.wantID, got)
 	}
@@ -110,14 +110,14 @@ func TestResolveRole_ConflictingFlags(t *testing.T) {
 		{"Limited_Guest", 3},
 	}
 	for _, tt := range tests {
-		_, err := resolveRole(tt.roleName, tt.roleID)
+		_, err := resolveRole(tt.roleName, tt.roleID, true)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "conflicting role flags")
 	}
 }
 
 func TestResolveRole_EmptyRole(t *testing.T) {
-	got, err := resolveRole("", 0)
+	got, err := resolveRole("", 0, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, got)
 }
@@ -137,4 +137,12 @@ func TestCreateMemberCommand_Flags(t *testing.T) {
 	usernameFlag := cmd.Flag("username")
 	assert.NotNil(t, usernameFlag)
 	assert.Equal(t, "", usernameFlag.DefValue)
+}
+
+func TestCreateMemberCommand_RoleIDZeroRejected(t *testing.T) {
+	cmd := CreateMemberCommand()
+	cmd.SetArgs([]string{"myproject", "--username", "alice", "--roleid", "0"})
+	err := cmd.Execute()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid role ID 0")
 }
