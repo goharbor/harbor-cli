@@ -27,18 +27,26 @@ Examples:
   harbor-cli project config update myproject --public false --prevent-vul true --severity high
 
 .PP
+# Scan and generate an SBOM for every artifact pushed to the project
+  harbor-cli project config update myproject --auto-scan true --auto-sbom true
+
+.PP
 # Run interactively without flags
   harbor-cli project config update
 
 .PP
 Supported flag values:
 .IP \(bu 2
-Boolean flags (public, auto-scan, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
+Boolean flags (public, auto-scan, auto-sbom, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
 .IP \(bu 2
 Severity: one of "low", "medium", "high", "critical"
 
 
 .SH OPTIONS
+\fB--auto-sbom\fP=""
+	Enable or disable automatic SBOM generation on push (true/false)
+
+.PP
 \fB--auto-scan\fP=""
 	Enable or disable auto scan (true/false)
 
