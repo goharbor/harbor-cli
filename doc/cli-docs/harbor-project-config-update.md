@@ -22,12 +22,15 @@ Examples:
   # Update multiple settings in one command
   harbor-cli project config update myproject --public false --prevent-vul true --severity high
 
+  # Scan and generate an SBOM for every artifact pushed to the project
+  harbor-cli project config update myproject --auto-scan true --auto-sbom true
+
   # Run interactively without flags
   harbor-cli project config update
 
 Supported flag values:
 
-  - Boolean flags (public, auto-scan, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
+  - Boolean flags (public, auto-scan, auto-sbom, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
   - Severity: one of "low", "medium", "high", "critical"
 
 
@@ -38,6 +41,7 @@ harbor project config update [project_name] [flags]
 ### Options
 
 ```sh
+      --auto-sbom string                     Enable or disable automatic SBOM generation on push (true/false)
       --auto-scan string                     Enable or disable auto scan (true/false)
       --enable-content-trust string          Enable or disable content trust (true/false)
       --enable-content-trust-cosign string   Enable or disable content trust cosign (true/false)
