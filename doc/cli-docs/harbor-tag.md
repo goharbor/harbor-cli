@@ -1,6 +1,6 @@
 ---
 title: harbor tag
-weight: 80
+weight: 95
 ---
 ## harbor tag
 
@@ -22,6 +22,7 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+  -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```
@@ -30,4 +31,5 @@ Manage tags in the Harbor registry, including creating, listing, and deleting ru
 
 * [harbor](harbor.md)	 - Official Harbor CLI
 * [harbor tag immutable](harbor-tag-immutable.md)	 - Manage Immutability rules in the project
+* [harbor tag retention](harbor-tag-retention.md)	 - Manage tag retention rules in the project
 

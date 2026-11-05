@@ -71,6 +71,7 @@ func UpdateInstance(instanceName string, instance models.Instance) error {
 		return err
 	}
 
+
 	return nil
 }
 

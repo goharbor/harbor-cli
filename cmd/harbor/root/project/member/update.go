@@ -57,7 +57,7 @@ func UpdateMemberCommand() *cobra.Command {
 				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
 
 				if opts.ID == 0 {
-					return fmt.Errorf("No members found in project")
+					return fmt.Errorf("no members found in project")
 				}
 			} else {
 				opts.ID, err = api.GetUsersIdByName(memberName)

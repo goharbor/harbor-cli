@@ -34,7 +34,7 @@ create registry
 	help for create
 
 .PP
-\fB--insecure\fP[=true]
+\fB--insecure\fP[=false]
 	Whether Harbor will verify the server certificate
 
 .PP
@@ -53,6 +53,10 @@ create registry
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
 \fB-c\fP, \fB--config\fP=""
 	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-l\fP, \fB--log-format\fP="text"
+	Output format for logging. One of: json|text
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""

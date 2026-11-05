@@ -40,7 +40,7 @@ func getRefDetails(ref models.QuotaRefObject) (string, string, error) {
 		ownerName, _ := refMap["owner_name"].(string)
 		return projectName, ownerName, nil
 	}
-	return "", "", fmt.Errorf("Error: Ref is not of expected type")
+	return "", "", fmt.Errorf("error: Ref is not of expected type")
 }
 
 // Function to convert bytes to human-readable storage format

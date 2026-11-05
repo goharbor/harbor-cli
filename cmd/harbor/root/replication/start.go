@@ -47,7 +47,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to start replication: %v", utils.ParseHarborErrorMsg(err))
 			}
-			fmt.Printf("Repliation started successfully with ID: %s\n", response.Location)
+			fmt.Printf("Replication started successfully with ID: %s\n", response.Location)
 			return nil
 		},
 	}

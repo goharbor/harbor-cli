@@ -29,12 +29,14 @@ func Project() *cobra.Command {
 		CreateProjectCommand(),
 		DeleteProjectCommand(),
 		ListProjectCommand(),
+		SummaryCommand(),
 		ViewCommand(),
 		LogsProjectCommmand(),
 		config.ProjectConfigCommand(),
 		SearchProjectCommand(),
 		Robot(),
 		Member(),
+		Preheat(),
 	)
 
 	return cmd

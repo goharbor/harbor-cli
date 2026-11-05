@@ -107,17 +107,22 @@ func UpdateLabel(updateView *models.Label, Labelid int64) error {
 	return nil
 }
 
-func GetLabel(labelid int64) *models.Label {
+func GetLabel(labelid int64) (*models.Label, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	response, err := client.Label.GetLabelByID(ctx, &label.GetLabelByIDParams{LabelID: labelid})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return response.GetPayload()
+	payload := response.GetPayload()
+	if payload == nil || payload.ID == 0 {
+		return nil, fmt.Errorf("label with id %d not found", labelid)
+	}
+
+	return payload, nil
 }
 
 func GetLabelIdByName(labelName string, opts ListFlags) (int64, error) {

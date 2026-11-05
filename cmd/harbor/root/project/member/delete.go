@@ -19,7 +19,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -71,7 +70,7 @@ func DeleteMemberCommand() *cobra.Command {
 				}
 				return nil
 			} else if !delAllFlag {
-				log.Println("Please provide a username or use --all flag to delete all members")
+				fmt.Println("Please provide a username or use --all flag to delete all members")
 				memID = prompt.GetMemberIDFromUser(project, username)
 				if memID == 0 {
 					fmt.Println("No members found in project")

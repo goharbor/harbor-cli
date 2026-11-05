@@ -43,7 +43,7 @@ func (m *HarborCli) Archive(ctx context.Context,
 			binPath := fmt.Sprintf("bin/%s", binName)
 
 			archiveName := fmt.Sprintf("harbor-cli_%s_%s_%s", m.AppVersion, os, arch)
-			archiveDir := getArchiveDirectory(buildDir.File(binPath), source)
+			archiveDir := getArchiveDirectory(buildDir.File(binPath), source, os)
 
 			var (
 				archiveFile string
@@ -59,7 +59,7 @@ func (m *HarborCli) Archive(ctx context.Context,
 					WithMountedDirectory("/input", archiveDir).
 					WithMountedDirectory("/out", archives).
 					WithWorkdir("/input").
-					WithExec([]string{"zip", "-j", "/out/" + archiveFile, "/input/harbor-cli", "/input/LICENSE", "/input/README.md"})
+					WithExec([]string{"zip", "-j", "/out/" + archiveFile, "/input/harbor-cli.exe", "/input/LICENSE", "/input/README.md"})
 			} else {
 				archiveFile = archiveName + ".tar.gz"
 				container = dag.Container().
@@ -81,13 +81,17 @@ func (m *HarborCli) Archive(ctx context.Context,
 	return buildDir, nil
 }
 
-func getArchiveDirectory(harborCli *dagger.File, source *dagger.Directory) *dagger.Directory {
+func getArchiveDirectory(harborCli *dagger.File, source *dagger.Directory, os string) *dagger.Directory {
 	archiveDir := dag.Directory()
+	binName := "harbor-cli"
+	if os == "windows" {
+		binName = "harbor-cli.exe"
+	}
 
 	archiveDir = archiveDir.
 		WithFile("LICENSE", source.File("LICENSE")).
 		WithFile("README.md", source.File("README.md")).
-		WithFile("harbor-cli", harborCli)
+		WithFile(binName, harborCli)
 
 	return archiveDir
 }

@@ -85,7 +85,7 @@ func LoginCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&Username, "username", "u", "", "Username")
 	flags.StringVarP(&Name, "context-name", "n", "", "Login context name (optional)")
-	flags.StringVarP(&Password, "password", "p", "", "Password")
+	flags.StringVarP(&Password, "password", "p", "", "Password (not recommended, use --password-stdin for better security)")
 	flags.BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 	flags.BoolVarP(&skipVerifyClient, "skip-verify-client", "", false, "Skip whether the clients basic auth credentials shall be validated against the Harbor server during login. This is not recommended as it may lead to storing invalid credentials. Use this flag if you want to skip validation of credentials during login, for example, when the Harbor server is not reachable at the moment of login but you still want to store the credentials for later use.")
 

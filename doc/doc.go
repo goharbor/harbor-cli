@@ -194,10 +194,10 @@ func MarkdownTreeCustom(cmd *cobra.Command, dir string, filePrepender, linkHandl
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	if _, err := io.WriteString(f, preblock); err != nil {
 		return err
 	}
-	defer f.Close()
 	if err := MarkdownCustom(cmd, f, linkHandler); err != nil {
 		return err
 	}

@@ -87,7 +87,8 @@ func ViewRobot(robot *models.Robot) {
 		enabledStatus = views.GreenStyle.Render("Enabled")
 	}
 
-	TotalPermissions := strconv.FormatInt(int64(len(robot.Permissions[0].Access)), 10)
+	totalPermissions, namespace := robotPermissionSummary(robot)
+	TotalPermissions := strconv.FormatInt(int64(totalPermissions), 10)
 
 	if robot.ExpiresAt == -1 {
 		expires = "Never"
@@ -127,7 +128,7 @@ func ViewRobot(robot *models.Robot) {
 		permissionsColumns = projectPermissionsColumns
 		resourceStrings = projectResourceStrings
 		systemLevel = false
-		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("System-level robot with access across projects: %s", robot.Permissions[0].Namespace)))
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("System-level robot with access across projects: %s", namespace)))
 	}
 
 	var permissionRows []table.Row
@@ -214,6 +215,15 @@ func ViewRobot(robot *models.Robot) {
 			os.Exit(1)
 		}
 	}
+}
+
+func robotPermissionSummary(robot *models.Robot) (permissionCount int, namespace string) {
+	namespace = "--"
+	if len(robot.Permissions) == 0 || robot.Permissions[0] == nil {
+		return 0, namespace
+	}
+
+	return len(robot.Permissions[0].Access), robot.Permissions[0].Namespace
 }
 
 func createProjectPermissionRows(perm *models.RobotPermission, availablePerms map[string][]string) []table.Row {

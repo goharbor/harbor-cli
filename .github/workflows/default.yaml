@@ -23,16 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.3
+        uses: sagikazarmark/dagger-version-action@71fb35824ad241172a822546694a4fc68631eafd # v0.0.3
 
       - name: Generate Document
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -55,7 +55,7 @@ jobs:
         continue-on-error: false
 
       - name: Run Dagger golangci-lint
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -76,16 +76,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.3
+        uses: sagikazarmark/dagger-version-action@71fb35824ad241172a822546694a4fc68631eafd # v0.0.3
 
       - name: Run Vulnerability Check
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -184,29 +184,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Dagger Version
         id: dagger_version
-        uses: sagikazarmark/dagger-version-action@v0.0.3
+        uses: sagikazarmark/dagger-version-action@71fb35824ad241172a822546694a4fc68631eafd # v0.0.3
 
       - name: Run Tests
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: test-report --source=. export --path=TestReport.json
 
       - name: Summarize Tests
-        uses: robherley/go-test-action@v0.7.1
+        uses: robherley/go-test-action@2f859e0c8769d755d3174eecb9af8f64660827f3 # v1.1.0
         with:
           fromJSONFile: TestReport.json
 
       - name: Run Test Coverage Report
         if: github.event_name == 'pull_request'
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
@@ -218,13 +218,13 @@ jobs:
 
       - name: Run Test Coverage
         if: github.event_name == 'pull_request'
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: test-coverage --source=. export --path=coverage.out
 
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         if: github.event_name == 'pull_request'
         with:
           verbose: true
@@ -232,11 +232,36 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build Binary
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: ${{ steps.dagger_version.outputs.version }}
           verb: call
           args: build-dev --source=. --platform linux/amd64 export --path=./harbor-dev
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Start Harbor
+        run: ./test/harbor/harbor.sh up
+
+      - name: Run e2e tests
+        run: go test -tags e2e -v ./test/e2e/...
+
+      - name: Dump Harbor logs
+        if: failure()
+        run: docker compose -f test/harbor/docker-compose.yaml logs --tail=200
+
+      - name: Stop Harbor
+        if: always()
+        run: ./test/harbor/harbor.sh reset
 
   push-latest-images:
     needs:
@@ -254,7 +279,7 @@ jobs:
 
       - name: Checkout repo
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -285,7 +310,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
@@ -300,7 +325,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -310,7 +335,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -320,7 +345,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -330,7 +355,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -340,7 +365,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -350,7 +375,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
           version: "latest"
           verb: call
@@ -360,7 +385,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -368,11 +393,20 @@ jobs:
           verb: call
           args: "publish-release --build-dir=./dist --token=env://GITHUB_TOKEN "
 
+      - name: Scoop Update
+        if: |
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+          (github.event_name == 'workflow_dispatch')
+        uses: ./.github/actions/scoop-update
+        with:
+          app_name: "harbor-cli"
+        
+
       - name: Apt Build
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: dagger/dagger-for-github@v7
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -384,7 +418,7 @@ jobs:
         if: |
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
           (github.event_name == 'workflow_dispatch')
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 #v7.0.2
         with:
           name: build-dir
           path: ./dist

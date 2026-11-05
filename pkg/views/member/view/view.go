@@ -16,7 +16,6 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -63,7 +62,6 @@ func ViewMember(member *models.ProjectMemberEntity, wide bool) {
 	} else {
 		colsToRemove := []string{"Role ID", "Project ID"}
 		columns = utils.RemoveColumns(columns, colsToRemove)
-		log.Println(columns)
 		rows = append(rows, table.Row{
 			memberID, // Member Name
 			member.EntityName,

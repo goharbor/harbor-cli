@@ -587,7 +587,10 @@ func updateRobotAndHandleResponse(opts *update.UpdateView) error {
 
 	// Handle output format
 	if formatFlag := viper.GetString("output-format"); formatFlag != "" {
-		res, _ := api.GetRobot(opts.ID)
+		res, err := api.GetRobot(opts.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get robot details: %v", utils.ParseHarborErrorMsg(err))
+		}
 		utils.SavePayloadJSON(opts.Name, res.Payload)
 	}
 

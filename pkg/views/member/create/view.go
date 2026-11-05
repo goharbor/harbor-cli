@@ -88,7 +88,7 @@ func CreateMemberView(createView *CreateView) {
 				Value(&createView.MemberUser.Username).
 				Validate(func(str string) error {
 					if str == "" {
-						return errors.New("Username cannot be empty.")
+						return errors.New("username cannot be empty.")
 					}
 
 					if !utils.ValidateUserName(str) {
