@@ -211,7 +211,7 @@ func ValidateRegistryName(rn string) bool {
 // The host may be an IP address, "localhost", or a valid hostname,
 // including single-label hostnames.
 func ValidateURL(rawURL string) error {
-	pattern := `(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$`
+	pattern := `^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$|^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`
 	domainNameRegex := regexp.MustCompile(pattern)
 
 	parsedURL, err := url.ParseRequestURI(rawURL)
