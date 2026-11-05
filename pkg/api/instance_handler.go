@@ -71,7 +71,6 @@ func UpdateInstance(instanceName string, instance models.Instance) error {
 		return err
 	}
 
-	fmt.Printf("Instance %s updated\n", instance.Name)
 	return nil
 }
 
