@@ -26,6 +26,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	getScannerByNameFunc     = api.GetScannerByName
+	getScannerIdFromUserFunc = prompt.GetScannerIdFromUser
+	getScannerFunc           = api.GetScanner
+	updateScannerViewFunc    = update.UpdateScannerView
+	updateScannerFunc        = api.UpdateScanner
+)
+
 func UpdateCommand() *cobra.Command {
 	var opts create.CreateView
 
@@ -53,16 +61,20 @@ Only the fields passed through flags will be updated; other fields will retain t
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var registrationID string
 			if len(args) > 0 {
-				scanner, err := api.GetScannerByName(args[0])
+				scanner, err := getScannerByNameFunc(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to retrieve scanner by name %q: %v", args[0], err)
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				registrationID = getScannerIdFromUserFunc()
 			}
 
-			resp, err := api.GetScanner(registrationID)
+			if registrationID == "" {
+				return fmt.Errorf("scanner ID cannot be empty")
+			}
+
+			resp, err := getScannerFunc(registrationID)
 			if err != nil {
 				return fmt.Errorf("scanner not found with ID %q: %v", registrationID, err)
 			}
@@ -80,17 +92,22 @@ Only the fields passed through flags will be updated; other fields will retain t
 			}
 
 			flags := cmd.Flags()
+			hasUpdateFlags := false
 			if flags.Changed("name") {
 				updateView.Name = opts.Name
+				hasUpdateFlags = true
 			}
 			if flags.Changed("description") {
 				updateView.Description = opts.Description
+				hasUpdateFlags = true
 			}
 			if flags.Changed("auth") {
 				updateView.Auth = opts.Auth
+				hasUpdateFlags = true
 			}
 			if flags.Changed("credential") {
 				updateView.AccessCredential = opts.AccessCredential
+				hasUpdateFlags = true
 			}
 			if flags.Changed("url") {
 				formattedUrl := utils.FormatUrl(opts.URL)
@@ -98,20 +115,28 @@ Only the fields passed through flags will be updated; other fields will retain t
 					return err
 				}
 				updateView.URL = strfmt.URI(formattedUrl)
+				hasUpdateFlags = true
 			}
 			if flags.Changed("disabled") {
 				updateView.Disabled = &opts.Disabled
+				hasUpdateFlags = true
 			}
 			if flags.Changed("skip-cert-verification") {
 				updateView.SkipCertVerify = &opts.SkipCertVerify
+				hasUpdateFlags = true
 			}
 			if flags.Changed("use-internal-addr") {
 				updateView.UseInternalAddr = &opts.UseInternalAddr
+				hasUpdateFlags = true
 			}
 
-			update.UpdateScannerView(updateView)
+			if !hasUpdateFlags {
+				if err := updateScannerViewFunc(updateView); err != nil {
+					return err
+				}
+			}
 
-			err = api.UpdateScanner(registrationID, *updateView)
+			err = updateScannerFunc(registrationID, *updateView)
 			if err != nil {
 				return fmt.Errorf("failed to update scanner: %v", err)
 			}
