@@ -207,10 +207,11 @@ func ValidatePagination(page, pageSize int64) error {
 	return nil
 }
 
-// ValidateURL checks if the URL has valid format, non-empty host, and host is a valid IP or domain.
-// Domain regex: labels must start/end with alphanumeric, can contain hyphens, max 63 chars, TLD min 2 letters.
+// ValidateURL checks that the URL has a valid format and a non-empty host.
+// The host may be an IP address, "localhost", or an RFC 1123-style hostname validated by domainNameRegex.
 func ValidateURL(rawURL string) error {
-	var domainNameRegex = regexp.MustCompile(`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+	pattern := `^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$|^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`
+	domainNameRegex := regexp.MustCompile(pattern)
 
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
