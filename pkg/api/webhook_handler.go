@@ -31,8 +31,10 @@ func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, e
 		return webhook.ListWebhookPoliciesOfProjectOK{}, err
 	}
 
+	IsResourceName := true
 	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
 		ProjectNameOrID: projectName,
+		XIsResourceName: &IsResourceName,
 	})
 
 	if err != nil {
@@ -47,8 +49,10 @@ func CreateWebhook(opts *create.CreateView) error {
 		return err
 	}
 
+	IsResourceName := true
 	response, err := client.Webhook.CreateWebhookPolicyOfProject(ctx, &webhook.CreateWebhookPolicyOfProjectParams{
 		ProjectNameOrID: opts.ProjectName,
+		XIsResourceName: &IsResourceName,
 		Policy: &models.WebhookPolicy{
 			Description: opts.Description,
 			Enabled:     true,
@@ -83,9 +87,11 @@ func DeleteWebhook(projectName string, webhookId int64) error {
 		log.Errorf("%s", err)
 		return err
 	}
+	IsResourceName := true
 	response, err := client.Webhook.DeleteWebhookPolicyOfProject(ctx, &webhook.DeleteWebhookPolicyOfProjectParams{
 		WebhookPolicyID: webhookId,
 		ProjectNameOrID: projectName,
+		XIsResourceName: &IsResourceName,
 	})
 	if err != nil {
 		return err
@@ -103,8 +109,10 @@ func UpdateWebhook(opts *edit.EditView) error {
 		return err
 	}
 
+	IsResourceName := true
 	response, err := client.Webhook.UpdateWebhookPolicyOfProject(ctx, &webhook.UpdateWebhookPolicyOfProjectParams{
 		ProjectNameOrID: opts.ProjectName,
+		XIsResourceName: &IsResourceName,
 		WebhookPolicyID: opts.WebhookId,
 		Policy: &models.WebhookPolicy{
 			Description: opts.Description,
@@ -137,8 +145,10 @@ func GetWebhookID(projectName string, WebhookName string) (int64, error) {
 		log.Errorf("%s", err)
 		return 0, err
 	}
+	IsResourceName := true
 	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
 		ProjectNameOrID: projectName,
+		XIsResourceName: &IsResourceName,
 	})
 
 	if err != nil {
