@@ -144,6 +144,8 @@ func updateCustomSchedule(cron string) error {
 		update.UpdateSchedule(&cron)
 	}
 
+	cron = normalizeCron(cron)
+
 	if err := validateCron(cron); err != nil {
 		return err
 	}
@@ -161,7 +163,7 @@ func updateCustomSchedule(cron string) error {
 	if err != nil {
 		errMsg := utils.ParseHarborErrorMsg(err)
 		if strings.Contains(errMsg, "400") {
-			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the standard 5-field format (minute hour day month weekday)")
+			return fmt.Errorf("invalid cron expression: Harbor rejected the schedule. Use the 6-field format (seconds minutes hours day-of-month month day-of-week)")
 		}
 		return fmt.Errorf("failed to update scan schedule: %v", errMsg)
 	}
@@ -170,16 +172,23 @@ func updateCustomSchedule(cron string) error {
 	return nil
 }
 
+// normalizeCron converts a 5-field cron expression to Harbor's 6-field format
+// by prepending the seconds field, as documented in the command help.
+func normalizeCron(cron string) string {
+	fields := strings.Fields(cron)
+	if len(fields) == 5 {
+		logrus.Debugf("Converting 5-field cron to 6-field by adding '0' for seconds")
+		return "0 " + strings.Join(fields, " ")
+	}
+	return strings.Join(fields, " ")
+}
+
 func validateCron(cron string) error {
 	if cron == "" {
 		return errors.New("cron expression cannot be empty")
 	}
 	fields := strings.Fields(cron)
 	if len(fields) < 6 {
-		if len(fields) == 5 {
-			logrus.Debugf("Converting 5-field cron to 6-field by adding '0' for seconds")
-			return fmt.Errorf("harbor requires 6-field cron format (including seconds). Try: '0 %s'", cron)
-		}
 		return fmt.Errorf("harbor requires 6-field cron format (seconds minute hour day month weekday)")
 	}
 	if len(fields) > 6 {
