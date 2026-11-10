@@ -19,9 +19,9 @@ harbor tag retention tasks list [PROJECT_NAME] [flags]
 ### Options
 
 ```sh
-  -e, --execution-id int      Retention execution ID (default -1)
+  -e, --execution-id int      Retention execution ID
   -h, --help                  help for list
-  -i, --project-id int        Project ID (default -1)
+  -i, --project-id int        Project ID
   -p, --project-name string   Project name
 ```
 
@@ -29,6 +29,7 @@ harbor tag retention tasks list [PROJECT_NAME] [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
+  -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
   -v, --verbose                verbose output
 ```

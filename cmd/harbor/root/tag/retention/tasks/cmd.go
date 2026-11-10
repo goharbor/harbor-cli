@@ -19,7 +19,6 @@ func TasksCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tasks",
 		Short: "Manage retention execution tasks",
-		Long:  "List retention execution tasks",
 	}
 
 	cmd.AddCommand(

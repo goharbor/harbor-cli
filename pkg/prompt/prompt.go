@@ -544,24 +544,19 @@ func GetPreheatPolicyExecIDFromUser(projectName string, policyName string) (int6
 	return res.id, res.err
 }
 
-func GetRetentionExecutionIDFromUser(retentionID string) int64 {
-	executionID := make(chan int64)
-	length := make(chan int)
-
-	go func() {
-		response, err := api.ListRetentionExecutions(retentionID)
-		if err != nil || response == nil {
-			length <- 0
-			return
-		}
-
-		length <- len(response.Payload)
-		rexecView.RetentionExecutionList(response.Payload, executionID)
-	}()
-
-	if <-length == 0 {
-		return 0
+// GetRetentionExecutionIDFromUser prompts the user to select a retention
+// execution. It returns (0, nil) when the policy has no executions yet, and
+// a non-nil error when the executions cannot be listed.
+func GetRetentionExecutionIDFromUser(retentionID string) (int64, error) {
+	response, err := api.ListRetentionExecutions(retentionID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to list retention executions: %w", err)
+	}
+	if response == nil || len(response.Payload) == 0 {
+		return 0, nil
 	}
 
-	return <-executionID
+	executionID := make(chan int64, 1)
+	rexecView.RetentionExecutionList(response.Payload, executionID)
+	return <-executionID, nil
 }

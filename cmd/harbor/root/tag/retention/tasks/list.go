@@ -40,11 +40,18 @@ func ListCommand() *cobra.Command {
 				projectName = args[0]
 			}
 
-			if projectID != -1 && projectName != "" {
+			if projectID < 0 {
+				return fmt.Errorf("--project-id must not be negative")
+			}
+			if executionID < 0 {
+				return fmt.Errorf("--execution-id must not be negative")
+			}
+
+			if projectID != 0 && projectName != "" {
 				return fmt.Errorf("cannot specify both --project-id and --project-name flags")
 			}
 
-			if projectID == -1 && projectName == "" {
+			if projectID == 0 && projectName == "" {
 				name, err := prompt.GetProjectNameFromUser()
 				if err != nil {
 					return err
@@ -54,7 +61,7 @@ func ListCommand() *cobra.Command {
 
 			projectIDStr := projectName
 			isName := true
-			if projectID != -1 {
+			if projectID != 0 {
 				projectIDStr = strconv.Itoa(projectID)
 				isName = false
 			}
@@ -64,8 +71,11 @@ func ListCommand() *cobra.Command {
 				return fmt.Errorf("failed to resolve retention policy: %w", err)
 			}
 
-			if executionID == -1 {
-				executionID = prompt.GetRetentionExecutionIDFromUser(retentionID)
+			if executionID == 0 {
+				executionID, err = prompt.GetRetentionExecutionIDFromUser(retentionID)
+				if err != nil {
+					return err
+				}
 			}
 			if executionID == 0 {
 				fmt.Println("No retention executions found")
@@ -88,8 +98,8 @@ func ListCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&projectName, "project-name", "p", "", "Project name")
-	cmd.Flags().IntVarP(&projectID, "project-id", "i", -1, "Project ID")
-	cmd.Flags().Int64VarP(&executionID, "execution-id", "e", -1, "Retention execution ID")
+	cmd.Flags().IntVarP(&projectID, "project-id", "i", 0, "Project ID")
+	cmd.Flags().Int64VarP(&executionID, "execution-id", "e", 0, "Retention execution ID")
 
 	return cmd
 }

@@ -14,7 +14,7 @@ List repository-level retention tasks for a specific retention execution
 
 
 .SH OPTIONS
-\fB-e\fP, \fB--execution-id\fP=-1
+\fB-e\fP, \fB--execution-id\fP=0
 	Retention execution ID
 
 .PP
@@ -22,7 +22,7 @@ List repository-level retention tasks for a specific retention execution
 	help for list
 
 .PP
-\fB-i\fP, \fB--project-id\fP=-1
+\fB-i\fP, \fB--project-id\fP=0
 	Project ID
 
 .PP
@@ -33,6 +33,10 @@ List repository-level retention tasks for a specific retention execution
 .SH OPTIONS INHERITED FROM PARENT COMMANDS
 \fB-c\fP, \fB--config\fP=""
 	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-l\fP, \fB--log-format\fP="text"
+	Output format for logging. One of: json|text
 
 .PP
 \fB-o\fP, \fB--output-format\fP=""
