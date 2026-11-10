@@ -14,6 +14,7 @@
 package executions
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -26,11 +27,22 @@ import (
 	"golang.org/x/term"
 )
 
+// ErrUserAborted is returned when the user quits the selection without
+// picking an execution.
+var ErrUserAborted = errors.New("user aborted selection")
+
 func truncateString(s string, maxLen int) string {
-	if len(s) > maxLen {
-		return s[:maxLen-3] + "..."
+	if maxLen <= 0 {
+		return ""
 	}
-	return s
+	runes := []rune(s)
+	if len(runes) <= maxLen {
+		return s
+	}
+	if maxLen <= 3 {
+		return string(runes[:maxLen])
+	}
+	return string(runes[:maxLen-3]) + "..."
 }
 
 func getTerminalWidth() int {
@@ -78,7 +90,9 @@ func ListRetentionExecutions(executions []*models.RetentionExecution) {
 	}
 }
 
-func RetentionExecutionList(executions []*models.RetentionExecution, choice chan<- int64) {
+// RetentionExecutionList prompts the user to select one of the executions.
+// It returns ErrUserAborted when the user quits without choosing.
+func RetentionExecutionList(executions []*models.RetentionExecution) (int64, error) {
 	itemsList := make([]list.Item, len(executions))
 	items := map[string]int64{}
 
@@ -104,6 +118,14 @@ func RetentionExecutionList(executions []*models.RetentionExecution, choice chan
 	}
 
 	if model, ok := p.(selection.Model); ok {
-		choice <- items[model.Choice]
+		if model.Aborted {
+			return 0, ErrUserAborted
+		}
+		id, ok := items[model.Choice]
+		if !ok {
+			return 0, errors.New("no execution selected")
+		}
+		return id, nil
 	}
+	return 0, errors.New("unexpected program result")
 }

@@ -27,10 +27,17 @@ import (
 )
 
 func truncateString(s string, maxLen int) string {
-	if len(s) > maxLen {
-		return s[:maxLen-3] + "..."
+	if maxLen <= 0 {
+		return ""
 	}
-	return s
+	runes := []rune(s)
+	if len(runes) <= maxLen {
+		return s
+	}
+	if maxLen <= 3 {
+		return string(runes[:maxLen])
+	}
+	return string(runes[:maxLen-3]) + "..."
 }
 
 func getTerminalWidth() int {
@@ -58,10 +65,11 @@ func getAdjustedColumns() []table.Column {
 	}
 }
 
-func ListRetentionTasks(tasks []*models.RetentionExecutionTask) {
+// buildTaskRows renders the tasks into table rows, truncating each cell to
+// its column width. It is separate from ListRetentionTasks so the rendered
+// fields can be verified without a terminal.
+func buildTaskRows(tasks []*models.RetentionExecutionTask, columns []table.Column) []table.Row {
 	var rows []table.Row
-	columns := getAdjustedColumns()
-
 	for _, task := range tasks {
 		rows = append(rows, table.Row{
 			truncateString(fmt.Sprintf("%d", task.ID), columns[0].Width),
@@ -76,6 +84,12 @@ func ListRetentionTasks(tasks []*models.RetentionExecutionTask) {
 			truncateString(task.EndTime, columns[9].Width),
 		})
 	}
+	return rows
+}
+
+func ListRetentionTasks(tasks []*models.RetentionExecutionTask) {
+	columns := getAdjustedColumns()
+	rows := buildTaskRows(tasks, columns)
 
 	m := tablelist.NewModel(columns, rows, len(rows))
 	if _, err := tea.NewProgram(m).Run(); err != nil {

@@ -556,7 +556,12 @@ func GetRetentionExecutionIDFromUser(retentionID string) (int64, error) {
 		return 0, nil
 	}
 
-	executionID := make(chan int64, 1)
-	rexecView.RetentionExecutionList(response.Payload, executionID)
-	return <-executionID, nil
+	id, err := rexecView.RetentionExecutionList(response.Payload)
+	if err != nil {
+		if err == rexecView.ErrUserAborted {
+			return 0, errors.New("user aborted execution selection")
+		}
+		return 0, fmt.Errorf("error during execution selection: %w", err)
+	}
+	return id, nil
 }

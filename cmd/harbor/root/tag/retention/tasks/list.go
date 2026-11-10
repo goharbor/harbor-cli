@@ -87,9 +87,8 @@ func ListCommand() *cobra.Command {
 				return fmt.Errorf("failed to list retention tasks: %w", err)
 			}
 
-			if viper.GetString("output-format") != "" {
-				utils.PrintPayloadInJSONFormat(resp.Payload)
-				return nil
+			if formatFlag := viper.GetString("output-format"); formatFlag != "" {
+				return utils.PrintFormat(resp.Payload, formatFlag)
 			}
 
 			taskview.ListRetentionTasks(resp.Payload)

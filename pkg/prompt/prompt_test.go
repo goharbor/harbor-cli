@@ -47,9 +47,14 @@ func pointClientAt(t *testing.T, url string) {
 // reported as "no executions", which sent users down the wrong path on a
 // plain network failure.
 func TestGetRetentionExecutionIDFromUser_PropagatesAPIError(t *testing.T) {
-	// unreachable is a port nothing listens on, so dialing it fails
-	// immediately without leaving the machine.
-	pointClientAt(t, "http://127.0.0.1:1")
+	// Bind a server, take its address, then close it: the port is one the
+	// test allocated, and nothing listens on it afterwards, so the dial
+	// fails immediately without depending on any particular port being free.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	deadURL := srv.URL
+	srv.Close()
+
+	pointClientAt(t, deadURL)
 
 	id, err := prompt.GetRetentionExecutionIDFromUser("1")
 
