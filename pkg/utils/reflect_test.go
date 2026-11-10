@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractConfigValues_FromConfigurations(t *testing.T) {
@@ -67,6 +68,24 @@ func TestExtractConfigValues_ExcludesEmptyString(t *testing.T) {
 	assert.False(t, exists)
 }
 
+func TestExtractConfigValues_StringPointerCase(t *testing.T) {
+	mode := "ldap_auth"
+	cfg := &models.Configurations{AuthMode: &mode}
+
+	result := utils.ExtractConfigValues(cfg)
+	assert.Equal(t, "ldap_auth", result["AuthMode"])
+}
+
+func TestExtractConfigValues_GenericPointerFallback(t *testing.T) {
+	quota := int64(100)
+	enabled := true
+	cfg := &models.Configurations{StoragePerProject: &quota, SelfRegistration: &enabled}
+
+	result := utils.ExtractConfigValues(cfg)
+	assert.Equal(t, int64(100), result["StoragePerProject"])
+	assert.Equal(t, true, result["SelfRegistration"])
+}
+
 func TestConvertToConfigurations(t *testing.T) {
 	resp := &models.ConfigurationsResponse{
 		AuthMode:         &models.StringConfigItem{Value: "db_auth"},
@@ -82,10 +101,47 @@ func TestConvertToConfigurations(t *testing.T) {
 	assert.Equal(t, int64(30), *cfg.TokenExpiration)
 }
 
-func TestConvertToConfigurations_NilPanics(t *testing.T) {
-	assert.Panics(t, func() {
-		utils.ConvertToConfigurations(nil)
-	})
+func TestConvertToConfigurations_Nil(t *testing.T) {
+	cfg := utils.ConvertToConfigurations(nil)
+	assert.NotNil(t, cfg)
+	assert.Equal(t, &models.Configurations{}, cfg)
+}
+
+func TestConvertToConfigurations_SecretFieldEncrypted(t *testing.T) {
+	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_KEY"})
+	require.NoError(t, utils.GenerateEncryptionKey())
+
+	resp := &models.ConfigurationsResponse{
+		UaaClientSecret: &models.StringConfigItem{Value: "super-secret"},
+		AuthMode:        &models.StringConfigItem{Value: "db_auth"},
+	}
+	cfg := utils.ConvertToConfigurations(resp)
+
+	require.NotNil(t, cfg.UaaClientSecret)
+	assert.NotEqual(t, "super-secret", *cfg.UaaClientSecret)
+	key, err := utils.GetEncryptionKey()
+	require.NoError(t, err)
+	plain, err := utils.Decrypt(key, *cfg.UaaClientSecret)
+	require.NoError(t, err)
+	assert.Equal(t, "super-secret", plain)
+
+	require.NotNil(t, cfg.AuthMode)
+	assert.Equal(t, "db_auth", *cfg.AuthMode)
+}
+
+func TestConvertToConfigurations_SecretFieldEncryptError(t *testing.T) {
+	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_BAD_KEY"})
+	t.Setenv("TEST_REFLECT_ENC_BAD_KEY", "!!!not-base64!!!")
+
+	resp := &models.ConfigurationsResponse{
+		UaaClientSecret: &models.StringConfigItem{Value: "super-secret"},
+		AuthMode:        &models.StringConfigItem{Value: "db_auth"},
+	}
+	cfg := utils.ConvertToConfigurations(resp)
+
+	assert.Nil(t, cfg.UaaClientSecret)
+	require.NotNil(t, cfg.AuthMode)
+	assert.Equal(t, "db_auth", *cfg.AuthMode)
 }
 
 func TestExtractConfigurationsByCategory_Nil(t *testing.T) {
