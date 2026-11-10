@@ -111,23 +111,34 @@ func DeleteProject(projectNameOrID string, forceDelete bool, useProjectID bool) 
 			}
 		}
 
-		resp, err = ListRepository(projectNameOrID, useProjectID)
-		if err != nil {
-			log.Errorf("failed to list repositories: %v", err)
-			return err
-		}
+		var page int64 = 1
+		const pageSize int64 = 100
 
-		for _, repo := range resp.Payload {
-			_, repoName, err := utils.ParseProjectRepo(repo.Name)
+		for {
+			resp, err = ListRepository(projectNameOrID, useProjectID, ListFlags{
+				Page:     page,
+				PageSize: pageSize,
+			})
 			if err != nil {
-				log.Errorf("failed to parse project/repo: %v", err)
+				log.Errorf("failed to list repositories: %v", err)
 				return err
 			}
-			err = RepoDelete(projectNameOrID, repoName, useProjectID)
-			if err != nil {
-				log.Errorf("failed to delete repository: %v", err)
-				return err
+			for _, repo := range resp.Payload {
+				_, repoName, err := utils.ParseProjectRepo(repo.Name)
+				if err != nil {
+					log.Errorf("failed to parse project/repo: %v", err)
+					return err
+				}
+				err = RepoDelete(projectNameOrID, repoName, useProjectID)
+				if err != nil {
+					log.Errorf("failed to delete repository: %v", err)
+					return err
+				}
 			}
+			if int64(len(resp.Payload)) < pageSize {
+				break
+			}
+			page++
 		}
 	}
 	useProjectName := !useProjectID
