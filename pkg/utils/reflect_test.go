@@ -109,6 +109,7 @@ func TestConvertToConfigurations_Nil(t *testing.T) {
 
 func TestConvertToConfigurations_SecretFieldEncrypted(t *testing.T) {
 	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_KEY"})
+	t.Cleanup(func() { utils.SetKeyringProvider(&utils.SystemKeyring{}) })
 	require.NoError(t, utils.GenerateEncryptionKey())
 
 	resp := &models.ConfigurationsResponse{
@@ -131,6 +132,7 @@ func TestConvertToConfigurations_SecretFieldEncrypted(t *testing.T) {
 
 func TestConvertToConfigurations_SecretFieldEncryptError(t *testing.T) {
 	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_BAD_KEY"})
+	t.Cleanup(func() { utils.SetKeyringProvider(&utils.SystemKeyring{}) })
 	t.Setenv("TEST_REFLECT_ENC_BAD_KEY", "!!!not-base64!!!")
 
 	resp := &models.ConfigurationsResponse{
