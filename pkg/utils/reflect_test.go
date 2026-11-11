@@ -14,6 +14,7 @@
 package utils_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -108,6 +109,12 @@ func TestConvertToConfigurations_Nil(t *testing.T) {
 }
 
 func TestConvertToConfigurations_SecretFieldEncrypted(t *testing.T) {
+	// Pre-fire the package-level keyring sync.Once so the provider injected
+	// below is not overwritten mid-test; the valid env key keeps the
+	// pre-fire write-free regardless of run order.
+	t.Setenv("HARBOR_ENCRYPTION_KEY", base64.StdEncoding.EncodeToString(make([]byte, 32)))
+	_, _ = utils.GetEncryptionKey()
+
 	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_KEY"})
 	t.Cleanup(func() { utils.SetKeyringProvider(&utils.SystemKeyring{}) })
 	require.NoError(t, utils.GenerateEncryptionKey())
@@ -131,6 +138,12 @@ func TestConvertToConfigurations_SecretFieldEncrypted(t *testing.T) {
 }
 
 func TestConvertToConfigurations_SecretFieldEncryptError(t *testing.T) {
+	// Pre-fire the package-level keyring sync.Once so the provider injected
+	// below is not overwritten mid-test; the failing env key keeps the
+	// pre-fire write-free regardless of run order.
+	t.Setenv("HARBOR_ENCRYPTION_KEY", "!!!not-base64!!!")
+	_, _ = utils.GetEncryptionKey()
+
 	utils.SetKeyringProvider(&utils.EnvironmentKeyring{EnvVarName: "TEST_REFLECT_ENC_BAD_KEY"})
 	t.Cleanup(func() { utils.SetKeyringProvider(&utils.SystemKeyring{}) })
 	t.Setenv("TEST_REFLECT_ENC_BAD_KEY", "!!!not-base64!!!")
