@@ -16,6 +16,8 @@ package list
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -30,6 +32,11 @@ var columns = []table.Column{
 	{Title: "Resource Type", Width: 14},
 	{Title: "Operation", Width: 10},
 	{Title: "Time", Width: 16},
+}
+
+var eventTypeColumns = []table.Column{
+	{Title: "INDEX", Width: tablelist.WidthS},
+	{Title: "EVENT_TYPE", Width: 40},
 }
 
 func ListLogs(logs []*models.AuditLogExt) {
@@ -51,4 +58,52 @@ func ListLogs(logs []*models.AuditLogExt) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func ListAuditLogEventTypes(eventTypes []*models.AuditLogEventType, page, pageSize int64, total int, showPaginationSummary bool) {
+	if len(eventTypes) == 0 {
+		if showPaginationSummary {
+			fmt.Println("No audit log event types found for the requested page.")
+			return
+		}
+		fmt.Println("No audit log event types found.")
+		return
+	}
+
+	startIndex := int64(1)
+	if showPaginationSummary {
+		startIndex = (page-1)*pageSize + 1
+	}
+
+	var rows []table.Row
+	for i, eventType := range eventTypes {
+		rows = append(rows, table.Row{
+			strconv.FormatInt(startIndex+int64(i), 10),
+			auditLogEventTypeName(eventType),
+		})
+	}
+
+	m := tablelist.NewModel(eventTypeColumns, rows, len(rows))
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+
+	if showPaginationSummary {
+		endIndex := startIndex + int64(len(eventTypes)) - 1
+		fmt.Printf("\nShowing %d-%d of %d\n", startIndex, endIndex, total)
+	}
+}
+
+func auditLogEventTypeName(eventType *models.AuditLogEventType) string {
+	if eventType == nil {
+		return "-"
+	}
+
+	name := strings.TrimSpace(eventType.EventType)
+	if name == "" {
+		return "-"
+	}
+
+	return name
 }
