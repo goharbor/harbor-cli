@@ -170,3 +170,56 @@ func TestBuildQueryParam_InvalidKeyRange(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid key")
 }
+
+func TestBuildQueryParam_FuzzyValueContainsEquals(t *testing.T) {
+	// Documents current behavior: values containing "=" are rejected
+	// because the arg is split on every "=" (strings.Split).
+	_, err := utils.BuildQueryParam(
+		[]string{"name=foo=bar"},
+		nil, nil,
+		[]string{"name"},
+	)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid fuzzy arg")
+}
+
+func TestBuildQueryParam_EmptyValue(t *testing.T) {
+	// Documents current behavior: an empty value passes the length check
+	// and produces an empty query term.
+	fuzzy, err := utils.BuildQueryParam(
+		[]string{"name="},
+		nil, nil,
+		[]string{"name"},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, "name=~", fuzzy)
+
+	match, err := utils.BuildQueryParam(
+		nil,
+		[]string{"name="},
+		nil,
+		[]string{"name"},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, "name=", match)
+}
+
+func TestBuildQueryParam_EmptyRangeBounds(t *testing.T) {
+	// Documents current behavior: half-open ranges are accepted and
+	// emitted as-is.
+	result, err := utils.BuildQueryParam(
+		nil, nil,
+		[]string{"size=1~"},
+		[]string{"size"},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, "size=[1~]", result)
+
+	result, err = utils.BuildQueryParam(
+		nil, nil,
+		[]string{"size=~100"},
+		[]string{"size"},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, "size=[~100]", result)
+}
