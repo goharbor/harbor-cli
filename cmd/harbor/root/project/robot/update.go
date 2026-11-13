@@ -113,6 +113,9 @@ Examples:
 			}
 
 			bot := robot.Payload
+			flags := cmd.Flags()
+			useFlags := flags.Changed("description") || flags.Changed("duration")
+			description, newDuration := opts.Description, opts.Duration
 
 			var duration int64
 			if bot.Duration != nil {
@@ -129,6 +132,30 @@ Examples:
 				Level:        bot.Level,
 				Name:         bot.Name,
 				Secret:       bot.Secret,
+			}
+			if flags.Changed("description") {
+				opts.Description = description
+			}
+			if flags.Changed("duration") {
+				opts.Duration = newDuration
+			}
+
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to Update robot: duration cannot be 0")
+			}
+
+			if useFlags && !all {
+				for _, p := range bot.Permissions {
+					opts.Permissions = append(opts.Permissions, &update.RobotPermission{
+						Kind:      p.Kind,
+						Namespace: p.Namespace,
+						Access:    p.Access,
+					})
+				}
+				if err := api.UpdateRobot(&opts); err != nil {
+					return fmt.Errorf("failed to Update robot: %v", err)
+				}
+				return nil
 			}
 
 			// declare empty permissions to hold permissions

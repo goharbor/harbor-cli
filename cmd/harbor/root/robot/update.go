@@ -107,6 +107,10 @@ Examples:
 				return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
 			}
 
+			flags := cmd.Flags()
+			description, duration := opts.Description, opts.Duration
+			useFlags := flags.Changed("description") || flags.Changed("duration")
+
 			// Initialize update view with current values
 			bot := robot.Payload
 			opts.ID = bot.ID
@@ -118,6 +122,12 @@ Examples:
 			opts.Disable = bot.Disable
 			opts.Editable = bot.Editable
 			opts.CreationTime = bot.CreationTime
+			if flags.Changed("description") {
+				opts.Description = description
+			}
+			if flags.Changed("duration") {
+				opts.Duration = duration
+			}
 
 			// Extract current permissions (both system and project)
 			var permissions []models.Permission
@@ -147,12 +157,16 @@ Examples:
 			logrus.Debugf("Loaded robot with %d system permissions and %d project-specific permissions",
 				len(permissions), len(projectPermissionsMap))
 
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to update robot: duration cannot be 0")
+			}
+
 			// Handle configuration from file or interactive input
 			if configFile != "" {
 				if err := loadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
-			} else {
+			} else if !useFlags || all {
 				if err := handleInteractiveInputForUpdate(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
