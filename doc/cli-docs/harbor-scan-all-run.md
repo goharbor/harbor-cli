@@ -1,6 +1,6 @@
 ---
 title: harbor scan all run
-weight: 80
+weight: 65
 ---
 ## harbor scan-all run
 

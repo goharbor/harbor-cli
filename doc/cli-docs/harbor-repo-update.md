@@ -1,6 +1,6 @@
 ---
 title: harbor repo update
-weight: 55
+weight: 60
 ---
 ## harbor repo update
 

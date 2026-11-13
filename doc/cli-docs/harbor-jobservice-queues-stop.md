@@ -1,6 +1,6 @@
 ---
 title: harbor jobservice queues stop
-weight: 60
+weight: 35
 ---
 ## harbor jobservice queues stop
 

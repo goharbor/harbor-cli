@@ -1,6 +1,6 @@
 ---
 title: harbor artifact tags delete
-weight: 80
+weight: 65
 ---
 ## harbor artifact tags delete
 

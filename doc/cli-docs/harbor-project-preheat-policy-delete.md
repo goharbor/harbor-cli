@@ -1,6 +1,6 @@
 ---
 title: harbor project preheat policy delete
-weight: 20
+weight: 25
 ---
 ## harbor project preheat policy delete
 

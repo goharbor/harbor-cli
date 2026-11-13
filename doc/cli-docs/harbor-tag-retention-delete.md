@@ -1,6 +1,6 @@
 ---
 title: harbor tag retention delete
-weight: 15
+weight: 30
 ---
 ## harbor tag retention delete
 
