@@ -39,22 +39,31 @@ const testRobot = `{
 	]
 }`
 
-func useRobotServer(t *testing.T) *models.Robot {
+type robotUpdate struct {
+	path  string
+	robot models.Robot
+}
+
+func useRobotServer(t *testing.T) *robotUpdate {
 	t.Helper()
 
 	var mu sync.Mutex
-	updated := &models.Robot{}
+	updated := &robotUpdate{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if r.Method == http.MethodPut {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/api/v2.0/robots/7":
+			_, _ = w.Write([]byte(testRobot))
+		case r.Method == http.MethodPut:
 			body, _ := io.ReadAll(r.Body)
 			mu.Lock()
-			_ = json.Unmarshal(body, updated)
+			updated.path = r.URL.Path
+			_ = json.Unmarshal(body, &updated.robot)
 			mu.Unlock()
 			_, _ = w.Write([]byte("{}"))
-			return
+		default:
+			http.Error(w, "unexpected request", http.StatusNotFound)
 		}
-		_, _ = w.Write([]byte(testRobot))
 	}))
 
 	utils.ClientOnce = sync.Once{}
@@ -91,13 +100,25 @@ func TestUpdateProjectRobotCommandUsesFlags(t *testing.T) {
 			cmd.SetArgs(tt.args)
 			require.NoError(t, cmd.Execute())
 
-			assert.Equal(t, tt.wantDescription, updated.Description)
-			require.NotNil(t, updated.Duration)
-			assert.Equal(t, tt.wantDuration, *updated.Duration)
-			require.Len(t, updated.Permissions, 1)
-			assert.Equal(t, "library", updated.Permissions[0].Namespace)
-			require.Len(t, updated.Permissions[0].Access, 1)
-			assert.Equal(t, "repository", updated.Permissions[0].Access[0].Resource)
+			assert.Equal(t, "/api/v2.0/robots/7", updated.path)
+			assert.Equal(t, tt.wantDescription, updated.robot.Description)
+			require.NotNil(t, updated.robot.Duration)
+			assert.Equal(t, tt.wantDuration, *updated.robot.Duration)
+			require.Len(t, updated.robot.Permissions, 1)
+			assert.Equal(t, "project", updated.robot.Permissions[0].Kind)
+			assert.Equal(t, "library", updated.robot.Permissions[0].Namespace)
+			require.Len(t, updated.robot.Permissions[0].Access, 1)
+			assert.Equal(t, "repository", updated.robot.Permissions[0].Access[0].Resource)
+			assert.Equal(t, "pull", updated.robot.Permissions[0].Access[0].Action)
 		})
 	}
+}
+
+func TestUpdateProjectRobotCommandRejectsZeroDuration(t *testing.T) {
+	updated := useRobotServer(t)
+
+	cmd := UpdateRobotCommand()
+	cmd.SetArgs([]string{"7", "--duration", "0"})
+	require.ErrorContains(t, cmd.Execute(), "duration cannot be 0")
+	assert.Empty(t, updated.path)
 }

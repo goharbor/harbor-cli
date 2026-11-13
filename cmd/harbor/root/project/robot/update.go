@@ -140,6 +140,10 @@ Examples:
 				opts.Duration = newDuration
 			}
 
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to Update robot: duration cannot be 0")
+			}
+
 			if useFlags && !all {
 				for _, p := range bot.Permissions {
 					opts.Permissions = append(opts.Permissions, &update.RobotPermission{
@@ -147,9 +151,6 @@ Examples:
 						Namespace: p.Namespace,
 						Access:    p.Access,
 					})
-				}
-				if opts.Duration == 0 {
-					return fmt.Errorf("failed to Update robot: duration cannot be 0")
 				}
 				if err := api.UpdateRobot(&opts); err != nil {
 					return fmt.Errorf("failed to Update robot: %v", err)

@@ -157,16 +157,16 @@ Examples:
 			logrus.Debugf("Loaded robot with %d system permissions and %d project-specific permissions",
 				len(permissions), len(projectPermissionsMap))
 
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to update robot: duration cannot be 0")
+			}
+
 			// Handle configuration from file or interactive input
 			if configFile != "" {
 				if err := loadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
-			} else if useFlags {
-				if opts.Duration == 0 {
-					return fmt.Errorf("failed to update robot: duration cannot be 0")
-				}
-			} else {
+			} else if !useFlags || all {
 				if err := handleInteractiveInputForUpdate(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
