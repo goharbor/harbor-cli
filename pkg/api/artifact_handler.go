@@ -163,18 +163,27 @@ func ListTags(projectName, repoName, reference string) (*artifact.ListTagsOK, er
 		return &artifact.ListTagsOK{}, err
 	}
 
-	resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
-		ProjectName:    projectName,
-		RepositoryName: encodeRepoName(repoName),
-		Reference:      reference,
-	})
+	pageSize := int64(100)
+	allTags := &artifact.ListTagsOK{}
+	for page := int64(1); ; page++ {
+		resp, err := client.Artifact.ListTags(ctx, &artifact.ListTagsParams{
+			ProjectName:    projectName,
+			RepositoryName: encodeRepoName(repoName),
+			Reference:      reference,
+			Page:           &page,
+			PageSize:       &pageSize,
+		})
+		if err != nil {
+			log.Errorf("Failed to list tags: %v", err)
+			return &artifact.ListTagsOK{}, err
+		}
 
-	if err != nil {
-		log.Errorf("Failed to list tags: %v", err)
-		return &artifact.ListTagsOK{}, err
+		allTags.Payload = append(allTags.Payload, resp.Payload...)
+		allTags.XTotalCount = resp.XTotalCount
+		if int64(len(resp.Payload)) < pageSize {
+			return allTags, nil
+		}
 	}
-
-	return resp, nil
 }
 
 // CreateTag creates a tag for a specific artifact.
