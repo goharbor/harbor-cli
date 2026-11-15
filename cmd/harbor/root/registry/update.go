@@ -98,7 +98,9 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			update.UpdateRegistryView(updateView)
-			err = api.UpdateRegistry(updateView, registryId)
+			secretChanged := flags.Changed("credential-access-secret") ||
+				updateView.Credential.AccessSecret != existingRegistry.Credential.AccessSecret
+			err = api.UpdateRegistry(updateView, registryId, secretChanged)
 			if err != nil {
 				return fmt.Errorf("failed to update registry: %v", err)
 			}

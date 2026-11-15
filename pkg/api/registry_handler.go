@@ -128,10 +128,10 @@ func GetRegistryResponse(registryId int64) (*models.Registry, error) {
 	return response.GetPayload(), err
 }
 
-// maskedSecret is what Harbor returns in place of a stored access secret.
-const maskedSecret = "*****"
-
-func UpdateRegistry(updateView *models.Registry, projectID int64) error {
+// UpdateRegistry sends the access secret only when secretChanged is set.
+// Harbor returns a stored secret as "*****", and saves any secret it
+// receives, so sending the fetched value back would replace the real one.
+func UpdateRegistry(updateView *models.Registry, projectID int64, secretChanged bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func UpdateRegistry(updateView *models.Registry, projectID int64) error {
 		CredentialType: &updateView.Credential.Type,
 		Insecure:       &updateView.Insecure,
 	}
-	if updateView.Credential.AccessSecret != maskedSecret {
+	if secretChanged {
 		registryUpdate.AccessSecret = &updateView.Credential.AccessSecret
 	}
 

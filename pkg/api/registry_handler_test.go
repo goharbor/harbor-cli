@@ -15,53 +15,29 @@ package api
 
 import (
 	"encoding/json"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"sync"
 	"testing"
 
-	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateRegistryDoesNotSendMaskedSecret(t *testing.T) {
+func TestUpdateRegistrySendsSecretOnlyWhenChanged(t *testing.T) {
 	tests := []struct {
-		name       string
-		secret     string
-		wantSecret any
+		name          string
+		secret        string
+		secretChanged bool
+		wantSecret    any
 	}{
-		{"masked secret from Harbor", "*****", nil},
-		{"new secret", "s3cret", "s3cret"},
-		{"cleared secret", "", ""},
+		{"masked secret from Harbor", "*****", false, nil},
+		{"new secret", "s3cret", true, "s3cret"},
+		{"new secret that looks like the mask", "*****", true, "*****"},
+		{"cleared secret", "", true, ""},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var mu sync.Mutex
-			body := map[string]any{}
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				raw, _ := io.ReadAll(r.Body)
-				mu.Lock()
-				_ = json.Unmarshal(raw, &body)
-				mu.Unlock()
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte("{}"))
-			}))
-
-			utils.ClientOnce = sync.Once{}
-			utils.ClientOnce.Do(func() {})
-			utils.ClientInstance = utils.GetClientByConfig(&harbor.ClientSetConfig{URL: srv.URL})
-			utils.ClientErr = nil
-			t.Cleanup(func() {
-				srv.Close()
-				utils.ClientOnce = sync.Once{}
-				utils.ClientInstance = nil
-				utils.ClientErr = nil
-			})
+			got := useTestServer(t, "{}")
 
 			err := UpdateRegistry(&models.Registry{
 				Name: "hub",
@@ -71,11 +47,13 @@ func TestUpdateRegistryDoesNotSendMaskedSecret(t *testing.T) {
 					AccessKey:    "user",
 					AccessSecret: tt.secret,
 				},
-			}, 3)
+			}, 3, tt.secretChanged)
 			require.NoError(t, err)
 
-			mu.Lock()
-			defer mu.Unlock()
+			req := got()
+			assert.Equal(t, "/api/v2.0/registries/3", req.Path)
+			body := map[string]any{}
+			require.NoError(t, json.Unmarshal(req.Body, &body))
 			assert.Equal(t, "user", body["access_key"])
 			assert.Equal(t, tt.wantSecret, body["access_secret"])
 		})
