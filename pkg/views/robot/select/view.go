@@ -132,16 +132,18 @@ func ListPermissions(perms *models.Permissions, kind string, ch chan<- Permissio
 	}
 	_, err = tea.NewProgram(grid, tea.WithAltScreen()).Run()
 	if err != nil {
-		fmt.Println("error creating permissions grid:", err)
+		ch <- PermissionSelectResult{Permissions: nil, Err: err}
+		return
+	}
+	if grid.Cancelled {
 		ch <- PermissionSelectResult{
 			Permissions: nil,
-			Err:         err,
+			Err:         fmt.Errorf("user exited at permission selection"),
 		}
 		return
 	}
 	data := grid.GetData()
 	selectedPerms := []models.Permission{}
-
 	for rowIdx, displayName := range grid.RowLabels {
 		kebabResource := utils.ToKebabCase(displayName)
 
