@@ -14,6 +14,7 @@
 package api
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -24,17 +25,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// recordedRequest is the last request a test server received.
+type recordedRequest struct {
+	Path string // escaped path
+	Body []byte
+}
+
 // useTestServer points the shared Harbor client at a local server that
-// records the escaped request path and answers with the given body. The
-// returned function reads the last recorded path.
-func useTestServer(t *testing.T, body string) func() string {
+// records each request and answers with the given body. The returned
+// function reads the last recorded request.
+func useTestServer(t *testing.T, body string) func() recordedRequest {
 	t.Helper()
 
 	var mu sync.Mutex
-	var gotPath string
+	var got recordedRequest
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		raw, _ := io.ReadAll(r.Body)
 		mu.Lock()
-		gotPath = r.URL.EscapedPath()
+		got = recordedRequest{Path: r.URL.EscapedPath(), Body: raw}
 		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(body))
@@ -52,10 +60,10 @@ func useTestServer(t *testing.T, body string) func() string {
 		utils.ClientErr = nil
 	})
 
-	return func() string {
+	return func() recordedRequest {
 		mu.Lock()
 		defer mu.Unlock()
-		return gotPath
+		return got
 	}
 }
 
@@ -118,10 +126,10 @@ func TestRepositoryNameIsEncodedInPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPath := useTestServer(t, tt.body)
+			got := useTestServer(t, tt.body)
 
 			assert.NoError(t, tt.call())
-			assert.Equal(t, tt.wantPath, gotPath())
+			assert.Equal(t, tt.wantPath, got().Path)
 		})
 	}
 }
