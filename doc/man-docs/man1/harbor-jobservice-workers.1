@@ -1,0 +1,50 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-workers - Manage workers (list all/by pool, free, free-all)
+
+
+.SH SYNOPSIS
+\fBharbor jobservice workers [flags]\fP
+
+
+.SH DESCRIPTION
+Manage job service workers using the job service API.
+
+.PP
+Use 'list' to view workers from all pools or a specific pool.
+Use 'free' and 'free-all' to stop running jobs and release busy workers.
+
+.PP
+Examples:
+  harbor jobservice workers list
+  harbor jobservice workers list --pool all
+  harbor jobservice workers list --pool default
+	harbor jobservice workers list --page 2 --page-size 20
+	harbor jobservice workers list default
+	harbor jobservice worker list 72327cf790564e45b7c89a2d
+  harbor jobservice workers free --job-id 
+  harbor jobservice workers free-all
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for workers
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH SEE ALSO
+\fBharbor-jobservice(1)\fP, \fBharbor-jobservice-workers-free(1)\fP, \fBharbor-jobservice-workers-free-all(1)\fP, \fBharbor-jobservice-workers-list(1)\fP
