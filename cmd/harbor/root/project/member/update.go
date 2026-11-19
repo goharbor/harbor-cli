@@ -82,7 +82,7 @@ func UpdateMemberCommand() *cobra.Command {
 				return fmt.Errorf("failed to get members list: %v", err)
 			}
 
-			fmt.Printf("successfully updated user with ID %d with role ID %d for project %s\n", opts.ID, opts.RoleID, opts.ProjectNameOrID)
+			fmt.Printf("successfully updated user with ID %d with role ID %d for project %s\n", opts.ID, roleID, opts.ProjectNameOrID)
 			return nil
 		},
 	}
