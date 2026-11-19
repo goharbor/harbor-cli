@@ -77,13 +77,14 @@ func Initialize(t *testing.T, tempDir string) *utils.HarborData {
 	return currentData
 }
 
-func SetMockKeyring(t *testing.T) {
+func SetMockKeyring(t *testing.T) *utils.MockKeyring {
 	mockKeyring := utils.NewMockKeyring()
 	utils.SetKeyringProvider(mockKeyring)
 
 	t.Cleanup(func() {
 		utils.SetKeyringProvider(&utils.SystemKeyring{})
 	})
+	return mockKeyring
 }
 
 // clean up both XDG dirs and reset again
