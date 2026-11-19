@@ -14,6 +14,7 @@
 package retention
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -68,7 +69,7 @@ Examples:
 
 			retentionID, err := api.GetRetentionId(projectIDStr, isName)
 			if err != nil {
-				if err.Error() == "No retention policy exists for this project" {
+				if errors.Is(err, api.ErrNoRetentionPolicy) {
 					fmt.Println("No retention policy exists for this project")
 					return nil
 				} else {
