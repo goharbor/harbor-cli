@@ -170,6 +170,17 @@ Examples:
 				if err := handleInteractiveInputForUpdate(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
+			} else if !hasPermissions(permissions, projectPermissionsMap) {
+				// Harbor rejects an update without permissions, and a robot can be left with
+				// none, for example when the projects it had access to are deleted.
+				fmt.Println("The robot has no permissions. Choose at least one to update it.")
+				if err := askForPermissionsForUpdate(&opts, &permissions, projectPermissionsMap); err != nil {
+					return err
+				}
+			}
+
+			if !hasPermissions(permissions, projectPermissionsMap) {
+				return fmt.Errorf("failed to update robot: robot account needs at least one permission")
 			}
 
 			// Build system access permissions
@@ -248,6 +259,28 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		len(*permissions), len(projectPermissionsMap))
 
 	return nil
+}
+
+// askForPermissionsForUpdate asks for system and project permissions, as the form does when
+// the user chooses to update them. It is a variable so tests can replace the prompts.
+var askForPermissionsForUpdate = func(opts *update.UpdateView, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+	if err := getSystemPermissionsForUpdate(false, permissions); err != nil {
+		return err
+	}
+	return getProjectPermissionsForUpdate(opts, projectPermissionsMap)
+}
+
+// hasPermissions reports whether the robot would be saved with at least one permission.
+func hasPermissions(permissions []models.Permission, projectPermissionsMap map[string][]models.Permission) bool {
+	if len(permissions) > 0 {
+		return true
+	}
+	for _, projectPermissions := range projectPermissionsMap {
+		if len(projectPermissions) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {

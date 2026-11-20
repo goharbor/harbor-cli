@@ -24,6 +24,7 @@ import (
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,21 @@ type robotUpdate struct {
 	robot models.Robot
 }
 
+const testRobotWithoutPermissions = `{
+	"id": 7,
+	"name": "robot$ci",
+	"level": "system",
+	"description": "old description",
+	"duration": 30,
+	"permissions": []
+}`
+
 func useRobotServer(t *testing.T) *robotUpdate {
+	t.Helper()
+	return useRobotServerWith(t, testRobot)
+}
+
+func useRobotServerWith(t *testing.T, robotJSON string) *robotUpdate {
 	t.Helper()
 
 	var mu sync.Mutex
@@ -53,7 +68,7 @@ func useRobotServer(t *testing.T) *robotUpdate {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/api/v2.0/robots/7":
-			_, _ = w.Write([]byte(testRobot))
+			_, _ = w.Write([]byte(robotJSON))
 		case r.Method == http.MethodPut:
 			body, _ := io.ReadAll(r.Body)
 			mu.Lock()
@@ -120,5 +135,60 @@ func TestUpdateRobotCommandRejectsZeroDuration(t *testing.T) {
 	cmd := UpdateRobotCommand()
 	cmd.SetArgs([]string{"7", "--duration", "0"})
 	require.ErrorContains(t, cmd.Execute(), "duration cannot be 0")
+	assert.Empty(t, updated.path)
+}
+
+// askForPermissions replaces the permission prompts for the length of a test.
+func askForPermissions(t *testing.T, chosen []models.Permission) *bool {
+	t.Helper()
+	asked := false
+	original := askForPermissionsForUpdate
+	askForPermissionsForUpdate = func(_ *update.UpdateView, permissions *[]models.Permission, _ map[string][]models.Permission) error {
+		asked = true
+		*permissions = append(*permissions, chosen...)
+		return nil
+	}
+	t.Cleanup(func() { askForPermissionsForUpdate = original })
+	return &asked
+}
+
+func TestUpdateRobotCommandAsksForPermissionsWhenTheRobotHasNone(t *testing.T) {
+	updated := useRobotServerWith(t, testRobotWithoutPermissions)
+	asked := askForPermissions(t, []models.Permission{{Resource: "repository", Action: "pull"}})
+
+	cmd := UpdateRobotCommand()
+	cmd.SetArgs([]string{"7", "--description", "nightly builds"})
+	require.NoError(t, cmd.Execute())
+
+	assert.True(t, *asked)
+	assert.Equal(t, "nightly builds", updated.robot.Description)
+	require.Len(t, updated.robot.Permissions, 1)
+	assert.Equal(t, "system", updated.robot.Permissions[0].Kind)
+	require.Len(t, updated.robot.Permissions[0].Access, 1)
+	assert.Equal(t, "repository", updated.robot.Permissions[0].Access[0].Resource)
+	assert.Equal(t, "pull", updated.robot.Permissions[0].Access[0].Action)
+}
+
+func TestUpdateRobotCommandKeepsPermissionsWithoutAsking(t *testing.T) {
+	updated := useRobotServer(t)
+	asked := askForPermissions(t, nil)
+
+	cmd := UpdateRobotCommand()
+	cmd.SetArgs([]string{"7", "--description", "nightly builds"})
+	require.NoError(t, cmd.Execute())
+
+	assert.False(t, *asked)
+	require.Len(t, updated.robot.Permissions, 1)
+}
+
+func TestUpdateRobotCommandRejectsARobotLeftWithoutPermissions(t *testing.T) {
+	updated := useRobotServerWith(t, testRobotWithoutPermissions)
+	asked := askForPermissions(t, nil)
+
+	cmd := UpdateRobotCommand()
+	cmd.SetArgs([]string{"7", "--description", "nightly builds"})
+	require.ErrorContains(t, cmd.Execute(), "robot account needs at least one permission")
+
+	assert.True(t, *asked)
 	assert.Empty(t, updated.path)
 }
