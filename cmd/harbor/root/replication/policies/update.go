@@ -28,21 +28,23 @@ import (
 
 // updateOpts holds all non-interactive flag values for the update command.
 type updateOpts struct {
-	Name              string
-	Description       string
-	ResourceFilter    string
-	NameFilter        string
-	TagFilter         string
-	TagPattern        string
-	LabelFilter       string
-	LabelPattern      string
-	TriggerType       string
-	CronString        string
-	Speed             string
-	Enabled           bool
-	Override          bool
-	ReplicateDeletion bool
-	CopyByChunk       bool
+	Name                      string
+	Description               string
+	ResourceFilter            string
+	NameFilter                string
+	TagFilter                 string
+	TagPattern                string
+	LabelFilter               string
+	LabelPattern              string
+	TriggerType               string
+	CronString                string
+	Speed                     string
+	Enabled                   bool
+	Override                  bool
+	ReplicateDeletion         bool
+	CopyByChunk               bool
+	DestNamespace             string
+	DestNamespaceReplaceCount int8
 }
 
 // UpdateCommand returns a command to update existing replication policies
@@ -126,10 +128,14 @@ explicitly provided flags (partial update).`,
 				Override:          existingPolicy.Payload.Override,
 				ReplicateDeletion: existingPolicy.Payload.ReplicateDeletion,
 				ReplicationMode:   existingReplicationMode,
+				DestNamespace:     existingPolicy.Payload.DestNamespace,
 			}
 
 			if existingPolicy.Payload.CopyByChunk != nil {
 				createView.CopyByChunk = *existingPolicy.Payload.CopyByChunk
+			}
+			if existingPolicy.Payload.DestNamespaceReplaceCount != nil {
+				createView.DestNamespaceReplaceCount = *existingPolicy.Payload.DestNamespaceReplaceCount
 			}
 
 			if existingPolicy.Payload.Speed != nil {
@@ -236,6 +242,8 @@ explicitly provided flags (partial update).`,
 	flags.BoolVar(&opts.Override, "override", false, "Override artifacts on destination if they already exist")
 	flags.BoolVar(&opts.ReplicateDeletion, "replicate-deletion", false, "Replicate deletion operations to the destination")
 	flags.BoolVar(&opts.CopyByChunk, "copy-by-chunk", false, "Transfer artifacts in chunks for better reliability")
+	flags.StringVar(&opts.DestNamespace, "dest-namespace", "", "The destination namespace")
+	flags.Int8Var(&opts.DestNamespaceReplaceCount, "dest-namespace-replace-count", -1, "The destination namespace replace count")
 
 	return cmd
 }
@@ -257,7 +265,9 @@ func hasReplicationUpdateFlagChanges(cmd *cobra.Command) bool {
 		flags.Changed("enabled") ||
 		flags.Changed("override") ||
 		flags.Changed("replicate-deletion") ||
-		flags.Changed("copy-by-chunk")
+		flags.Changed("copy-by-chunk") ||
+		flags.Changed("dest-namespace") ||
+		flags.Changed("dest-namespace-replace-count")
 }
 
 // applyReplicationUpdateFlags overlays only the explicitly provided flags onto createView.
@@ -273,6 +283,15 @@ func applyReplicationUpdateFlags(cmd *cobra.Command, createView *create.CreateVi
 
 	if flags.Changed("description") {
 		createView.Description = opts.Description
+	}
+	if flags.Changed("dest-namespace") {
+		createView.DestNamespace = opts.DestNamespace
+	}
+	if flags.Changed("dest-namespace-replace-count") {
+		if opts.DestNamespaceReplaceCount < -1 || opts.DestNamespaceReplaceCount > 3 {
+			return fmt.Errorf("--dest-namespace-replace-count cannot be less than -1 or greater than 3")
+		}
+		createView.DestNamespaceReplaceCount = opts.DestNamespaceReplaceCount
 	}
 
 	if flags.Changed("resource-filter") {
