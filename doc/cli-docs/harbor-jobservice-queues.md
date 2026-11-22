@@ -1,6 +1,6 @@
 ---
 title: harbor jobservice queues
-weight: 65
+weight: 60
 ---
 ## harbor jobservice queues
 

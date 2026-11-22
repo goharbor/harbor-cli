@@ -1,6 +1,6 @@
 ---
 title: harbor scan all view schedule
-weight: 35
+weight: 30
 ---
 ## harbor scan-all view-schedule
 

@@ -1,6 +1,6 @@
 ---
 title: harbor replication policies
-weight: 50
+weight: 80
 ---
 ## harbor replication policies
 

@@ -1,6 +1,6 @@
 ---
 title: harbor instance ping
-weight: 25
+weight: 90
 ---
 ## harbor instance ping
 

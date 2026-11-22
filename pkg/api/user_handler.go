@@ -14,8 +14,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 
+	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -23,8 +26,15 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/user/create"
 )
 
+var (
+	contextWithClientFunc = utils.ContextWithClient
+	listUsersFunc         = ListUsers
+	getUsersIdByNameFunc  = GetUsersIdByName
+	getUserByIDFunc       = GetUserByID
+)
+
 func CreateUser(opts create.CreateView) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -50,7 +60,7 @@ func CreateUser(opts create.CreateView) error {
 }
 
 func DeleteUser(userId int64) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -64,7 +74,7 @@ func DeleteUser(userId int64) error {
 }
 
 func ElevateUser(userId int64) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -81,7 +91,7 @@ func ElevateUser(userId int64) error {
 }
 
 func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +116,7 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 func GetUsersIdByName(userName string) (int64, error) {
 	var opts ListFlags
 
-	u, err := ListUsers(opts)
+	u, err := listUsersFunc(opts)
 	if err != nil {
 		return 0, err
 	}
@@ -117,11 +127,11 @@ func GetUsersIdByName(userName string) (int64, error) {
 		}
 	}
 
-	return 0, err
+	return 0, fmt.Errorf("user %q not found", userName)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
-	ctx, client, err := utils.ContextWithClient()
+	ctx, client, err := contextWithClientFunc()
 	if err != nil {
 		return err
 	}
@@ -139,4 +149,81 @@ func ResetPassword(userId int64, opts reset.PasswordChangeView) error {
 		fmt.Printf("User password changed for userId %d\n", userId)
 	}
 	return nil
+}
+
+var updateUserProfileAPIFunc = func(ctx context.Context, client *v2client.HarborAPI, params *user.UpdateUserProfileParams) error {
+	_, err := client.User.UpdateUserProfile(ctx, params)
+	return err
+}
+
+// UpdateUserProfile updates the email, realname, and comment of the user profile.
+func UpdateUserProfile(userID int64, email, realname, comment string) error {
+	ctx, client, err := contextWithClientFunc()
+	if err != nil {
+		return err
+	}
+
+	err = updateUserProfileAPIFunc(ctx, client, &user.UpdateUserProfileParams{
+		Profile: &models.UserProfile{
+			Email:    email,
+			Realname: realname,
+			Comment:  comment,
+		},
+		UserID: userID,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("User profile updated successfully for userID %d\n", userID)
+	return nil
+}
+
+// GetUserByIDOrName retrieves a user by either their ID or their Username.
+func GetUserByIDOrName(arg string) (*models.UserResp, error) {
+	if id, parseErr := strconv.ParseInt(arg, 10, 64); parseErr == nil {
+		u, err := getUserByIDFunc(id)
+		if err == nil {
+			return u, nil
+		}
+		// Only fall back to username lookup if the ID truly doesn't exist.
+		if err.Error() != fmt.Sprintf("user with ID %d not found", id) {
+			return nil, err
+		}
+	}
+
+	id, err := getUsersIdByNameFunc(arg)
+	if err != nil {
+		return nil, err
+	}
+	if id == 0 {
+		return nil, fmt.Errorf("user %q not found", arg)
+	}
+
+	return getUserByIDFunc(id)
+}
+
+// GetUserByID retrieves a user by their user ID.
+func GetUserByID(userID int64) (*models.UserResp, error) {
+	opts := ListFlags{Page: 1, PageSize: 100}
+
+	for {
+		u, err := listUsersFunc(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, uResp := range u.Payload {
+			if uResp.UserID == userID {
+				return uResp, nil
+			}
+		}
+
+		if len(u.Payload) < int(opts.PageSize) {
+			break
+		}
+		opts.Page++
+	}
+
+	return nil, fmt.Errorf("user with ID %d not found", userID)
 }

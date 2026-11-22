@@ -1,6 +1,6 @@
 ---
 title: harbor scan all metrics
-weight: 50
+weight: 35
 ---
 ## harbor scan-all metrics
 
