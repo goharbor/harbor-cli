@@ -18,12 +18,9 @@ import (
 	"fmt"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/sirupsen/logrus"
-
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-
 	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +38,12 @@ func CreateMemberCommand() *cobra.Command {
 		Example: "  harbor project member create my-project --username user --role Developer",
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
+			roleIDProvided := cmd.Flags().Changed("roleid")
+			finalRoleID, err := resolveRole(opts.RoleName, opts.RoleID, roleIDProvided)
+			if err != nil {
+				return err
+			}
+			opts.RoleID = finalRoleID
 
 			if len(args) > 0 {
 				_, checkErr := api.GetProject(args[0], isID)
@@ -89,7 +91,7 @@ func CreateMemberCommand() *cobra.Command {
 			}
 
 			if err != nil {
-				logrus.Errorf("failed to create user: %v", err)
+				return fmt.Errorf("failed to create project member: %w", err)
 			}
 
 			fmt.Printf("successfully added user %s to project %s\n", createView.MemberUser.Username, opts.ProjectName)
@@ -114,4 +116,27 @@ func CreateMemberCommand() *cobra.Command {
 func createMemberView(createView *create.CreateView) error {
 	create.CreateMemberView(createView)
 	return api.CreateMember(*createView)
+}
+
+func resolveRole(roleName string, roleID int, roleIDProvided bool) (int, error) {
+	var resolvedIDFromName int
+	var err error
+	if roleName != "" {
+		resolvedIDFromName, err = create.ResolveRoleName(roleName)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	if roleIDProvided {
+		if !create.IsValidRoleID(roleID) {
+			return 0, fmt.Errorf("invalid role ID %d: allowed values are %s", roleID, create.AllowedRolesString())
+		}
+		if resolvedIDFromName != 0 && roleID != resolvedIDFromName {
+			return 0, fmt.Errorf("conflicting role flags: --role %q (ID %d) and --roleid %d", roleName, resolvedIDFromName, roleID)
+		}
+		return roleID, nil
+	}
+
+	return resolvedIDFromName, nil
 }

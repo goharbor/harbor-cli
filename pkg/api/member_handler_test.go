@@ -15,11 +15,19 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"sync"
 	"testing"
 
+	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/goharbor/harbor-cli/pkg/views/member/create"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -111,4 +119,55 @@ func TestDeleteAllMember_DeleteError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to delete")
+}
+
+func TestCreateMember_RoleID(t *testing.T) {
+	var mu sync.Mutex
+	var receivedBody []byte
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		receivedBody, _ = io.ReadAll(r.Body)
+		mu.Unlock()
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer srv.Close()
+
+	utils.ClientOnce = sync.Once{}
+	utils.ClientOnce.Do(func() {})
+	utils.ClientInstance = utils.GetClientByConfig(&harbor.ClientSetConfig{URL: srv.URL})
+	utils.ClientErr = nil
+
+	t.Cleanup(func() {
+		utils.ClientOnce = sync.Once{}
+		utils.ClientInstance = nil
+		utils.ClientErr = nil
+	})
+
+	opts := create.CreateView{
+		ProjectName:   "test-project",
+		XIsResourceID: true,
+		RoleID:        1,
+		MemberUser: &models.UserEntity{
+			Username: "alice",
+		},
+	}
+
+	err := CreateMember(opts)
+	assert.NoError(t, err)
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	var payload struct {
+		RoleID     int64              `json:"role_id"`
+		MemberUser *models.UserEntity `json:"member_user"`
+	}
+	err = json.Unmarshal(receivedBody, &payload)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), payload.RoleID)
+	assert.Equal(t, "alice", payload.MemberUser.Username)
 }

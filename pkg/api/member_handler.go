@@ -80,7 +80,7 @@ func CreateMember(opts create.CreateView) error {
 		ctx, &member.CreateProjectMemberParams{
 			XIsResourceName: &opts.XIsResourceID,
 			ProjectMember: &models.ProjectMember{
-				RoleID:      int64(opts.RoleID + 1),
+				RoleID:      int64(opts.RoleID),
 				MemberUser:  opts.MemberUser,
 				MemberGroup: opts.MemberGroup,
 			},
