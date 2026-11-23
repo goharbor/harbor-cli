@@ -14,9 +14,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-openapi/strfmt"
+	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/scanner"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -60,13 +62,29 @@ func ListScanners() (scanner.ListScannersOK, error) {
 		return scanner.ListScannersOK{}, err
 	}
 
-	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{})
+	return listAllScanners(ctx, client)
+}
 
-	if err != nil {
-		return scanner.ListScannersOK{}, err
+// listAllScanners fetches every scanner registration. Harbor returns only the
+// first page (10 scanners by default) when no page size is given.
+func listAllScanners(ctx context.Context, client *v2client.HarborAPI) (scanner.ListScannersOK, error) {
+	pageSize := int64(100)
+	all := scanner.ListScannersOK{}
+	for page := int64(1); ; page++ {
+		response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{
+			Page:     &page,
+			PageSize: &pageSize,
+		})
+		if err != nil {
+			return scanner.ListScannersOK{}, err
+		}
+
+		all.Payload = append(all.Payload, response.Payload...)
+		all.XTotalCount = response.XTotalCount
+		if int64(len(response.Payload)) < pageSize {
+			return all, nil
+		}
 	}
-
-	return *response, nil
 }
 
 func GetScanner(registrationID string) (scanner.GetScannerOK, error) {
@@ -187,8 +205,7 @@ func GetScannerByName(name string) (models.ScannerRegistration, error) {
 		return models.ScannerRegistration{}, err
 	}
 
-	response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{})
-
+	response, err := listAllScanners(ctx, client)
 	if err != nil {
 		return models.ScannerRegistration{}, err
 	}
