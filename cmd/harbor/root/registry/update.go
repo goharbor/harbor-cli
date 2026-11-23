@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/update"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -104,6 +105,9 @@ func UpdateRegistryCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to update registry: %v", err)
 			}
+			if secretClearedByURLChange(existingRegistry, updateView, secretChanged) {
+				log.Warn("The registry URL changed and no new access secret was given, so Harbor cleared the stored secret. Set it again with --credential-access-secret.")
+			}
 			return nil
 		},
 	}
@@ -119,4 +123,13 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
 
 	return cmd
+}
+
+// secretClearedByURLChange reports whether Harbor dropped the stored secret.
+// Harbor does that when the URL changes and no new secret is sent.
+func secretClearedByURLChange(existing, updated *models.Registry, secretChanged bool) bool {
+	return !secretChanged &&
+		updated.URL != existing.URL &&
+		existing.Credential != nil &&
+		existing.Credential.AccessSecret != ""
 }

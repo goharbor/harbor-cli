@@ -27,12 +27,11 @@ func TestUpdateRegistrySendsSecretOnlyWhenChanged(t *testing.T) {
 		name          string
 		secret        string
 		secretChanged bool
-		wantSecret    any
 	}{
-		{"masked secret from Harbor", "*****", false, nil},
-		{"new secret", "s3cret", true, "s3cret"},
-		{"new secret that looks like the mask", "*****", true, "*****"},
-		{"cleared secret", "", true, ""},
+		{"masked secret from Harbor", "*****", false},
+		{"new secret", "s3cret", true},
+		{"new secret that looks like the mask", "*****", true},
+		{"cleared secret", "", true},
 	}
 
 	for _, tt := range tests {
@@ -55,7 +54,11 @@ func TestUpdateRegistrySendsSecretOnlyWhenChanged(t *testing.T) {
 			body := map[string]any{}
 			require.NoError(t, json.Unmarshal(req.Body, &body))
 			assert.Equal(t, "user", body["access_key"])
-			assert.Equal(t, tt.wantSecret, body["access_secret"])
+			if tt.secretChanged {
+				assert.Equal(t, tt.secret, body["access_secret"])
+			} else {
+				assert.NotContains(t, body, "access_secret")
+			}
 		})
 	}
 }
