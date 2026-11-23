@@ -14,9 +14,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	v2client "github.com/goharbor/go-client/pkg/sdk/v2.0/client"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/webhook"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -31,14 +33,30 @@ func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, e
 		return webhook.ListWebhookPoliciesOfProjectOK{}, err
 	}
 
-	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
-		ProjectNameOrID: projectName,
-	})
+	return listAllWebhooks(ctx, client, projectName)
+}
 
-	if err != nil {
-		return webhook.ListWebhookPoliciesOfProjectOK{}, err
+// listAllWebhooks fetches every webhook policy of the project. Harbor returns
+// only the first page (10 policies by default) when no page size is given.
+func listAllWebhooks(ctx context.Context, client *v2client.HarborAPI, projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {
+	pageSize := int64(100)
+	all := webhook.ListWebhookPoliciesOfProjectOK{}
+	for page := int64(1); ; page++ {
+		response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
+			ProjectNameOrID: projectName,
+			Page:            &page,
+			PageSize:        &pageSize,
+		})
+		if err != nil {
+			return webhook.ListWebhookPoliciesOfProjectOK{}, err
+		}
+
+		all.Payload = append(all.Payload, response.Payload...)
+		all.XTotalCount = response.XTotalCount
+		if int64(len(response.Payload)) < pageSize {
+			return all, nil
+		}
 	}
-	return *response, nil
 }
 
 func CreateWebhook(opts *create.CreateView) error {
@@ -137,10 +155,7 @@ func GetWebhookID(projectName string, WebhookName string) (int64, error) {
 		log.Errorf("%s", err)
 		return 0, err
 	}
-	response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
-		ProjectNameOrID: projectName,
-	})
-
+	response, err := listAllWebhooks(ctx, client, projectName)
 	if err != nil {
 		return 0, err
 	}
