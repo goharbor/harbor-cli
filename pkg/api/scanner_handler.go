@@ -68,7 +68,7 @@ func ListScanners() (scanner.ListScannersOK, error) {
 // listAllScanners fetches every scanner registration. Harbor returns only the
 // first page (10 scanners by default) when no page size is given.
 func listAllScanners(ctx context.Context, client *v2client.HarborAPI) (scanner.ListScannersOK, error) {
-	pageSize := int64(100)
+	pageSize := utils.MaxPageSize
 	all := scanner.ListScannersOK{}
 	for page := int64(1); ; page++ {
 		response, err := client.Scanner.ListScanners(ctx, &scanner.ListScannersParams{
