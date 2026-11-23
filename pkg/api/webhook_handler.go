@@ -39,7 +39,7 @@ func ListWebhooks(projectName string) (webhook.ListWebhookPoliciesOfProjectOK, e
 // listAllWebhooks fetches every webhook policy of the project. Harbor returns
 // only the first page (10 policies by default) when no page size is given.
 func listAllWebhooks(ctx context.Context, client *v2client.HarborAPI, projectName string) (webhook.ListWebhookPoliciesOfProjectOK, error) {
-	pageSize := int64(100)
+	pageSize := utils.MaxPageSize
 	all := webhook.ListWebhookPoliciesOfProjectOK{}
 	for page := int64(1); ; page++ {
 		response, err := client.Webhook.ListWebhookPoliciesOfProject(ctx, &webhook.ListWebhookPoliciesOfProjectParams{
