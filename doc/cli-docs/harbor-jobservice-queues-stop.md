@@ -27,9 +27,9 @@ harbor jobservice queues stop --type all
 ### Options
 
 ```sh
-  -h, --help           help for stop
-  -i, --interactive    Interactive mode to choose queue type(s) instead of passing --type
-      --type strings   Job type(s) to stop (repeat flag or comma-separate values; use 'all' for all queues)
+  -h, --help[=true|false]          help for stop
+  -i, --interactive[=true|false]   Interactive mode to choose queue type(s) instead of passing --type
+      --type strings               Job type(s) to stop (repeat flag or comma-separate values; use 'all' for all queues)
 ```
 
 ### Options inherited from parent commands
@@ -38,7 +38,7 @@ harbor jobservice queues stop --type all
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

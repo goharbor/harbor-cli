@@ -16,7 +16,7 @@ These instances represent external services such as Dragonfly or Kraken that hel
 ### Options
 
 ```sh
-  -h, --help   help for instance
+  -h, --help[=true|false]   help for instance
 ```
 
 ### Options inherited from parent commands
@@ -25,7 +25,7 @@ These instances represent external services such as Dragonfly or Kraken that hel
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
