@@ -167,6 +167,10 @@ func GetReferenceFromUser(repositoryName string, projectName string) (string, er
 		return "", err
 	}
 
+	if len(response.Payload) == 0 {
+		return "", errors.New("no artifacts found")
+	}
+
 	return aview.ListArtifacts(response.Payload)
 }
 
@@ -190,6 +194,10 @@ func GetImmutableTagRule(projectName string) (int64, error) {
 		return 0, err
 	}
 
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no immutable tag rules found")
+	}
+
 	return immview.ImmutableList(response.Payload)
 }
 
@@ -199,6 +207,10 @@ func GetTagFromUser(repoName, projectName, reference string) (string, error) {
 		return "", err
 	}
 
+	if len(response.Payload) == 0 {
+		return "", errors.New("no tags found")
+	}
+
 	return tview.ListTags(response.Payload)
 }
 
@@ -206,6 +218,10 @@ func GetScannerIdFromUser() (string, error) {
 	response, err := api.ListScanners()
 	if err != nil {
 		return "", err
+	}
+
+	if len(response.Payload) == 0 {
+		return "", errors.New("no scanners found")
 	}
 
 	return sview.ScannerList(response.Payload)

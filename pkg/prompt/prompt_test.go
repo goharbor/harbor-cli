@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/harbor"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,13 +85,13 @@ func TestPromptsReturnAPIErrors(t *testing.T) {
 	}
 }
 
-// emptyRegistryClient points the client at a Harbor that has no registries.
-func emptyRegistryClient(t *testing.T) {
+// emptyListClient points the client at a Harbor where every list is empty.
+func emptyListClient(t *testing.T) {
 	t.Helper()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode([]*models.Registry{})
+		_ = json.NewEncoder(w).Encode([]any{})
 	}))
 
 	utils.ClientOnce = sync.Once{}
@@ -109,9 +108,40 @@ func emptyRegistryClient(t *testing.T) {
 }
 
 func TestGetRegistryNameFromUserNoRegistries(t *testing.T) {
-	emptyRegistryClient(t)
+	emptyListClient(t)
 
 	id, err := GetRegistryNameFromUser()
 	require.EqualError(t, err, "no registries found")
 	assert.Zero(t, id)
+}
+
+func TestPromptsRejectEmptyLists(t *testing.T) {
+	tests := map[string]struct {
+		call    func() error
+		wantErr string
+	}{
+		"GetReferenceFromUser": {func() error {
+			_, err := GetReferenceFromUser("repo", "project")
+			return err
+		}, "no artifacts found"},
+		"GetImmutableTagRule": {func() error {
+			_, err := GetImmutableTagRule("project")
+			return err
+		}, "no immutable tag rules found"},
+		"GetTagFromUser": {func() error {
+			_, err := GetTagFromUser("repo", "project", "sha256:abc")
+			return err
+		}, "no tags found"},
+		"GetScannerIdFromUser": {func() error {
+			_, err := GetScannerIdFromUser()
+			return err
+		}, "no scanners found"},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			emptyListClient(t)
+			require.EqualError(t, tt.call(), tt.wantErr)
+		})
+	}
 }
