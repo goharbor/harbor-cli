@@ -25,12 +25,12 @@ harbor project member list [projectName] [flags]
 ### Options
 
 ```sh
-  -f, --fuzzy string    Fuzzy search for member with name
-  -h, --help            help for list
-      --id              Parses projectName as an ID
-      --page int        Page number (default 1)
-      --page-size int   Size of per page (default 10)
-  -s, --search string   Search for member with name
+  -f, --fuzzy string        Fuzzy search for member with name
+  -h, --help[=true|false]   help for list
+      --id[=true|false]     Parses projectName as an ID
+      --page int            Page number (default 1)
+      --page-size int       Size of per page (default 10)
+  -s, --search string       Search for member with name
 ```
 
 ### Options inherited from parent commands
@@ -39,7 +39,7 @@ harbor project member list [projectName] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

@@ -27,8 +27,8 @@ harbor project preheat policy create [flags]
 ### Options
 
 ```sh
-  -h, --help                        help for create
-      --id                          Use project id instead of name
+  -h, --help[=true|false]           help for create
+      --id[=true|false]             Use project id instead of name
   -f, --policy-config-file string   YAML/JSON file with preheat policy configuration
 ```
 
@@ -38,7 +38,7 @@ harbor project preheat policy create [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
