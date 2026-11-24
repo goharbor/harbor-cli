@@ -215,11 +215,12 @@ explicitly provided flags (partial update).`,
 			}
 
 			// Label names may contain commas, so rebuilding the filters from the
-			// comma-joined pattern can change them. Keep the originals when no
-			// label flag was given and the wizard left the label settings alone.
-			labelFlagsSet := cmd.Flags().Changed("label-filter") || cmd.Flags().Changed("label-pattern")
-			if len(existingLabels) > 0 && !labelFlagsSet &&
-				createView.LabelFilter == existingLabelFilter &&
+			// comma-joined pattern can change them. Keep the original values
+			// unless a new pattern was given. A filter type passed with
+			// --label-filter or changed in the wizard applies to every filter;
+			// otherwise each filter keeps its own type.
+			setDecoration := cmd.Flags().Changed("label-filter") || createView.LabelFilter != existingLabelFilter
+			if len(existingLabels) > 0 && !cmd.Flags().Changed("label-pattern") &&
 				createView.LabelPattern == existingLabelPattern {
 				filters := make([]*models.ReplicationFilter, 0, len(updatedPolicy.Filters)+len(existingLabels))
 				for _, f := range updatedPolicy.Filters {
@@ -227,7 +228,14 @@ explicitly provided flags (partial update).`,
 						filters = append(filters, f)
 					}
 				}
-				updatedPolicy.Filters = append(filters, existingLabels...)
+				for _, f := range existingLabels {
+					kept := *f
+					if setDecoration {
+						kept.Decoration = createView.LabelFilter
+					}
+					filters = append(filters, &kept)
+				}
+				updatedPolicy.Filters = filters
 			}
 
 			_, err = api.UpdateReplicationPolicy(policyID, updatedPolicy)

@@ -106,43 +106,60 @@ func getPolicy(t *testing.T, id int64) replicationPolicy {
 	return p
 }
 
-func labelFilter(t *testing.T, p replicationPolicy) replicationFilter {
+// labelFilters returns every label filter of p, in order.
+func labelFilters(t *testing.T, p replicationPolicy) []replicationFilter {
 	t.Helper()
 
+	var out []replicationFilter
 	for _, f := range p.Filters {
 		if f.Type == "label" {
-			return f
+			out = append(out, f)
 		}
 	}
-	t.Fatalf("policy %d has no label filter: %+v", p.ID, p.Filters)
-	return replicationFilter{}
+	require.NotEmpty(t, out, "policy %d has no label filter: %+v", p.ID, p.Filters)
+	return out
 }
 
-// Test_ReplicationPolicyUpdate_DescriptionKeepsLabelFilter covers #1129: a
-// description-only update must not split a label name that contains a comma.
-func Test_ReplicationPolicyUpdate_DescriptionKeepsLabelFilter(t *testing.T) {
+// Test_ReplicationPolicyUpdate_KeepsLabelFilters covers #1129: updates that
+// do not supply a new label pattern must keep every existing label filter and
+// must not split a label name that contains a comma.
+func Test_ReplicationPolicyUpdate_KeepsLabelFilters(t *testing.T) {
+	matches := func(labels ...string) replicationFilter {
+		return replicationFilter{Type: "label", Decoration: "matches", Value: labels}
+	}
 	for _, tc := range []struct {
-		name   string
-		labels []string
+		name    string
+		filters []replicationFilter
+		args    []string
+		// decoration, when set, is the expected decoration of every label filter.
+		decoration string
 	}{
-		{name: "separate labels", labels: []string{"release", "approved"}},
-		{name: "label containing comma", labels: []string{"release,approved"}},
+		{name: "separate labels", filters: []replicationFilter{matches("release", "approved")}, args: []string{"--description", "after"}},
+		{name: "label containing comma", filters: []replicationFilter{matches("release,approved")}, args: []string{"--description", "after"}},
+		{name: "multiple filters", filters: []replicationFilter{matches("release,approved"), matches("beta")}, args: []string{"--description", "after"}},
+		{name: "filter type only", filters: []replicationFilter{matches("release,approved"), matches("beta")}, args: []string{"--label-filter", "excludes"}, decoration: "excludes"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			policyID := createPushPolicy(t, "e2e-1129", []replicationFilter{
-				{Type: "label", Decoration: "matches", Value: tc.labels},
-			})
-			before := labelFilter(t, getPolicy(t, policyID))
+			policyID := createPushPolicy(t, "e2e-1129", tc.filters)
+			want := labelFilters(t, getPolicy(t, policyID))
+			require.Len(t, want, len(tc.filters))
+			if tc.decoration != "" {
+				for i := range want {
+					want[i].Decoration = tc.decoration
+				}
+			}
 
 			loginAndReload(t)
 
 			update := policies.UpdateCommand()
-			update.SetArgs([]string{strconv.FormatInt(policyID, 10), "--description", "after"})
+			update.SetArgs(append([]string{strconv.FormatInt(policyID, 10)}, tc.args...))
 			require.NoError(t, update.Execute())
 
 			after := getPolicy(t, policyID)
-			assert.Equal(t, "after", after.Description)
-			assert.Equal(t, before, labelFilter(t, after), "description-only update changed the label filter")
+			if tc.args[0] == "--description" {
+				assert.Equal(t, tc.args[1], after.Description)
+			}
+			assert.Equal(t, want, labelFilters(t, after), "update changed the label filters")
 		})
 	}
 }
