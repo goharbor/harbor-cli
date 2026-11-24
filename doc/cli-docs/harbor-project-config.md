@@ -11,8 +11,8 @@ weight: 45
 ### Options
 
 ```sh
-  -h, --help   help for config
-      --id     Use project ID instead of name
+  -h, --help[=true|false]   help for config
+      --id[=true|false]     Use project ID instead of name
 ```
 
 ### Options inherited from parent commands
@@ -21,7 +21,7 @@ weight: 45
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

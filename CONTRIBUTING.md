@@ -34,7 +34,7 @@ source ~/.zshrc # or restart your terminal
 
 ### Build from Source
 
-Make sure [Go](https://go.dev/) is installed (≥ v1.26.3), matching the version declared in `go.mod`.
+Make sure [Go](https://go.dev/) is installed (≥ v1.27.4), matching the version declared in `go.mod`.
 
 ```bash
 git clone https://github.com/goharbor/harbor-cli.git && cd harbor-cli

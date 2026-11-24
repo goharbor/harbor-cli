@@ -28,17 +28,17 @@ harbor instance update [NAME|ID] [flags]
 ### Options
 
 ```sh
-      --auth-password string   Password for BASIC authentication
-      --auth-token string      Token for OAUTH authentication
-      --auth-username string   Username for BASIC authentication
-  -a, --authmode string        Authentication mode (NONE, BASIC, OAUTH)
-  -d, --description string     Description of the instance
-      --enable                 Whether the instance is enabled or not
-  -h, --help                   help for update
-      --id                     Get instance by id
-  -i, --insecure               Whether or not the certificate will be verified when Harbor tries to access the server
-  -n, --name string            New name for the instance
-  -u, --url string             Endpoint URL for the instance
+      --auth-password string    Password for BASIC authentication
+      --auth-token string       Token for OAUTH authentication
+      --auth-username string    Username for BASIC authentication
+  -a, --authmode string         Authentication mode (NONE, BASIC, OAUTH)
+  -d, --description string      Description of the instance
+      --enable[=true|false]     Whether the instance is enabled or not
+  -h, --help[=true|false]       help for update
+      --id[=true|false]         Get instance by id
+  -i, --insecure[=true|false]   Whether or not the certificate will be verified when Harbor tries to access the server
+  -n, --name string             New name for the instance
+  -u, --url string              Endpoint URL for the instance
 ```
 
 ### Options inherited from parent commands
@@ -47,7 +47,7 @@ harbor instance update [NAME|ID] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
