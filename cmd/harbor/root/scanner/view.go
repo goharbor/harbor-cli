@@ -56,7 +56,10 @@ Examples:
 				}
 				scanner = &resp
 			} else {
-				id := prompt.GetScannerIdFromUser()
+				id, err := prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get scanner: %v", utils.ParseHarborErrorMsg(err))
+				}
 				resp, err := api.GetScanner(id)
 				if err != nil {
 					return fmt.Errorf("failed to get scanner by ID %q: %v", id, err)

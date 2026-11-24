@@ -51,7 +51,7 @@ func RoleList(roles []string, choice chan<- int64) {
 	}
 }
 
-func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
+func MemberList(member []*models.ProjectMemberEntity) (int64, error) {
 	items := make([]list.Item, len(member))
 	entityMap := make(map[string]int64, len(member))
 	for i, p := range member {
@@ -63,15 +63,12 @@ func MemberList(member []*models.ProjectMemberEntity, choice chan<- int64) {
 
 	p, err := tea.NewProgram(m).Run()
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return 0, fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		if id, exists := entityMap[p.Choice]; exists {
-			choice <- id
-		} else {
-			os.Exit(1)
-		}
+	choice, err := selection.Selected(p)
+	if err != nil {
+		return 0, err
 	}
+	return entityMap[choice], nil
 }
