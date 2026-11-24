@@ -29,8 +29,8 @@ harbor config apply -f <config_file>
 
 ```sh
   -f, --configurations-file string   Harbor configurations file to apply.
-  -h, --help                         help for apply
-  -y, --yes                          Skip confirmation prompt before applying changes.
+  -h, --help[=true|false]            help for apply
+  -y, --yes[=true|false]             Skip confirmation prompt before applying changes.
 ```
 
 ### Options inherited from parent commands
@@ -39,7 +39,7 @@ harbor config apply -f <config_file>
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
