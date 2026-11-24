@@ -21,10 +21,10 @@ harbor label delete [labelname]
 ### Options
 
 ```sh
-      --global           whether to list global or project scope labels. (default scope is global)
-  -h, --help             help for delete
-  -p, --project string   project name when query project labels
-  -i, --project-id int   project ID when query project labels
+      --global[=true|false]   whether to list global or project scope labels. (default scope is global)
+  -h, --help[=true|false]     help for delete
+  -p, --project string        project name when query project labels
+  -i, --project-id int        project ID when query project labels
 ```
 
 ### Options inherited from parent commands
@@ -33,7 +33,7 @@ harbor label delete [labelname]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

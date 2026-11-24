@@ -1,0 +1,82 @@
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-11-24'
+  last-reviewed: '2026-11-24'
+  url: https://raw.githubusercontent.com/goharbor/harbor-cli/main/security-insights.yml
+  comment: |
+    Security Insights for Harbor CLI, the official command line client for
+    the Harbor container registry.
+
+project:
+  name: Harbor CLI
+  homepage: https://github.com/goharbor/harbor-cli
+  steward:
+    uri: https://www.cncf.io
+    comment: |
+      Harbor CLI is a sub-project of Harbor (https://github.com/goharbor),
+      a Cloud Native Computing Foundation (CNCF) project.
+  administrators:
+    - name: Vadim Bauer
+      social: https://github.com/Vad1mo
+      primary: true
+    - name: Orlin Vasilev
+      social: https://github.com/OrlinVasilev
+      primary: false
+  repositories:
+    - name: harbor-cli
+      url: https://github.com/goharbor/harbor-cli
+      comment: |
+        Source code, documentation and release artifacts for Harbor CLI.
+        This is the only repository of the project.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    policy: https://github.com/goharbor/harbor/blob/main/SECURITY.md
+    comment: |
+      Harbor CLI follows the Harbor security disclosure process. Do not open
+      public issues for security vulnerabilities.
+  documentation:
+    detailed-guide: https://github.com/goharbor/harbor-cli/blob/main/README.md
+    code-of-conduct: https://github.com/goharbor/harbor-cli/blob/main/CODE_OF_CONDUCT.md
+
+repository:
+  url: https://github.com/goharbor/harbor-cli
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: Vadim Bauer
+      social: https://github.com/Vad1mo
+      primary: true
+    - name: Prasanth Baskar
+      social: https://github.com/bupd
+      primary: false
+    - name: Patrick Eschenbach
+      social: https://github.com/qcserestipy
+      primary: false
+    - name: Lakshit Singh
+      social: https://github.com/NucleoFusion
+      primary: false
+  license:
+    url: https://github.com/goharbor/harbor-cli/blob/main/LICENSE
+    expression: Apache-2.0
+  documentation:
+    contributing-guide: https://github.com/goharbor/harbor-cli/blob/main/CONTRIBUTING.md
+  security:
+    assessments:
+      self:
+        comment: |
+          No security self-assessment has been published for Harbor CLI yet.
+    tools:
+      - name: GitHub Secret Scanning
+        type: secret
+        rulesets:
+          - default
+        comment: |
+          GitHub secret scanning and push protection are enabled in the
+          repository security settings.
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results: {}

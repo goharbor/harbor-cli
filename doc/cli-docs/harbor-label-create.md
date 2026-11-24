@@ -27,7 +27,7 @@ harbor label create
 ```sh
       --color string         Color of the label.color is in hex value (default "#FFFFFF")
   -d, --description string   Description of the label
-  -h, --help                 help for create
+  -h, --help[=true|false]    help for create
   -n, --name string          Name of the label
   -i, --project int          Id of the project when scope is p
   -s, --scope string         Scope of the label. eg- g(global), p(specific project) (default "g")
@@ -39,7 +39,7 @@ harbor label create
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
