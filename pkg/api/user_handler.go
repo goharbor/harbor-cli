@@ -14,7 +14,10 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -103,21 +106,90 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 	return response, nil
 }
 
-func GetUsersIdByName(userName string) (int64, error) {
-	var opts ListFlags
+// ErrUserNotFound is returned when a user name or ID matches no user.
+var ErrUserNotFound = errors.New("not found")
 
-	u, err := ListUsers(opts)
+// usernameQuery builds a q filter that matches userName literally. Harbor
+// reads an exact value wrapped in [], {} or () as a range or list, so such
+// names use a substring match instead; callers must check the result for an
+// exact match.
+func usernameQuery(userName string) string {
+	if strings.ContainsAny(userName[:1], "[{(") {
+		return "username=~" + userName
+	}
+	return "username=" + userName
+}
+
+// GetUsersIdByName returns the ID of the user whose name is exactly userName.
+// It returns an error wrapping ErrUserNotFound when no user has that name.
+func GetUsersIdByName(userName string) (int64, error) {
+	if userName == "" {
+		return 0, fmt.Errorf("user %q %w", userName, ErrUserNotFound)
+	}
+
+	const pageSize = 100
+	q := usernameQuery(userName)
+	for page := int64(1); ; page++ {
+		u, err := ListUsers(ListFlags{Page: page, PageSize: pageSize, Q: q})
+		if err != nil {
+			return 0, err
+		}
+		for _, usr := range u.Payload {
+			if usr.Username == userName {
+				return usr.UserID, nil
+			}
+		}
+		if len(u.Payload) < pageSize {
+			return 0, fmt.Errorf("user %q %w", userName, ErrUserNotFound)
+		}
+	}
+}
+
+// userExists reports whether Harbor has a user with the given ID.
+func userExists(id int64) (bool, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return false, err
+	}
+	_, err = client.User.GetUser(ctx, &user.GetUserParams{UserID: id})
+	if err == nil {
+		return true, nil
+	}
+	var notFound *user.GetUserNotFound
+	if errors.As(err, &notFound) {
+		return false, nil
+	}
+	return false, err
+}
+
+// ResolveUserID returns the ID of the user named nameOrID or, when nameOrID
+// is a positive number, the user with that ID. A number that is the name of
+// one user and the ID of another is rejected as ambiguous.
+func ResolveUserID(nameOrID string) (int64, error) {
+	nameID, err := GetUsersIdByName(nameOrID)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return 0, err
+	}
+	nameFound := err == nil
+
+	id, parseErr := strconv.ParseInt(nameOrID, 10, 64)
+	if parseErr != nil || id <= 0 || (nameFound && nameID == id) {
+		return nameID, err
+	}
+
+	idFound, err := userExists(id)
 	if err != nil {
 		return 0, err
 	}
-
-	for _, user := range u.Payload {
-		if user.Username == userName {
-			return user.UserID, nil
-		}
+	switch {
+	case nameFound && idFound:
+		return 0, fmt.Errorf("%q is ambiguous: it is the name of user ID %d and also a user ID", nameOrID, nameID)
+	case nameFound:
+		return nameID, nil
+	case idFound:
+		return id, nil
 	}
-
-	return 0, err
+	return 0, fmt.Errorf("user %q %w", nameOrID, ErrUserNotFound)
 }
 
 func ResetPassword(userId int64, opts reset.PasswordChangeView) error {

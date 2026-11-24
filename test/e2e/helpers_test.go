@@ -18,12 +18,16 @@ package e2e
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"testing"
+	"time"
+	"unicode"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root"
 	"github.com/goharbor/harbor-cli/pkg/utils"
@@ -119,4 +123,80 @@ func captureStdout(t *testing.T, fn func() error) (string, error) {
 	out := <-done
 
 	return string(bytes.TrimSpace(out)), runErr
+}
+
+// createUser creates a local Harbor user and returns its ID. The user is
+// removed with t.Cleanup unless the test already deleted it.
+func createUser(t *testing.T, name string) int64 {
+	t.Helper()
+
+	doJSON(t, http.MethodPost, "/api/v2.0/users", map[string]string{
+		"username": name,
+		"email":    emailLocalPart(name) + "@example.com",
+		"realname": name,
+		"password": "Harbor12345",
+	}, nil)
+	// Registered before the lookup so a failed lookup does not leak the user.
+	t.Cleanup(func() {
+		for _, id := range findUserIDs(t, name) {
+			doJSON(t, http.MethodDelete, fmt.Sprintf("/api/v2.0/users/%d", id), nil, nil)
+		}
+	})
+
+	ids := findUserIDs(t, name)
+	require.Len(t, ids, 1, "user %s not found after create", name)
+	return ids[0]
+}
+
+// emailLocalPart drops characters from name that are not valid in an email
+// address.
+func emailLocalPart(name string) string {
+	return strings.Map(func(r rune) rune {
+		if r == '-' || r == '.' || unicode.IsLetter(r) || unicode.IsDigit(r) {
+			return r
+		}
+		return -1
+	}, name)
+}
+
+// findUserIDs returns the IDs of users named exactly name. It uses a
+// substring query because Harbor rejects exact values that look like ranges.
+func findUserIDs(t *testing.T, name string) []int64 {
+	t.Helper()
+
+	var found []struct {
+		UserID   int64  `json:"user_id"`
+		Username string `json:"username"`
+	}
+	doJSON(t, http.MethodGet, "/api/v2.0/users?page_size=100&q="+url.QueryEscape("username=~"+name), nil, &found)
+	var ids []int64
+	for _, u := range found {
+		if u.Username == name {
+			ids = append(ids, u.UserID)
+		}
+	}
+	return ids
+}
+
+// userExists reports whether Harbor still has a user with id.
+func userExists(t *testing.T, id int64) bool {
+	t.Helper()
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/api/v2.0/users/%d", Server(), id), nil)
+	require.NoError(t, err)
+	req.SetBasicAuth(Username(), Password())
+
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return true
+	case http.StatusNotFound:
+		return false
+	default:
+		t.Fatalf("GET user %d: unexpected status %s", id, resp.Status)
+		return false
+	}
 }

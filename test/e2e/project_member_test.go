@@ -19,7 +19,6 @@ package e2e
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"testing"
 	"time"
 
@@ -39,38 +38,6 @@ type projectMember struct {
 	EntityID   int64  `json:"entity_id"`
 	EntityName string `json:"entity_name"`
 	RoleID     int64  `json:"role_id"`
-}
-
-// createUser creates a local Harbor user, registers its removal with
-// t.Cleanup and returns its user ID.
-func createUser(t *testing.T, username string) int64 {
-	t.Helper()
-
-	doJSON(t, http.MethodPost, "/api/v2.0/users", map[string]any{
-		"username": username,
-		"email":    username + "@example.com",
-		"realname": username,
-		"password": "Harbor12345",
-	}, nil)
-
-	var users []struct {
-		UserID   int64  `json:"user_id"`
-		Username string `json:"username"`
-	}
-	doJSON(t, http.MethodGet, "/api/v2.0/users/search?username="+url.QueryEscape(username), nil, &users)
-
-	var id int64
-	for _, u := range users {
-		if u.Username == username {
-			id = u.UserID
-		}
-	}
-	require.NotZero(t, id, "user %s not found after creation", username)
-
-	t.Cleanup(func() {
-		doJSON(t, http.MethodDelete, fmt.Sprintf("/api/v2.0/users/%d", id), nil, nil)
-	})
-	return id
 }
 
 func addMember(t *testing.T, project, username string, roleID int64) {
