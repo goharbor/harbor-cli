@@ -360,7 +360,7 @@ func TestPrintOptions(t *testing.T) {
 			},
 			expected: []string{
 				optionsPattern("-n, --name", "name flag"),
-				optionsPattern("-v, --verbose", "verbose flag"),
+				optionsPattern(`-v, --verbose\[=true\|false\]`, "verbose flag"),
 			},
 			expectedNotToContain: []string{
 				optionsInheritedFromParentPattern("", ""),
@@ -385,7 +385,7 @@ func TestPrintOptions(t *testing.T) {
 			expected: []string{
 				optionsPattern("-o, --output", "output something"),
 				optionsInheritedFromParentPattern("-c, --config", "config file"),
-				optionsInheritedFromParentPattern("-d, --debug", "debug mode"),
+				optionsInheritedFromParentPattern(`-d, --debug\[=true\|false\]`, "debug mode"),
 			},
 		},
 		{
@@ -495,7 +495,7 @@ func TestMarkdownCustom(t *testing.T) {
 			expected: []string{
 				namePattern("testcmd"),
 				descriptionPattern("test command"),
-				optionsPattern("-h, --help", "help for testcmd"), // "Options" is expected to be present because of the presence of cmd.InitDefaultHelpCmd() in MarkdownCustom function
+				optionsPattern(`-h, --help\[=true\|false\]`, "help for testcmd"), // "Options" is expected to be present because of the presence of cmd.InitDefaultHelpCmd() in MarkdownCustom function
 			},
 			notExpected: []string{
 				longDescriptionPattern(""),
@@ -562,7 +562,7 @@ func TestMarkdownCustom(t *testing.T) {
 				namePattern("parent child"),
 				descriptionPattern("child command"),
 				uselinePattern("parent child"), // this is the useline which is send to buffer if the command is runnable
-				optionsPattern("-h, --help", "help for child"),
+				optionsPattern(`-h, --help\[=true\|false\]`, "help for child"),
 				optionsPattern("-n, --name", "name flag"),
 				seeAlsoPattern("parent", "parent.md"),
 			},
@@ -609,7 +609,7 @@ func TestMarkdownCustom(t *testing.T) {
 			},
 			expected: []string{
 				optionsPattern("-n, --name", "name flag"),
-				optionsPattern("-v, --verbose", "verbose flag"),
+				optionsPattern(`-v, --verbose\[=true\|false\]`, "verbose flag"),
 			},
 			notExpected: []string{
 				optionsInheritedFromParentPattern("", ""),

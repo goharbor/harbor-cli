@@ -19,9 +19,9 @@ harbor user password [flags]
 ### Options
 
 ```sh
-  -h, --help             help for password
-      --password-stdin   Take the password from stdin
-      --user-id int      User ID for non-interactive mode
+  -h, --help[=true|false]             help for password
+      --password-stdin[=true|false]   Take the password from stdin
+      --user-id int                   User ID for non-interactive mode
 ```
 
 ### Options inherited from parent commands
@@ -30,7 +30,7 @@ harbor user password [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

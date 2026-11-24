@@ -31,8 +31,8 @@ harbor artifact label add [flags]
 ### Options
 
 ```sh
-  -h, --help      help for add
-  -p, --project   Add project-scoped labels. eg --project, -p(specific project)
+  -h, --help[=true|false]      help for add
+  -p, --project[=true|false]   Add project-scoped labels. eg --project, -p(specific project)
 ```
 
 ### Options inherited from parent commands
@@ -41,7 +41,7 @@ harbor artifact label add [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
