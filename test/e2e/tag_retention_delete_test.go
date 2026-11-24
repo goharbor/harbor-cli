@@ -55,29 +55,12 @@ func createRetentionPolicy(t *testing.T, project string) {
 	}, nil)
 }
 
-// createGuest creates a user with guest access to project and registers its
-// removal with t.Cleanup. Guests can read the project but not its retention
-// policy.
-func createGuest(t *testing.T, project, username, password string) {
+// addGuest creates a user with guest access to project. Guests can read the
+// project but not its retention policy.
+func addGuest(t *testing.T, project, username string) {
 	t.Helper()
 
-	doJSON(t, http.MethodPost, "/api/v2.0/users", map[string]any{
-		"username": username,
-		"email":    username + "@example.com",
-		"realname": username,
-		"password": password,
-	}, nil)
-
-	t.Cleanup(func() {
-		var users []struct {
-			UserID int64 `json:"user_id"`
-		}
-		doJSON(t, http.MethodGet, "/api/v2.0/users/search?username="+url.QueryEscape(username), nil, &users)
-		for _, u := range users {
-			doJSON(t, http.MethodDelete, fmt.Sprintf("/api/v2.0/users/%d", u.UserID), nil, nil)
-		}
-	})
-
+	createUser(t, username)
 	doJSON(t, http.MethodPost, "/api/v2.0/projects/"+url.PathEscape(project)+"/members", map[string]any{
 		"role_id":     3, // guest
 		"member_user": map[string]string{"username": username},
@@ -91,13 +74,12 @@ func Test_TagRetentionDelete_ReturnsRuleLookupError(t *testing.T) {
 	suffix := time.Now().UnixNano()
 	project := fmt.Sprintf("e2e-995-%d", suffix)
 	guest := fmt.Sprintf("e2e-995-guest-%d", suffix)
-	const guestPassword = "Harbor12345x"
 
 	createProject(t, project)
 	createRetentionPolicy(t, project)
-	createGuest(t, project, guest, guestPassword)
+	addGuest(t, project, guest)
 
-	require.NoError(t, login(t, Server(), guest, guestPassword))
+	require.NoError(t, login(t, Server(), guest, "Harbor12345")) // password set by createUser
 
 	err := harbor(t, "tag", "retention", "delete", "--project-name", project)
 	require.Error(t, err)
