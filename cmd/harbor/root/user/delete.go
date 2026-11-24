@@ -34,11 +34,20 @@ func UserDeleteCmd() *cobra.Command {
 				var wg sync.WaitGroup
 				errChan := make(chan error, len(args)) // Channel to collect errors
 
+				// Fetch the user list once and resolve every name against it.
+				resp, err := api.ListUsers()
+				if err != nil {
+					return fmt.Errorf("failed to list users: %w", err)
+				}
+				userIDs := make(map[string]int64, len(resp.Payload))
+				for _, u := range resp.Payload {
+					userIDs[u.Username] = u.UserID
+				}
+
 				for _, arg := range args {
-					// Retrieve user ID by name.
-					userID, err := api.GetUsersIdByName(arg)
-					if err != nil {
-						log.Errorf("failed to get user id for '%s': %v", arg, err)
+					userID, ok := userIDs[arg]
+					if !ok {
+						log.Errorf("failed to get user id for '%s': user not found", arg)
 						continue
 					}
 					wg.Add(1)
