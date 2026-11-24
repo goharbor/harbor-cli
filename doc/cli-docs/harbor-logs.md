@@ -26,8 +26,8 @@ harbor logs [flags]
 ### Options
 
 ```sh
-  -f, --follow                    Follow log output (tail -f behavior)
-  -h, --help                      help for logs
+  -f, --follow[=true|false]       Follow log output (tail -f behavior)
+  -h, --help[=true|false]         help for logs
       --page int                  Page number (default 1)
       --page-size int             Size of per page (default 10)
   -q, --query string              Query string to query resources
@@ -41,7 +41,7 @@ harbor logs [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

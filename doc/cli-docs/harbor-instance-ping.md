@@ -28,8 +28,8 @@ harbor instance ping [NAME|ID] [flags]
 ### Options
 
 ```sh
-  -h, --help   help for ping
-      --id     Get instance by id
+  -h, --help[=true|false]   help for ping
+      --id[=true|false]     Get instance by id
 ```
 
 ### Options inherited from parent commands
@@ -38,7 +38,7 @@ harbor instance ping [NAME|ID] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

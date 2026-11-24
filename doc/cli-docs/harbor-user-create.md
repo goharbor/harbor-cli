@@ -15,12 +15,12 @@ harbor user create [flags]
 ### Options
 
 ```sh
-      --comment string    Comment (optional)
-      --email string      Email
-  -h, --help              help for create
-      --password string   Password
-      --realname string   Realname
-      --username string   Username
+      --comment string      Comment (optional)
+      --email string        Email
+  -h, --help[=true|false]   help for create
+      --password string     Password
+      --realname string     Realname
+      --username string     Username
 ```
 
 ### Options inherited from parent commands
@@ -29,7 +29,7 @@ harbor user create [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
