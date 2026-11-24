@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -31,8 +32,10 @@ import (
 )
 
 // fakeUserServer is a minimal Harbor user API. It follows Harbor's q syntax
-// for usernames: "username=v" is an exact match, "username=~v" a substring
-// match, and an exact value wrapped in brackets is rejected as a range.
+// for usernames: q is URL-decoded once more after the HTTP layer,
+// "username=v" is an exact match with one leading backslash removed,
+// "username=~v" is a substring match, and a value starting with [, { or ( is
+// rejected as a range or list.
 type fakeUserServer struct {
 	mu          sync.Mutex
 	users       map[string]int64
@@ -58,6 +61,10 @@ func (f *fakeUserServer) list(w http.ResponseWriter, r *http.Request) {
 		f.unfiltered++
 	}
 
+	if unescaped, err := url.QueryUnescape(q); err == nil {
+		q = unescaped
+	}
+
 	var names []string
 	switch v, ok := strings.CutPrefix(q, "username="); {
 	case q == "":
@@ -73,10 +80,11 @@ func (f *fakeUserServer) list(w http.ResponseWriter, r *http.Request) {
 				names = append(names, name)
 			}
 		}
-	case strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]"):
+	case strings.ContainsAny(v[:1], "[{("):
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	default:
+		v = strings.TrimPrefix(v, `\`)
 		if _, found := f.users[v]; found {
 			names = append(names, v)
 		}
@@ -220,6 +228,22 @@ func TestUserDeleteNameWithQuerySyntax(t *testing.T) {
 
 	require.NoError(t, runUserDelete("[alice]"))
 	assert.Equal(t, []int64{3}, f.deleted())
+}
+
+func TestUserDeleteNamesHarborWouldDecode(t *testing.T) {
+	users := map[string]int64{
+		"a+b":       3,
+		"a b":       4,
+		`\alice`:    5,
+		"alice":     6,
+		"{x}":       7,
+		"(y)":       8,
+		"tom&jerry": 10,
+	}
+	f := useFakeUserServer(t, users)
+
+	require.NoError(t, runUserDelete("a+b", `\alice`, "{x}", "(y)", "tom&jerry"))
+	assert.Equal(t, []int64{3, 5, 7, 8, 10}, f.deleted())
 }
 
 func TestUserDeleteLookupForbidden(t *testing.T) {

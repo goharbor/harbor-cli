@@ -88,3 +88,27 @@ func Test_UserDelete_NameWithBrackets(t *testing.T) {
 	require.NoError(t, harbor(t, "user", "delete", name))
 	require.False(t, userExists(t, id), "user %s (id %d) should have been deleted", name, id)
 }
+
+// Harbor URL-decodes the q filter a second time and treats a leading
+// backslash, [, { or ( specially, so these names must still resolve exactly.
+func Test_UserDelete_NamesWithQueryCharacters(t *testing.T) {
+	loginAndReload(t)
+
+	suffix := time.Now().UnixNano()
+	names := []string{
+		fmt.Sprintf("e2e+plus-%d", suffix),
+		fmt.Sprintf(`\e2e-backslash-%d`, suffix),
+		fmt.Sprintf("[e2e-bracket-%d]", suffix),
+		fmt.Sprintf("e2e&amp-%d", suffix),
+	}
+	ids := make([]int64, len(names))
+	for i, name := range names {
+		ids[i] = createUser(t, name)
+	}
+
+	require.NoError(t, harbor(t, append([]string{"user", "delete"}, names...)...))
+
+	for i, id := range ids {
+		require.False(t, userExists(t, id), "user %s (id %d) should have been deleted", names[i], id)
+	}
+}

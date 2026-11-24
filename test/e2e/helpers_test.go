@@ -187,7 +187,8 @@ func emailLocalPart(name string) string {
 }
 
 // findUserIDs returns the IDs of users named exactly name. It uses a
-// substring query because Harbor rejects exact values that look like ranges.
+// substring query because Harbor rejects exact values that look like ranges,
+// and escapes name twice because Harbor URL-decodes q once more.
 func findUserIDs(t *testing.T, name string) []int64 {
 	t.Helper()
 
@@ -195,7 +196,7 @@ func findUserIDs(t *testing.T, name string) []int64 {
 		UserID   int64  `json:"user_id"`
 		Username string `json:"username"`
 	}
-	doJSON(t, http.MethodGet, "/api/v2.0/users?page_size=100&q="+url.QueryEscape("username=~"+name), nil, &found)
+	doJSON(t, http.MethodGet, "/api/v2.0/users?page_size=100&q="+url.QueryEscape("username=~"+url.QueryEscape(name)), nil, &found)
 	var ids []int64
 	for _, u := range found {
 		if u.Username == name {
