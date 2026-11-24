@@ -25,16 +25,16 @@ harbor project member create [flags]
 ### Options
 
 ```sh
-      --groupid int        Group ID
-      --groupname string   Group Name
-      --grouptype int      Group Type
-  -h, --help               help for create
-      --id                 parses projectName as an ID
-      --ldapdn string      DN of LDAP Group
-      --role string        Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]
-      --roleid int         Role ID
-      --userid int         User ID
-      --username string    Username
+      --groupid int         Group ID
+      --groupname string    Group Name
+      --grouptype int       Group Type
+  -h, --help[=true|false]   help for create
+      --id[=true|false]     parses projectName as an ID
+      --ldapdn string       DN of LDAP Group
+      --role string         Role Name [one of Project_Admin, Developer, Guest, Maintainer, Limited_Guest]
+      --roleid int          Role ID
+      --userid int          User ID
+      --username string     Username
 ```
 
 ### Options inherited from parent commands
@@ -43,7 +43,7 @@ harbor project member create [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

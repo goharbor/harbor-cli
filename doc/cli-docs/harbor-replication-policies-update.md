@@ -55,22 +55,22 @@ harbor replication policies update [policy-id] [flags]
 ### Options
 
 ```sh
-      --copy-by-chunk            Transfer artifacts in chunks for better reliability
-      --cron string              Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. "0 0 */6 * * *")
-      --description string       New description for the replication policy
-      --enabled                  Whether the replication policy is enabled or not
-  -h, --help                     help for update
-      --label-filter string      Label filter type: matches or excludes
-      --label-pattern string     Label filter pattern (e.g. env=prod or env=prod,ver=1.0)
-      --name string              New name for the replication policy
-      --name-filter string       Repository name filter pattern (supports wildcards, e.g. library/*)
-      --override                 Override artifacts on destination if they already exist
-      --replicate-deletion       Replicate deletion operations to the destination
-      --resource-filter string   Resource type filter: Pull supports 'image' only; Push supports '', 'image', or 'artifact'
-      --speed string             Maximum replication speed in KB/s (-1 for unlimited)
-      --tag-filter string        Tag filter type: matches or excludes
-      --tag-pattern string       Tag filter pattern (e.g. v*, latest, *-prod)
-      --trigger-type string      Trigger type: manual, scheduled, or event_based (event_based is Push-only)
+      --copy-by-chunk[=true|false]        Transfer artifacts in chunks for better reliability
+      --cron string                       Cron schedule (6-field format, required when --trigger-type=scheduled, e.g. "0 0 */6 * * *")
+      --description string                New description for the replication policy
+      --enabled[=true|false]              Whether the replication policy is enabled or not
+  -h, --help[=true|false]                 help for update
+      --label-filter string               Label filter type: matches or excludes
+      --label-pattern string              Label filter pattern (e.g. env=prod or env=prod,ver=1.0)
+      --name string                       New name for the replication policy
+      --name-filter string                Repository name filter pattern (supports wildcards, e.g. library/*)
+      --override[=true|false]             Override artifacts on destination if they already exist
+      --replicate-deletion[=true|false]   Replicate deletion operations to the destination
+      --resource-filter string            Resource type filter: Pull supports 'image' only; Push supports '', 'image', or 'artifact'
+      --speed string                      Maximum replication speed in KB/s (-1 for unlimited)
+      --tag-filter string                 Tag filter type: matches or excludes
+      --tag-pattern string                Tag filter pattern (e.g. v*, latest, *-prod)
+      --trigger-type string               Trigger type: manual, scheduled, or event_based (event_based is Push-only)
 ```
 
 ### Options inherited from parent commands
@@ -79,7 +79,7 @@ harbor replication policies update [policy-id] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

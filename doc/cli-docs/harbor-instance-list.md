@@ -28,11 +28,11 @@ harbor instance list [flags]
 ### Options
 
 ```sh
-  -h, --help            help for list
-      --page int        Page number (default 1)
-      --page-size int   Size of per page (default 10)
-  -q, --query string    Query string to query resources
-      --sort string     Sort the resource list in ascending or descending order
+  -h, --help[=true|false]   help for list
+      --page int            Page number (default 1)
+      --page-size int       Size of per page (default 10)
+  -q, --query string        Query string to query resources
+      --sort string         Sort the resource list in ascending or descending order
 ```
 
 ### Options inherited from parent commands
@@ -41,7 +41,7 @@ harbor instance list [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
