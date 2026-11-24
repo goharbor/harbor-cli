@@ -8,8 +8,14 @@ weight: 185
 
 ##### delete user by name or id
 
+### Synopsis
+
+Delete one or more users by username or user ID, or pick one interactively when no argument is given.
+
+Each argument is matched against usernames first. A number that is not a username is used as a user ID, and a number that is the username of one user and the ID of another is rejected as ambiguous. Every argument is resolved before any user is deleted, so nothing is deleted if one of them does not resolve.
+
 ```sh
-harbor user delete [flags]
+harbor user delete [username|id]... [flags]
 ```
 
 ### Options
