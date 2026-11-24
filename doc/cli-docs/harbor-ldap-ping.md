@@ -15,15 +15,15 @@ harbor ldap ping [flags]
 ### Options
 
 ```sh
-  -h, --help                    help for ping
-      --ldap-base-dn string     The base dn from which to lookup the user
-      --ldap-filter string      Search Filter of ldap service
-      --ldap-password string    search password of the ldap service
-      --ldap-scope int          search scope of ldap service default 0 base, 1 OneLevel, 2 Subtree.
-      --ldap-search-dn string   User's dn who has the permission to search the ldap server
-      --ldap-uid string         attribute used in search to match the user. It could be cn, uid based on your LDAP/AD.
-      --ldap-url string         URL of the ldap service
-      --ldap-verify             Verify Ldap server certificate
+  -h, --help[=true|false]          help for ping
+      --ldap-base-dn string        The base dn from which to lookup the user
+      --ldap-filter string         Search Filter of ldap service
+      --ldap-password string       search password of the ldap service
+      --ldap-scope int             search scope of ldap service default 0 base, 1 OneLevel, 2 Subtree.
+      --ldap-search-dn string      User's dn who has the permission to search the ldap server
+      --ldap-uid string            attribute used in search to match the user. It could be cn, uid based on your LDAP/AD.
+      --ldap-url string            URL of the ldap service
+      --ldap-verify[=true|false]   Verify Ldap server certificate
 ```
 
 ### Options inherited from parent commands
@@ -32,7 +32,7 @@ harbor ldap ping [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

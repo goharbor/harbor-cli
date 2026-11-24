@@ -26,8 +26,8 @@ harbor project preheat policy view [flags]
 ### Options
 
 ```sh
-  -h, --help   help for view
-      --id     Get preheat policy by project id
+  -h, --help[=true|false]   help for view
+      --id[=true|false]     Get preheat policy by project id
 ```
 
 ### Options inherited from parent commands
@@ -36,7 +36,7 @@ harbor project preheat policy view [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
