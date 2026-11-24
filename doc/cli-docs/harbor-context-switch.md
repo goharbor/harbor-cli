@@ -9,7 +9,7 @@ weight: 50
 ##### Switch to a new context
 
 ```sh
-harbor context switch <none|context> [flags]
+harbor context switch <context> [flags]
 ```
 
 ### Examples
@@ -36,4 +36,3 @@ harbor context switch harbor-cli@https-demo-goharbor-io
 ### SEE ALSO
 
 * [harbor context](harbor-context.md)	 - Manage locally available contexts
-
