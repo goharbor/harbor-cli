@@ -14,6 +14,8 @@
 package artifactscan
 
 import (
+	"fmt"
+
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -45,7 +47,10 @@ func parseArgs(args []string) (string, string, string, error) {
 			return "", "", "", err
 		}
 		repoName := prompt.GetRepoNameFromUser(projectName)
-		reference := prompt.GetReferenceFromUser(repoName, projectName)
+		reference, err := prompt.GetReferenceFromUser(repoName, projectName)
+		if err != nil {
+			return "", "", "", fmt.Errorf("failed to get artifact reference: %v", utils.ParseHarborErrorMsg(err))
+		}
 
 		return projectName, repoName, reference, nil
 	}
