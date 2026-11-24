@@ -38,6 +38,21 @@ func ListSystemCve() (system_cve_allowlist.GetSystemCVEAllowlistOK, error) {
 	return *response, nil
 }
 
+// parseExpireDate accepts the YYYY-MM-DD format documented by --expiredate
+// and the YYYY/MM/DD format used by the interactive form, and returns the
+// date as a Unix timestamp at midnight UTC.
+func parseExpireDate(date string) (int64, error) {
+	t, err := time.Parse(time.DateOnly, date)
+	if err != nil {
+		var slashErr error
+		t, slashErr = time.Parse("2006/01/02", date)
+		if slashErr != nil {
+			return 0, fmt.Errorf("invalid expiration date %q: use YYYY-MM-DD or YYYY/MM/DD", date)
+		}
+	}
+	return t.Unix(), nil
+}
+
 func UpdateSystemCve(opts update.UpdateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -45,11 +60,10 @@ func UpdateSystemCve(opts update.UpdateView) error {
 	}
 	var unixTimestamp int64
 	if opts.IsExpire {
-		expiresAt, err := time.Parse("2006/01/02", opts.ExpireDate)
+		unixTimestamp, err = parseExpireDate(opts.ExpireDate)
 		if err != nil {
 			return err
 		}
-		unixTimestamp = expiresAt.Unix()
 	} else {
 		unixTimestamp = 0
 	}
