@@ -26,8 +26,8 @@ harbor project preheat policy delete [flags]
 ### Options
 
 ```sh
-  -h, --help   help for delete
-      --id     Delete preheat policy by project id
+  -h, --help[=true|false]   help for delete
+      --id[=true|false]     Delete preheat policy by project id
 ```
 
 ### Options inherited from parent commands
@@ -36,7 +36,7 @@ harbor project preheat policy delete [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
