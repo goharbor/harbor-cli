@@ -47,6 +47,22 @@ A user can create up to 15 tag retention rules per project.`,
 				return fmt.Errorf("cannot specify both --project-id and --project-name flags")
 			}
 
+			// Validate flag values
+			validLevels := map[string]bool{"project": true, "repository": true}
+			if !validLevels[opts.Scope.Level] {
+				return fmt.Errorf("invalid --level value: must be 'project' or 'repository'")
+			}
+
+			validActions := map[string]bool{"retain": true, "delete": true}
+			if !validActions[opts.Action] {
+				return fmt.Errorf("invalid --action value: must be 'retain' or 'delete'")
+			}
+
+			validAlgorithms := map[string]bool{"or": true, "and": true}
+			if !validAlgorithms[opts.Algorithm] {
+				return fmt.Errorf("invalid --algorithm value: must be 'or' or 'and'")
+			}
+
 			if projectID == -1 && projectName == "" {
 				projectName, err = prompt.GetProjectNameFromUser()
 				if err != nil {
