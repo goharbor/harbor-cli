@@ -41,6 +41,7 @@ import (
 	phpolicies "github.com/goharbor/harbor-cli/pkg/views/preheat/policy/select"
 
 	repoView "github.com/goharbor/harbor-cli/pkg/views/repository/select"
+	rexecView "github.com/goharbor/harbor-cli/pkg/views/retention/executions"
 	retview "github.com/goharbor/harbor-cli/pkg/views/retention/select"
 	robotView "github.com/goharbor/harbor-cli/pkg/views/robot/select"
 	sview "github.com/goharbor/harbor-cli/pkg/views/scanner/select"
@@ -541,4 +542,26 @@ func GetPreheatPolicyExecIDFromUser(projectName string, policyName string) (int6
 
 	res := <-executionID
 	return res.id, res.err
+}
+
+// GetRetentionExecutionIDFromUser prompts the user to select a retention
+// execution. It returns (0, nil) when the policy has no executions yet, and
+// a non-nil error when the executions cannot be listed.
+func GetRetentionExecutionIDFromUser(retentionID string) (int64, error) {
+	response, err := api.ListRetentionExecutions(retentionID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to list retention executions: %w", err)
+	}
+	if response == nil || len(response.Payload) == 0 {
+		return 0, nil
+	}
+
+	id, err := rexecView.RetentionExecutionList(response.Payload)
+	if err != nil {
+		if err == rexecView.ErrUserAborted {
+			return 0, errors.New("user aborted execution selection")
+		}
+		return 0, fmt.Errorf("error during execution selection: %w", err)
+	}
+	return id, nil
 }
