@@ -25,7 +25,7 @@ harbor tag immutable create
 ### Options
 
 ```sh
-  -h, --help                     help for create
+  -h, --help[=true|false]        help for create
       --repo-decoration string   repository which either apply or exclude from the rule
       --repo-list string         list of repository to which to either apply or exclude from the rule
       --tag-decoration string    tags which either apply or exclude from the rule
@@ -38,7 +38,7 @@ harbor tag immutable create
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

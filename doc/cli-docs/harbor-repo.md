@@ -15,7 +15,7 @@ Manage repositories in Harbor context
 ### Options
 
 ```sh
-  -h, --help   help for repo
+  -h, --help[=true|false]   help for repo
 ```
 
 ### Options inherited from parent commands
@@ -24,7 +24,7 @@ Manage repositories in Harbor context
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
