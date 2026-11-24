@@ -49,14 +49,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetRegistryNameFromUser() int64 {
-	registryId := make(chan int64)
-	go func() {
-		response, _ := api.ListRegistries()
-		rview.RegistryList(response.Payload, registryId)
-	}()
+func GetRegistryNameFromUser() (int64, error) {
+	response, err := api.ListRegistries()
+	if err != nil {
+		return 0, err
+	}
 
-	return <-registryId
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no registries found")
+	}
+
+	return rview.RegistryList(response.Payload)
 }
 
 func GetProjectIDFromUser() (int64, error) {
@@ -158,13 +161,13 @@ func GetRepoNameFromUser(projectName string) string {
 }
 
 // complete the function
-func GetReferenceFromUser(repositoryName string, projectName string) string {
-	reference := make(chan string)
-	go func() {
-		response, _ := api.ListArtifact(projectName, repositoryName)
-		aview.ListArtifacts(response.Payload, reference)
-	}()
-	return <-reference
+func GetReferenceFromUser(repositoryName string, projectName string) (string, error) {
+	response, err := api.ListArtifact(projectName, repositoryName)
+	if err != nil {
+		return "", err
+	}
+
+	return aview.ListArtifacts(response.Payload)
 }
 
 func GetUserIdFromUser() (int64, error) {
@@ -181,33 +184,31 @@ func GetUserIdFromUser() (int64, error) {
 	return id, nil
 }
 
-func GetImmutableTagRule(projectName string) int64 {
-	immutableid := make(chan int64)
-	go func() {
-		response, _ := api.ListImmutable(projectName)
-		immview.ImmutableList(response.Payload, immutableid)
-	}()
-	return <-immutableid
+func GetImmutableTagRule(projectName string) (int64, error) {
+	response, err := api.ListImmutable(projectName)
+	if err != nil {
+		return 0, err
+	}
+
+	return immview.ImmutableList(response.Payload)
 }
 
-func GetTagFromUser(repoName, projectName, reference string) string {
-	tag := make(chan string)
-	go func() {
-		response, _ := api.ListTags(projectName, repoName, reference)
-		tview.ListTags(response.Payload, tag)
-	}()
-	return <-tag
+func GetTagFromUser(repoName, projectName, reference string) (string, error) {
+	response, err := api.ListTags(projectName, repoName, reference)
+	if err != nil {
+		return "", err
+	}
+
+	return tview.ListTags(response.Payload)
 }
 
-func GetScannerIdFromUser() string {
-	scannerId := make(chan string)
+func GetScannerIdFromUser() (string, error) {
+	response, err := api.ListScanners()
+	if err != nil {
+		return "", err
+	}
 
-	go func() {
-		response, _ := api.ListScanners()
-		sview.ScannerList(response.Payload, scannerId)
-	}()
-
-	return <-scannerId
+	return sview.ScannerList(response.Payload)
 }
 
 func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
@@ -430,22 +431,18 @@ func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
 }
 
 // Get GetMemberIDFromUser choosing from list of members
-func GetMemberIDFromUser(projectName, memberName string) int64 {
-	memberId := make(chan int64)
-	length := make(chan int)
-	go func() {
-		response, _ := api.ListMembers(projectName, memberName, true)
-		length <- len(response.Payload)
-		mview.MemberList(response.Payload, memberId)
-	}()
-
-	// if no members found, return 0
-	l := <-length
-	if l == 0 {
-		return 0
+func GetMemberIDFromUser(projectName, memberName string) (int64, error) {
+	response, err := api.ListMembers(projectName, memberName, true)
+	if err != nil {
+		return 0, err
 	}
 
-	return <-memberId
+	// if no members found, return 0
+	if len(response.Payload) == 0 {
+		return 0, nil
+	}
+
+	return mview.MemberList(response.Payload)
 }
 
 // Get Member Role ID selection from user

@@ -15,7 +15,6 @@ package scanner
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ScannerList(scanners []*models.ScannerRegistration, choice chan<- string) {
+func ScannerList(scanners []*models.ScannerRegistration) (string, error) {
 	itemsList := make([]list.Item, len(scanners))
 
 	items := map[string]string{}
@@ -38,11 +37,12 @@ func ScannerList(scanners []*models.ScannerRegistration, choice chan<- string) {
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return "", fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+	choice, err := selection.Selected(p)
+	if err != nil {
+		return "", err
 	}
+	return items[choice], nil
 }
