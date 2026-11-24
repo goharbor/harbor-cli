@@ -40,17 +40,17 @@ harbor webhook edit [WEBHOOK_NAME] [flags]
 ### Options
 
 ```sh
-      --auth-header string          Authentication Header
-      --description string          Webhook Description
-      --enabled                     Webhook Enabled (default true)
-      --endpoint-url string         Webhook Endpoint URL
-      --event-type strings          Event Types (comma separated)
-  -h, --help                        help for edit
-      --notify-type string          Notify Type (http, slack)
-      --payload-format string       Payload Format (Default, CloudEvents)
-      --project string              Project Name
-      --verify-remote-certificate   Verify Remote Certificate (default true)
-      --webhook-id int              Webhook ID (default -1)
+      --auth-header string                       Authentication Header
+      --description string                       Webhook Description
+      --enabled[=true|false]                     Webhook Enabled (default true)
+      --endpoint-url string                      Webhook Endpoint URL
+      --event-type strings                       Event Types (comma separated)
+  -h, --help[=true|false]                        help for edit
+      --notify-type string                       Notify Type (http, slack)
+      --payload-format string                    Payload Format (Default, CloudEvents)
+      --project string                           Project Name
+      --verify-remote-certificate[=true|false]   Verify Remote Certificate (default true)
+      --webhook-id int                           Webhook ID (default -1)
 ```
 
 ### Options inherited from parent commands
@@ -59,7 +59,7 @@ harbor webhook edit [WEBHOOK_NAME] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

@@ -25,9 +25,9 @@ harbor project delete [projectname1] [projectname2] or harbor project delete --p
 ### Options
 
 ```sh
-      --force               Forcefully delete all repositories, artifacts, and policies in the project. Use with extreme caution—this action is irreversible.
-  -h, --help                help for delete
-      --project-id string   Specify project ID instead of project name
+      --force[=true|false]   Forcefully delete all repositories, artifacts, and policies in the project. Use with extreme caution—this action is irreversible.
+  -h, --help[=true|false]    help for delete
+      --project-id string    Specify project ID instead of project name
 ```
 
 ### Options inherited from parent commands
@@ -36,7 +36,7 @@ harbor project delete [projectname1] [projectname2] or harbor project delete --p
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
