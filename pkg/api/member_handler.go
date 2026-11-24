@@ -195,6 +195,24 @@ func DeleteMemberByUsername(projectName string, username string, xIsResourceName
 	return nil
 }
 
+// GetMemberIDByName returns the membership ID of the member named memberName
+// in the project. The member API addresses memberships by this ID, which is
+// not the user's or group's ID.
+func GetMemberIDByName(projectNameOrID, memberName string, isName bool) (int64, error) {
+	members, err := listMembersFunc(projectNameOrID, memberName, isName)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, m := range members.Payload {
+		if m.EntityName == memberName {
+			return m.ID, nil
+		}
+	}
+
+	return 0, fmt.Errorf("member '%s' not found in project '%s'", memberName, projectNameOrID)
+}
+
 func UpdateMember(opts UpdateMemberOptions) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
