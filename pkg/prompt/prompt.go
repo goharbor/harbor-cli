@@ -384,52 +384,49 @@ func GetRobotIDFromUser(projectID int64) (int64, error) {
 	return id, nil
 }
 
-func GetReplicationPolicyFromUser() int64 {
-	replicationPolicyID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationPolicies()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
-	}()
-
-	return <-replicationPolicyID
+func GetReplicationPolicyFromUser() (int64, error) {
+	response, err := api.ListReplicationPolicies()
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication policies found")
+	}
+	id, err := rpolicies.ReplicationPoliciesList(response.Payload)
+	if errors.Is(err, rpolicies.ErrUserAborted) {
+		return 0, errors.New("user aborted replication policy selection")
+	}
+	return id, err
 }
 
-func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
-	executionID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationExecutions(rpolicyID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(response.Payload) == 0 {
-			log.Fatal("no replication executions found")
-		}
-		rexecutions.ReplicationExecutionList(response.Payload, executionID)
-	}()
-
-	return <-executionID
+func GetReplicationExecutionIDFromUser(rpolicyID int64) (int64, error) {
+	response, err := api.ListReplicationExecutions(rpolicyID)
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication executions found")
+	}
+	id, err := rexecutions.ReplicationExecutionList(response.Payload)
+	if errors.Is(err, rexecutions.ErrUserAborted) {
+		return 0, errors.New("user aborted replication execution selection")
+	}
+	return id, err
 }
 
-func GetReplicationTaskIDFromUser(execID int64) int64 {
-	executionID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationTasks(execID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(response.Payload) == 0 {
-			log.Fatal("no replication tasks found")
-		}
-		rtasks.ReplicationTasksList(response.Payload, executionID)
-	}()
-
-	return <-executionID
+func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
+	response, err := api.ListReplicationTasks(execID)
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication tasks found")
+	}
+	id, err := rtasks.ReplicationTasksList(response.Payload)
+	if errors.Is(err, rtasks.ErrUserAborted) {
+		return 0, errors.New("user aborted replication task selection")
+	}
+	return id, err
 }
 
 // Get GetMemberIDFromUser choosing from list of members

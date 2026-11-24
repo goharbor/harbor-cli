@@ -99,7 +99,11 @@ explicitly provided flags (partial update).`,
 				return fmt.Errorf("policy-id is required when update flags are provided. Usage: harbor replication policies update <policy-id> --flag=value")
 			} else {
 				// In interactive mode, prompt for policy ID
-				policyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				policyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to select replication policy: %w", err)
+				}
 			}
 
 			existingPolicy, err := api.GetReplicationPolicy(policyID)
