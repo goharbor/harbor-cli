@@ -19,11 +19,28 @@ import (
 	"os"
 	"testing"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/retention"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func sampleRetentionOK() retention.GetRetentionOK {
+	return retention.GetRetentionOK{
+		Payload: &models.RetentionPolicy{
+			Algorithm: "or",
+			ID:        42,
+			Rules: []*models.RetentionRule{
+				{
+					Action:   "retain",
+					Priority: 1,
+					Template: "always",
+				},
+			},
+		},
+	}
+}
 
 func TestListRetentionRulesCommand_ConflictingFlags(t *testing.T) {
 	cmd := ListRetentionRulesCommand()
@@ -38,18 +55,8 @@ func TestListRetentionRulesCommand_ConflictingFlags(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot specify both --project-id and --project-name flags")
 }
 
-func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
-	policy := &models.RetentionPolicy{
-		Algorithm: "or",
-		ID:        42,
-		Rules: []*models.RetentionRule{
-			{
-				Action:   "retain",
-				Priority: 1,
-				Template: "always",
-			},
-		},
-	}
+func TestFormatRetentionRules(t *testing.T) {
+	resp := sampleRetentionOK()
 
 	tests := []struct {
 		name          string
@@ -58,7 +65,7 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 		expectedTexts []string
 	}{
 		{
-			name:        "JSON output formats payload directly without envelope",
+			name:        "JSON formats resp.Payload directly without Swagger envelope",
 			format:      "json",
 			expectError: false,
 			expectedTexts: []string{
@@ -68,7 +75,7 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 			},
 		},
 		{
-			name:        "YAML output formats payload as YAML",
+			name:        "YAML formats resp.Payload as valid YAML",
 			format:      "yaml",
 			expectError: false,
 			expectedTexts: []string{
@@ -78,7 +85,15 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 			},
 		},
 		{
-			name:        "Unsupported format returns error",
+			name:        "CSV returns explicit unsupported error without panic",
+			format:      "csv",
+			expectError: true,
+			expectedTexts: []string{
+				"csv output is not supported for tag retention rules",
+			},
+		},
+		{
+			name:        "Unsupported format returns formatting error",
 			format:      "invalid",
 			expectError: true,
 			expectedTexts: []string{
@@ -94,7 +109,7 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
-			err := utils.PrintFormat(policy, tt.format)
+			err := formatRetentionRules(resp, tt.format)
 			_ = w.Close()
 			_, _ = io.Copy(&buf, r)
 			os.Stdout = oldStdout
@@ -107,7 +122,7 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				output := buf.String()
-				// Verify raw envelope "Payload" is not present
+				// Verify Swagger envelope {"Payload": ...} is not present
 				assert.NotContains(t, output, `"Payload":`)
 				for _, text := range tt.expectedTexts {
 					assert.Contains(t, output, text)
@@ -115,4 +130,68 @@ func TestListRetentionRulesCommand_OutputFormat(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestListRetentionRulesCommand_Execution(t *testing.T) {
+	origGetRetentionId := getRetentionId
+	origListRetention := listRetention
+	t.Cleanup(func() {
+		getRetentionId = origGetRetentionId
+		listRetention = origListRetention
+		viper.Set("output-format", "")
+	})
+
+	getRetentionId = func(projectIDStr string, isName bool) (string, error) {
+		assert.Equal(t, "my-project", projectIDStr)
+		assert.True(t, isName)
+		return "10", nil
+	}
+	listRetention = func(retentionID string) (retention.GetRetentionOK, error) {
+		assert.Equal(t, "10", retentionID)
+		return sampleRetentionOK(), nil
+	}
+
+	t.Run("execute with json format", func(t *testing.T) {
+		viper.Set("output-format", "json")
+
+		var buf bytes.Buffer
+		oldStdout := os.Stdout
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		cmd := ListRetentionRulesCommand()
+		cmd.SetArgs([]string{"--project-name", "my-project"})
+		err := cmd.Execute()
+
+		_ = w.Close()
+		_, _ = io.Copy(&buf, r)
+		os.Stdout = oldStdout
+
+		require.NoError(t, err)
+		output := buf.String()
+		assert.Contains(t, output, `"algorithm": "or"`)
+		assert.NotContains(t, output, `"Payload":`)
+	})
+
+	t.Run("execute with csv returns error", func(t *testing.T) {
+		viper.Set("output-format", "csv")
+
+		cmd := ListRetentionRulesCommand()
+		cmd.SetArgs([]string{"--project-name", "my-project"})
+		err := cmd.Execute()
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "csv output is not supported for tag retention rules")
+	})
+
+	t.Run("execute with invalid format returns error", func(t *testing.T) {
+		viper.Set("output-format", "invalid")
+
+		cmd := ListRetentionRulesCommand()
+		cmd.SetArgs([]string{"--project-name", "my-project"})
+		err := cmd.Execute()
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unable to output in the specified 'invalid' format")
+	})
 }
