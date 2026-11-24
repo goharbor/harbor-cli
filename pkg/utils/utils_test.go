@@ -110,6 +110,7 @@ func TestStorageStringToBytes(t *testing.T) {
 		{"1MiB", 1024 * 1024},
 		{"1GiB", 1024 * 1024 * 1024},
 		{"1TiB", 1024 * 1024 * 1024 * 1024},
+		{"1024TiB", 1024 * 1024 * 1024 * 1024 * 1024},
 	}
 
 	for _, test := range tests {
@@ -144,4 +145,10 @@ func TestStorageStringToBytes(t *testing.T) {
 	// Exceeding maximum value
 	_, err := utils.StorageStringToBytes("1025TiB")
 	assert.Error(t, err, "Expected error for input exceeding 1024TiB but got none")
+
+	// Values that overflow int64 when converted to bytes
+	for _, input := range []string{"8388608TiB", "16777216TiB", "16777217TiB", "9223372036854775807MiB"} {
+		_, err := utils.StorageStringToBytes(input)
+		assert.Error(t, err, "Expected error for input %s but got none", input)
+	}
 }

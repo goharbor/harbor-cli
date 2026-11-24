@@ -158,16 +158,14 @@ func StorageStringToBytes(storage string) (int64, error) {
 		return 0, err
 	}
 
-	// Calculate the value in bytes
-	bytes := value * multipliers[unit]
-
-	// Check if the value exceeds 1024 TB
-	maxBytes := 1024 * 1024 * 1024 * 1024 * 1024
-	if bytes > int64(maxBytes) {
+	// Check if the value exceeds 1024 TB before multiplying, so it can't overflow
+	maxBytes := int64(1024 * 1024 * 1024 * 1024 * 1024)
+	if value > maxBytes/multipliers[unit] {
 		return 0, errors.New("value exceeds 1024 TB")
 	}
 
-	return bytes, nil
+	// Calculate the value in bytes
+	return value * multipliers[unit], nil
 }
 
 func SavePayloadJSON(filename string, payload any) {
