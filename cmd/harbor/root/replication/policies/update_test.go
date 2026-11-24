@@ -122,3 +122,26 @@ func TestUpdateRebuildsLabelFilterWhenPatternMatchesBaseline(t *testing.T) {
 	require.Len(t, filters, 1)
 	assert.Equal(t, []any{"release", "approved"}, filters[0]["value"])
 }
+
+func TestUpdateLabelFilterOnlyKeepsLabelValues(t *testing.T) {
+	filters := runUpdateWithFilters(t,
+		"["+labelFilter(`["release,approved"]`)+","+labelFilter(`["beta"]`)+"]",
+		"--label-filter", "excludes")
+	require.Len(t, filters, 2)
+	assert.Equal(t, []any{"release,approved"}, filters[0]["value"])
+	assert.Equal(t, []any{"beta"}, filters[1]["value"])
+	for _, f := range filters {
+		assert.Equal(t, "excludes", f["decoration"])
+	}
+}
+
+func TestUpdateLabelFilterAppliesToEveryFilter(t *testing.T) {
+	excludes := `{"type":"label","decoration":"excludes","value":["beta"]}`
+	filters := runUpdateWithFilters(t,
+		"["+labelFilter(`["release"]`)+","+excludes+"]",
+		"--label-filter", "excludes")
+	require.Len(t, filters, 2)
+	for _, f := range filters {
+		assert.Equal(t, "excludes", f["decoration"])
+	}
+}
