@@ -14,20 +14,42 @@ runs:
       run: |
         git clone https://github.com/ScoopInstaller/Scoop.git "$RUNNER_TEMP/Scoop"
 
+    # The job workspace is checked out at the release tag. Commit the manifest
+    # on top of the current main instead, so the push is a fast-forward even
+    # when main moved after the tag was cut.
+    - name: Check out main
+      shell: bash
+      run: |
+        git fetch origin main
+        git worktree add --detach "$RUNNER_TEMP/scoop-main" FETCH_HEAD
+
     - name: Run checkver update
       shell: pwsh
+      env:
+        APP_NAME: ${{ inputs.app_name }}
       run: |
-        & "$env:RUNNER_TEMP/Scoop/bin/checkver.ps1" "${{ inputs.app_name }}" -Dir "bucket" -u
+        & "$env:RUNNER_TEMP/Scoop/bin/checkver.ps1" "$env:APP_NAME" -Dir "$env:RUNNER_TEMP/scoop-main/bucket" -u
 
     - name: Commit and push changes
       shell: bash
+      env:
+        APP_NAME: ${{ inputs.app_name }}
       run: |
+        cd "$RUNNER_TEMP/scoop-main"
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
+        git add bucket
         if git diff --cached --quiet; then
           echo "No changes detected."
           exit 0
         fi
-        git commit -m "Update ${{ inputs.app_name }} manifest"
-        git push origin HEAD:main
+        git commit -m "Update ${APP_NAME} manifest"
+        for attempt in 1 2 3; do
+          if git push origin HEAD:main; then
+            exit 0
+          fi
+          echo "Push attempt ${attempt} rejected, rebasing on latest main"
+          git pull --rebase origin main
+        done
+        echo "::error::Failed to push ${APP_NAME} manifest to main"
+        exit 1
