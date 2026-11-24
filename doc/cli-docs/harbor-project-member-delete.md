@@ -25,10 +25,10 @@ harbor project member delete [flags]
 ### Options
 
 ```sh
-  -a, --all               Deletes all members of the project
-  -h, --help              help for delete
-      --id                parses projectName as an ID
-  -u, --username string   Username of the member
+  -a, --all[=true|false]    Deletes all members of the project
+  -h, --help[=true|false]   help for delete
+      --id[=true|false]     parses projectName as an ID
+  -u, --username string     Username of the member
 ```
 
 ### Options inherited from parent commands
@@ -37,7 +37,7 @@ harbor project member delete [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

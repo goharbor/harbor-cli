@@ -42,8 +42,8 @@ harbor scan-all metrics [flags]
 ### Options
 
 ```sh
-  -h, --help        help for metrics
-  -s, --scheduled   Get the metrics of the latest scheduled scan all process
+  -h, --help[=true|false]        help for metrics
+  -s, --scheduled[=true|false]   Get the metrics of the latest scheduled scan all process
 ```
 
 ### Options inherited from parent commands
@@ -52,7 +52,7 @@ harbor scan-all metrics [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

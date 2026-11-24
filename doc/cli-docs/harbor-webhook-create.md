@@ -39,15 +39,15 @@ harbor webhook create [name] [flags]
 ### Options
 
 ```sh
-      --auth-header string          Authentication Header
-      --description string          Webhook Description
-      --endpoint-url string         Webhook Endpoint URL
-      --event-type strings          Event Types (comma separated)
-  -h, --help                        help for create
-      --notify-type string          Notify Type (http, slack)
-      --payload-format string       Payload Format (Default, CloudEvents)
-      --project string              Project Name
-      --verify-remote-certificate   Verify Remote Certificate (default true)
+      --auth-header string                       Authentication Header
+      --description string                       Webhook Description
+      --endpoint-url string                      Webhook Endpoint URL
+      --event-type strings                       Event Types (comma separated)
+  -h, --help[=true|false]                        help for create
+      --notify-type string                       Notify Type (http, slack)
+      --payload-format string                    Payload Format (Default, CloudEvents)
+      --project string                           Project Name
+      --verify-remote-certificate[=true|false]   Verify Remote Certificate (default true)
 ```
 
 ### Options inherited from parent commands
@@ -56,7 +56,7 @@ harbor webhook create [name] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
