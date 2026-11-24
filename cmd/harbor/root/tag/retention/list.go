@@ -88,8 +88,7 @@ Examples:
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				utils.PrintPayloadInJSONFormat(resp)
-				return nil
+				return utils.PrintFormat(resp.Payload, formatFlag)
 			}
 
 			list.ListRetentionRules(resp.Payload.Rules)
