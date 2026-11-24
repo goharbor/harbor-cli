@@ -53,6 +53,10 @@ HARBOR_URL=https://harbor.example.com HARBOR_USERNAME=admin HARBOR_PASSWORD=... 
   go test -tags e2e ./test/e2e/...
 ```
 
+The replication tests create a registry endpoint that Harbor health-checks.
+It defaults to `http://registry:5000`, the registry inside this stack. Against
+another Harbor, set `HARBOR_E2E_REGISTRY_URL` to a registry that Harbor can reach.
+
 ## What runs
 
 | Service       | Role                                                    |
