@@ -41,7 +41,7 @@ harbor project config update [project_name] [flags]
       --auto-scan string                     Enable or disable auto scan (true/false)
       --enable-content-trust string          Enable or disable content trust (true/false)
       --enable-content-trust-cosign string   Enable or disable content trust cosign (true/false)
-  -h, --help                                 help for update
+  -h, --help[=true|false]                    help for update
       --prevent-vul string                   Enable or disable vulnerability prevention (true/false)
       --public string                        Set project visibility (true/false)
       --reuse-sys-cve string                 Enable or disable reuse of system CVE allowlist (true/false)
@@ -52,10 +52,10 @@ harbor project config update [project_name] [flags]
 
 ```sh
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
-      --id                     Use project ID instead of name
+      --id[=true|false]        Use project ID instead of name
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO

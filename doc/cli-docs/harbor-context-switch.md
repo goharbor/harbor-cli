@@ -9,7 +9,7 @@ weight: 50
 ##### Switch to a new context
 
 ```sh
-harbor context switch <none|context> [flags]
+harbor context switch <context> [flags]
 ```
 
 ### Examples
@@ -21,7 +21,7 @@ harbor context switch harbor-cli@https-demo-goharbor-io
 ### Options
 
 ```sh
-  -h, --help   help for switch
+  -h, --help[=true|false]   help for switch
 ```
 
 ### Options inherited from parent commands
@@ -30,10 +30,9 @@ harbor context switch harbor-cli@https-demo-goharbor-io
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
 
 * [harbor context](harbor-context.md)	 - Manage locally available contexts
-

@@ -60,12 +60,12 @@ harbor project robot update [robotID] [flags]
 ### Options
 
 ```sh
-  -a, --all-permission       Select all permissions for the robot account
-      --description string   description of the robot account
-      --duration int         set expiration of robot account in days
-  -h, --help                 help for update
-      --name string          name of the robot account
-      --project string       set project name
+  -a, --all-permission[=true|false]   Select all permissions for the robot account
+      --description string            description of the robot account
+      --duration int                  set expiration of robot account in days
+  -h, --help[=true|false]             help for update
+      --name string                   name of the robot account
+      --project string                set project name
 ```
 
 ### Options inherited from parent commands
@@ -74,7 +74,7 @@ harbor project robot update [robotID] [flags]
   -c, --config string          config file (default is $HOME/.config/harbor-cli/config.yaml)
   -l, --log-format string      Output format for logging. One of: json|text (default "text")
   -o, --output-format string   Output format. One of: json|yaml|csv
-  -v, --verbose                verbose output
+  -v, --verbose[=true|false]   verbose output
 ```
 
 ### SEE ALSO
