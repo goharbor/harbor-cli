@@ -76,7 +76,7 @@ Examples:
 				}
 			}
 			retentionIndex := prompt.GetRetentionTagRule(retentionID)
-			err = api.DeleteRetention(projectName, int(retentionIndex))
+			err = api.DeleteRetention(retentionID, int(retentionIndex))
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
