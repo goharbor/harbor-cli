@@ -16,34 +16,51 @@ package views_test
 import (
 	"go/parser"
 	"go/token"
+	"io/fs"
+	"os"
+	"path"
 	"path/filepath"
 	"testing"
 )
 
 // TestViewPackageNames guards against package clauses copied from other
-// view packages. Select views use the feature name; list views use "list".
+// view packages. It walks every select/view.go and list/view.go under
+// pkg/views: select views use their parent directory name, list views
+// use "list".
 func TestViewPackageNames(t *testing.T) {
-	tests := []struct {
-		file string
-		want string
-	}{
-		{file: "artifact/select/view.go", want: "artifact"},
-		{file: "artifact/tags/select/view.go", want: "tags"},
-		{file: "repository/select/view.go", want: "repository"},
-		{file: "webhook/select/view.go", want: "webhook"},
-		{file: "label/select/view.go", want: "label"},
-		{file: "replication/task/list/view.go", want: "list"},
+	var checked int
+	err := fs.WalkDir(os.DirFS("."), ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || path.Base(p) != "view.go" {
+			return nil
+		}
+		dir := path.Dir(p)
+		var want string
+		switch path.Base(dir) {
+		case "select":
+			want = path.Base(path.Dir(dir))
+		case "list":
+			want = "list"
+		default:
+			return nil
+		}
+		checked++
+		f, err := parser.ParseFile(token.NewFileSet(), filepath.FromSlash(p), nil, parser.PackageClauseOnly)
+		if err != nil {
+			t.Errorf("parse %s: %v", p, err)
+			return nil
+		}
+		if got := f.Name.Name; got != want {
+			t.Errorf("package in %s = %q, want %q", p, got, want)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk pkg/views: %v", err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.file, func(t *testing.T) {
-			f, err := parser.ParseFile(token.NewFileSet(), filepath.FromSlash(tt.file), nil, parser.PackageClauseOnly)
-			if err != nil {
-				t.Fatalf("parse %s: %v", tt.file, err)
-			}
-			if got := f.Name.Name; got != tt.want {
-				t.Errorf("package in %s = %q, want %q", tt.file, got, tt.want)
-			}
-		})
+	if checked == 0 {
+		t.Fatal("no select/list view.go files found")
 	}
 }
