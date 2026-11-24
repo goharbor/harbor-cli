@@ -75,7 +75,7 @@ func CreateProjectCommand() *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.Public, "public", "", false, "Project is public or private")
 	flags.StringVarP(&opts.RegistryID, "registry-id", "", "", "ID of referenced registry when creating the proxy cache project")
-	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "", "Storage quota of the project")
+	flags.StringVarP(&opts.StorageLimit, "storage-limit", "", "", "Storage quota of the project, at most 1024 TiB: -1 for no limit, a number of bytes, or a whole number with MiB, GiB or TiB (e.g. 10GiB)")
 	flags.BoolVarP(&opts.ProxyCache, "proxy-cache", "", false, "Whether the project is a proxy cache project")
 
 	return cmd

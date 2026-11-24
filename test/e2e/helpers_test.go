@@ -84,9 +84,36 @@ func createProject(t *testing.T, name string) {
 		"metadata":     map[string]string{"public": "false"},
 	}, nil)
 
+	deleteProjectOnCleanup(t, name)
+}
+
+// deleteProjectOnCleanup removes project when the test ends. A missing
+// project is fine, since some tests expect the CLI never to create it.
+func deleteProjectOnCleanup(t *testing.T, name string) {
+	t.Helper()
+
 	t.Cleanup(func() {
-		doJSON(t, http.MethodDelete, "/api/v2.0/projects/"+url.PathEscape(name), nil, nil)
+		status := projectStatus(t, http.MethodDelete, name)
+		if status != http.StatusOK && status != http.StatusNotFound {
+			t.Errorf("delete project %s: unexpected status %d", name, status)
+		}
 	})
+}
+
+// projectStatus sends method to the project's API endpoint and returns the
+// response status code.
+func projectStatus(t *testing.T, method, name string) int {
+	t.Helper()
+
+	req, err := http.NewRequest(method, Server()+"/api/v2.0/projects/"+url.PathEscape(name), nil)
+	require.NoError(t, err)
+	req.SetBasicAuth(Username(), Password())
+
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Do(req)
+	require.NoError(t, err)
+	_ = resp.Body.Close()
+
+	return resp.StatusCode
 }
 
 // captureStdout runs fn and returns what it wrote to os.Stdout.
