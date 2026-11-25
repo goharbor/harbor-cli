@@ -57,12 +57,23 @@ func ListImmutable(projectName string) (immutable.ListImmuRulesOK, error) {
 		return immutable.ListImmuRulesOK{}, err
 	}
 	XIsResourceName := true
-	response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{ProjectNameOrID: projectName, XIsResourceName: &XIsResourceName})
-	if err != nil {
-		return immutable.ListImmuRulesOK{}, err
+	pageSize := utils.MaxPageSize
+	rules := []*models.ImmutableRule{}
+	for page := int64(1); ; page++ {
+		response, err := client.Immutable.ListImmuRules(ctx, &immutable.ListImmuRulesParams{
+			ProjectNameOrID: projectName,
+			XIsResourceName: &XIsResourceName,
+			Page:            &page,
+			PageSize:        &pageSize,
+		})
+		if err != nil {
+			return immutable.ListImmuRulesOK{}, err
+		}
+		rules = append(rules, response.Payload...)
+		if int64(len(response.Payload)) < pageSize {
+			return immutable.ListImmuRulesOK{XTotalCount: int64(len(rules)), Payload: rules}, nil
+		}
 	}
-
-	return *response, nil
 }
 
 func DeleteImmutable(projectName string, ImmutableID int64) error {

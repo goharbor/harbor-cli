@@ -92,7 +92,6 @@ func CreateProjectView(createView *CreateView) error {
 				Title("Storage Limit").
 				Value(&createView.StorageLimit).
 				Validate(func(str string) error {
-					// Assuming StorageLimit is an int64
 					if strings.TrimSpace(str) == "" {
 						return errors.New("storage limit cannot be empty or only spaces")
 					}

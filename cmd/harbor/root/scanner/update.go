@@ -59,7 +59,11 @@ Only the fields passed through flags will be updated; other fields will retain t
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				id, err := prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get scanner: %v", utils.ParseHarborErrorMsg(err))
+				}
+				registrationID = id
 			}
 
 			resp, err := api.GetScanner(registrationID)
