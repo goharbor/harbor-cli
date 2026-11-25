@@ -167,16 +167,27 @@ func ValidateProjectName(projectName string) bool {
 	return re.MatchString(projectName)
 }
 
-func ValidateStorageLimit(sl string) error {
-	storageLimit, err := strconv.Atoi(sl)
-	if err != nil {
-		return errors.New("the storage limit only takes integer values")
+// ParseStorageLimit converts a project storage limit to bytes. It accepts -1
+// for no limit, a plain number of bytes, or a whole number with a MiB, GiB or
+// TiB unit (for example 10GiB). The limit cannot exceed 1024 TiB.
+func ParseStorageLimit(sl string) (int64, error) {
+	if n, err := strconv.ParseInt(sl, 10, 64); err == nil {
+		if n < -1 || n > maxStorageBytes {
+			return 0, errors.New("the storage limit must be -1 for no limit or between 0 and 1024 TiB")
+		}
+		return n, nil
 	}
 
-	if storageLimit < -1 || (storageLimit > -1 && storageLimit < 0) || storageLimit > 1024 {
-		return errors.New("the maximum value for the storage cannot exceed 1024 terabytes and -1 for no limit")
+	n, err := StorageStringToBytes(sl)
+	if err != nil {
+		return 0, fmt.Errorf("invalid storage limit %q: use -1, a number of bytes, or a value with MiB, GiB or TiB (e.g. 10GiB): %w", sl, err)
 	}
-	return nil
+	return n, nil
+}
+
+func ValidateStorageLimit(sl string) error {
+	_, err := ParseStorageLimit(sl)
+	return err
 }
 
 func ValidateRegistryName(rn string) bool {

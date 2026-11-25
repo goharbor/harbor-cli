@@ -6,11 +6,14 @@ harbor-user-delete - delete user by name or id
 
 
 .SH SYNOPSIS
-\fBharbor user delete [flags]\fP
+\fBharbor user delete [username|id]... [flags]\fP
 
 
 .SH DESCRIPTION
-delete user by name or id
+Delete one or more users by username or user ID, or pick one interactively when no argument is given.
+
+.PP
+Each argument is matched against usernames first. A number that is not a username is used as a user ID, and a number that is the username of one user and the ID of another is rejected as ambiguous. Every argument is resolved before any user is deleted, so nothing is deleted if one of them does not resolve.
 
 
 .SH OPTIONS

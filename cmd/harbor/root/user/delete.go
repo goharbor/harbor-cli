@@ -14,73 +14,89 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/user"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+const deleteForbiddenMsg = "permission denied: admin privileges are required to execute this command"
 
 // UserDeleteCmd defines the "delete" command for user deletion.
 func UserDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete",
+		Use:   "delete [username|id]...",
 		Short: "delete user by name or id",
-		Args:  cobra.MinimumNArgs(0),
+		Long: `Delete one or more users by username or user ID, or pick one interactively when no argument is given.
+
+Each argument is matched against usernames first. A number that is not a username is used as a user ID, and a number that is the username of one user and the ID of another is rejected as ambiguous. Every argument is resolved before any user is deleted, so nothing is deleted if one of them does not resolve.`,
+		Args: cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) > 0 {
-				var wg sync.WaitGroup
-				errChan := make(chan error, len(args)) // Channel to collect errors
-
-				for _, arg := range args {
-					// Retrieve user ID by name.
-					userID, err := api.GetUsersIdByName(arg)
-					if err != nil {
-						log.Errorf("failed to get user id for '%s': %v", arg, err)
-						continue
-					}
-					wg.Add(1)
-					go func(userID int64) {
-						defer wg.Done()
-						if err := api.DeleteUser(userID); err != nil {
-							errChan <- err
-						}
-					}(userID)
-				}
-
-				// Wait for all goroutines to finish and then close the error channel.
-				go func() {
-					wg.Wait()
-					close(errChan)
-				}()
-
-				// Process errors from the goroutines.
-				for err := range errChan {
-					if isUnauthorizedError(err) {
-						return fmt.Errorf("permission denied: admin privileges are required to execute this command")
-					} else {
-						return fmt.Errorf("failed to delete user: %w", err)
-					}
-				}
-			} else {
-				// Interactive mode: get the user ID from the prompt.
+			if len(args) == 0 {
 				userID, err := prompt.GetUserIdFromUser()
 				if err != nil {
 					return fmt.Errorf("failed to get user id: %v", err)
 				}
-				if err := api.DeleteUser(userID); err != nil {
-					if isUnauthorizedError(err) {
-						return fmt.Errorf("permission denied: Admin privileges are required to execute this command.")
-					} else {
-						return fmt.Errorf("failed to delete user: %v", err)
+				return deleteUsers([]int64{userID})
+			}
+
+			// Resolve every argument before deleting anything.
+			seen := make(map[int64]bool, len(args))
+			userIDs := make([]int64, 0, len(args))
+			for _, arg := range args {
+				userID, err := api.ResolveUserID(arg)
+				if err != nil {
+					if isForbidden(err) {
+						return errors.New(deleteForbiddenMsg)
 					}
+					return fmt.Errorf("failed to resolve user %q: %w", arg, err)
+				}
+				if !seen[userID] {
+					seen[userID] = true
+					userIDs = append(userIDs, userID)
 				}
 			}
-			return nil
+			return deleteUsers(userIDs)
 		},
 	}
 
 	return cmd
+}
+
+// deleteUsers deletes the users concurrently and waits for every deletion
+// before reporting the first error.
+func deleteUsers(userIDs []int64) error {
+	var wg sync.WaitGroup
+	errs := make([]error, len(userIDs))
+	for i, userID := range userIDs {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			errs[i] = api.DeleteUser(userID)
+		}()
+	}
+	wg.Wait()
+
+	for _, err := range errs {
+		if err == nil {
+			continue
+		}
+		if isForbidden(err) {
+			return errors.New(deleteForbiddenMsg)
+		}
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}
+
+// isForbidden reports whether err is a 403 response from the user API.
+func isForbidden(err error) bool {
+	var listErr *user.ListUsersForbidden
+	var getErr *user.GetUserForbidden
+	var deleteErr *user.DeleteUserForbidden
+	return errors.As(err, &listErr) || errors.As(err, &getErr) || errors.As(err, &deleteErr)
 }
