@@ -203,5 +203,9 @@ func updateRobotView(updateView *update.UpdateView) error {
 	}
 
 	update.UpdateRobotView(updateView)
-	return api.UpdateRobot(updateView)
+	if err := api.UpdateRobot(updateView); err != nil {
+		return err
+	}
+	fmt.Println("Robot updated successfully.")
+	return nil
 }

@@ -25,7 +25,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
-	log "github.com/sirupsen/logrus"
 )
 
 func ListRobot(opts ListFlags) (*robot.ListRobotOK, error) {
@@ -146,32 +145,13 @@ func DeleteRobot(robotID int64) error {
 		return err
 	}
 	_, err = client.Robot.DeleteRobot(ctx, &robot.DeleteRobotParams{RobotID: robotID})
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Robot deleted successfully")
-	return nil
+	return err
 }
 
 func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
-	}
-
-	// Create a slice to store converted permissions
-	permissions := opts.Permissions
-	convertedPerms := make([]*models.RobotPermission, 0, len(permissions))
-
-	// Loop through original permissions and convert them
-	for _, perm := range permissions {
-		convertedPerm := &models.RobotPermission{
-			Access:    perm.Access,
-			Kind:      perm.Kind,
-			Namespace: perm.Namespace,
-		}
-		convertedPerms = append(convertedPerms, convertedPerm)
 	}
 
 	response, err := client.Robot.CreateRobot(
@@ -183,15 +163,13 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 				Duration:    opts.Duration,
 				Level:       opts.Level,
 				Name:        opts.Name,
-				Permissions: convertedPerms,
+				Permissions: opts.Permissions,
 			},
 		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(err))
 	}
-
-	fmt.Println("Robot created successfully.")
 	return response, nil
 }
 
@@ -199,21 +177,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 func UpdateRobot(opts *update.UpdateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
-		log.Errorf("Error: %v", err)
 		return err
-	}
-
-	// Create a slice to store converted permissions
-	permissions := opts.Permissions
-	convertedPerms := make([]*models.RobotPermission, 0, len(permissions))
-
-	for _, perm := range permissions {
-		convertedPerm := &models.RobotPermission{
-			Access:    perm.Access,
-			Kind:      perm.Kind,
-			Namespace: perm.Namespace,
-		}
-		convertedPerms = append(convertedPerms, convertedPerm)
 	}
 
 	_, err = client.Robot.UpdateRobot(
@@ -227,18 +191,12 @@ func UpdateRobot(opts *update.UpdateView) error {
 				ID:          opts.ID,
 				Level:       opts.Level,
 				Name:        opts.Name,
-				Permissions: convertedPerms,
+				Permissions: opts.Permissions,
 			},
 			RobotID: opts.ID,
 		},
 	)
-	if err != nil {
-		log.Errorf("Error in updating Robot: %v", err)
-		return err
-	}
-
-	fmt.Println("Robot updated successfully.")
-	return nil
+	return err
 }
 
 func GetPermissions() (*permissions.GetPermissionsOK, error) {

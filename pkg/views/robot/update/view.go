@@ -38,11 +38,9 @@ type UpdateView struct {
 	UpdateTime   strfmt.DateTime    `json:"update_time,omitempty"`
 }
 
-type RobotPermission struct {
-	Access    []*models.Access `json:"access"`
-	Kind      string           `json:"kind,omitempty"`
-	Namespace string           `json:"namespace,omitempty"`
-}
+// RobotPermission is the SDK permission scope; kept as an alias so view
+// consumers do not need a conversion layer.
+type RobotPermission = models.RobotPermission
 
 func UpdateRobotView(updateView *UpdateView) {
 	duration := strconv.FormatInt(updateView.Duration, 10)
