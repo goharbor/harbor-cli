@@ -112,3 +112,38 @@ func TestDeleteAllMember_DeleteError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to delete")
 }
+
+func TestGetMemberIDByName(t *testing.T) {
+	originalListMembers := listMembersFunc
+	defer func() { listMembersFunc = originalListMembers }()
+
+	// Membership IDs deliberately differ from the users' entity IDs.
+	listMembersFunc = func(projectNameOrID, memberName string, isName bool) (*member.ListProjectMembersOK, error) {
+		return &member.ListProjectMembersOK{
+			Payload: []*models.ProjectMemberEntity{
+				{ID: 3, EntityID: 7, EntityName: "alice-dev"},
+				{ID: 9, EntityID: 3, EntityName: "alice"},
+			},
+		}, nil
+	}
+
+	id, err := GetMemberIDByName("demo", "alice", true)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(9), id)
+
+	_, err = GetMemberIDByName("demo", "carol", true)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+}
+
+func TestGetMemberIDByName_ListMembersError(t *testing.T) {
+	originalListMembers := listMembersFunc
+	defer func() { listMembersFunc = originalListMembers }()
+
+	listMembersFunc = func(projectNameOrID, memberName string, isName bool) (*member.ListProjectMembersOK, error) {
+		return nil, errors.New("connection refused")
+	}
+
+	_, err := GetMemberIDByName("demo", "alice", true)
+	assert.ErrorContains(t, err, "connection refused")
+}

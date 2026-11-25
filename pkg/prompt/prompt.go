@@ -49,14 +49,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetRegistryNameFromUser() int64 {
-	registryId := make(chan int64)
-	go func() {
-		response, _ := api.ListRegistries()
-		rview.RegistryList(response.Payload, registryId)
-	}()
+func GetRegistryNameFromUser() (int64, error) {
+	response, err := api.ListRegistries()
+	if err != nil {
+		return 0, err
+	}
 
-	return <-registryId
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no registries found")
+	}
+
+	return rview.RegistryList(response.Payload)
 }
 
 func GetProjectIDFromUser() (int64, error) {
@@ -158,13 +161,17 @@ func GetRepoNameFromUser(projectName string) string {
 }
 
 // complete the function
-func GetReferenceFromUser(repositoryName string, projectName string) string {
-	reference := make(chan string)
-	go func() {
-		response, _ := api.ListArtifact(projectName, repositoryName)
-		aview.ListArtifacts(response.Payload, reference)
-	}()
-	return <-reference
+func GetReferenceFromUser(repositoryName string, projectName string) (string, error) {
+	response, err := api.ListArtifact(projectName, repositoryName)
+	if err != nil {
+		return "", err
+	}
+
+	if len(response.Payload) == 0 {
+		return "", errors.New("no artifacts found")
+	}
+
+	return aview.ListArtifacts(response.Payload)
 }
 
 func GetUserIdFromUser() (int64, error) {
@@ -181,33 +188,43 @@ func GetUserIdFromUser() (int64, error) {
 	return id, nil
 }
 
-func GetImmutableTagRule(projectName string) int64 {
-	immutableid := make(chan int64)
-	go func() {
-		response, _ := api.ListImmutable(projectName)
-		immview.ImmutableList(response.Payload, immutableid)
-	}()
-	return <-immutableid
+func GetImmutableTagRule(projectName string) (int64, error) {
+	response, err := api.ListImmutable(projectName)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no immutable tag rules found")
+	}
+
+	return immview.ImmutableList(response.Payload)
 }
 
-func GetTagFromUser(repoName, projectName, reference string) string {
-	tag := make(chan string)
-	go func() {
-		response, _ := api.ListTags(projectName, repoName, reference)
-		tview.ListTags(response.Payload, tag)
-	}()
-	return <-tag
+func GetTagFromUser(repoName, projectName, reference string) (string, error) {
+	response, err := api.ListTags(projectName, repoName, reference)
+	if err != nil {
+		return "", err
+	}
+
+	if len(response.Payload) == 0 {
+		return "", errors.New("no tags found")
+	}
+
+	return tview.ListTags(response.Payload)
 }
 
-func GetScannerIdFromUser() string {
-	scannerId := make(chan string)
+func GetScannerIdFromUser() (string, error) {
+	response, err := api.ListScanners()
+	if err != nil {
+		return "", err
+	}
 
-	go func() {
-		response, _ := api.ListScanners()
-		sview.ScannerList(response.Payload, scannerId)
-	}()
+	if len(response.Payload) == 0 {
+		return "", errors.New("no scanners found")
+	}
 
-	return <-scannerId
+	return sview.ScannerList(response.Payload)
 }
 
 func GetWebhookFromUser(projectName string) (models.WebhookPolicy, error) {
@@ -384,71 +401,64 @@ func GetRobotIDFromUser(projectID int64) (int64, error) {
 	return id, nil
 }
 
-func GetReplicationPolicyFromUser() int64 {
-	replicationPolicyID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationPolicies()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rpolicies.ReplicationPoliciesList(response.Payload, replicationPolicyID)
-	}()
-
-	return <-replicationPolicyID
+func GetReplicationPolicyFromUser() (int64, error) {
+	response, err := api.ListReplicationPolicies()
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication policies found")
+	}
+	id, err := rpolicies.ReplicationPoliciesList(response.Payload)
+	if errors.Is(err, rpolicies.ErrUserAborted) {
+		return 0, errors.New("user aborted replication policy selection")
+	}
+	return id, err
 }
 
-func GetReplicationExecutionIDFromUser(rpolicyID int64) int64 {
-	executionID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationExecutions(rpolicyID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(response.Payload) == 0 {
-			log.Fatal("no replication executions found")
-		}
-		rexecutions.ReplicationExecutionList(response.Payload, executionID)
-	}()
-
-	return <-executionID
+func GetReplicationExecutionIDFromUser(rpolicyID int64) (int64, error) {
+	response, err := api.ListReplicationExecutions(rpolicyID)
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication executions found")
+	}
+	id, err := rexecutions.ReplicationExecutionList(response.Payload)
+	if errors.Is(err, rexecutions.ErrUserAborted) {
+		return 0, errors.New("user aborted replication execution selection")
+	}
+	return id, err
 }
 
-func GetReplicationTaskIDFromUser(execID int64) int64 {
-	executionID := make(chan int64)
-
-	go func() {
-		response, err := api.ListReplicationTasks(execID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(response.Payload) == 0 {
-			log.Fatal("no replication tasks found")
-		}
-		rtasks.ReplicationTasksList(response.Payload, executionID)
-	}()
-
-	return <-executionID
+func GetReplicationTaskIDFromUser(execID int64) (int64, error) {
+	response, err := api.ListReplicationTasks(execID)
+	if err != nil {
+		return 0, err
+	}
+	if len(response.Payload) == 0 {
+		return 0, errors.New("no replication tasks found")
+	}
+	id, err := rtasks.ReplicationTasksList(response.Payload)
+	if errors.Is(err, rtasks.ErrUserAborted) {
+		return 0, errors.New("user aborted replication task selection")
+	}
+	return id, err
 }
 
 // Get GetMemberIDFromUser choosing from list of members
-func GetMemberIDFromUser(projectName, memberName string) int64 {
-	memberId := make(chan int64)
-	length := make(chan int)
-	go func() {
-		response, _ := api.ListMembers(projectName, memberName, true)
-		length <- len(response.Payload)
-		mview.MemberList(response.Payload, memberId)
-	}()
-
-	// if no members found, return 0
-	l := <-length
-	if l == 0 {
-		return 0
+func GetMemberIDFromUser(projectName, memberName string) (int64, error) {
+	response, err := api.ListMembers(projectName, memberName, true)
+	if err != nil {
+		return 0, err
 	}
 
-	return <-memberId
+	// if no members found, return 0
+	if len(response.Payload) == 0 {
+		return 0, nil
+	}
+
+	return mview.MemberList(response.Payload)
 }
 
 // Get Member Role ID selection from user
@@ -462,13 +472,15 @@ func GetRoleIDFromUser() int64 {
 	return <-roleID
 }
 
-func GetRetentionTagRule(retentionID string) int64 {
-	retentionIndex := make(chan int64)
-	go func() {
-		response, _ := api.ListRetention(retentionID)
-		retview.RetentionList(response.Payload.Rules, retentionIndex)
-	}()
-	return <-retentionIndex
+func GetRetentionTagRule(retentionID string) (int64, error) {
+	response, err := api.ListRetention(retentionID)
+	if err != nil {
+		return 0, err
+	}
+	if response.Payload == nil || len(response.Payload.Rules) == 0 {
+		return 0, errors.New("no retention rules found")
+	}
+	return retview.RetentionList(response.Payload.Rules)
 }
 
 func GetPreheatPolicyNameFromUser(projectName string) (string, error) {

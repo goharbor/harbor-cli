@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,10 @@ func SetDefaultCommand() *cobra.Command {
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				registrationID, err = prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get scanner: %v", utils.ParseHarborErrorMsg(err))
+				}
 			}
 			err = api.SetDefaultScanner(registrationID)
 			if err != nil {

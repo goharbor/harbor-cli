@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -54,13 +55,16 @@ func UpdateMemberCommand() *cobra.Command {
 			}
 
 			if memberName == "" {
-				opts.ID = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
+				opts.ID, err = prompt.GetMemberIDFromUser(opts.ProjectNameOrID, memberName)
+				if err != nil {
+					return fmt.Errorf("failed to get project member: %v", utils.ParseHarborErrorMsg(err))
+				}
 
 				if opts.ID == 0 {
 					return fmt.Errorf("no members found in project")
 				}
 			} else {
-				opts.ID, err = api.GetUsersIdByName(memberName)
+				opts.ID, err = api.GetMemberIDByName(opts.ProjectNameOrID, memberName, !isID)
 				if err != nil {
 					return err
 				}

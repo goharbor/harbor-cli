@@ -136,6 +136,9 @@ func DefaultCredentialName(username, server string) string {
 	return fmt.Sprintf("%s@%s", username, sanitized)
 }
 
+// maxStorageBytes is the largest storage quota the CLI accepts: 1024 TiB.
+const maxStorageBytes int64 = 1024 << 40
+
 func StorageStringToBytes(storage string) (int64, error) {
 	// Define the conversion multipliers
 	multipliers := map[string]int64{
@@ -158,16 +161,12 @@ func StorageStringToBytes(storage string) (int64, error) {
 		return 0, err
 	}
 
-	// Calculate the value in bytes
-	bytes := value * multipliers[unit]
-
-	// Check if the value exceeds 1024 TB
-	maxBytes := 1024 * 1024 * 1024 * 1024 * 1024
-	if bytes > int64(maxBytes) {
+	// Check the bound before multiplying so large values cannot overflow.
+	if value > maxStorageBytes/multipliers[unit] {
 		return 0, errors.New("value exceeds 1024 TB")
 	}
 
-	return bytes, nil
+	return value * multipliers[unit], nil
 }
 
 func SavePayloadJSON(filename string, payload any) {
