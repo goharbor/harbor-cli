@@ -18,6 +18,7 @@ import (
 
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,7 @@ Examples:
 			} else {
 				registrationID, err = prompt.GetScannerIdFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get scanner: %v", err)
+					return fmt.Errorf("failed to get scanner: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
