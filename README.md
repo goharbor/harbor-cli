@@ -116,7 +116,7 @@ sudo apk add --allow-untrusted harbor-cli_<version>_linux_amd64.apk
 ### APT
 
 ```bash
-echo "deb [trusted=yes] https://harborcli.goharbor.io stable main" | sudo tee /etc/apt/sources.list.d/harbor-cli.list
+echo "deb [trusted=yes] https://raw.githubusercontent.com/goharbor/harbor-cli/gh-pages stable main" | sudo tee /etc/apt/sources.list.d/harbor-cli.list
 sudo apt update
 sudo apt install harbor-cli
 ```
