@@ -36,16 +36,16 @@ Important considerations:
 
 Examples:
   # Refresh robot secret by ID (generates a random secret)
-  harbor-cli project robot refresh 123
+  harbor-cli robot refresh 123
 
   # Refresh with a custom secret
-  harbor-cli project robot refresh 123 --secret "MyCustomSecret123"
+  harbor-cli robot refresh 123 --secret "MyCustomSecret123"
 
   # Provide secret via stdin (useful for scripting)
-  echo "MySecretFromScript123" | harbor-cli project robot refresh 123 --secret-stdin
+  echo "MySecretFromScript123" | harbor-cli robot refresh 123 --secret-stdin
 
   # Interactive refresh (will prompt for project and robot selection)
-  harbor-cli project robot refresh
+  harbor-cli robot refresh
 
 ```sh
 harbor robot refresh [robotID] [flags]

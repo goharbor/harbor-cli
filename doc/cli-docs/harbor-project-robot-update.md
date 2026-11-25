@@ -50,6 +50,9 @@ Examples:
   # Update with all permissions
   harbor-cli project robot update 123 --all-permission
 
+  # Update from configuration file
+  harbor-cli project robot update 123 --robot-config-file ./robot-config.yaml
+
   # Interactive update (will prompt for robot selection and changes)
   harbor-cli project robot update
 
@@ -66,6 +69,7 @@ harbor project robot update [robotID] [flags]
   -h, --help[=true|false]             help for update
       --name string                   name of the robot account
       --project string                set project name
+  -r, --robot-config-file string      YAML/JSON file with robot configuration
 ```
 
 ### Options inherited from parent commands
