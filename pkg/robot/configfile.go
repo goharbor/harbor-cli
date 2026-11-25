@@ -26,7 +26,7 @@ import (
 func LoadCreateFromConfig(level Level, path string) (*robotview.CreateView, *PermissionSet, error) {
 	fmt.Println("Loading configuration from: ", path)
 
-	view, err := config.LoadRobotConfigFromFile(path)
+	view, err := config.LoadConfigFromFile(path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to load robot config from file: %v", err)
 	}
@@ -53,7 +53,7 @@ func LoadCreateFromConfig(level Level, path string) (*robotview.CreateView, *Per
 func ApplyConfigToUpdate(view *robotview.UpdateView, level Level, path string) (*PermissionSet, error) {
 	fmt.Println("Loading configuration from: ", path)
 
-	loaded, err := config.LoadRobotConfigFromFile(path)
+	loaded, err := config.LoadConfigFromFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load robot config from file: %v", err)
 	}
