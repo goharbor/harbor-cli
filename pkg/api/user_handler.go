@@ -16,6 +16,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -109,15 +110,16 @@ func ListUsers(opts ...ListFlags) (*user.ListUsersOK, error) {
 // ErrUserNotFound is returned when a user name or ID matches no user.
 var ErrUserNotFound = errors.New("not found")
 
-// usernameQuery builds a q filter that matches userName literally. Harbor
-// reads an exact value wrapped in [], {} or () as a range or list, so such
-// names use a substring match instead; callers must check the result for an
-// exact match.
+// usernameQuery builds a q filter that matches userName exactly. Harbor
+// URL-decodes q once more after the HTTP layer, so the name is escaped to
+// keep characters such as '+' literal. Harbor also reads a value starting
+// with [, { or ( as a range or list and drops one leading backslash from an
+// exact value, so such names get an extra leading backslash.
 func usernameQuery(userName string) string {
-	if strings.ContainsAny(userName[:1], "[{(") {
-		return "username=~" + userName
+	if strings.ContainsAny(userName[:1], `\[{(`) {
+		userName = `\` + userName
 	}
-	return "username=" + userName
+	return "username=" + url.QueryEscape(userName)
 }
 
 // GetUsersIdByName returns the ID of the user whose name is exactly userName.
