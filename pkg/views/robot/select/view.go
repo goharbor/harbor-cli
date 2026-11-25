@@ -120,7 +120,7 @@ func NewRobotPermissionsGrid(kind string) (*tablegrid.TableGrid, error) {
 	return grid, nil
 }
 
-func ListPermissions(perms *models.Permissions, kind string, ch chan<- PermissionSelectResult) {
+func ListPermissions(kind string, ch chan<- PermissionSelectResult) {
 	grid, err := NewRobotPermissionsGrid(kind)
 	if err != nil {
 		fmt.Println("error creating permissions grid:", err)

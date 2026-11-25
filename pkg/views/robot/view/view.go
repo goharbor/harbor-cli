@@ -128,7 +128,7 @@ func ViewRobot(robot *models.Robot) {
 		permissionsColumns = projectPermissionsColumns
 		resourceStrings = projectResourceStrings
 		systemLevel = false
-		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("System-level robot with access across projects: %s", namespace)))
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("Project-level robot in project: %s", namespace)))
 	}
 
 	var permissionRows []table.Row

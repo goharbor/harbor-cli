@@ -28,7 +28,7 @@ func ListRobotCommand() *cobra.Command {
 	var opts api.ListFlags
 
 	cmd := &cobra.Command{
-		Use:   "list [projectName]",
+		Use:   "list",
 		Short: "list robot",
 		Long: `List robot accounts in Harbor.
 

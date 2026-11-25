@@ -129,59 +129,57 @@ Examples:
 				}
 			}
 
-			if len(args) == 0 {
-				if (opts.Name == "" || opts.Duration == 0) && configFile == "" {
-					fmt.Println("Opening interactive form for robot creation")
-					create.CreateRobotView(&opts)
-				}
-
-				if opts.Duration == 0 {
-					msg := fmt.Errorf("duration cannot be 0")
-					return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
-				}
-
-				if len(permissions) == 0 {
-					if all {
-						perms, err := api.GetPermissions()
-						if err != nil {
-							return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
-						}
-						permission := perms.Payload.Project
-
-						choices := []models.Permission{}
-						for _, perm := range permission {
-							choices = append(choices, *perm)
-						}
-						permissions = choices
-					} else {
-						permissions, err = prompt.GetRobotPermissionsFromUser("project")
-						if err != nil {
-							return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
-						}
-						if len(permissions) == 0 {
-							msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
-							return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
-						}
-					}
-				}
-
-				// []Permission to []*Access
-				var accesses []*models.Access
-				for _, perm := range permissions {
-					access := &models.Access{
-						Action:   perm.Action,
-						Resource: perm.Resource,
-					}
-					accesses = append(accesses, access)
-				}
-				// convert []models.permission to []*model.Access
-				perm := &create.RobotPermission{
-					Namespace: opts.ProjectName,
-					Access:    accesses,
-					Kind:      "project", // Default to project level
-				}
-				opts.Permissions = []*create.RobotPermission{perm}
+			if (opts.Name == "" || opts.Duration == 0) && configFile == "" {
+				fmt.Println("Opening interactive form for robot creation")
+				create.CreateRobotView(&opts)
 			}
+
+			if opts.Duration == 0 {
+				msg := fmt.Errorf("duration cannot be 0")
+				return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
+			}
+
+			if len(permissions) == 0 {
+				if all {
+					perms, err := api.GetPermissions()
+					if err != nil {
+						return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+					}
+					permission := perms.Payload.Project
+
+					choices := []models.Permission{}
+					for _, perm := range permission {
+						choices = append(choices, *perm)
+					}
+					permissions = choices
+				} else {
+					permissions, err = prompt.GetRobotPermissionsFromUser("project")
+					if err != nil {
+						return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+					}
+					if len(permissions) == 0 {
+						msg := fmt.Errorf("no permissions selected, robot account needs at least one permission")
+						return fmt.Errorf("failed to create robot: %v", utils.ParseHarborErrorMsg(msg))
+					}
+				}
+			}
+
+			// []Permission to []*Access
+			var accesses []*models.Access
+			for _, perm := range permissions {
+				access := &models.Access{
+					Action:   perm.Action,
+					Resource: perm.Resource,
+				}
+				accesses = append(accesses, access)
+			}
+			perm := &create.RobotPermission{
+				Namespace: opts.ProjectName,
+				Access:    accesses,
+				Kind:      "project", // Default to project level
+			}
+			opts.Permissions = []*create.RobotPermission{perm}
+
 			getProjectID, err := api.GetProject(opts.ProjectName, false)
 			if err != nil {
 				return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))

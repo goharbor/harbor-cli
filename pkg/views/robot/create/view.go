@@ -40,12 +40,6 @@ type RobotPermission struct {
 	Namespace string           `json:"namespace,omitempty"`
 }
 
-type Access struct {
-	Action   string `json:"action,omitempty"`
-	Effect   string `json:"effect,omitempty"`
-	Resource string `json:"resource,omitempty"`
-}
-
 func CreateRobotView(createView *CreateView) {
 	duration := strconv.FormatInt(createView.Duration, 10)
 	if createView.Duration == 0 {
