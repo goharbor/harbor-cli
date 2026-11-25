@@ -48,10 +48,13 @@ func DeleteRegistryCommand() *cobra.Command {
 					}(registryID)
 				}
 			} else {
-				registryId := prompt.GetRegistryNameFromUser()
-				err := api.DeleteRegistry(registryId)
+				registryId, err := prompt.GetRegistryNameFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to delete registry: %v", err)
+					return fmt.Errorf("failed to get registry: %w", err)
+				}
+				err = api.DeleteRegistry(registryId)
+				if err != nil {
+					return fmt.Errorf("failed to delete registry: %w", err)
 				}
 			}
 

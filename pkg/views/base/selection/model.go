@@ -14,6 +14,7 @@
 package selection
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -56,6 +57,27 @@ type Model struct {
 	List    list.Model
 	Choice  string
 	Aborted bool
+}
+
+// ErrUserAborted is returned when the user quits a picker without choosing.
+var ErrUserAborted = errors.New("user aborted selection")
+
+// ErrNoSelection is returned when a picker exits without a chosen item.
+var ErrNoSelection = errors.New("no item selected")
+
+// Selected returns the item chosen in a finished selection program.
+func Selected(m tea.Model) (string, error) {
+	model, ok := m.(Model)
+	if !ok {
+		return "", ErrNoSelection
+	}
+	if model.Aborted {
+		return "", ErrUserAborted
+	}
+	if model.Choice == "" {
+		return "", ErrNoSelection
+	}
+	return model.Choice, nil
 }
 
 func NewModel(items []list.Item, construct string) Model {

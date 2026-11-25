@@ -124,10 +124,38 @@ func TestValidateProjectName(t *testing.T) {
 }
 
 func TestValidateStorageLimit(t *testing.T) {
-	assert.NoError(t, utils.ValidateStorageLimit("0"))
-	assert.NoError(t, utils.ValidateStorageLimit("-1"))
-	assert.Error(t, utils.ValidateStorageLimit("foo"))
-	assert.Error(t, utils.ValidateStorageLimit("2048"))
+	for _, in := range []string{"0", "-1", "2048", "10GiB", "512MiB", "1024TiB"} {
+		assert.NoError(t, utils.ValidateStorageLimit(in), in)
+	}
+	for _, in := range []string{"", "foo", "-2", "10GB", "1025TiB", "1125899906842625"} {
+		assert.Error(t, utils.ValidateStorageLimit(in), in)
+	}
+}
+
+func TestParseStorageLimit(t *testing.T) {
+	tests := []struct {
+		in   string
+		want int64
+	}{
+		{"-1", -1},
+		{"0", 0},
+		{"2048", 2048},
+		{"512MiB", 512 << 20},
+		{"10GiB", 10 << 30},
+		{"1024TiB", 1024 << 40},
+		{"1073741824MiB", 1024 << 40},
+	}
+	for _, tt := range tests {
+		got, err := utils.ParseStorageLimit(tt.in)
+		assert.NoError(t, err, tt.in)
+		assert.Equal(t, tt.want, got, tt.in)
+	}
+
+	// Values whose byte count overflows int64 must be rejected, not wrapped.
+	for _, in := range []string{"", "foo", "-2", "10GB", "1025TiB", "1073741825MiB", "8388608TiB", "8388609TiB", "16777216TiB", "4294967297TiB", "9223372036854775807MiB"} {
+		_, err := utils.ParseStorageLimit(in)
+		assert.Error(t, err, in)
+	}
 }
 
 func TestValidateRegistryName(t *testing.T) {

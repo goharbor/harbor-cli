@@ -55,7 +55,11 @@ Flags:
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				id, err := prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get scanner: %v", utils.ParseHarborErrorMsg(err))
+				}
+				registrationID = id
 			}
 
 			meta, err := api.GetScannerMetadata(registrationID)

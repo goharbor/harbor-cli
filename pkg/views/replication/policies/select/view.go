@@ -11,11 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package replication
+package policies
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +23,9 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<- int64) {
+var ErrUserAborted = errors.New("user aborted selection")
+
+func ReplicationPoliciesList(policies []*models.ReplicationPolicy) (int64, error) {
 	policyNameIDsMap := make(map[string]int64, len(policies))
 	for _, p := range policies {
 		policyNameIDsMap[p.Name] = p.ID
@@ -38,11 +40,19 @@ func ReplicationPoliciesList(policies []*models.ReplicationPolicy, choice chan<-
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return 0, fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- policyNameIDsMap[p.Choice]
+	model, ok := p.(selection.Model)
+	if !ok {
+		return 0, errors.New("unexpected program result")
 	}
+	if model.Aborted {
+		return 0, ErrUserAborted
+	}
+	id, ok := policyNameIDsMap[model.Choice]
+	if !ok {
+		return 0, errors.New("no replication policy selected")
+	}
+	return id, nil
 }

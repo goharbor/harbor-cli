@@ -15,7 +15,6 @@ package immutable
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ImmutableList(immutablerule []*models.ImmutableRule, choice chan<- int64) {
+func ImmutableList(immutablerule []*models.ImmutableRule) (int64, error) {
 	itemsList := make([]list.Item, len(immutablerule))
 
 	items := map[string]int64{}
@@ -52,11 +51,12 @@ func ImmutableList(immutablerule []*models.ImmutableRule, choice chan<- int64) {
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return 0, fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- items[p.Choice]
+	choice, err := selection.Selected(p)
+	if err != nil {
+		return 0, err
 	}
+	return items[choice], nil
 }

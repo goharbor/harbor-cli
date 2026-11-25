@@ -11,11 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package registry
+package tags
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,7 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ListTags(tag []*models.Tag, choice chan<- string) {
+func ListTags(tag []*models.Tag) (string, error) {
 	itemsList := make([]list.Item, len(tag))
 
 	for i, t := range tag {
@@ -35,11 +34,8 @@ func ListTags(tag []*models.Tag, choice chan<- string) {
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return "", fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		choice <- p.Choice
-	}
+	return selection.Selected(p)
 }
