@@ -24,14 +24,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// useEmptyRobotServer answers every robot listing with an empty result, so
+// useEmptyRobotServer answers robot listings with an empty result, so
 // lookups by name find nothing.
 func useEmptyRobotServer(t *testing.T) {
 	t.Helper()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte("[]"))
+		switch r.URL.Path {
+		case "/api/v2.0/configurations":
+			_, _ = w.Write([]byte(`{"robot_name_prefix": {"value": "robot$", "editable": true}}`))
+		case "/api/v2.0/projects/library":
+			_, _ = w.Write([]byte(`{"project_id": 1, "name": "library"}`))
+		case "/api/v2.0/robots":
+			_, _ = w.Write([]byte("[]"))
+		default:
+			http.Error(w, "unexpected request: "+r.URL.Path, http.StatusNotFound)
+		}
 	}))
 
 	utils.ClientOnce = sync.Once{}

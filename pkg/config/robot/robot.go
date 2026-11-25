@@ -279,11 +279,13 @@ func validateProjectRobotView(view *robotview.CreateView) error {
 	return nil
 }
 
-// GetAllAvailablePermissions returns permissions organized by scope
+// GetAllAvailablePermissions returns permissions organized by scope. The
+// error is returned unwrapped so callers can still parse the Harbor
+// response for its status and message.
 func GetAllAvailablePermissions() (*PermissionMap, error) {
 	response, err := api.GetPermissions()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get permissions: %v", err)
+		return nil, err
 	}
 
 	result := &PermissionMap{

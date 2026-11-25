@@ -15,6 +15,7 @@ package robot
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -36,21 +37,25 @@ func NewPermissionSet() *PermissionSet {
 // Split buckets a robot's permission scopes into the set.
 func (ps *PermissionSet) Split(scopes []*robotview.RobotPermission) {
 	for _, scope := range scopes {
-		if scope.Kind == "system" && scope.Namespace == "/" {
+		switch {
+		case scope.Kind == "system" && scope.Namespace == "/":
 			ps.System = append(ps.System, toPermissions(scope.Access)...)
-		} else if scope.Kind == "project" {
-			ps.Project[scope.Namespace] = toPermissions(scope.Access)
+		case scope.Kind == "project":
+			ps.Project[scope.Namespace] = append(ps.Project[scope.Namespace], toPermissions(scope.Access)...)
+		default:
+			logrus.Warnf("Ignoring permission scope with kind '%s' and namespace '%s'", scope.Kind, scope.Namespace)
 		}
 	}
 }
 
-// Merge rebuilds the permission scopes the Harbor API expects. Empty scopes
-// are dropped because Harbor rejects them.
+// Merge rebuilds the permission scopes the Harbor API expects, project
+// scopes first in stable order. Empty scopes are dropped because Harbor
+// rejects them.
 func (ps *PermissionSet) Merge() []*robotview.RobotPermission {
 	var merged []*robotview.RobotPermission
 
-	for projectName, permissions := range ps.Project {
-		if access := toAccess(permissions); len(access) > 0 {
+	for _, projectName := range ps.ProjectNames() {
+		if access := toAccess(ps.Project[projectName]); len(access) > 0 {
 			merged = append(merged, &robotview.RobotPermission{
 				Namespace: projectName,
 				Access:    access,
@@ -88,12 +93,14 @@ func (ps *PermissionSet) ClearProjects() {
 	ps.Project = make(map[string][]models.Permission)
 }
 
-// ProjectNames lists the projects the set has scopes for.
+// ProjectNames lists the projects the set has scopes for, sorted for
+// stable prompts and payloads.
 func (ps *PermissionSet) ProjectNames() []string {
 	names := make([]string, 0, len(ps.Project))
 	for name := range ps.Project {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }
 
@@ -142,6 +149,16 @@ func AllPermissions(kind string) ([]models.Permission, error) {
 // ValidateProjectPermissions filters out permissions Harbor does not offer
 // at project level and warns about what was dropped.
 func ValidateProjectPermissions(permissions []models.Permission) ([]models.Permission, error) {
+	validate, err := projectPermissionValidator()
+	if err != nil {
+		return nil, err
+	}
+	return validate(permissions), nil
+}
+
+// projectPermissionValidator fetches the available project permissions once
+// and returns a filter over them, for loops that validate repeatedly.
+func projectPermissionValidator() (func([]models.Permission) []models.Permission, error) {
 	available, err := AllPermissions("project")
 	if err != nil {
 		return nil, err
@@ -152,21 +169,22 @@ func ValidateProjectPermissions(permissions []models.Permission) ([]models.Permi
 		valid[permission.Resource+":"+permission.Action] = true
 	}
 
-	var kept []models.Permission
-	var dropped []string
-	for _, permission := range permissions {
-		key := permission.Resource + ":" + permission.Action
-		if valid[key] {
-			kept = append(kept, permission)
-		} else {
-			dropped = append(dropped, key)
+	return func(permissions []models.Permission) []models.Permission {
+		var kept []models.Permission
+		var dropped []string
+		for _, permission := range permissions {
+			key := permission.Resource + ":" + permission.Action
+			if valid[key] {
+				kept = append(kept, permission)
+			} else {
+				dropped = append(dropped, key)
+			}
 		}
-	}
-
-	if len(dropped) > 0 {
-		logrus.Warnf("Removed %d invalid project permissions: %v", len(dropped), dropped)
-	}
-	return kept, nil
+		if len(dropped) > 0 {
+			logrus.Warnf("Removed %d invalid project permissions: %v", len(dropped), dropped)
+		}
+		return kept
+	}, nil
 }
 
 // errNoPermissions is the uniform complaint when a robot would end up

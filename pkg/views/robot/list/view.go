@@ -16,45 +16,18 @@ package list
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 )
 
 func ListRobots(robots []*models.Robot) {
 	var rows []table.Row
-
 	for _, robot := range robots {
-		var enabledStatus string
-		var expires string
-
-		enabledStatus = robotview.RenderStatus(robot.Disable)
-
-		var TotalPermissions int = 0
-		if len(robot.Permissions) > 0 {
-			TotalPermissions = len(robot.Permissions[0].Access)
-		}
-
-		if robot.ExpiresAt == -1 {
-			expires = "Never"
-		} else {
-			expires = robotview.RemainingTime(robot.ExpiresAt)
-		}
-
-		createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
-		rows = append(rows, table.Row{
-			robot.Name,
-			enabledStatus,
-			strconv.FormatInt(int64(TotalPermissions), 10),
-			createdTime,
-			expires,
-			string(robot.Description),
-		})
+		rows = append(rows, robotview.SummaryRow(robot))
 	}
 
 	m := tablelist.NewModel(robotview.SummaryColumns, rows, len(rows))

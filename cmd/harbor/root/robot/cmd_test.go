@@ -48,5 +48,9 @@ func TestCommandSurface(t *testing.T) {
 }
 
 func TestRobotCommandHasAllSubcommands(t *testing.T) {
-	assert.Len(t, Robot().Commands(), 6)
+	var names []string
+	for _, cmd := range Robot().Commands() {
+		names = append(names, cmd.Name())
+	}
+	assert.ElementsMatch(t, []string{"create", "update", "delete", "list", "view", "refresh"}, names)
 }

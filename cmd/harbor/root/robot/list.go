@@ -64,7 +64,7 @@ Examples:
   harbor-cli robot list --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := robot.ValidateListFlags(opts); err != nil {
+			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
 				return err
 			}
 

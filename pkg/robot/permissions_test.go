@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/api"
 	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,6 +56,15 @@ func TestPermissionSetSplitAndMergeRoundTrip(t *testing.T) {
 	assert.Equal(t, "library", byKind["project"].Namespace)
 }
 
+func TestPermissionSetSplitAppendsDuplicateProjectScopes(t *testing.T) {
+	permissions := NewPermissionSet()
+	permissions.Split([]*robotview.RobotPermission{
+		{Kind: "project", Namespace: "library", Access: []*models.Access{{Resource: "repository", Action: "pull"}}},
+		{Kind: "project", Namespace: "library", Access: []*models.Access{{Resource: "repository", Action: "push"}}},
+	})
+	assert.Len(t, permissions.Project["library"], 2)
+}
+
 func TestPermissionSetMergeDropsEmptyScopes(t *testing.T) {
 	permissions := NewPermissionSet()
 	permissions.Project["empty"] = nil
@@ -78,13 +86,9 @@ func TestViewFromRobotGuardsOptionalFields(t *testing.T) {
 func TestWrapError(t *testing.T) {
 	plain := WrapError("list robots", errors.New("boom"))
 	assert.ErrorContains(t, plain, "failed to list robots")
-}
 
-func TestValidateListFlags(t *testing.T) {
-	assert.Error(t, ValidateListFlags(api.ListFlags{Page: 0, PageSize: 10}))
-	assert.Error(t, ValidateListFlags(api.ListFlags{Page: 1, PageSize: -1}))
-	assert.Error(t, ValidateListFlags(api.ListFlags{Page: 1, PageSize: 101}))
-	assert.NoError(t, ValidateListFlags(api.ListFlags{Page: 1, PageSize: 10}))
+	forbidden := WrapError("list robots", errors.New("[GET /robots][403] listRobotForbidden"))
+	assert.ErrorContains(t, forbidden, "permission denied: admin privileges are required to list robots")
 }
 
 func TestExportSecretToFile(t *testing.T) {

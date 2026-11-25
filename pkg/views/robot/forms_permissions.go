@@ -17,6 +17,19 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
+// Permission mode values returned by the mode selects below.
+const (
+	ModeNone       = "none"
+	ModeKeep       = "keep"
+	ModeClear      = "clear"
+	ModeList       = "list"
+	ModePerProject = "per_project"
+
+	ModifyAdd     = "add"
+	ModifyModify  = "modify"
+	ModifyReplace = "replace"
+)
+
 // SelectProjectsForPermissions asks which projects should share one set of
 // permissions.
 func SelectProjectsForPermissions(projectNames []string) ([]string, error) {
@@ -83,9 +96,9 @@ func SelectCreatePermissionMode() (string, error) {
 				Title("Permission Mode").
 				Description("Choose 'List' to select multiple projects with common permissions, or 'Per Project' for individual project permissions.").
 				Options(
-					huh.NewOption("No project permissions (system-level only)", "none"),
-					huh.NewOption("Per Project", "per_project"),
-					huh.NewOption("List", "list"),
+					huh.NewOption("No project permissions (system-level only)", ModeNone),
+					huh.NewOption("Per Project", ModePerProject),
+					huh.NewOption("List", ModeList),
 				).
 				Value(&mode),
 		),
@@ -98,16 +111,16 @@ func SelectCreatePermissionMode() (string, error) {
 // already has project permissions.
 func SelectUpdatePermissionMode(hasExisting bool) (string, error) {
 	options := []huh.Option[string]{
-		huh.NewOption("No project permissions (system-level only)", "clear"),
-		huh.NewOption("Per Project (individual permissions)", "per_project"),
-		huh.NewOption("List (same permissions for multiple projects)", "list"),
+		huh.NewOption("No project permissions (system-level only)", ModeClear),
+		huh.NewOption("Per Project (individual permissions)", ModePerProject),
+		huh.NewOption("List (same permissions for multiple projects)", ModeList),
 	}
 	if hasExisting {
 		options = []huh.Option[string]{
-			huh.NewOption("Keep existing project permissions", "keep"),
-			huh.NewOption("Clear all project permissions", "clear"),
-			huh.NewOption("Per Project (individual permissions)", "per_project"),
-			huh.NewOption("List (same permissions for multiple projects)", "list"),
+			huh.NewOption("Keep existing project permissions", ModeKeep),
+			huh.NewOption("Clear all project permissions", ModeClear),
+			huh.NewOption("Per Project (individual permissions)", ModePerProject),
+			huh.NewOption("List (same permissions for multiple projects)", ModeList),
 		}
 	}
 
@@ -162,9 +175,9 @@ func SelectModifyMode() (string, error) {
 			huh.NewSelect[string]().
 				Title("How do you want to modify project permissions?").
 				Options(
-					huh.NewOption("Add new projects only", "add"),
-					huh.NewOption("Modify existing projects", "modify"),
-					huh.NewOption("Replace all existing with new projects", "replace"),
+					huh.NewOption("Add new projects only", ModifyAdd),
+					huh.NewOption("Modify existing projects", ModifyModify),
+					huh.NewOption("Replace all existing with new projects", ModifyReplace),
 				).
 				Value(&mode),
 		),

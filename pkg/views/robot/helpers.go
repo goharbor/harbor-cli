@@ -15,9 +15,12 @@ package robot
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
+	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
 )
@@ -32,6 +35,30 @@ var SummaryColumns = []table.Column{
 	{Title: "Description", Width: tablelist.WidthXL},
 }
 
+// SummaryRow builds the table row shown for a robot in the list and detail
+// views.
+func SummaryRow(robot *models.Robot) table.Row {
+	permissionCount := 0
+	if len(robot.Permissions) > 0 {
+		permissionCount = len(robot.Permissions[0].Access)
+	}
+
+	expires := "Never"
+	if robot.ExpiresAt != -1 {
+		expires = RemainingTime(robot.ExpiresAt)
+	}
+
+	createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
+	return table.Row{
+		robot.Name,
+		RenderStatus(robot.Disable),
+		strconv.Itoa(permissionCount),
+		createdTime,
+		expires,
+		robot.Description,
+	}
+}
+
 // RenderStatus renders a robot's enabled state for table output.
 func RenderStatus(disabled bool) string {
 	if disabled {
@@ -43,6 +70,9 @@ func RenderStatus(disabled bool) string {
 // RemainingTime formats how much time is left until a Unix timestamp.
 func RemainingTime(unixTimestamp int64) string {
 	duration := time.Until(time.Unix(unixTimestamp, 0))
+	if duration <= 0 {
+		return "Expired"
+	}
 
 	days := int(duration.Hours() / 24)
 	hours := int(duration.Hours()) % 24

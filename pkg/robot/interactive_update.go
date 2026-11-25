@@ -101,16 +101,16 @@ func updateProjectPermissions(permissions *PermissionSet) error {
 	}
 
 	switch mode {
-	case "keep":
+	case robotview.ModeKeep:
 		logrus.Debug("Keeping existing project permissions")
 		return nil
-	case "clear":
+	case robotview.ModeClear:
 		logrus.Debug("Clearing all project permissions")
 		permissions.ClearProjects()
 		return nil
-	case "list":
+	case robotview.ModeList:
 		return updateMultiProjectPermissions(permissions)
-	case "per_project":
+	case robotview.ModePerProject:
 		return updatePerProjectPermissions(permissions)
 	default:
 		return fmt.Errorf("unknown permission mode: %s", mode)
@@ -141,13 +141,15 @@ func updatePerProjectPermissions(permissions *PermissionSet) error {
 	}
 
 	switch mode {
-	case "replace":
+	case robotview.ModifyReplace:
 		permissions.ClearProjects()
 		return collectPerProjectPermissions(permissions, true)
-	case "modify":
+	case robotview.ModifyModify:
 		return modifyExistingProjects(permissions)
-	default: // "add"
+	case robotview.ModifyAdd:
 		return collectPerProjectPermissions(permissions, true)
+	default:
+		return fmt.Errorf("unknown permission mode: %s", mode)
 	}
 }
 
@@ -159,15 +161,20 @@ func modifyExistingProjects(permissions *PermissionSet) error {
 		return fmt.Errorf("error selecting projects to modify: %v", err)
 	}
 
+	validate, err := projectPermissionValidator()
+	if err != nil {
+		return err
+	}
+
 	for _, projectName := range selectedProjects {
 		fmt.Printf("Updating permissions for project: %s\n", projectName)
 		selected, err := prompt.GetRobotPermissionsFromUser("project")
 		if err != nil {
 			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 		}
-		valid, err := ValidateProjectPermissions(selected)
-		if err != nil {
-			return err
+		valid := validate(selected)
+		if len(valid) == 0 {
+			return errNoPermissions("update")
 		}
 		permissions.Project[projectName] = valid
 	}

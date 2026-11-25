@@ -35,6 +35,7 @@ type robotServer struct {
 	robots       []*models.Robot
 	createdRobot *models.RobotCreate
 	updatedRobot *models.Robot
+	listQueries  []string
 }
 
 func useRobotServer(t *testing.T, state *robotServer) {
@@ -51,6 +52,9 @@ func useRobotServer(t *testing.T, state *robotServer) {
 		case r.URL.Path == "/api/v2.0/projects/1":
 			_, _ = w.Write([]byte(`{"project_id": 1, "name": "library"}`))
 		case r.Method == http.MethodGet && r.URL.Path == "/api/v2.0/robots":
+			mu.Lock()
+			state.listQueries = append(state.listQueries, r.URL.Query().Get("q"))
+			mu.Unlock()
 			_ = json.NewEncoder(w).Encode(state.robots)
 		case r.Method == http.MethodPost && r.URL.Path == "/api/v2.0/robots":
 			body, _ := io.ReadAll(r.Body)
@@ -133,27 +137,33 @@ func TestUpdateRobotPassesPermissionsThrough(t *testing.T) {
 
 func TestGetRobotByName(t *testing.T) {
 	tests := []struct {
-		name    string
-		robots  []*models.Robot
-		wantErr string
+		name      string
+		robotName string
+		robots    []*models.Robot
+		wantErr   string
 	}{
-		{"found", []*models.Robot{{ID: 7, Name: "robot$ci"}}, ""},
-		{"missing", []*models.Robot{}, "no robot found with name"},
-		{"ambiguous", []*models.Robot{{ID: 7}, {ID: 8}}, "multiple robots found with name"},
+		{"found with prefix", "robot$ci", []*models.Robot{{ID: 7, Name: "robot$ci"}}, ""},
+		{"found without prefix", "ci", []*models.Robot{{ID: 7, Name: "robot$ci"}}, ""},
+		{"missing", "robot$ci", []*models.Robot{}, "no robot found with name"},
+		{"ambiguous", "robot$ci", []*models.Robot{{ID: 7}, {ID: 8}}, "multiple robots found with name"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			useRobotServer(t, &robotServer{robots: tt.robots})
+			state := &robotServer{robots: tt.robots}
+			useRobotServer(t, state)
 
-			// The prefix is stripped before querying, so both spellings work.
-			robot, err := GetRobotByName("robot$ci")
+			robot, err := GetRobotByName(tt.robotName)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				return
 			}
 			require.NoError(t, err)
 			assert.Equal(t, int64(7), robot.ID)
+
+			// The prefix is stripped before querying.
+			require.Len(t, state.listQueries, 1)
+			assert.Equal(t, "name=ci", state.listQueries[0])
 		})
 	}
 }
@@ -166,6 +176,23 @@ func TestCheckRobotWithNameExists(t *testing.T) {
 	assert.True(t, exists)
 
 	exists, err = CheckRobotWithNameExists(1, "other")
+	require.NoError(t, err)
+	assert.False(t, exists)
+}
+
+func TestCheckSystemRobotWithNameExists(t *testing.T) {
+	state := &robotServer{robots: []*models.Robot{{ID: 7, Name: "robot$ci"}}}
+	useRobotServer(t, state)
+
+	exists, err := CheckSystemRobotWithNameExists("ci")
+	require.NoError(t, err)
+	assert.True(t, exists)
+
+	// Harbor stores the prefixed name, so the query must match substrings.
+	require.NotEmpty(t, state.listQueries)
+	assert.Equal(t, "name=~ci", state.listQueries[0])
+
+	exists, err = CheckSystemRobotWithNameExists("other")
 	require.NoError(t, err)
 	assert.False(t, exists)
 }

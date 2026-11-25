@@ -71,7 +71,7 @@ Examples:
   harbor-cli project robot list`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := robot.ValidateListFlags(opts); err != nil {
+			if err := utils.ValidatePagination(opts.Page, opts.PageSize); err != nil {
 				return err
 			}
 
@@ -92,7 +92,7 @@ Examples:
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
-					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project from user: %v", utils.ParseHarborErrorMsg(err))
 				}
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}

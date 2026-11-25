@@ -91,7 +91,7 @@ func ResolveRobotIDByName(robotName string, level Level, projectName string) (in
 
 	robot, err := api.GetRobotByName(robotName, qualifier...)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get robot by name %s: %v", robotName, utils.ParseHarborErrorMsg(err))
+		return 0, WrapError("get robot by name "+robotName, err)
 	}
 	return robot.ID, nil
 }

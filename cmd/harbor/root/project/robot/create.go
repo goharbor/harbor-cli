@@ -56,7 +56,7 @@ Configuration File Format (YAML or JSON):
   name: "robot-name"        # Required: Name of the robot account
   description: "..."        # Optional: Description of the robot account
   duration: 90              # Required: Lifetime in days
-  level: "project"          # Required: Must be "project"
+  level: "project"          # Optional: defaults to "project"
   permissions:              # Required: One permission scope with the project as namespace
     - namespace: "project-name"
       kind: "project"

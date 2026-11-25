@@ -44,7 +44,12 @@ func ExportSecretToFile(name, secret, creationTime string, expiresAt int64) erro
 		return fmt.Errorf("failed to marshal secret to JSON: %v", err)
 	}
 
+	// Remove a pre-existing file so the 0600 mode applies and no symlink
+	// or wider permissions from an earlier export survive.
 	filename := fmt.Sprintf("%s-secret.json", name)
+	if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to replace existing secret file: %v", err)
+	}
 	if err := os.WriteFile(filename, document, 0600); err != nil {
 		return fmt.Errorf("failed to write secret to file: %v", err)
 	}
@@ -73,7 +78,7 @@ func DisplaySecret(name, secret string) error {
 	}
 
 	if err := clipboard.WriteAll(secret); err != nil {
-		logrus.Errorf("failed to write to clipboard")
+		logrus.Errorf("failed to write to clipboard: %v", err)
 		return nil
 	}
 	fmt.Println("secret copied to clipboard.")

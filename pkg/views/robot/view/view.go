@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -68,30 +67,8 @@ var systemResourceStrings = []string{
 }
 
 func ViewRobot(robot *models.Robot) {
-	var rows []table.Row
-	var enabledStatus string
-	var expires string
-
-	enabledStatus = robotview.RenderStatus(robot.Disable)
-
-	totalPermissions, namespace := robotPermissionSummary(robot)
-	TotalPermissions := strconv.FormatInt(int64(totalPermissions), 10)
-
-	if robot.ExpiresAt == -1 {
-		expires = "Never"
-	} else {
-		expires = robotview.RemainingTime(robot.ExpiresAt)
-	}
-
-	createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
-	rows = append(rows, table.Row{
-		robot.Name,
-		enabledStatus,
-		TotalPermissions,
-		createdTime,
-		expires,
-		string(robot.Description),
-	})
+	_, namespace := robotPermissionSummary(robot)
+	rows := []table.Row{robotview.SummaryRow(robot)}
 
 	m := tablelist.NewModel(robotview.SummaryColumns, rows, len(rows))
 

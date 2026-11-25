@@ -44,17 +44,7 @@ func FormCreate(view *CreateView) error {
 			huh.NewInput().
 				Title("Expiration").
 				Value(&duration).
-				Validate(func(str string) error {
-					durationInt, err := strconv.Atoi(str)
-					if err != nil {
-						return errors.New("invalid expiration time: Enter expiration time in days")
-					}
-					if durationInt < -1 || durationInt == 0 {
-						return errors.New("invalid expiration time: Enter -1 for no expiration or a positive integer for days")
-					}
-					view.Duration = int64(durationInt)
-					return nil
-				}),
+				Validate(expirationValidator(&view.Duration)),
 		),
 	).WithTheme(huh.ThemeCharm()).Run()
 }
@@ -71,17 +61,7 @@ func FormUpdate(view *UpdateView) error {
 			huh.NewInput().
 				Title("Expiration").
 				Value(&duration).
-				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("expiration cannot be empty")
-					}
-					dur, err := strconv.ParseInt(str, 10, 64)
-					if err != nil {
-						return errors.New("invalid expiration time: Enter expiration time in days")
-					}
-					view.Duration = dur
-					return nil
-				}),
+				Validate(expirationValidator(&view.Duration)),
 			huh.NewConfirm().
 				Title("Disable").
 				Value(&view.Disable).
@@ -89,6 +69,23 @@ func FormUpdate(view *UpdateView) error {
 				Negative("no"),
 		),
 	).WithTheme(huh.ThemeCharm()).Run()
+}
+
+// expirationValidator parses and bounds an expiration input: -1 for no
+// expiration or a positive number of days. The parsed value is stored in
+// duration.
+func expirationValidator(duration *int64) func(string) error {
+	return func(str string) error {
+		parsed, err := strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			return errors.New("invalid expiration time: Enter expiration time in days")
+		}
+		if parsed < -1 || parsed == 0 {
+			return errors.New("invalid expiration time: Enter -1 for no expiration or a positive integer for days")
+		}
+		*duration = parsed
+		return nil
+	}
 }
 
 // FormSecret shows a robot's secret so the user can copy it.

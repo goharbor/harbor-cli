@@ -121,11 +121,11 @@ func collectProjectPermissions(projectName string, all bool, permissions *Permis
 	}
 
 	switch mode {
-	case "list":
+	case robotview.ModeList:
 		return collectMultiProjectPermissions(permissions, false)
-	case "per_project":
+	case robotview.ModePerProject:
 		return collectPerProjectPermissions(permissions, false)
-	case "none":
+	case robotview.ModeNone:
 		fmt.Println("Creating robot with system-level permissions only (no project-specific permissions)")
 		return nil
 	default:
@@ -200,7 +200,7 @@ func collectPerProjectPermissions(permissions *PermissionSet, validate bool) err
 func selectProjectsFromHarbor() ([]string, error) {
 	allProjects, err := api.ListAllProjects()
 	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %v", err)
+		return nil, fmt.Errorf("failed to list projects: %v", utils.ParseHarborErrorMsg(err))
 	}
 
 	projectNames := make([]string, 0, len(allProjects.Payload))

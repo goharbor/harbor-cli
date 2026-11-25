@@ -15,6 +15,7 @@ package robot
 
 import (
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -57,7 +58,8 @@ func isValidName(s string) bool {
 	if s == "" {
 		return false
 	}
-	if !unicode.IsLetter(rune(s[0])) {
+	first, _ := utf8.DecodeRuneInString(s)
+	if !unicode.IsLetter(first) {
 		return false
 	}
 	for _, r := range s {

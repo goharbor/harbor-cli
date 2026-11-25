@@ -139,9 +139,11 @@ func CheckRobotWithNameExists(projectID int32, name string) (bool, error) {
 }
 
 // CheckSystemRobotWithNameExists reports whether a system-level robot with
-// the given short name already exists.
+// the given short name already exists. Harbor stores the name with the
+// configured prefix, so the query matches substrings and the exact
+// comparison happens client-side.
 func CheckSystemRobotWithNameExists(name string) (bool, error) {
-	response, err := ListRobot(ListFlags{Q: "name=" + name})
+	response, err := ListRobot(ListFlags{Q: "name=~" + name})
 	if err != nil {
 		return false, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
 	}
