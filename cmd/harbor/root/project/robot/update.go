@@ -14,24 +14,20 @@
 package robot
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
-
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/spf13/cobra"
 )
 
 func UpdateRobotCommand() *cobra.Command {
 	var (
-		robotID     int64
-		opts        robotview.UpdateView
 		all         bool
-		ProjectName string
+		configFile  string
+		projectName string
+		// Bound to flags for CLI compatibility; the interactive flow loads
+		// the current values from Harbor instead (see goharbor/harbor-cli#1150).
+		name        string
+		description string
+		duration    int64
 	)
 
 	cmd := &cobra.Command{
@@ -77,137 +73,33 @@ Examples:
   # Update with all permissions
   harbor-cli project robot update 123 --all-permission
 
+  # Update from configuration file
+  harbor-cli project robot update 123 --robot-config-file ./robot-config.yaml
+
   # Interactive update (will prompt for robot selection and changes)
   harbor-cli project robot update`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse robot ID: %v", err)
-				}
-			} else if ProjectName != "" {
-				project, err := api.GetProject(ProjectName, false)
-				if err != nil {
-					return fmt.Errorf("failed to get project by name %s: %v", ProjectName, err)
-				}
-				robotID, err = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
-			} else {
-				projectID, err := prompt.GetProjectIDFromUser()
-				if err != nil {
-					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
-				}
-				robotID, err = prompt.GetRobotIDFromUser(projectID)
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
-			}
-
-			robot, err := api.GetRobot(robotID)
+			robotID, err := robot.ResolveRobotID(args, robot.LevelProject, projectName)
 			if err != nil {
-				return fmt.Errorf("failed to get robot: %v", err)
+				return err
 			}
-
-			bot := robot.Payload
-
-			var duration int64
-			if bot.Duration != nil {
-				duration = *bot.Duration
-			}
-
-			opts = robotview.UpdateView{
-				CreationTime: bot.CreationTime,
-				Description:  bot.Description,
-				Disable:      bot.Disable,
-				Duration:     duration,
-				Editable:     bot.Editable,
-				ID:           bot.ID,
-				Level:        bot.Level,
-				Name:         bot.Name,
-				Secret:       bot.Secret,
-			}
-
-			// declare empty permissions to hold permissions
-			var permissions []models.Permission
-
-			if all {
-				perms, err := api.GetPermissions()
-				if err != nil {
-					return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
-				}
-				permission := perms.Payload.Project
-
-				choices := []models.Permission{}
-				for _, perm := range permission {
-					choices = append(choices, *perm)
-				}
-				permissions = choices
-			} else {
-				permissions, err = prompt.GetRobotPermissionsFromUser("project")
-				if err != nil {
-					return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
-				}
-			}
-
-			// []Permission to []*Access
-			var accesses []*models.Access
-			for _, perm := range permissions {
-				access := &models.Access{
-					Action:   perm.Action,
-					Resource: perm.Resource,
-				}
-				accesses = append(accesses, access)
-			}
-			// convert []models.permission to []*model.Access
-			if len(bot.Permissions) == 0 {
-				return fmt.Errorf("failed to update robot: robot has no permission scope to update")
-			}
-			perm := &robotview.RobotPermission{
-				Kind:      bot.Permissions[0].Kind,
-				Namespace: bot.Permissions[0].Namespace,
-				Access:    accesses,
-			}
-			opts.Permissions = []*robotview.RobotPermission{perm}
-
-			err = updateRobotView(&opts)
-			if err != nil {
-				return fmt.Errorf("failed to Update robot: %v", err)
-			}
-			return nil
+			return robot.RunUpdate(robot.UpdateOptions{
+				Level:      robot.LevelProject,
+				RobotID:    robotID,
+				All:        all,
+				ConfigFile: configFile,
+			})
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(
-		&all,
-		"all-permission",
-		"a",
-		false,
-		"Select all permissions for the robot account",
-	)
-	flags.StringVarP(&opts.Name, "name", "", "", "name of the robot account")
-	flags.StringVarP(&opts.Description, "description", "", "", "description of the robot account")
-	flags.StringVarP(&ProjectName, "project", "", "", "set project name")
-	flags.Int64VarP(&opts.Duration, "duration", "", 0, "set expiration of robot account in days")
+	flags.BoolVarP(&all, "all-permission", "a", false, "Select all permissions for the robot account")
+	flags.StringVarP(&name, "name", "", "", "name of the robot account")
+	flags.StringVarP(&description, "description", "", "", "description of the robot account")
+	flags.StringVarP(&projectName, "project", "", "", "set project name")
+	flags.Int64VarP(&duration, "duration", "", 0, "set expiration of robot account in days")
+	flags.StringVarP(&configFile, "robot-config-file", "r", "", "YAML/JSON file with robot configuration")
 
 	return cmd
-}
-
-func updateRobotView(updateView *robotview.UpdateView) error {
-	if updateView == nil {
-		updateView = &robotview.UpdateView{}
-	}
-
-	if err := robotview.FormUpdate(updateView); err != nil {
-		return fmt.Errorf("failed to read robot input: %v", err)
-	}
-	if err := api.UpdateRobot(updateView); err != nil {
-		return err
-	}
-	fmt.Println("Robot updated successfully.")
-	return nil
 }

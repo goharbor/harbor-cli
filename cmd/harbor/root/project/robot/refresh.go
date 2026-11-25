@@ -15,20 +15,16 @@ package robot
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/atotto/clipboard"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 
 	"github.com/spf13/cobra"
 )
 
 func RefreshSecretCommand() *cobra.Command {
 	var (
-		robotID     int64
 		secret      string
 		secretStdin bool
 	)
@@ -73,54 +69,31 @@ Examples:
   harbor-cli project robot refresh`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse robot ID: %v", err)
-				}
-			} else {
-				projectID, err := prompt.GetProjectIDFromUser()
-				if err != nil {
-					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
-				}
-				robotID, err = prompt.GetRobotIDFromUser(projectID)
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
+			robotID, err := robot.ResolveRobotID(args, robot.LevelProject, "")
+			if err != nil {
+				return err
 			}
 
 			if secret != "" {
-				err = utils.ValidatePassword(secret)
-				if err != nil {
+				if err := utils.ValidatePassword(secret); err != nil {
 					return fmt.Errorf("invalid secret: %v", err)
 				}
 			}
 			if secretStdin {
-				secret, err = getSecret()
-				if err != nil {
+				if secret, err = robot.ReadSecretFromStdin(); err != nil {
 					return err
 				}
 			}
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				return fmt.Errorf("failed to refresh robot secret: %v\n", err)
+				return robot.WrapError("refresh robot secret", err)
 			}
 
 			fmt.Println("Secret updated successfully.")
 
 			if response.Payload.Secret != "" {
-				secret = response.Payload.Secret
-				if err := robotview.FormSecret("", secret); err != nil {
-					return fmt.Errorf("failed to show the robot secret: %v", err)
-				}
-
-				err = clipboard.WriteAll(response.Payload.Secret)
-				if err != nil {
-					return fmt.Errorf("failed to write the secret to the clipboard: %v", err)
-				}
-				fmt.Println("secret copied to clipboard.")
+				return robot.DisplaySecret("", response.Payload.Secret)
 			}
 			return nil
 		},
@@ -131,17 +104,4 @@ Examples:
 	flags.BoolVarP(&secretStdin, "secret-stdin", "", false, "Take the robot secret from stdin")
 
 	return cmd
-}
-
-// getSecret from commandline
-func getSecret() (string, error) {
-	secret, err := utils.GetSecretStdin("Enter your secret: ")
-	if err != nil {
-		return "", fmt.Errorf("error reading secret: %v", err)
-	}
-
-	if err := utils.ValidatePassword(secret); err != nil {
-		return "", fmt.Errorf("invalid secret: %v", err)
-	}
-	return secret, nil
 }

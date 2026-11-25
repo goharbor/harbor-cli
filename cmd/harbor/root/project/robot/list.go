@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/list"
 	log "github.com/sirupsen/logrus"
@@ -70,14 +71,8 @@ Examples:
   harbor-cli project robot list`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			if err := robot.ValidateListFlags(opts); err != nil {
+				return err
 			}
 
 			if len(args) > 0 {
@@ -104,7 +99,7 @@ Examples:
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				return fmt.Errorf("failed to get robots list: %v", utils.ParseHarborErrorMsg(err))
+				return robot.WrapError("list robots", err)
 			}
 
 			formatFlag := viper.GetString("output-format")

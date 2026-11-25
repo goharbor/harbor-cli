@@ -15,18 +15,15 @@ package robot
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/spf13/cobra"
 )
 
 // to-do improve DeleteRobotCommand and multi select & delete
 func DeleteRobotCommand() *cobra.Command {
-	var ProjectName string
+	var projectName string
 	cmd := &cobra.Command{
 		Use:   "delete [robotName]",
 		Short: "delete robot by name",
@@ -65,45 +62,16 @@ Examples:
 				err     error
 			)
 			if len(args) == 1 {
-				if ProjectName == "" {
-					projectID, err := prompt.GetProjectIDFromUser()
-					if err != nil {
-						return fmt.Errorf("failed to get project from user: %v", utils.ParseHarborErrorMsg(err))
-					}
-					project, err := api.GetProject(strconv.FormatInt(projectID, 10), true)
-					if err != nil {
-						return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
-					}
-					ProjectName = project.Payload.Name
-				}
-				robotName := args[0]
-				robot, err := api.GetRobotByName(robotName, ProjectName)
-				if err != nil {
-					return fmt.Errorf("failed to get robot by name %s: %v", robotName, utils.ParseHarborErrorMsg(err))
-				}
-				robotID = robot.ID
-			} else if ProjectName != "" {
-				project, err := api.GetProject(ProjectName, false)
-				if err != nil {
-					return fmt.Errorf("failed to get project by name %s: %v", ProjectName, utils.ParseHarborErrorMsg(err))
-				}
-				robotID, err = prompt.GetRobotIDFromUser(int64(project.Payload.ProjectID))
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
+				robotID, err = robot.ResolveRobotIDByName(args[0], robot.LevelProject, projectName)
 			} else {
-				projectID, err := prompt.GetProjectIDFromUser()
-				if err != nil {
-					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
-				}
-				robotID, err = prompt.GetRobotIDFromUser(projectID)
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
+				robotID, err = robot.ResolveRobotID(args, robot.LevelProject, projectName)
 			}
-			err = api.DeleteRobot(robotID)
 			if err != nil {
-				return fmt.Errorf("failed to delete robots: %v", utils.ParseHarborErrorMsg(err))
+				return err
+			}
+
+			if err := api.DeleteRobot(robotID); err != nil {
+				return robot.WrapError("delete robot", err)
 			}
 			fmt.Printf("Robot account (ID: %d) was successfully deleted\n", robotID)
 			return nil
@@ -111,6 +79,6 @@ Examples:
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&ProjectName, "project", "", "", "set project name")
+	flags.StringVarP(&projectName, "project", "", "", "set project name")
 	return cmd
 }
