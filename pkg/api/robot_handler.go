@@ -138,6 +138,28 @@ func CheckRobotWithNameExists(projectID int32, name string) (bool, error) {
 	return exists, nil
 }
 
+// CheckSystemRobotWithNameExists reports whether a system-level robot with
+// the given short name already exists.
+func CheckSystemRobotWithNameExists(name string) (bool, error) {
+	response, err := ListRobot(ListFlags{Q: "name=" + name})
+	if err != nil {
+		return false, fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
+	}
+
+	configurations, err := GetConfigurations()
+	if err != nil {
+		return false, fmt.Errorf("failed to get configurations: %v", utils.ParseHarborErrorMsg(err))
+	}
+	targetRobotName := configurations.Payload.RobotNamePrefix.Value + name
+
+	for _, robot := range response.Payload {
+		if robot.Name == targetRobotName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func DeleteRobot(robotID int64) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {

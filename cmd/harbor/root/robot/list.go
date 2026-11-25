@@ -17,6 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/list"
 	"github.com/spf13/cobra"
@@ -63,36 +64,22 @@ Examples:
   harbor-cli robot list --output-format json`,
 		Args: cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.Page < 1 {
-				return fmt.Errorf("page number must be greater than or equal to 1")
-			}
-
-			if opts.PageSize < 0 {
-				return fmt.Errorf("page size must be greater than or equal to 0")
-			}
-			if opts.PageSize > 100 {
-				return fmt.Errorf("page size should be less than or equal to 100")
+			if err := robot.ValidateListFlags(opts); err != nil {
+				return err
 			}
 
 			robots, err := api.ListRobot(opts)
 			if err != nil {
-				errorCode := utils.ParseHarborErrorCode(err)
-				if errorCode == "403" {
-					return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to list robots: %v", utils.ParseHarborErrorMsg(err))
-				}
+				return robot.WrapError("list robots", err)
 			}
 
-			formatFlag := viper.GetString("output-format")
-			if formatFlag != "" {
-				err = utils.PrintFormat(robots, formatFlag)
-				if err != nil {
-					return fmt.Errorf("Invalid Print Format: %v", err)
+			if formatFlag := viper.GetString("output-format"); formatFlag != "" {
+				if err := utils.PrintFormat(robots, formatFlag); err != nil {
+					return fmt.Errorf("invalid print format: %v", err)
 				}
-			} else {
-				list.ListRobots(robots.Payload)
+				return nil
 			}
+			list.ListRobots(robots.Payload)
 			return nil
 		},
 	}
