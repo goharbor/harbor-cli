@@ -97,7 +97,7 @@ Examples:
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
-					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 				}
 				opts.Q = projectQString + strconv.FormatInt(projectID, 10)
 			}

@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -87,18 +86,21 @@ Examples:
 				}
 				robotID, err = prompt.GetRobotIDFromUser(projectID)
 				if err != nil {
-					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
 				}
 			}
 
 			if secret != "" {
 				err = utils.ValidatePassword(secret)
 				if err != nil {
-					return fmt.Errorf("Invalid secret: %v\n", err)
+					return fmt.Errorf("invalid secret: %v", err)
 				}
 			}
 			if secretStdin {
-				secret = getSecret()
+				secret, err = getSecret()
+				if err != nil {
+					return err
+				}
 			}
 
 			response, err := api.RefreshSecret(secret, robotID)
@@ -130,14 +132,14 @@ Examples:
 }
 
 // getSecret from commandline
-func getSecret() string {
+func getSecret() (string, error) {
 	secret, err := utils.GetSecretStdin("Enter your secret: ")
 	if err != nil {
-		log.Fatalf("Error reading secret: %v\n", err)
+		return "", fmt.Errorf("error reading secret: %v", err)
 	}
 
 	if err := utils.ValidatePassword(secret); err != nil {
-		log.Fatalf("Invalid secret: %v\n", err)
+		return "", fmt.Errorf("invalid secret: %v", err)
 	}
-	return secret
+	return secret, nil
 }

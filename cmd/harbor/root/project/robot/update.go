@@ -135,7 +135,10 @@ Examples:
 			var permissions []models.Permission
 
 			if all {
-				perms, _ := api.GetPermissions()
+				perms, err := api.GetPermissions()
+				if err != nil {
+					return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+				}
 				permission := perms.Payload.Project
 
 				choices := []models.Permission{}
@@ -160,6 +163,9 @@ Examples:
 				accesses = append(accesses, access)
 			}
 			// convert []models.permission to []*model.Access
+			if len(bot.Permissions) == 0 {
+				return fmt.Errorf("failed to update robot: robot has no permission scope to update")
+			}
 			perm := &update.RobotPermission{
 				Kind:      bot.Permissions[0].Kind,
 				Namespace: bot.Permissions[0].Namespace,

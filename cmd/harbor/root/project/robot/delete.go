@@ -20,7 +20,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -80,7 +79,7 @@ Examples:
 				robotName := args[0]
 				robot, err := api.GetRobotByName(robotName, ProjectName)
 				if err != nil {
-					fmt.Print(utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get robot by name %s: %v", robotName, utils.ParseHarborErrorMsg(err))
 				}
 				robotID = robot.ID
 			} else if ProjectName != "" {
@@ -95,7 +94,7 @@ Examples:
 			} else {
 				projectID, err := prompt.GetProjectIDFromUser()
 				if err != nil {
-					log.Fatalf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
+					return fmt.Errorf("failed to get project by id %d: %v", projectID, utils.ParseHarborErrorMsg(err))
 				}
 				robotID, err = prompt.GetRobotIDFromUser(projectID)
 				if err != nil {

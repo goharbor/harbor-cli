@@ -114,7 +114,9 @@ Examples:
 			opts.Name = bot.Name
 			opts.Secret = bot.Secret
 			opts.Description = bot.Description
-			opts.Duration = *bot.Duration
+			if bot.Duration != nil {
+				opts.Duration = *bot.Duration
+			}
 			opts.Disable = bot.Disable
 			opts.Editable = bot.Editable
 			opts.CreationTime = bot.CreationTime
@@ -301,7 +303,10 @@ func getSystemPermissionsForUpdate(all bool, permissions *[]models.Permission) e
 	}
 
 	if all {
-		perms, _ := api.GetPermissions()
+		perms, err := api.GetPermissions()
+		if err != nil {
+			return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
+		}
 		*permissions = nil // Clear existing permissions
 		for _, perm := range perms.Payload.System {
 			*permissions = append(*permissions, *perm)
