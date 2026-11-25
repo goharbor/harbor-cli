@@ -107,3 +107,30 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
 }
+
+func Test_SetCurrentCredential(t *testing.T) {
+	helpers.SetMockKeyring(t)
+	tempDir := t.TempDir()
+	data := helpers.Initialize(t, tempDir)
+	defer helpers.ConfigCleanup(t, data)
+
+	// AddCredentialsToConfigFile only writes the file, so load it again after it
+	reloadConfig := func() *utils.HarborConfig {
+		utils.ConfigInitialization = &utils.Once{}
+		utils.CurrentHarborConfig = nil
+		utils.InitConfig(data.ConfigPath, true)
+		config, err := utils.GetCurrentHarborConfig()
+		assert.NoError(t, err)
+		return config
+	}
+	for _, name := range []string{"first@test", "second@test"} {
+		assert.NoError(t, utils.AddCredentialsToConfigFile(utils.Credential{Name: name}, data.ConfigPath))
+	}
+	assert.Equal(t, "second@test", reloadConfig().CurrentCredentialName)
+
+	assert.NoError(t, utils.SetCurrentCredential("first@test"))
+	assert.Equal(t, "first@test", reloadConfig().CurrentCredentialName)
+
+	assert.Error(t, utils.SetCurrentCredential("missing@test"))
+	assert.Equal(t, "first@test", reloadConfig().CurrentCredentialName)
+}

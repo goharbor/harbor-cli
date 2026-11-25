@@ -475,6 +475,22 @@ func GetCredentials(credentialName string) (Credential, error) {
 	return Credential{}, fmt.Errorf("credential with name '%s' not found", credentialName)
 }
 
+// SetCurrentCredential makes the named credential the current context and saves the config.
+func SetCurrentCredential(credentialName string) error {
+	config, err := GetCurrentHarborConfig()
+	if err != nil {
+		return err
+	}
+	if config.CurrentCredentialName == credentialName {
+		return nil
+	}
+	if _, err := GetCredentials(credentialName); err != nil {
+		return err
+	}
+	config.CurrentCredentialName = credentialName
+	return UpdateConfigFile(config)
+}
+
 func AddCredentialsToConfigFile(credential Credential, configPath string) error {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return fmt.Errorf("config file does not exist at %s", configPath)
