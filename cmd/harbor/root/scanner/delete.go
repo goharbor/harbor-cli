@@ -50,7 +50,10 @@ Examples:
 				}
 				registrationID = scanner.UUID
 			} else {
-				registrationID = prompt.GetScannerIdFromUser()
+				registrationID, err = prompt.GetScannerIdFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to get scanner: %v", err)
+				}
 			}
 
 			err = api.DeleteScanner(registrationID)

@@ -14,8 +14,8 @@
 package execution
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -23,30 +23,35 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/base/selection"
 )
 
-func ReplicationExecutionList(executions []*models.ReplicationExecution, choice chan<- int64) {
+var ErrUserAborted = errors.New("user aborted selection")
+
+func ReplicationExecutionList(executions []*models.ReplicationExecution) (int64, error) {
+	labelIDs := make(map[string]int64, len(executions))
 	itemsList := make([]list.Item, len(executions))
 	for i, p := range executions {
-		displayName := fmt.Sprintf("ID: %d, Status: %s, Trigger: %s, Start Time: %s, Succeed: %d, Total: %d",
+		label := fmt.Sprintf("ID: %d, Status: %s, Trigger: %s, Start Time: %s, Succeed: %d, Total: %d",
 			p.ID, p.Status, p.Trigger, p.StartTime.String(), p.Succeed, p.Total)
-		itemsList[i] = selection.Item(displayName)
+		labelIDs[label] = p.ID
+		itemsList[i] = selection.Item(label)
 	}
 
 	m := selection.NewModel(itemsList, "Select a Replication Execution")
 
 	p, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		return 0, fmt.Errorf("error running selection program: %w", err)
 	}
 
-	if p, ok := p.(selection.Model); ok {
-		// Extract the ID from p.Choice
-		var execID int64
-		_, err = fmt.Sscanf(p.Choice, "ID: %d", &execID)
-		if err != nil {
-			fmt.Println("error parsing execution ID:", err)
-			os.Exit(1)
-		}
-		choice <- execID
+	model, ok := p.(selection.Model)
+	if !ok {
+		return 0, errors.New("unexpected program result")
 	}
+	if model.Aborted {
+		return 0, ErrUserAborted
+	}
+	id, ok := labelIDs[model.Choice]
+	if !ok {
+		return 0, errors.New("no replication execution selected")
+	}
+	return id, nil
 }

@@ -71,7 +71,10 @@ func DeleteMemberCommand() *cobra.Command {
 				return nil
 			} else if !delAllFlag {
 				fmt.Println("Please provide a username or use --all flag to delete all members")
-				memID = prompt.GetMemberIDFromUser(project, username)
+				memID, err = prompt.GetMemberIDFromUser(project, username)
+				if err != nil {
+					return fmt.Errorf("failed to get project member: %v", utils.ParseHarborErrorMsg(err))
+				}
 				if memID == 0 {
 					fmt.Println("No members found in project")
 					return nil

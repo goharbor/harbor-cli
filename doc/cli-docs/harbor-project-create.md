@@ -19,7 +19,7 @@ harbor project create [project name] [flags]
       --proxy-cache[=true|false]   Whether the project is a proxy cache project
       --public[=true|false]        Project is public or private
       --registry-id string         ID of referenced registry when creating the proxy cache project
-      --storage-limit string       Storage quota of the project
+      --storage-limit string       Storage quota of the project, at most 1024 TiB: -1 for no limit, a number of bytes, or a whole number with MiB, GiB or TiB (e.g. 10GiB)
 ```
 
 ### Options inherited from parent commands

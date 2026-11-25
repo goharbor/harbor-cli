@@ -99,7 +99,11 @@ explicitly provided flags (partial update).`,
 				return fmt.Errorf("policy-id is required when update flags are provided. Usage: harbor replication policies update <policy-id> --flag=value")
 			} else {
 				// In interactive mode, prompt for policy ID
-				policyID = prompt.GetReplicationPolicyFromUser()
+				var err error
+				policyID, err = prompt.GetReplicationPolicyFromUser()
+				if err != nil {
+					return fmt.Errorf("failed to select replication policy: %w", err)
+				}
 			}
 
 			existingPolicy, err := api.GetReplicationPolicy(policyID)
@@ -152,6 +156,7 @@ explicitly provided flags (partial update).`,
 			}
 
 			// Populate filter fields from the existing policy filters.
+			var existingLabels []*models.ReplicationFilter
 			for _, f := range existingPolicy.Payload.Filters {
 				if f == nil {
 					continue
@@ -171,6 +176,7 @@ explicitly provided flags (partial update).`,
 					}
 					createView.TagFilter = f.Decoration
 				case "label":
+					existingLabels = append(existingLabels, f)
 					createView.LabelFilter = f.Decoration
 					switch v := f.Value.(type) {
 					case string:
@@ -188,6 +194,8 @@ explicitly provided flags (partial update).`,
 					}
 				}
 			}
+
+			existingLabelFilter, existingLabelPattern := createView.LabelFilter, createView.LabelPattern
 
 			log.Debugf("Updating replication policy: %s (ID: %d)", existingPolicy.Payload.Name, policyID)
 
@@ -208,6 +216,30 @@ explicitly provided flags (partial update).`,
 			} else {
 				updatedPolicy = ConvertToPolicy(createView, existingPolicy.Payload.DestRegistry)
 				updatedPolicy.ID = policyID
+			}
+
+			// Label names may contain commas, so rebuilding the filters from the
+			// comma-joined pattern can change them. Keep the original values
+			// unless a new pattern was given. A filter type passed with
+			// --label-filter or changed in the wizard applies to every filter;
+			// otherwise each filter keeps its own type.
+			setDecoration := cmd.Flags().Changed("label-filter") || createView.LabelFilter != existingLabelFilter
+			if len(existingLabels) > 0 && !cmd.Flags().Changed("label-pattern") &&
+				createView.LabelPattern == existingLabelPattern {
+				filters := make([]*models.ReplicationFilter, 0, len(updatedPolicy.Filters)+len(existingLabels))
+				for _, f := range updatedPolicy.Filters {
+					if f.Type != "label" {
+						filters = append(filters, f)
+					}
+				}
+				for _, f := range existingLabels {
+					kept := *f
+					if setDecoration {
+						kept.Decoration = createView.LabelFilter
+					}
+					filters = append(filters, &kept)
+				}
+				updatedPolicy.Filters = filters
 			}
 
 			_, err = api.UpdateReplicationPolicy(policyID, updatedPolicy)

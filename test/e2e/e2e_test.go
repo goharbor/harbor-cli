@@ -38,6 +38,8 @@ const (
 	defaultServer   = "http://localhost:8080"
 	defaultUsername = "admin"
 	defaultPassword = "Harbor12345"
+	// defaultRegistryURL is the compose stack's registry as seen from Harbor core.
+	defaultRegistryURL = "http://registry:5000"
 )
 
 // startupTimeout bounds how long TestMain waits for Harbor to answer. Harbor
@@ -59,6 +61,10 @@ func Username() string { return envOr("HARBOR_USERNAME", defaultUsername) }
 
 // Password belongs to Username.
 func Password() string { return envOr("HARBOR_PASSWORD", defaultPassword) }
+
+// RegistryURL is a registry that Server can reach, used as a replication
+// endpoint. Harbor health-checks it, so it must resolve from Harbor's side.
+func RegistryURL() string { return envOr("HARBOR_E2E_REGISTRY_URL", defaultRegistryURL) }
 
 func TestMain(m *testing.M) {
 	if err := waitForHarbor(Server(), startupTimeout); err != nil {
