@@ -11,18 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package update
+package robot
 
 import (
-	"errors"
-	"strconv"
+	"unicode"
 
-	"github.com/charmbracelet/huh"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
 )
 
+// RobotPermission is the SDK permission scope; kept as an alias so view
+// consumers do not need a conversion layer.
+type RobotPermission = models.RobotPermission
+
+// CreateView carries the user's input for a new robot account.
+type CreateView struct {
+	Description string             `json:"description,omitempty"`
+	Disable     bool               `json:"disable,omitempty"`
+	Duration    int64              `json:"duration,omitempty"`
+	Level       string             `json:"level,omitempty"`
+	Name        string             `json:"name,omitempty"`
+	Permissions []*RobotPermission `json:"permissions"`
+	Secret      string             `json:"secret,omitempty"`
+	ProjectName string
+}
+
+// UpdateView carries the full state of an existing robot account while it
+// is being edited.
 type UpdateView struct {
 	CreationTime strfmt.DateTime    `json:"creation_time,omitempty"`
 	Description  string             `json:"description,omitempty"`
@@ -38,41 +53,20 @@ type UpdateView struct {
 	UpdateTime   strfmt.DateTime    `json:"update_time,omitempty"`
 }
 
-// RobotPermission is the SDK permission scope; kept as an alias so view
-// consumers do not need a conversion layer.
-type RobotPermission = models.RobotPermission
-
-func UpdateRobotView(updateView *UpdateView) {
-	duration := strconv.FormatInt(updateView.Duration, 10)
-
-	theme := huh.ThemeCharm()
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Description").
-				Value(&updateView.Description),
-			huh.NewInput().
-				Title("Expiration").
-				Value(&duration).
-				Validate(func(str string) error {
-					if str == "" {
-						return errors.New("Expiration cannot be empty")
-					}
-					dur, err := strconv.ParseInt(str, 10, 64)
-					if err != nil {
-						return errors.New("invalid expiration time: Enter expiration time in days")
-					}
-					updateView.Duration = dur
-					return nil
-				}),
-			huh.NewConfirm().
-				Title("Disable").
-				Value(&updateView.Disable).
-				Affirmative("yes").
-				Negative("no"),
-		),
-	).WithTheme(theme).Run()
-	if err != nil {
-		log.Fatal(err)
+func isValidName(s string) bool {
+	if s == "" {
+		return false
 	}
+	if !unicode.IsLetter(rune(s[0])) {
+		return false
+	}
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			return false
+		}
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '-' && r != '_' {
+			return false
+		}
+	}
+	return true
 }

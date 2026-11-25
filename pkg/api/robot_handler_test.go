@@ -24,8 +24,7 @@ import (
 	"github.com/goharbor/go-client/pkg/harbor"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -98,7 +97,7 @@ func TestCreateRobotPassesPermissionsThrough(t *testing.T) {
 	state := &robotServer{}
 	useRobotServer(t, state)
 
-	response, err := CreateRobot(create.CreateView{
+	response, err := CreateRobot(robotview.CreateView{
 		Name:        "ci",
 		Level:       "project",
 		Duration:    30,
@@ -118,7 +117,7 @@ func TestUpdateRobotPassesPermissionsThrough(t *testing.T) {
 	state := &robotServer{}
 	useRobotServer(t, state)
 
-	err := UpdateRobot(&update.UpdateView{
+	err := UpdateRobot(&robotview.UpdateView{
 		ID:          7,
 		Name:        "robot$ci",
 		Level:       "project",

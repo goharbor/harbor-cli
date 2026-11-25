@@ -23,7 +23,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 	"gopkg.in/yaml.v2"
 )
 
@@ -63,7 +63,7 @@ type RobotSecret struct {
 	Secret       string `json:"secret"`
 }
 
-func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateView, error) {
+func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*robotview.CreateView, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %v", err)
@@ -89,7 +89,7 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 	}
 
 	// Create the base view object
-	opts := &create.CreateView{
+	opts := &robotview.CreateView{
 		Name:        config.Name,
 		Description: config.Description,
 		Duration:    config.Duration,
@@ -117,8 +117,8 @@ func LoadRobotConfigFromYAMLorJSON(filename string, fileType string) (*create.Cr
 }
 
 // Process permission scopes
-func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*create.RobotPermission, error) {
-	var result []*create.RobotPermission
+func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*robotview.RobotPermission, error) {
+	var result []*robotview.RobotPermission
 
 	// Get available permissions for validation
 	availablePerms, err := GetAllAvailablePermissions()
@@ -139,7 +139,7 @@ func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*cr
 			return nil, fmt.Errorf("project robots can only have project permission scopes, found %s", scopeKind)
 		}
 
-		robotPerm := &create.RobotPermission{
+		robotPerm := &robotview.RobotPermission{
 			Kind:      scopeKind,
 			Namespace: scope.Namespace,
 			Access:    []*models.Access{},
@@ -234,8 +234,8 @@ func processPermissionScopes(scopes []PermissionScope, robotLevel string) ([]*cr
 	return result, nil
 }
 
-func LoadRobotConfigFromFile(filename string) (*create.CreateView, error) {
-	var opts *create.CreateView
+func LoadRobotConfigFromFile(filename string) (*robotview.CreateView, error) {
+	var opts *robotview.CreateView
 	var err error
 
 	ext := filepath.Ext(filename)

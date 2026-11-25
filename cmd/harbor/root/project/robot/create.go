@@ -24,7 +24,7 @@ import (
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,7 +32,7 @@ import (
 
 func CreateRobotCommand() *cobra.Command {
 	var (
-		opts         create.CreateView
+		opts         robotview.CreateView
 		all          bool
 		exportToFile bool
 		configFile   string
@@ -131,7 +131,9 @@ Examples:
 
 			if (opts.Name == "" || opts.Duration == 0) && configFile == "" {
 				fmt.Println("Opening interactive form for robot creation")
-				create.CreateRobotView(&opts)
+				if err := robotview.FormCreate(&opts); err != nil {
+					return fmt.Errorf("failed to read robot input: %v", err)
+				}
 			}
 
 			if opts.Duration == 0 {
@@ -173,12 +175,12 @@ Examples:
 				}
 				accesses = append(accesses, access)
 			}
-			perm := &create.RobotPermission{
+			perm := &robotview.RobotPermission{
 				Namespace: opts.ProjectName,
 				Access:    accesses,
 				Kind:      "project", // Default to project level
 			}
-			opts.Permissions = []*create.RobotPermission{perm}
+			opts.Permissions = []*robotview.RobotPermission{perm}
 
 			getProjectID, err := api.GetProject(opts.ProjectName, false)
 			if err != nil {
@@ -217,7 +219,9 @@ Examples:
 				exportSecretToFile(name, secret, response.Payload.CreationTime.String(), response.Payload.ExpiresAt)
 				return nil
 			} else {
-				create.CreateRobotSecretView(name, secret)
+				if err := robotview.FormSecret(name, secret); err != nil {
+					return fmt.Errorf("failed to show the robot secret: %v", err)
+				}
 				err = clipboard.WriteAll(response.Payload.Secret)
 				if err != nil {
 					logrus.Errorf("failed to write to clipboard")

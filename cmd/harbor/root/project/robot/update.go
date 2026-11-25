@@ -21,7 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ import (
 func UpdateRobotCommand() *cobra.Command {
 	var (
 		robotID     int64
-		opts        update.UpdateView
+		opts        robotview.UpdateView
 		all         bool
 		ProjectName string
 	)
@@ -119,7 +119,7 @@ Examples:
 				duration = *bot.Duration
 			}
 
-			opts = update.UpdateView{
+			opts = robotview.UpdateView{
 				CreationTime: bot.CreationTime,
 				Description:  bot.Description,
 				Disable:      bot.Disable,
@@ -166,12 +166,12 @@ Examples:
 			if len(bot.Permissions) == 0 {
 				return fmt.Errorf("failed to update robot: robot has no permission scope to update")
 			}
-			perm := &update.RobotPermission{
+			perm := &robotview.RobotPermission{
 				Kind:      bot.Permissions[0].Kind,
 				Namespace: bot.Permissions[0].Namespace,
 				Access:    accesses,
 			}
-			opts.Permissions = []*update.RobotPermission{perm}
+			opts.Permissions = []*robotview.RobotPermission{perm}
 
 			err = updateRobotView(&opts)
 			if err != nil {
@@ -197,12 +197,14 @@ Examples:
 	return cmd
 }
 
-func updateRobotView(updateView *update.UpdateView) error {
+func updateRobotView(updateView *robotview.UpdateView) error {
 	if updateView == nil {
-		updateView = &update.UpdateView{}
+		updateView = &robotview.UpdateView{}
 	}
 
-	update.UpdateRobotView(updateView)
+	if err := robotview.FormUpdate(updateView); err != nil {
+		return fmt.Errorf("failed to read robot input: %v", err)
+	}
 	if err := api.UpdateRobot(updateView); err != nil {
 		return err
 	}

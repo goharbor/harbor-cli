@@ -23,8 +23,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/constants"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 )
 
 func ListRobot(opts ListFlags) (*robot.ListRobotOK, error) {
@@ -148,7 +147,7 @@ func DeleteRobot(robotID int64) error {
 	return err
 }
 
-func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
+func CreateRobot(opts robotview.CreateView) (*robot.CreateRobotCreated, error) {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return nil, err
@@ -174,7 +173,7 @@ func CreateRobot(opts create.CreateView) (*robot.CreateRobotCreated, error) {
 }
 
 // update robot with robotID
-func UpdateRobot(opts *update.UpdateView) error {
+func UpdateRobot(opts *robotview.UpdateView) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
 		return err

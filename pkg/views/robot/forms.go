@@ -11,45 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package create
+package robot
 
 import (
 	"errors"
 	"strconv"
-	"unicode"
 
 	"github.com/charmbracelet/huh"
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	log "github.com/sirupsen/logrus"
 )
 
-type CreateView struct {
-	Description string             `json:"description,omitempty"`
-	Disable     bool               `json:"disable,omitempty"`
-	Duration    int64              `json:"duration,omitempty"`
-	Level       string             `json:"level,omitempty"`
-	Name        string             `json:"name,omitempty"`
-	Permissions []*RobotPermission `json:"permissions"`
-	Secret      string             `json:"secret,omitempty"`
-	ProjectName string
-}
-
-// RobotPermission is the SDK permission scope; kept as an alias so view
-// consumers do not need a conversion layer.
-type RobotPermission = models.RobotPermission
-
-func CreateRobotView(createView *CreateView) {
-	duration := strconv.FormatInt(createView.Duration, 10)
-	if createView.Duration == 0 {
+// FormCreate asks for the basic fields of a new robot account.
+func FormCreate(view *CreateView) error {
+	duration := strconv.FormatInt(view.Duration, 10)
+	if view.Duration == 0 {
 		duration = "-1"
 	}
 
-	theme := huh.ThemeCharm()
-	err := huh.NewForm(
+	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Robot Name").
-				Value(&createView.Name).
+				Value(&view.Name).
 				Validate(func(str string) error {
 					if !isValidName(str) {
 						return errors.New("invalid name: must start with a letter and contain only letters, digits, hyphen or underscore, no uppercase letters")
@@ -58,7 +40,7 @@ func CreateRobotView(createView *CreateView) {
 				}),
 			huh.NewInput().
 				Title("Description").
-				Value(&createView.Description),
+				Value(&view.Description),
 			huh.NewInput().
 				Title("Expiration").
 				Value(&duration).
@@ -70,23 +52,48 @@ func CreateRobotView(createView *CreateView) {
 					if durationInt < -1 || durationInt == 0 {
 						return errors.New("invalid expiration time: Enter -1 for no expiration or a positive integer for days")
 					}
+					view.Duration = int64(durationInt)
+					return nil
+				}),
+		),
+	).WithTheme(huh.ThemeCharm()).Run()
+}
+
+// FormUpdate asks for the editable fields of an existing robot account.
+func FormUpdate(view *UpdateView) error {
+	duration := strconv.FormatInt(view.Duration, 10)
+
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Description").
+				Value(&view.Description),
+			huh.NewInput().
+				Title("Expiration").
+				Value(&duration).
+				Validate(func(str string) error {
+					if str == "" {
+						return errors.New("expiration cannot be empty")
+					}
 					dur, err := strconv.ParseInt(str, 10, 64)
 					if err != nil {
 						return errors.New("invalid expiration time: Enter expiration time in days")
 					}
-					createView.Duration = dur
+					view.Duration = dur
 					return nil
 				}),
+			huh.NewConfirm().
+				Title("Disable").
+				Value(&view.Disable).
+				Affirmative("yes").
+				Negative("no"),
 		),
-	).WithTheme(theme).Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	).WithTheme(huh.ThemeCharm()).Run()
 }
 
-func CreateRobotSecretView(name string, secret string) {
-	theme := huh.ThemeCharm()
-	err := huh.NewForm(
+// FormSecret shows a robot's secret so the user can copy it.
+func FormSecret(name, secret string) error {
+	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Robot Name").
@@ -96,26 +103,5 @@ func CreateRobotSecretView(name string, secret string) {
 				Description("Copy the secret or press enter to copy to clipboard.").
 				Value(&secret),
 		),
-	).WithTheme(theme).Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func isValidName(s string) bool {
-	if s == "" {
-		return false
-	}
-	if len(s) > 0 && !unicode.IsLetter(rune(s[0])) {
-		return false
-	}
-	for _, r := range s {
-		if unicode.IsUpper(r) {
-			return false
-		}
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '-' && r != '_' {
-			return false
-		}
-	}
-	return true
+	).WithTheme(huh.ThemeCharm()).Run()
 }

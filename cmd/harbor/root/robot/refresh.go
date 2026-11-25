@@ -21,7 +21,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 
 	"github.com/spf13/cobra"
 )
@@ -112,7 +112,9 @@ Examples:
 
 			if response.Payload.Secret != "" {
 				secret = response.Payload.Secret
-				create.CreateRobotSecretView("", secret)
+				if err := robotview.FormSecret("", secret); err != nil {
+					return fmt.Errorf("failed to show the robot secret: %v", err)
+				}
 
 				err = clipboard.WriteAll(response.Payload.Secret)
 				if err != nil {

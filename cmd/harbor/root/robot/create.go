@@ -19,13 +19,12 @@ import (
 	"os"
 
 	"github.com/atotto/clipboard"
-	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,7 +32,7 @@ import (
 
 func CreateRobotCommand() *cobra.Command {
 	var (
-		opts         create.CreateView
+		opts         robotview.CreateView
 		all          bool
 		exportToFile bool
 		configFile   string
@@ -121,7 +120,7 @@ Examples:
 	return cmd
 }
 
-func loadFromConfigFile(opts *create.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+func loadFromConfigFile(opts *robotview.CreateView, configFile string, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	fmt.Println("Loading configuration from: ", configFile)
 
 	loadedOpts, err := config.LoadRobotConfigFromFile(configFile)
@@ -164,10 +163,12 @@ func loadFromConfigFile(opts *create.CreateView, configFile string, permissions 
 	return nil
 }
 
-func handleInteractiveInput(opts *create.CreateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+func handleInteractiveInput(opts *robotview.CreateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
 	// Show interactive form if needed
 	if opts.Name == "" || opts.Duration == 0 {
-		create.CreateRobotView(opts)
+		if err := robotview.FormCreate(opts); err != nil {
+			return fmt.Errorf("failed to read robot input: %v", err)
+		}
 	}
 
 	// Validate duration
@@ -209,7 +210,7 @@ func getSystemPermissions(all bool, permissions *[]models.Permission) error {
 	return nil
 }
 
-func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[string][]models.Permission, all bool) error {
+func getProjectPermissions(opts *robotview.CreateView, projectPermissionsMap map[string][]models.Permission, all bool) error {
 	if opts.ProjectName != "" {
 		if all {
 			perms, err := api.GetPermissions()
@@ -237,7 +238,7 @@ func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[st
 		return nil
 	}
 
-	permissionMode, err := promptPermissionMode()
+	permissionMode, err := robotview.SelectCreatePermissionMode()
 	if err != nil {
 		return fmt.Errorf("error selecting permission mode: %v", err)
 	}
@@ -256,7 +257,7 @@ func getProjectPermissions(opts *create.CreateView, projectPermissionsMap map[st
 }
 
 func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models.Permission) error {
-	selectedProjects, err := getMultipleProjectsFromUser()
+	selectedProjects, err := selectProjectsFromHarbor()
 	if err != nil {
 		return fmt.Errorf("error selecting projects: %v", err)
 	}
@@ -275,7 +276,7 @@ func handleMultipleProjectsPermissions(projectPermissionsMap map[string][]models
 	return nil
 }
 
-func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap map[string][]models.Permission) error {
+func handlePerProjectPermissions(opts *robotview.CreateView, projectPermissionsMap map[string][]models.Permission) error {
 	if opts.ProjectName == "" {
 		for {
 			projectName, err := prompt.GetProjectNameFromUser()
@@ -291,7 +292,7 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 				return fmt.Errorf("failed to get permissions: %v", utils.ParseHarborErrorMsg(err))
 			}
 
-			moreProjects, err := promptMoreProjects()
+			moreProjects, err := robotview.ConfirmMoreProjects()
 			if err != nil {
 				return fmt.Errorf("error asking for more projects: %v", err)
 			}
@@ -310,8 +311,8 @@ func handlePerProjectPermissions(opts *create.CreateView, projectPermissionsMap 
 	return nil
 }
 
-func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*create.RobotPermission {
-	var mergedPermissions []*create.RobotPermission
+func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission, accessesSystem []*models.Access) []*robotview.RobotPermission {
+	var mergedPermissions []*robotview.RobotPermission
 
 	// Add project permissions
 	for projectName, projectPermissions := range projectPermissionsMap {
@@ -322,7 +323,7 @@ func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission
 				Action:   perm.Action,
 			})
 		}
-		mergedPermissions = append(mergedPermissions, &create.RobotPermission{
+		mergedPermissions = append(mergedPermissions, &robotview.RobotPermission{
 			Namespace: projectName,
 			Access:    accessesProject,
 			Kind:      "project",
@@ -332,7 +333,7 @@ func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission
 	// check whether system permissions are included
 	if len(accessesSystem) > 0 {
 		// Add system permissions
-		mergedPermissions = append(mergedPermissions, &create.RobotPermission{
+		mergedPermissions = append(mergedPermissions, &robotview.RobotPermission{
 			Namespace: "/",
 			Access:    accessesSystem,
 			Kind:      "system",
@@ -342,7 +343,7 @@ func buildMergedPermissions(projectPermissionsMap map[string][]models.Permission
 	return mergedPermissions
 }
 
-func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) error {
+func createRobotAndHandleResponse(opts *robotview.CreateView, exportToFile bool) error {
 	response, err := api.CreateRobot(*opts)
 	if err != nil {
 		errorCode := utils.ParseHarborErrorCode(err)
@@ -375,7 +376,9 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 		return nil
 	}
 
-	create.CreateRobotSecretView(name, secret)
+	if err := robotview.FormSecret(name, secret); err != nil {
+		return fmt.Errorf("failed to show the robot secret: %v", err)
+	}
 	if err := clipboard.WriteAll(secret); err != nil {
 		logrus.Errorf("failed to write to clipboard")
 	} else {
@@ -385,7 +388,7 @@ func createRobotAndHandleResponse(opts *create.CreateView, exportToFile bool) er
 	return nil
 }
 
-func addFlags(cmd *cobra.Command, opts *create.CreateView, all *bool, exportToFile *bool, configFile *string) {
+func addFlags(cmd *cobra.Command, opts *robotview.CreateView, all *bool, exportToFile *bool, configFile *string) {
 	flags := cmd.Flags()
 	flags.BoolVarP(all, "all-permission", "a", false, "Select all permissions for the robot account")
 	flags.BoolVarP(exportToFile, "export-to-file", "e", false, "Choose to export robot account to file")
@@ -419,73 +422,17 @@ func exportSecretToFile(name, secret, creationTime string, expiresAt int64) {
 	fmt.Printf("Secret saved to %s\n", filename)
 }
 
-func getMultipleProjectsFromUser() ([]string, error) {
+// selectProjectsFromHarbor lists all projects and asks which ones to grant
+// shared permissions on.
+func selectProjectsFromHarbor() ([]string, error) {
 	allProjects, err := api.ListAllProjects()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %v", err)
 	}
 
-	var selectedProjects []string
-	var projectOptions []huh.Option[string]
-
+	projectNames := make([]string, 0, len(allProjects.Payload))
 	for _, p := range allProjects.Payload {
-		projectOptions = append(projectOptions, huh.NewOption(p.Name, p.Name))
+		projectNames = append(projectNames, p.Name)
 	}
-
-	err = huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Multiple Project Selection").
-				Description("Select the projects to assign the same permissions to this robot account."),
-			huh.NewMultiSelect[string]().
-				Title("Select projects").
-				Options(projectOptions...).
-				Value(&selectedProjects),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(80).Run()
-
-	return selectedProjects, err
-}
-
-func promptMoreProjects() (bool, error) {
-	var addMore bool
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Project Selection").
-				Description("You can add permissions for multiple projects to this robot account."),
-			huh.NewSelect[bool]().
-				Title("Do you want to select (more) projects?").
-				Description("Select 'Yes' to add (another) project, 'No' to continue with current selection.").
-				Options(
-					huh.NewOption("No", false),
-					huh.NewOption("Yes", true),
-				).
-				Value(&addMore),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
-
-	return addMore, err
-}
-
-func promptPermissionMode() (string, error) {
-	var permissionMode string
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Permission Mode").
-				Description("Select how you want to assign permissions to projects:"),
-			huh.NewSelect[string]().
-				Title("Permission Mode").
-				Description("Choose 'List' to select multiple projects with common permissions, or 'Per Project' for individual project permissions.").
-				Options(
-					huh.NewOption("No project permissions (system-level only)", "none"),
-					huh.NewOption("Per Project", "per_project"),
-					huh.NewOption("List", "list"),
-				).
-				Value(&permissionMode),
-		),
-	).WithTheme(huh.ThemeCharm()).WithWidth(60).WithHeight(10).Run()
-
-	return permissionMode, err
+	return robotview.SelectProjectsForPermissions(projectNames)
 }
