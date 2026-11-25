@@ -170,7 +170,7 @@ Examples:
 				if err := handleInteractiveInputForUpdate(&opts, all, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
-			} else if !hasPermissions(permissions, projectPermissionsMap) {
+			} else if !config.HasPermissions(permissionsForUpdate(permissions, projectPermissionsMap)) {
 				// Harbor rejects an update without permissions, and a robot can be left with
 				// none, for example when the projects it had access to are deleted.
 				fmt.Println("The robot has no permissions. Choose at least one to update it.")
@@ -179,21 +179,10 @@ Examples:
 				}
 			}
 
-			if !hasPermissions(permissions, projectPermissionsMap) {
+			opts.Permissions = permissionsForUpdate(permissions, projectPermissionsMap)
+			if !config.HasPermissions(opts.Permissions) {
 				return fmt.Errorf("failed to update robot: robot account needs at least one permission")
 			}
-
-			// Build system access permissions
-			var accessesSystem []*models.Access
-			for _, perm := range permissions {
-				accessesSystem = append(accessesSystem, &models.Access{
-					Resource: perm.Resource,
-					Action:   perm.Action,
-				})
-			}
-
-			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
@@ -270,17 +259,16 @@ var askForPermissionsForUpdate = func(opts *update.UpdateView, permissions *[]mo
 	return getProjectPermissionsForUpdate(opts, projectPermissionsMap)
 }
 
-// hasPermissions reports whether the robot would be saved with at least one permission.
-func hasPermissions(permissions []models.Permission, projectPermissionsMap map[string][]models.Permission) bool {
-	if len(permissions) > 0 {
-		return true
+// permissionsForUpdate builds the permissions sent to Harbor from the system and project permissions.
+func permissionsForUpdate(permissions []models.Permission, projectPermissionsMap map[string][]models.Permission) []*update.RobotPermission {
+	var accessesSystem []*models.Access
+	for _, perm := range permissions {
+		accessesSystem = append(accessesSystem, &models.Access{
+			Resource: perm.Resource,
+			Action:   perm.Action,
+		})
 	}
-	for _, projectPermissions := range projectPermissionsMap {
-		if len(projectPermissions) > 0 {
-			return true
-		}
-	}
-	return false
+	return buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {

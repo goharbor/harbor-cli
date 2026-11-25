@@ -39,12 +39,26 @@ const testRobot = `{
 	]
 }`
 
+const testRobotWithoutPermissions = `{
+	"id": 7,
+	"name": "robot$ci",
+	"level": "project",
+	"description": "old description",
+	"duration": 30,
+	"permissions": []
+}`
+
 type robotUpdate struct {
 	path  string
 	robot models.Robot
 }
 
 func useRobotServer(t *testing.T) *robotUpdate {
+	t.Helper()
+	return useRobotServerWith(t, testRobot)
+}
+
+func useRobotServerWith(t *testing.T, robotJSON string) *robotUpdate {
 	t.Helper()
 
 	var mu sync.Mutex
@@ -53,7 +67,7 @@ func useRobotServer(t *testing.T) *robotUpdate {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/api/v2.0/robots/7":
-			_, _ = w.Write([]byte(testRobot))
+			_, _ = w.Write([]byte(robotJSON))
 		case r.Method == http.MethodPut:
 			body, _ := io.ReadAll(r.Body)
 			mu.Lock()
@@ -120,5 +134,14 @@ func TestUpdateProjectRobotCommandRejectsZeroDuration(t *testing.T) {
 	cmd := UpdateRobotCommand()
 	cmd.SetArgs([]string{"7", "--duration", "0"})
 	require.ErrorContains(t, cmd.Execute(), "duration cannot be 0")
+	assert.Empty(t, updated.path)
+}
+
+func TestUpdateProjectRobotCommandRejectsARobotWithoutPermissions(t *testing.T) {
+	updated := useRobotServerWith(t, testRobotWithoutPermissions)
+
+	cmd := UpdateRobotCommand()
+	cmd.SetArgs([]string{"7", "--description", "nightly builds"})
+	require.ErrorContains(t, cmd.Execute(), "robot account needs at least one permission")
 	assert.Empty(t, updated.path)
 }

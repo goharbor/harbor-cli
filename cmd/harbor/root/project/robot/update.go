@@ -19,6 +19,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
@@ -151,6 +152,9 @@ Examples:
 						Namespace: p.Namespace,
 						Access:    p.Access,
 					})
+				}
+				if !config.HasPermissions(opts.Permissions) {
+					return fmt.Errorf("failed to Update robot: robot account needs at least one permission")
 				}
 				if err := api.UpdateRobot(&opts); err != nil {
 					return fmt.Errorf("failed to Update robot: %v", err)
