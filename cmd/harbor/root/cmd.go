@@ -185,6 +185,14 @@ harbor help
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
 
+	cmd = exportCommand()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
+	cmd = applyCommand()
+	cmd.GroupID = "system"
+	root.AddCommand(cmd)
+
 	cmd = HealthCommand()
 	cmd.GroupID = "system"
 	root.AddCommand(cmd)
