@@ -21,7 +21,6 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/repository/list"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -72,7 +71,7 @@ func ListRepositoryCommand() *cobra.Command {
 			if FormatFlag != "" {
 				err = utils.PrintFormat(repos, FormatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListRepositories(repos.Payload)

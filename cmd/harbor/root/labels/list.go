@@ -87,7 +87,7 @@ func ListLabelCommand() *cobra.Command {
 			if formatFlag != "" {
 				err = utils.PrintFormat(label, formatFlag)
 				if err != nil {
-					log.Error(err)
+					return err
 				}
 			} else {
 				list.ListLabels(label.Payload)
