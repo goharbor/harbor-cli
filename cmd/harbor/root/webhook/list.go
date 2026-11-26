@@ -25,6 +25,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	listWebhooks     = api.ListWebhooks
+	listWebhooksView = webhookViews.ListWebhooks
+)
+
 func ListWebhookCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list [PROJECT_NAME]",
@@ -56,7 +61,7 @@ Use the '--output-format' flag for raw JSON output.`,
 				}
 			}
 
-			resp, err = api.ListWebhooks(projectName)
+			resp, err = listWebhooks(projectName)
 			if err != nil {
 				return fmt.Errorf("failed to list webhooks: %v", err)
 			}
@@ -70,8 +75,9 @@ Use the '--output-format' flag for raw JSON output.`,
 				if err != nil {
 					return fmt.Errorf("failed to print in %s format: %v", FormatFlag, err)
 				}
+			} else {
+				listWebhooksView(resp.Payload)
 			}
-			webhookViews.ListWebhooks(resp.Payload)
 			return nil
 		},
 	}
