@@ -18,6 +18,7 @@ import (
 	"log/slog"
 
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/artifact"
+	"github.com/goharbor/harbor-cli/cmd/harbor/root/auditlog"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/configurations"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/context"
 	"github.com/goharbor/harbor-cli/cmd/harbor/root/cve"
@@ -227,6 +228,10 @@ harbor help
 	root.AddCommand(cmd)
 
 	cmd = Logs()
+	cmd.GroupID = "utils"
+	root.AddCommand(cmd)
+
+	cmd = auditlog.AuditLog()
 	cmd.GroupID = "utils"
 	root.AddCommand(cmd)
 
