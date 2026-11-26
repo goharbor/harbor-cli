@@ -14,6 +14,9 @@
 package utils_test
 
 import (
+	"bytes"
+	"io"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -106,4 +109,53 @@ func Test_Config_Flag(t *testing.T) {
 	assert.NotNil(t, currentConfig.CurrentCredentialName, "CurrentCredentialName should not be nil")
 	assert.NotNil(t, currentConfig.Credentials, "Credentials should not be nil")
 	assert.NotNil(t, data.ConfigPath, "ConfigPath should not be nil")
+}
+
+// captureStdoutStderr redirects os.Stdout/os.Stderr while fn runs and returns
+// whatever each stream received.
+func captureStdoutStderr(t *testing.T, fn func()) (stdout string, stderr string) {
+	t.Helper()
+
+	origOut, origErr := os.Stdout, os.Stderr
+	rOut, wOut, err := os.Pipe()
+	assert.NoError(t, err)
+	rErr, wErr, err := os.Pipe()
+	assert.NoError(t, err)
+	os.Stdout, os.Stderr = wOut, wErr
+	defer func() { os.Stdout, os.Stderr = origOut, origErr }()
+
+	fn()
+
+	assert.NoError(t, wOut.Close())
+	assert.NoError(t, wErr.Close())
+
+	var bufOut, bufErr bytes.Buffer
+	_, _ = io.Copy(&bufOut, rOut)
+	_, _ = io.Copy(&bufErr, rErr)
+	return bufOut.String(), bufErr.String()
+}
+
+// Test_CreateFiles_DoNotPolluteStdout is a regression test for #1053: the
+// data/config file auto-creation notices must go to stderr, not stdout.
+// `harbor completion bash` captures stdout into the generated completion
+// script, so a stray "Config file created at ..."/"Data file created at ..."
+// line on stdout ends up sourced by the shell as a command ("command not
+// found: Config"/"command not found: Data").
+func Test_CreateFiles_DoNotPolluteStdout(t *testing.T) {
+	tempDir := t.TempDir()
+	dataPath := filepath.Join(tempDir, ".data", "data.yaml")
+	configPath := filepath.Join(tempDir, ".config", "config.yaml")
+
+	stdout, stderr := captureStdoutStderr(t, func() {
+		assert.NoError(t, utils.CreateConfigFile(configPath))
+		assert.NoError(t, utils.CreateDataFile(dataPath, configPath))
+	})
+
+	assert.NotContains(t, stdout, "Config file created")
+	assert.NotContains(t, stdout, "Data file created")
+	assert.Empty(t, stdout, "file-creation notices must not be written to stdout")
+
+	// The notices are still surfaced to the user, just on stderr.
+	assert.Contains(t, stderr, "Config file created at "+configPath)
+	assert.Contains(t, stderr, "Data file created at "+dataPath)
 }
