@@ -15,6 +15,7 @@ package api
 
 import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/jobservice"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/schedule"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 )
@@ -49,4 +50,39 @@ func ActionJobQueue(jobType, action string) error {
 	})
 
 	return err
+}
+
+// ListSchedules retrieves schedules with pagination
+func ListSchedules(page, pageSize int64) (*schedule.ListSchedulesOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Schedule.ListSchedules(ctx, &schedule.ListSchedulesParams{
+		Page:     &page,
+		PageSize: &pageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// GetSchedulePaused retrieves the global scheduler paused status
+func GetSchedulePaused() (*schedule.GetSchedulePausedOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Schedule.GetSchedulePaused(ctx, &schedule.GetSchedulePausedParams{
+		JobType: "all",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
