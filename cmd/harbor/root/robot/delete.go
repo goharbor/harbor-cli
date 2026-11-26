@@ -17,8 +17,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 
 	"github.com/spf13/cobra"
 )
@@ -57,31 +56,16 @@ Examples:
 				err     error
 			)
 			if len(args) == 1 {
-				robotName := args[0]
-				robot, err := api.GetRobotByName(robotName)
-				if err != nil {
-					errorCode := utils.ParseHarborErrorCode(err)
-					if errorCode == "403" {
-						return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command.")
-					} else {
-						return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
-					}
-				}
-				robotID = robot.ID
+				robotID, err = robot.ResolveRobotIDByName(args[0], robot.LevelSystem, "")
 			} else {
-				robotID, err = prompt.GetRobotIDFromUser(-1)
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
+				robotID, err = robot.ResolveRobotID(args, robot.LevelSystem, "")
 			}
-			err = api.DeleteRobot(robotID)
 			if err != nil {
-				errorCode := utils.ParseHarborErrorCode(err)
-				if errorCode == "403" {
-					return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to delete robot: %v", utils.ParseHarborErrorMsg(err))
-				}
+				return err
+			}
+
+			if err := api.DeleteRobot(robotID); err != nil {
+				return robot.WrapError("delete robot", err)
 			}
 			fmt.Printf("Robot account (ID: %d) was successfully deleted\n", robotID)
 			return nil

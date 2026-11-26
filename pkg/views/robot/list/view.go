@@ -16,82 +16,24 @@ package list
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
-	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 )
-
-var columns = []table.Column{
-	{Title: "Name", Width: tablelist.WidthL},
-	{Title: "Status", Width: tablelist.WidthL},
-	{Title: "Permissions", Width: tablelist.WidthM},
-	{Title: "Creation Time", Width: tablelist.WidthXL},
-	{Title: "Expires in", Width: tablelist.WidthM},
-	{Title: "Description", Width: tablelist.WidthXL},
-}
 
 func ListRobots(robots []*models.Robot) {
 	var rows []table.Row
-
 	for _, robot := range robots {
-		var enabledStatus string
-		var expires string
-
-		if robot.Disable {
-			enabledStatus = views.GreenStyle.Render("Disabled")
-		} else {
-			enabledStatus = views.GreenStyle.Render("Enabled")
-		}
-
-		var TotalPermissions int = 0
-		if len(robot.Permissions) > 0 {
-			TotalPermissions = len(robot.Permissions[0].Access)
-		}
-
-		if robot.ExpiresAt == -1 {
-			expires = "Never"
-		} else {
-			expires = remainingTime(robot.ExpiresAt)
-		}
-
-		createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
-		rows = append(rows, table.Row{
-			robot.Name,
-			enabledStatus,
-			strconv.FormatInt(int64(TotalPermissions), 10),
-			createdTime,
-			expires,
-			string(robot.Description),
-		})
+		rows = append(rows, robotview.SummaryRow(robot))
 	}
 
-	m := tablelist.NewModel(columns, rows, len(rows))
+	m := tablelist.NewModel(robotview.SummaryColumns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-}
-
-func remainingTime(unixTimestamp int64) string {
-	// Get the current time
-	now := time.Now()
-	// Convert the Unix timestamp to time.Time
-	expirationTime := time.Unix(unixTimestamp, 0)
-	// Calculate the duration between now and the expiration time
-	duration := expirationTime.Sub(now)
-
-	// Calculate days, hours, minutes, and seconds
-	days := int(duration.Hours() / 24)
-	hours := int(duration.Hours()) % 24
-	minutes := int(duration.Minutes()) % 60
-
-	// Format the output string
-	return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
 }

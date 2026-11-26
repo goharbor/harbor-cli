@@ -17,7 +17,7 @@ the old secret and requiring updates to any systems using the robot's credential
 
 The command supports multiple ways to identify the robot account:
 - By providing the robot ID directly as an argument
-- Without any arguments, which will prompt for both project and robot selection
+- Without any arguments, which will prompt for robot selection
 
 You can specify the new secret in several ways:
 - Let Harbor generate a random secret (default)
@@ -36,16 +36,16 @@ Important considerations:
 
 Examples:
   # Refresh robot secret by ID (generates a random secret)
-  harbor-cli project robot refresh 123
+  harbor-cli robot refresh 123
 
   # Refresh with a custom secret
-  harbor-cli project robot refresh 123 --secret "MyCustomSecret123"
+  harbor-cli robot refresh 123 --secret "MyCustomSecret123"
 
   # Provide secret via stdin (useful for scripting)
-  echo "MySecretFromScript123" | harbor-cli project robot refresh 123 --secret-stdin
+  echo "MySecretFromScript123" | harbor-cli robot refresh 123 --secret-stdin
 
-  # Interactive refresh (will prompt for project and robot selection)
-  harbor-cli project robot refresh
+  # Interactive refresh (will prompt for robot selection)
+  harbor-cli robot refresh
 
 ```sh
 harbor robot refresh [robotID] [flags]

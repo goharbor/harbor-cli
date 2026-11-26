@@ -16,8 +16,8 @@ Robot accounts are non-human users that can be used for automation purposes
 such as CI/CD pipelines, scripts, or other automated processes that need
 to interact with Harbor. They have specific permissions and a defined lifetime.
 
-This command creates system-level robots that can have permissions spanning 
-multiple projects, making them suitable for automation tasks that need access 
+This command creates system-level robots that can have permissions spanning
+multiple projects, making them suitable for automation tasks that need access
 across your Harbor instance.
 
 This command supports both interactive and non-interactive modes:

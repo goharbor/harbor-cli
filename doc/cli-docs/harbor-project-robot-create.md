@@ -36,14 +36,17 @@ Configuration File Format (YAML or JSON):
   name: "robot-name"        # Required: Name of the robot account
   description: "..."        # Optional: Description of the robot account
   duration: 90              # Required: Lifetime in days
-  project: "project-name"   # Required: Project where the robot will be created
-  permissions:              # Required: At least one permission must be specified
-    - resource: "repository"  # Either specify a single resource
-      actions: ["pull", "push"]
-    - resources: ["artifact", "scan"]  # Or specify multiple resources
-      actions: ["read"]
-    - resource: "project"    # Use "*" as an action to grant all available actions
-      actions: ["*"]
+  level: "project"          # Optional: defaults to "project"
+  permissions:              # Required: One permission scope with the project as namespace
+    - namespace: "project-name"
+      kind: "project"
+      access:
+        - resource: "repository"  # Either specify a single resource
+          actions: ["pull", "push"]
+        - resources: ["artifact", "scan"]  # Or specify multiple resources
+          actions: ["read"]
+        - resource: "project"    # Use "*" as an action to grant all available actions
+          actions: ["*"]
 
 Examples:
   # Interactive mode

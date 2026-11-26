@@ -15,21 +15,16 @@ package robot
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/atotto/clipboard"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/utils"
-	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
 
 func RefreshSecretCommand() *cobra.Command {
 	var (
-		robotID     int64
 		secret      string
 		secretStdin bool
 	)
@@ -43,7 +38,7 @@ the old secret and requiring updates to any systems using the robot's credential
 
 The command supports multiple ways to identify the robot account:
 - By providing the robot ID directly as an argument
-- Without any arguments, which will prompt for both project and robot selection
+- Without any arguments, which will prompt for robot selection
 
 You can specify the new secret in several ways:
 - Let Harbor generate a random secret (default)
@@ -62,64 +57,45 @@ Important considerations:
 
 Examples:
   # Refresh robot secret by ID (generates a random secret)
-  harbor-cli project robot refresh 123
+  harbor-cli robot refresh 123
 
   # Refresh with a custom secret
-  harbor-cli project robot refresh 123 --secret "MyCustomSecret123"
+  harbor-cli robot refresh 123 --secret "MyCustomSecret123"
 
   # Provide secret via stdin (useful for scripting)
-  echo "MySecretFromScript123" | harbor-cli project robot refresh 123 --secret-stdin
+  echo "MySecretFromScript123" | harbor-cli robot refresh 123 --secret-stdin
 
-  # Interactive refresh (will prompt for project and robot selection)
-  harbor-cli project robot refresh`,
+  # Interactive refresh (will prompt for robot selection)
+  harbor-cli robot refresh`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse robot ID: %v", err)
-				}
-			} else {
-				robotID, err = prompt.GetRobotIDFromUser(-1)
-				if err != nil {
-					log.Fatalf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
+			robotID, err := robot.ResolveRobotID(args, robot.LevelSystem, "")
+			if err != nil {
+				return err
 			}
 
 			if secret != "" {
-				err = utils.ValidatePassword(secret)
-				if err != nil {
-					return fmt.Errorf("Invalid secret: %v\n", err)
+				if err := utils.ValidatePassword(secret); err != nil {
+					return fmt.Errorf("invalid secret: %v", err)
 				}
 			}
 			if secretStdin {
-				secret = getSecret()
+				if secret, err = robot.ReadSecretFromStdin(); err != nil {
+					return err
+				}
 			}
 
 			response, err := api.RefreshSecret(secret, robotID)
 			if err != nil {
-				errorCode := utils.ParseHarborErrorCode(err)
-				if errorCode == "403" {
-					log.Fatalf("Permission denied: (Project) Admin privileges are required to execute this command.\n")
-				} else {
-					log.Fatalf("failed to refresh robot secret: %v\n", utils.ParseHarborErrorMsg(err))
-				}
+				return robot.WrapError("refresh robot secret", err)
 			}
 
 			fmt.Println("Secret updated successfully.")
 
 			if response.Payload.Secret != "" {
-				secret = response.Payload.Secret
-				create.CreateRobotSecretView("", secret)
-
-				err = clipboard.WriteAll(response.Payload.Secret)
-				if err != nil {
-					return fmt.Errorf("failed to write the secret to the clipboard: %v", err)
-				}
-				fmt.Println("secret copied to clipboard.")
+				return robot.DisplaySecret("", response.Payload.Secret)
 			}
-			return err
+			return nil
 		},
 	}
 
@@ -128,17 +104,4 @@ Examples:
 	flags.BoolVarP(&secretStdin, "secret-stdin", "", false, "Take the robot secret from stdin")
 
 	return cmd
-}
-
-// getSecret from commandline
-func getSecret() string {
-	secret, err := utils.GetSecretStdin("Enter your secret: ")
-	if err != nil {
-		log.Fatalf("Error reading secret: %v\n", err)
-	}
-
-	if err := utils.ValidatePassword(secret); err != nil {
-		log.Fatalf("Invalid secret: %v\n", err)
-	}
-	return secret
 }

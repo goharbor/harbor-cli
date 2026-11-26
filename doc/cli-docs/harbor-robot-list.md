@@ -43,7 +43,7 @@ Examples:
   harbor-cli robot list --output-format json
 
 ```sh
-harbor robot list [projectName] [flags]
+harbor robot list [flags]
 ```
 
 ### Options

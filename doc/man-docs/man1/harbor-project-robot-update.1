@@ -60,6 +60,10 @@ Examples:
   harbor-cli project robot update 123 --all-permission
 
 .PP
+# Update from configuration file
+  harbor-cli project robot update 123 --robot-config-file ./robot-config.yaml
+
+.PP
 # Interactive update (will prompt for robot selection and changes)
   harbor-cli project robot update
 
@@ -87,6 +91,10 @@ Examples:
 .PP
 \fB--project\fP=""
 	set project name
+
+.PP
+\fB-r\fP, \fB--robot-config-file\fP=""
+	YAML/JSON file with robot configuration
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS

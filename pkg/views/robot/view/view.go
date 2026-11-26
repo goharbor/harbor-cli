@@ -17,8 +17,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strconv"
-	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,16 +25,8 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views"
 	"github.com/goharbor/harbor-cli/pkg/views/base/tablelist"
+	robotview "github.com/goharbor/harbor-cli/pkg/views/robot"
 )
-
-var columns = []table.Column{
-	{Title: "Name", Width: tablelist.WidthL},
-	{Title: "Status", Width: tablelist.WidthL},
-	{Title: "Permissions", Width: tablelist.WidthM},
-	{Title: "Creation Time", Width: tablelist.WidthXL},
-	{Title: "Expires in", Width: tablelist.WidthM},
-	{Title: "Description", Width: tablelist.WidthXL},
-}
 
 var projectPermissionsColumns = []table.Column{
 	{Title: "Resource", Width: tablelist.WidthXL},
@@ -77,36 +67,10 @@ var systemResourceStrings = []string{
 }
 
 func ViewRobot(robot *models.Robot) {
-	var rows []table.Row
-	var enabledStatus string
-	var expires string
+	_, namespace := robotPermissionSummary(robot)
+	rows := []table.Row{robotview.SummaryRow(robot)}
 
-	if robot.Disable {
-		enabledStatus = views.GreenStyle.Render("Disabled")
-	} else {
-		enabledStatus = views.GreenStyle.Render("Enabled")
-	}
-
-	totalPermissions, namespace := robotPermissionSummary(robot)
-	TotalPermissions := strconv.FormatInt(int64(totalPermissions), 10)
-
-	if robot.ExpiresAt == -1 {
-		expires = "Never"
-	} else {
-		expires = remainingTime(robot.ExpiresAt)
-	}
-
-	createdTime, _ := utils.FormatCreatedTime(robot.CreationTime.String())
-	rows = append(rows, table.Row{
-		robot.Name,
-		enabledStatus,
-		TotalPermissions,
-		createdTime,
-		expires,
-		string(robot.Description),
-	})
-
-	m := tablelist.NewModel(columns, rows, len(rows))
+	m := tablelist.NewModel(robotview.SummaryColumns, rows, len(rows))
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -128,7 +92,7 @@ func ViewRobot(robot *models.Robot) {
 		permissionsColumns = projectPermissionsColumns
 		resourceStrings = projectResourceStrings
 		systemLevel = false
-		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("System-level robot with access across projects: %s", namespace)))
+		fmt.Printf("\n%s\n\n", views.BoldStyle.Render(fmt.Sprintf("Project-level robot in project: %s", namespace)))
 	}
 
 	var permissionRows []table.Row
@@ -257,14 +221,4 @@ func createProjectPermissionRows(perm *models.RobotPermission, availablePerms ma
 	}
 
 	return rows
-}
-
-func remainingTime(unixTimestamp int64) string {
-	now := time.Now()
-	expirationTime := time.Unix(unixTimestamp, 0)
-	duration := expirationTime.Sub(now)
-	days := int(duration.Hours() / 24)
-	hours := int(duration.Hours()) % 24
-	minutes := int(duration.Minutes()) % 60
-	return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
 }

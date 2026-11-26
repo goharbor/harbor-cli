@@ -14,13 +14,8 @@
 package robot
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/robot"
 	"github.com/goharbor/harbor-cli/pkg/api"
-	"github.com/goharbor/harbor-cli/pkg/prompt"
-	"github.com/goharbor/harbor-cli/pkg/utils"
+	robot "github.com/goharbor/harbor-cli/pkg/robot"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/view"
 
 	"github.com/spf13/cobra"
@@ -58,37 +53,17 @@ Examples:
   harbor-cli robot view`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var (
-				robot   *robot.GetRobotByIDOK
-				robotID int64
-				err     error
-			)
-
-			if len(args) == 1 {
-				robotID, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return fmt.Errorf("failed to parse robot ID %q: %v", args[0], err)
-				}
-			} else {
-				robotID, err = prompt.GetRobotIDFromUser(-1)
-				if err != nil {
-					return fmt.Errorf("failed to get robot ID from user: %v", utils.ParseHarborErrorMsg(err))
-				}
-			}
-
-			robot, err = api.GetRobot(robotID)
+			robotID, err := robot.ResolveRobotID(args, robot.LevelSystem, "")
 			if err != nil {
-				errorCode := utils.ParseHarborErrorCode(err)
-				if errorCode == "403" {
-					return fmt.Errorf("permission denied: (Project) Admin privileges are required to execute this command.")
-				} else {
-					return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
-				}
+				return err
 			}
 
-			// Convert to a list and display
-			// robots := &models.Robot{robot.Payload}
-			view.ViewRobot(robot.Payload)
+			response, err := api.GetRobot(robotID)
+			if err != nil {
+				return robot.WrapError("get robot", err)
+			}
+
+			view.ViewRobot(response.Payload)
 			return nil
 		},
 	}
