@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/label/update"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func UpdateLableCommand() *cobra.Command {
@@ -80,21 +81,13 @@ func UpdateLableCommand() *cobra.Command {
 				Scope:       existingLabel.Scope,
 			}
 
-			flags := cmd.Flags()
-			if flags.Changed("name") {
-				updateView.Name = opts.Name
+			// Only open the interactive form when no update flags were given,
+			// so the command can be used non-interactively (scripts, CI).
+			if !applyLabelUpdateFlags(cmd.Flags(), opts, updateView) {
+				update.UpdateLabelView(updateView)
+			} else if err := validateLabelUpdate(updateView); err != nil {
+				return err
 			}
-			if flags.Changed("color") {
-				updateView.Color = opts.Color
-			}
-			if flags.Changed("description") {
-				updateView.Description = opts.Description
-			}
-			if flags.Changed("scope") {
-				updateView.Scope = opts.Scope
-			}
-
-			update.UpdateLabelView(updateView)
 			err = api.UpdateLabel(updateView, labelId)
 			if err != nil {
 				return fmt.Errorf("failed to update label: %v", err)
@@ -111,4 +104,35 @@ func UpdateLableCommand() *cobra.Command {
 	flags.StringVarP(&opts.Description, "description", "d", "", "Description of the label")
 
 	return cmd
+}
+
+// applyLabelUpdateFlags copies the explicitly set update flags onto updateView
+// and reports whether any of them were set.
+func applyLabelUpdateFlags(flags *pflag.FlagSet, opts *models.Label, updateView *models.Label) bool {
+	changed := false
+	if flags.Changed("name") {
+		updateView.Name = opts.Name
+		changed = true
+	}
+	if flags.Changed("color") {
+		updateView.Color = opts.Color
+		changed = true
+	}
+	if flags.Changed("description") {
+		updateView.Description = opts.Description
+		changed = true
+	}
+	return changed
+}
+
+// validateLabelUpdate enforces the same rules as the interactive form for
+// values supplied through flags.
+func validateLabelUpdate(updateView *models.Label) error {
+	if updateView.Name == "" {
+		return fmt.Errorf("label name cannot be empty")
+	}
+	if updateView.Color == "" {
+		return fmt.Errorf("label color cannot be empty")
+	}
+	return nil
 }
