@@ -16,9 +16,7 @@ package update
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
@@ -31,23 +29,27 @@ type CreateView struct {
 	Value       int64
 }
 
+const (
+	mebibyte = int64(1024 * 1024)
+	gibibyte = 1024 * mebibyte
+	tebibyte = 1024 * gibibyte
+
+	// unlimitedStorage is the hard limit Harbor uses for an unlimited quota.
+	unlimitedStorage = int64(-1)
+
+	defaultStorageUnit = "GiB"
+)
+
+var storageUnits = []string{"MiB", "GiB", "TiB"}
+
 func UpdateQuotaView(quta *models.Quota) string {
-	var (
-		value      string
-		createView CreateView
-	)
+	var createView CreateView
 
-	rawStorage := list.BytesToStorageString(quta.Hard["storage"])
-	fmt.Printf("current storage: %v", rawStorage)
-	storagearr := strings.Split(rawStorage, " ")
-	storageUnits := []string{"MiB", "GiB", "TiB"}
-	storageUnit := storagearr[1]
+	hard := quta.Hard["storage"]
+	fmt.Printf("current storage: %v\n", currentStorage(hard))
 
-	// check if storageUnit is valid
-	if slices.Contains(storageUnits, storageUnit) {
-		createView.StorageUnit = storageUnit
-		value = storagearr[0]
-	}
+	value, unit := storageDefaults(hard)
+	createView.StorageUnit = unit
 
 	// Initialize a slice to hold select options
 	var storageUnitSelectOptions []huh.Option[string]
@@ -95,4 +97,43 @@ func UpdateQuotaView(quta *models.Quota) string {
 	}
 
 	return fmt.Sprintf("%v%v", createView.Value, createView.StorageUnit)
+}
+
+// currentStorage renders the hard limit the way the quota list command does,
+// so an unlimited quota is not reported as a negative size.
+func currentStorage(bytes int64) string {
+	if bytes == unlimitedStorage {
+		return "Unlimited"
+	}
+
+	return list.BytesToStorageString(bytes)
+}
+
+// storageDefaults converts a hard limit expressed in bytes into the value and
+// unit used to prefill the form. The quota limit input only accepts whole
+// numbers, so the largest unit that divides the limit evenly is picked. A
+// limit that cannot be expressed that way, including an unlimited quota,
+// yields an empty value so the user is asked for one instead of being handed a
+// default the form itself rejects.
+func storageDefaults(bytes int64) (value string, unit string) {
+	if bytes == 0 {
+		return "0", storageUnits[0]
+	}
+
+	if bytes > 0 {
+		for _, u := range []struct {
+			name string
+			size int64
+		}{
+			{"TiB", tebibyte},
+			{"GiB", gibibyte},
+			{"MiB", mebibyte},
+		} {
+			if bytes >= u.size && bytes%u.size == 0 {
+				return strconv.FormatInt(bytes/u.size, 10), u.name
+			}
+		}
+	}
+
+	return "", defaultStorageUnit
 }
