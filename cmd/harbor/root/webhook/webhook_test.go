@@ -97,3 +97,11 @@ func TestEditWebhookCmd_InvalidEndpointURLReturnsValidationError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "URL must contain a valid host")
 }
+
+func TestDeleteWebhookCmd_ExampleUsesRegisteredFlag(t *testing.T) {
+	cmd := DeleteWebhookCmd()
+
+	assert.Contains(t, cmd.Example, "--webhook-id 5")
+	assert.NotContains(t, cmd.Example, "--webhook 5")
+	assert.NotNil(t, cmd.Flags().Lookup("webhook-id"))
+}
