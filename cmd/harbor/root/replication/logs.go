@@ -28,10 +28,10 @@ func LogsCommand() *cobra.Command {
 	var taskID int64
 	var execID int64
 	cmd := &cobra.Command{
-		Use:   "log [EXECUTION_ID] [TASK_ID]",
+		Use:   "log ",
 		Short: "get replication execution logs by execution and task id",
-		Long:  `Get the logs of a specific replication execution and task by their IDs. If no IDs are provided, it will prompt the user to select them interactively.`,
-		Example: `  harbor replication log -e 12345 -t 67890
+		Long:  `Get the logs of a specific replication execution and task. Use the --execution-id and --task-id flags to specify IDs. If no IDs are provided, the command prompts you interactively.`,
+		Example: ` 
 		  harbor replication log --execution-id 12345 --task-id 67890
 		  harbor replication log --execution-id 12345
   harbor replication log`,
