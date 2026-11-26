@@ -38,6 +38,7 @@ import (
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/create"
+	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
 	"gopkg.in/yaml.v2"
 )
 
@@ -391,4 +392,15 @@ func getValidActionsForResource(resource string, permissions map[string][]string
 		return actions
 	}
 	return []string{}
+}
+
+// HasPermissions reports whether a robot update keeps at least one permission.
+// Harbor rejects an update without one.
+func HasPermissions(permissions []*update.RobotPermission) bool {
+	for _, permission := range permissions {
+		if permission != nil && len(permission.Access) > 0 {
+			return true
+		}
+	}
+	return false
 }

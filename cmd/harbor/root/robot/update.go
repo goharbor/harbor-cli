@@ -107,6 +107,10 @@ Examples:
 				return fmt.Errorf("failed to get robot: %v", utils.ParseHarborErrorMsg(err))
 			}
 
+			flags := cmd.Flags()
+			description, duration := opts.Description, opts.Duration
+			useFlags := flags.Changed("description") || flags.Changed("duration")
+
 			// Initialize update view with current values
 			bot := robot.Payload
 			opts.ID = bot.ID
@@ -118,6 +122,12 @@ Examples:
 			opts.Disable = bot.Disable
 			opts.Editable = bot.Editable
 			opts.CreationTime = bot.CreationTime
+			if flags.Changed("description") {
+				opts.Description = description
+			}
+			if flags.Changed("duration") {
+				opts.Duration = duration
+			}
 
 			// Extract current permissions (both system and project)
 			var permissions []models.Permission
@@ -147,28 +157,32 @@ Examples:
 			logrus.Debugf("Loaded robot with %d system permissions and %d project-specific permissions",
 				len(permissions), len(projectPermissionsMap))
 
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to update robot: duration cannot be 0")
+			}
+
 			// Handle configuration from file or interactive input
 			if configFile != "" {
 				if err := loadFromConfigFileForUpdate(&opts, configFile, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
-			} else {
+			} else if !useFlags || all {
 				if err := handleInteractiveInputForUpdate(&opts, all, &permissions, projectPermissionsMap); err != nil {
+					return err
+				}
+			} else if !config.HasPermissions(permissionsForUpdate(permissions, projectPermissionsMap)) {
+				// Harbor rejects an update without permissions, and a robot can be left with
+				// none, for example when the projects it had access to are deleted.
+				fmt.Println("The robot has no permissions. Choose at least one to update it.")
+				if err := askForPermissionsForUpdate(&opts, &permissions, projectPermissionsMap); err != nil {
 					return err
 				}
 			}
 
-			// Build system access permissions
-			var accessesSystem []*models.Access
-			for _, perm := range permissions {
-				accessesSystem = append(accessesSystem, &models.Access{
-					Resource: perm.Resource,
-					Action:   perm.Action,
-				})
+			opts.Permissions = permissionsForUpdate(permissions, projectPermissionsMap)
+			if !config.HasPermissions(opts.Permissions) {
+				return fmt.Errorf("failed to update robot: robot account needs at least one permission")
 			}
-
-			// Build merged permissions structure
-			opts.Permissions = buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
 
 			// Update robot and handle response
 			return updateRobotAndHandleResponse(&opts)
@@ -234,6 +248,27 @@ func loadFromConfigFileForUpdate(opts *update.UpdateView, configFile string, per
 		len(*permissions), len(projectPermissionsMap))
 
 	return nil
+}
+
+// askForPermissionsForUpdate asks for system and project permissions, as the form does when
+// the user chooses to update them. It is a variable so tests can replace the prompts.
+var askForPermissionsForUpdate = func(opts *update.UpdateView, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {
+	if err := getSystemPermissionsForUpdate(false, permissions); err != nil {
+		return err
+	}
+	return getProjectPermissionsForUpdate(opts, projectPermissionsMap)
+}
+
+// permissionsForUpdate builds the permissions sent to Harbor from the system and project permissions.
+func permissionsForUpdate(permissions []models.Permission, projectPermissionsMap map[string][]models.Permission) []*update.RobotPermission {
+	var accessesSystem []*models.Access
+	for _, perm := range permissions {
+		accessesSystem = append(accessesSystem, &models.Access{
+			Resource: perm.Resource,
+			Action:   perm.Action,
+		})
+	}
+	return buildMergedPermissionsForUpdate(projectPermissionsMap, accessesSystem)
 }
 
 func handleInteractiveInputForUpdate(opts *update.UpdateView, all bool, permissions *[]models.Permission, projectPermissionsMap map[string][]models.Permission) error {

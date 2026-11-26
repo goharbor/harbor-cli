@@ -19,6 +19,7 @@ import (
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
+	config "github.com/goharbor/harbor-cli/pkg/config/robot"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/robot/update"
@@ -113,6 +114,9 @@ Examples:
 			}
 
 			bot := robot.Payload
+			flags := cmd.Flags()
+			useFlags := flags.Changed("description") || flags.Changed("duration")
+			description, newDuration := opts.Description, opts.Duration
 
 			var duration int64
 			if bot.Duration != nil {
@@ -129,6 +133,33 @@ Examples:
 				Level:        bot.Level,
 				Name:         bot.Name,
 				Secret:       bot.Secret,
+			}
+			if flags.Changed("description") {
+				opts.Description = description
+			}
+			if flags.Changed("duration") {
+				opts.Duration = newDuration
+			}
+
+			if flags.Changed("duration") && opts.Duration == 0 {
+				return fmt.Errorf("failed to Update robot: duration cannot be 0")
+			}
+
+			if useFlags && !all {
+				for _, p := range bot.Permissions {
+					opts.Permissions = append(opts.Permissions, &update.RobotPermission{
+						Kind:      p.Kind,
+						Namespace: p.Namespace,
+						Access:    p.Access,
+					})
+				}
+				if !config.HasPermissions(opts.Permissions) {
+					return fmt.Errorf("failed to Update robot: robot account needs at least one permission")
+				}
+				if err := api.UpdateRobot(&opts); err != nil {
+					return fmt.Errorf("failed to Update robot: %v", err)
+				}
+				return nil
 			}
 
 			// declare empty permissions to hold permissions
