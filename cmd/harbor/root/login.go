@@ -178,12 +178,20 @@ func RunLogin(opts login.LoginView) error {
 	existingCred, err := utils.GetCredentials(opts.Name)
 	if err == nil {
 		if existingCred.Username == opts.Username && existingCred.ServerAddress == opts.Server {
-			if existingCred.Password == encryptedPassword {
+			existingPassword, decryptErr := utils.Decrypt(key, existingCred.Password)
+			if decryptErr == nil && existingPassword == opts.Password {
 				log.Warn("Credentials already exist in the config file. They were not added again.")
+				if err = utils.SetCurrentCredential(opts.Name); err != nil {
+					return fmt.Errorf("failed to switch to context %s: %w", opts.Name, err)
+				}
 				fmt.Printf("Login successful for %s at %s\n", opts.Username, opts.Server)
 				return nil
 			} else {
-				log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				if decryptErr != nil {
+					log.Warnf("Could not decrypt the stored password: %v. Replacing it.", decryptErr)
+				} else {
+					log.Warn("Credentials already exist in the config file but the password is different. Updating the password.")
+				}
 				if err = utils.UpdateCredentialsInConfigFile(cred, configPath); err != nil {
 					log.Fatalf("failed to update the credential: %s", err)
 				}
