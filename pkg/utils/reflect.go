@@ -22,6 +22,9 @@ import (
 
 func ConvertToConfigurations(resp *models.ConfigurationsResponse) *models.Configurations {
 	targetConfigurationsPointer := &models.Configurations{}
+	if resp == nil {
+		return targetConfigurationsPointer
+	}
 	targetConfigurationsObject := reflect.ValueOf(targetConfigurationsPointer).Elem()
 
 	apiConfigurationsResponseObject := reflect.ValueOf(resp).Elem()
