@@ -1,0 +1,45 @@
+.nh
+.TH "HARBOR" "1"  "Harbor Community" "Harbor User Manuals"
+
+.SH NAME
+harbor-jobservice-workers-list - List workers in a pool
+
+
+.SH SYNOPSIS
+\fBharbor jobservice workers list [pool-id] [flags]\fP
+
+
+.SH DESCRIPTION
+Display all workers in the specified Harbor jobservice worker pool. Requires system admin privileges.
+
+
+.SH OPTIONS
+\fB-h\fP, \fB--help\fP[=false]
+	help for list
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+\fB-c\fP, \fB--config\fP=""
+	config file (default is $HOME/.config/harbor-cli/config.yaml)
+
+.PP
+\fB-l\fP, \fB--log-format\fP="text"
+	Output format for logging. One of: json|text
+
+.PP
+\fB-o\fP, \fB--output-format\fP=""
+	Output format. One of: json|yaml|csv
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	verbose output
+
+
+.SH EXAMPLE
+.EX
+harbor jobservice workers list <pool-id>
+.EE
+
+
+.SH SEE ALSO
+\fBharbor-jobservice-workers(1)\fP

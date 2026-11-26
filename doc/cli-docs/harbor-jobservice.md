@@ -33,5 +33,7 @@ Use "harbor jobservice [command] --help" for detailed examples and flags per sub
 ### SEE ALSO
 
 * [harbor](harbor.md)	 - Official Harbor CLI
+* [harbor jobservice pools](harbor-jobservice-pools.md)	 - Manage worker pools
 * [harbor jobservice queues](harbor-jobservice-queues.md)	 - Manage job queues (list, stop, pause, resume)
+* [harbor jobservice workers](harbor-jobservice-workers.md)	 - Manage workers
 
