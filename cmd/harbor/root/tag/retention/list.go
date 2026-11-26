@@ -17,12 +17,18 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/retention"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/retention/list"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	getRetentionId = api.GetRetentionId
+	listRetention  = api.ListRetention
 )
 
 func ListRetentionRulesCommand() *cobra.Command {
@@ -76,20 +82,19 @@ Examples:
 				projectIDStr = projectName
 			}
 
-			retentionID, err := api.GetRetentionId(projectIDStr, isName)
+			retentionID, err := getRetentionId(projectIDStr, isName)
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
 
-			resp, err := api.ListRetention(retentionID)
+			resp, err := listRetention(retentionID)
 			if err != nil {
 				return fmt.Errorf("failed to list retention rules: %w", err)
 			}
 
 			formatFlag := viper.GetString("output-format")
 			if formatFlag != "" {
-				utils.PrintPayloadInJSONFormat(resp)
-				return nil
+				return formatRetentionRules(resp, formatFlag)
 			}
 
 			list.ListRetentionRules(resp.Payload.Rules)
@@ -101,4 +106,11 @@ Examples:
 	cmd.Flags().IntVarP(&projectID, "project-id", "i", -1, "Project ID")
 
 	return cmd
+}
+
+func formatRetentionRules(resp retention.GetRetentionOK, formatFlag string) error {
+	if formatFlag == "csv" {
+		return fmt.Errorf("csv output is not supported for tag retention rules")
+	}
+	return utils.PrintFormat(resp.Payload, formatFlag)
 }
