@@ -26,6 +26,7 @@ import (
 var (
 	publicFlag                   string
 	autoScanFlag                 string
+	autoSbomFlag                 string
 	preventVulFlag               string
 	reuseSysCVEFlag              string
 	enableContentTrustFlag       string
@@ -49,12 +50,15 @@ Examples:
   # Update multiple settings in one command
   harbor-cli project config update myproject --public false --prevent-vul true --severity high
 
+  # Scan and generate an SBOM for every artifact pushed to the project
+  harbor-cli project config update myproject --auto-scan true --auto-sbom true
+
   # Run interactively without flags
   harbor-cli project config update
 
 Supported flag values:
 
-  - Boolean flags (public, auto-scan, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
+  - Boolean flags (public, auto-scan, auto-sbom, prevent-vul, reuse-sys-cve-allowlist, enable-content-trust, enable-content-trust-cosign): "true" or "false"
   - Severity: one of "low", "medium", "high", "critical"
 `,
 
@@ -91,6 +95,13 @@ Supported flag values:
 					return err
 				}
 				conf.AutoScan = &autoScanFlag
+				flagsUsed = true
+			}
+			if flags.Changed("auto-sbom") {
+				if err := validateFlag("auto-sbom", autoSbomFlag); err != nil {
+					return err
+				}
+				conf.AutoSbomGeneration = &autoSbomFlag
 				flagsUsed = true
 			}
 			if flags.Changed("prevent-vul") {
@@ -145,6 +156,7 @@ Supported flag values:
 
 	flags.StringVar(&publicFlag, "public", "", "Set project visibility (true/false)")
 	flags.StringVar(&autoScanFlag, "auto-scan", "", "Enable or disable auto scan (true/false)")
+	flags.StringVar(&autoSbomFlag, "auto-sbom", "", "Enable or disable automatic SBOM generation on push (true/false)")
 	flags.StringVar(&preventVulFlag, "prevent-vul", "", "Enable or disable vulnerability prevention (true/false)")
 	flags.StringVar(&reuseSysCVEFlag, "reuse-sys-cve", "", "Enable or disable reuse of system CVE allowlist (true/false)")
 	flags.StringVar(&enableContentTrustFlag, "enable-content-trust", "", "Enable or disable content trust (true/false)")
