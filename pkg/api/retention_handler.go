@@ -25,6 +25,10 @@ import (
 	"github.com/goharbor/harbor-cli/pkg/views/retention/create"
 )
 
+// ErrNoRetentionPolicy is returned by GetRetentionId when the project has no
+// tag retention policy yet.
+var ErrNoRetentionPolicy = errors.New("no retention policy exists for this project")
+
 func CreateRetention(opts create.CreateView, projectIDorName string, isName bool) error {
 	ctx, client, err := utils.ContextWithClient()
 	if err != nil {
@@ -37,7 +41,7 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 	}
 	retentionIDStr := ""
 	retentionIDStr, err = GetRetentionId(projectIDorName, isName)
-	if err != nil && err.Error() != "No retention policy exists for this project" {
+	if err != nil && !errors.Is(err, ErrNoRetentionPolicy) {
 		return err
 	}
 
@@ -50,10 +54,13 @@ func CreateRetention(opts create.CreateView, projectIDorName string, isName bool
 	}
 	var projectID int
 	if isName {
-		project, _ := client.Project.GetProject(ctx, &project.GetProjectParams{
+		project, err := client.Project.GetProject(ctx, &project.GetProjectParams{
 			XIsResourceName: &isName,
 			ProjectNameOrID: projectIDorName,
 		})
+		if err != nil {
+			return fmt.Errorf("failed to get project with such name or ID: %w", err)
+		}
 		projectID = int(project.Payload.ProjectID)
 	} else {
 		projectID, err = strconv.Atoi(projectIDorName)
@@ -114,7 +121,7 @@ func GetRetentionId(projectNameorID string, isName bool) (string, error) {
 	}
 
 	if response.Payload.Metadata == nil || response.Payload.Metadata.RetentionID == nil {
-		return "", errors.New("no retention policy exists for this project")
+		return "", ErrNoRetentionPolicy
 	}
 	retentionid := *response.Payload.Metadata.RetentionID
 
