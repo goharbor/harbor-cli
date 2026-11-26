@@ -112,11 +112,11 @@ Examples:
 				secret = response.Payload.Secret
 				create.CreateRobotSecretView("", secret)
 
-				err = clipboard.WriteAll(response.Payload.Secret)
-				if err != nil {
-					return fmt.Errorf("failed to write the secret to the clipboard: %v", err)
+				if err := clipboard.WriteAll(response.Payload.Secret); err != nil {
+					log.Warnf("failed to write the secret to the clipboard: %v", err)
+				} else {
+					fmt.Println("secret copied to clipboard.")
 				}
-				fmt.Println("secret copied to clipboard.")
 			}
 			return nil
 		},
