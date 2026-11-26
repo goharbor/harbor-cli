@@ -42,7 +42,7 @@ func SafeUnsetEnv(key string) {
 // reset all of our singletons and viper between runs
 func resetAll() {
 	// reset config loader (declared as sync.Once)
-	utils.ConfigInitialization = &utils.Once{}
+	utils.ConfigInitialization.Reset()
 	utils.CurrentHarborConfig = nil
 	utils.CurrentHarborData = nil
 
