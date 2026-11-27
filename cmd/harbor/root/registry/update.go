@@ -15,6 +15,8 @@ package registry
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -129,10 +131,27 @@ func UpdateRegistryCommand() *cobra.Command {
 }
 
 // secretClearedByURLChange reports whether Harbor dropped the stored secret.
-// Harbor does that when the URL changes and no new secret is sent.
+// Harbor does that when the URL changes and no new secret is sent. Like
+// Harbor, it compares the normalized new URL with the stored one.
 func secretClearedByURLChange(existing, updated *models.Registry, secretChanged bool) bool {
 	return !secretChanged &&
 		updated.URL != existing.URL &&
+		normalizeRegistryURL(updated.URL) != existing.URL &&
 		existing.Credential != nil &&
 		existing.Credential.AccessSecret != ""
+}
+
+// normalizeRegistryURL follows lib.NormalizeAndValidateHTTPURL in Harbor:
+// it trims spaces and trailing slashes, defaults to http, lowercases the
+// scheme and host, keeps the path and drops the rest.
+func normalizeRegistryURL(s string) string {
+	s = strings.TrimRight(strings.Trim(s, " "), "/")
+	if !strings.Contains(s, "://") {
+		s = "http://" + s
+	}
+	u, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	return fmt.Sprintf("%s://%s%s", u.Scheme, strings.ToLower(u.Host), u.Path)
 }

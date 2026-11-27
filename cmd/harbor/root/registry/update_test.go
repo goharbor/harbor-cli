@@ -39,6 +39,9 @@ func TestSecretClearedByURLChange(t *testing.T) {
 		{"url changed without new secret", stored, registry("https://new.example.com", "*****"), false, true},
 		{"url changed with new secret", stored, registry("https://new.example.com", "s3cret"), true, false},
 		{"url unchanged", stored, registry("https://old.example.com", "*****"), false, false},
+		{"only hostname case changed", stored, registry("https://OLD.Example.com", "*****"), false, false},
+		{"only trailing slash added", stored, registry("https://old.example.com/", "*****"), false, false},
+		{"path case changed", registry("https://old.example.com/Path", "*****"), registry("https://old.example.com/path", "*****"), false, true},
 		{"no stored secret", registry("https://old.example.com", ""), registry("https://new.example.com", ""), false, false},
 	}
 
