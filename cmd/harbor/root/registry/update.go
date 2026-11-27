@@ -15,12 +15,15 @@ package registry
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
 	"github.com/goharbor/harbor-cli/pkg/utils"
 	"github.com/goharbor/harbor-cli/pkg/views/registry/update"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -101,9 +104,14 @@ func UpdateRegistryCommand() *cobra.Command {
 			}
 
 			update.UpdateRegistryView(updateView)
-			err = api.UpdateRegistry(updateView, registryId)
+			secretChanged := flags.Changed("credential-access-secret") ||
+				updateView.Credential.AccessSecret != existingRegistry.Credential.AccessSecret
+			err = api.UpdateRegistry(updateView, registryId, secretChanged)
 			if err != nil {
 				return fmt.Errorf("failed to update registry: %v", err)
+			}
+			if secretClearedByURLChange(existingRegistry, updateView, secretChanged) {
+				log.Warn("The registry URL changed and no new access secret was given, so Harbor cleared the stored secret. Set it again with --credential-access-secret.")
 			}
 			return nil
 		},
@@ -120,4 +128,30 @@ func UpdateRegistryCommand() *cobra.Command {
 	flags.StringVarP(&opts.Credential.Type, "credential-type", "", "", "Credential type, such as 'basic', 'oauth'")
 
 	return cmd
+}
+
+// secretClearedByURLChange reports whether Harbor dropped the stored secret.
+// Harbor does that when the URL changes and no new secret is sent. Like
+// Harbor, it compares the normalized new URL with the stored one.
+func secretClearedByURLChange(existing, updated *models.Registry, secretChanged bool) bool {
+	return !secretChanged &&
+		updated.URL != existing.URL &&
+		normalizeRegistryURL(updated.URL) != existing.URL &&
+		existing.Credential != nil &&
+		existing.Credential.AccessSecret != ""
+}
+
+// normalizeRegistryURL follows lib.NormalizeAndValidateHTTPURL in Harbor:
+// it trims spaces and trailing slashes, defaults to http, lowercases the
+// scheme and host, keeps the path and drops the rest.
+func normalizeRegistryURL(s string) string {
+	s = strings.TrimRight(strings.Trim(s, " "), "/")
+	if !strings.Contains(s, "://") {
+		s = "http://" + s
+	}
+	u, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	return fmt.Sprintf("%s://%s%s", u.Scheme, strings.ToLower(u.Host), u.Path)
 }
