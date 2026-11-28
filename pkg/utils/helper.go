@@ -128,8 +128,9 @@ func ValidatePassword(password string) error {
 		return errors.New("password cannot be empty or only spaces")
 	}
 
-	if len(password) < 8 || len(password) > 256 {
-		return errors.New("wrong! the password length must be at least 8 characters and at most 256 characters")
+	// Harbor accepts passwords and robot secrets of 8 to 128 characters.
+	if len(password) < 8 || len(password) > 128 {
+		return errors.New("wrong! the password length must be at least 8 characters and at most 128 characters")
 	}
 	// checking the password has a minimum of one lower case letter
 	if done, _ := regexp.MatchString("([a-z])+", password); !done {
@@ -158,13 +159,14 @@ func ValidateTagName(tagName string) bool {
 	return re.MatchString(tagName)
 }
 
+// projectNameRegex is the rule the Harbor server applies to project names:
+// lowercase letters and digits, with single '.', '_' or '-' separators that
+// cannot start or end the name or appear next to each other.
+var projectNameRegex = regexp.MustCompile(`^[a-z0-9]+(?:[._-][a-z0-9]+)*$`)
+
 // check if the project name is valid
 func ValidateProjectName(projectName string) bool {
-	pattern := `^[a-z0-9][a-z0-9._-]{0,254}$`
-
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(projectName)
+	return len(projectName) <= 255 && projectNameRegex.MatchString(projectName)
 }
 
 // ParseStorageLimit converts a project storage limit to bytes. It accepts -1
