@@ -111,6 +111,12 @@ func TestValidatePassword(t *testing.T) {
 	// valid
 	err = utils.ValidatePassword("Abcd1234")
 	assert.NoError(t, err)
+
+	// Harbor accepts at most 128 characters
+	err = utils.ValidatePassword("Ab1" + strings.Repeat("x", 125))
+	assert.NoError(t, err)
+	err = utils.ValidatePassword("Ab1" + strings.Repeat("x", 126))
+	assert.Error(t, err)
 }
 
 func TestValidateTagName(t *testing.T) {
@@ -119,8 +125,13 @@ func TestValidateTagName(t *testing.T) {
 }
 
 func TestValidateProjectName(t *testing.T) {
-	assert.True(t, utils.ValidateProjectName("project_1"))
-	assert.False(t, utils.ValidateProjectName("-invalid"))
+	for _, name := range []string{"project_1", "a", "library", "my.project", "my-project-2", "1abc", strings.Repeat("a", 255)} {
+		assert.True(t, utils.ValidateProjectName(name), name)
+	}
+	// names the Harbor server rejects
+	for _, name := range []string{"", "-invalid", "invalid-", "invalid.", "invalid_", "a..b", "a-_b", "a__b", "Project", strings.Repeat("a", 256)} {
+		assert.False(t, utils.ValidateProjectName(name), name)
+	}
 }
 
 func TestValidateStorageLimit(t *testing.T) {
