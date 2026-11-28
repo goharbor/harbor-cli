@@ -100,3 +100,14 @@ Once the release is completed, you can verify it by:
   Double-check that the `COSIGN_KEY` and `COSIGN_PASSWORD` secrets are correctly set in GitHub.
 
 ---
+
+### 6. Release Branches
+
+Every release gets a branch named `release-<version>` (for example `release-0.0.28`), cut from the release tag:
+
+```bash
+git fetch upstream --tags
+git push upstream v0.0.28^{commit}:refs/heads/release-0.0.28
+```
+
+Fixes for a released version land on `main` first. Then cherry-pick them onto the release branch with a pull request that targets `release-<version>`. CI runs on pull requests to release branches and on pushes to them.
